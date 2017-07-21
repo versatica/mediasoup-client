@@ -1,0 +1,7 @@
+/*
+ * <%= pkg.name %> v<%= pkg.version %>
+ * <%= pkg.description %>
+ * Copyright © 2017, Iñaki Baz Castillo <ibc@aliax.net>
+ * License: <%= pkg.license %>
+ */
+
