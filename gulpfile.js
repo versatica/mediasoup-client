@@ -47,13 +47,13 @@ gulp.task('bundle', () =>
 			standalone   : 'mediasoupClient'
 		})
 		.bundle()
-			.on('error', logError)
-			.pipe(source(`${PKG.name}.js`))
-			.pipe(buffer())
-			.pipe(rename(`${PKG.name}.js`))
-			.pipe(uglify())
-			.pipe(header(BANNER, { pkg: PKG }))
-			.pipe(gulp.dest('dist/'));
+		.on('error', logError)
+		.pipe(source(`${PKG.name}.js`))
+		.pipe(buffer())
+		.pipe(rename(`${PKG.name}.js`))
+		.pipe(uglify())
+		.pipe(header(BANNER, { pkg: PKG }))
+		.pipe(gulp.dest('dist/'));
 });
 
 gulp.task('dist', gulp.series('lint', 'bundle'));
