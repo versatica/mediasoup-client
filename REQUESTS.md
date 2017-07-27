@@ -39,7 +39,7 @@ Response:
 ```js
 {
   dtlsParameters: {},
-  dceParameters: {},
+  iceParameters: {},
   iceCandidates: []
 }
 ```
