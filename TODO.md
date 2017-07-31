@@ -13,3 +13,7 @@
   * red
   * telephone-event
   * CN
+
+* mediasoup should accept creating a `RtpReceiver` and assigning it a `Transport` later.
+
+* mediasoup should accept `peer.createTransport()` by passing a `transportId` number. Probably the same with other methods.
