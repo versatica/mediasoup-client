@@ -1,9 +1,5 @@
 # TODO
 
-* I don't like that sender.id matches any track.id since it may be replaced later, etc.
-
-* Signal sender.id in "createReceiver" command.
-
 * Lowcase codec names before matching.
 
 * Also ignore RED codecs and other pseudo-codecs:
@@ -14,6 +10,10 @@
   * telephone-event
   * CN
 
-* mediasoup should accept creating a `RtpReceiver` and assigning it a `Transport` later.
+* mediasoup should accept `peer.createTransport()` by passing a `transportId` number. The same for `RtpReceiver`.
 
-* mediasoup should accept `peer.createTransport()` by passing a `transportId` number. Probably the same with other methods.
+* mediasoup should provide `const transport = peer.Transport()` rather than `createTransport()` (that returns a Promise).
+
+* Client's `room.createTransport()` should accept mediasoup transport options and also TURN settings.
+
+* `room.createSender(track)` must check whether the room offers compatible codecs for `track.kind` and, if not, throw error. Also, `room.canSend(kind)` is required for the app to query whether it can send audio/video.

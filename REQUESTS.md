@@ -30,6 +30,8 @@ Request:
 ```js
 {
   type: 'createTransport',
+  transportId: 1234,
+  options: {},
   dtlsParameters: {}
 }
 ```
@@ -38,9 +40,9 @@ Response:
 
 ```js
 {
-  dtlsParameters: {},
   iceParameters: {},
-  iceCandidates: []
+  iceCandidates: [],
+  dtlsParameters: {}
 }
 ```
 
@@ -52,7 +54,7 @@ Request:
 ```js
 {
   type: 'createReceiver',
-  id: ¿?,
+  receiverId: ,
   rtpParameters: {}
 }
 ```
