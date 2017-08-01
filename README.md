@@ -13,7 +13,8 @@ import * as mediasoupClient from 'mediasoup-client';
 // Create a Room.
 const room = new mediasoupClient.Room();
 
-// Setup the request+response exchange with mediasoup server.
+// Setup request+response exchange from mediasoup-client to mediasoup
+// server.
 room.on('request', (request, callback, errback) =>
 {
   // Application's signaling request (up to the app).
@@ -35,7 +36,7 @@ room.on('request', (request, callback, errback) =>
     });
 });
 
-// Setup the notification sending with mediasoup server.
+// Setup notifications from mediasoup-client to mediasoup server.
 room.on('notification', (notification) =>
 {
   // Application's signaling request (up to the app).

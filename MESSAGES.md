@@ -1,15 +1,18 @@
-# Request
-
-List of requests sent by mediasoup-client.
+# Messages
 
 
-### join
+## From client to server
+
+List of requests (and success responses) and notifications sent by mediasoup-client.
+
+
+### 'join' Request
 
 Request:
 
 ```js
 {
-  type: 'join'
+  method: 'join'
 }
 ```
 
@@ -23,14 +26,14 @@ Response:
 ```
 
 
-### createTransport
+### 'createTransport' Request
 
 Request:
 
 ```js
 {
-  type: 'createTransport',
-  transportId: 1234,
+  method: 'createTransport',
+  transportId: 1111,
   options: {},
   dtlsParameters: {}
 }
@@ -47,14 +50,15 @@ Response:
 ```
 
 
-### createReceiver
+### 'createReceiver' Request
 
 Request:
 
 ```js
 {
   type: 'createReceiver',
-  receiverId: ,
+  receiverId: 2222,
+  transportId: 1111,
   rtpParameters: {}
 }
 ```
@@ -62,7 +66,5 @@ Request:
 Response:
 
 ```js
-{
-  
-}
+{}
 ```
