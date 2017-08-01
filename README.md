@@ -31,12 +31,12 @@ room.on('sendrequest', (request, callback, errback) =>
     })
     .catch((error) =>
     {
-      errback(String(error));
+      errback(error.toString());
     });
 });
 
 // Join the Room.
-room.join();
+room.join()
   .then(() =>
   {
     // Get our audio and video.
