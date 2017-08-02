@@ -3,10 +3,10 @@
 
 ## From client to server
 
-List of requests (and success responses) and notifications sent by mediasoup-client.
+List of request (with success responses) and notifications sent by mediasoup-client.
 
 
-### 'join' Request
+### join
 
 Request:
 
@@ -26,7 +26,7 @@ Response:
 ```
 
 
-### 'createTransport' Request
+### createTransport
 
 Request:
 
@@ -50,13 +50,13 @@ Response:
 ```
 
 
-### 'createReceiver' Request
+### createReceiver
 
 Request:
 
 ```js
 {
-  type: 'createReceiver',
+  method: 'createReceiver',
   receiverId: 2222,
   transportId: 1111,
   rtpParameters: {}
@@ -67,4 +67,68 @@ Response:
 
 ```js
 {}
+```
+
+
+### leave
+
+Notification:
+
+```js
+{
+  method: 'leave',
+  notification: true
+}
+```
+
+
+### closeTransport
+
+Notification:
+
+```js
+{
+  method: 'closeTransport',
+  notification: true,
+  transportId: 1111
+}
+```
+
+
+### closeReceiver
+
+Notification:
+
+```js
+{
+  method: 'closeReceiver',
+  notification: true,
+  receiverId: 2222
+}
+```
+
+
+### pauseReceiver
+
+Notification:
+
+```js
+{
+  method: 'pauseReceiver',
+  notification: true,
+  receiverId: 2222
+}
+```
+
+
+### resumeReceiver
+
+Notification:
+
+```js
+{
+  method: 'resumeReceiver',
+  notification: true,
+  receiverId: 2222
+}
 ```
