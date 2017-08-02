@@ -12,7 +12,8 @@ Request:
 
 ```js
 {
-  method: 'join'
+  method: 'join',
+  appData: Any
 }
 ```
 
@@ -35,7 +36,8 @@ Request:
   method: 'createTransport',
   transportId: 1111,
   options: {},
-  dtlsParameters: {}
+  dtlsParameters: {},
+  appData: Any
 }
 ```
 
@@ -59,7 +61,8 @@ Request:
   method: 'createReceiver',
   receiverId: 2222,
   transportId: 1111,
-  rtpParameters: {}
+  rtpParameters: {},
+  appData: Any
 }
 ```
 
@@ -77,7 +80,8 @@ Notification:
 ```js
 {
   method: 'leave',
-  notification: true
+  notification: true,
+  appData: Any
 }
 ```
 
@@ -90,7 +94,8 @@ Notification:
 {
   method: 'closeTransport',
   notification: true,
-  transportId: 1111
+  transportId: 1111,
+  appData: Any
 }
 ```
 
@@ -103,7 +108,8 @@ Notification:
 {
   method: 'closeReceiver',
   notification: true,
-  receiverId: 2222
+  receiverId: 2222,
+  appData: Any
 }
 ```
 
@@ -116,7 +122,8 @@ Notification:
 {
   method: 'pauseReceiver',
   notification: true,
-  receiverId: 2222
+  receiverId: 2222,
+  appData: Any
 }
 ```
 
@@ -129,6 +136,7 @@ Notification:
 {
   method: 'resumeReceiver',
   notification: true,
-  receiverId: 2222
+  receiverId: 2222,
+  appData: Any
 }
 ```
