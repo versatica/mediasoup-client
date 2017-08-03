@@ -3,8 +3,6 @@
 
 ## From client to server
 
-List of requests and notifications sent by mediasoup-client.
-
 
 ### join
 
@@ -62,6 +60,7 @@ Request:
   receiverId: 2222,
   transportId: 1111,
   rtpParameters: {},
+  paused: false,
   appData: Any
 }
 ```
@@ -137,6 +136,25 @@ Notification:
   method: 'resumeReceiver',
   notification: true,
   receiverId: 2222,
+  appData: Any
+}
+```
+
+
+## From server to client
+
+
+### newReceiver
+
+Notification:
+
+```js
+{
+  method: 'newReceiver',
+  peerName: 'alice',
+  receiverId: 3333,
+  rtpParameters: {},
+  paused: false
   appData: Any
 }
 ```
