@@ -3,7 +3,7 @@
 
 ## From client to server
 
-List of request (with success responses) and notifications sent by mediasoup-client.
+List of requests and notifications sent by mediasoup-client.
 
 
 ### join
