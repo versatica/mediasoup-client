@@ -58,6 +58,7 @@ Request:
 {
   method: 'createReceiver',
   id: 2222,
+  kind: 'audio',
   transportId: 1111,
   rtpParameters: {},
   paused: false,
@@ -168,6 +169,7 @@ Notification:
   method: 'newReceiver',
   notification: true,
   id: 3333,
+  kind: 'video',
   peerName: 'alice',
   rtpParameters: {},
   paused: false
