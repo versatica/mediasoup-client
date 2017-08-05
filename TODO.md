@@ -1,6 +1,9 @@
 # TODO
 
-* `a=ssrc:label` is deprecated. `a=ssrc:msid` is not standard, but we know it's 100% needed in PlanB, so move to it.
+
+* Must check that we can receive a remote track before trying it.
+
+* Add `receiver.canReceive()` => Boolean based on RTP capabilities. Or better `transport.canReceive(receive)`?
 
 * Lowcase codec names before matching.
 
@@ -12,7 +15,7 @@
   * telephone-event
   * CN
 
-* Add `receiver.canReceive()` => Boolean based on RTP capabilities. Or better `transport.canReceive(receive)`?
+* Rename `numChannels` to `channels` everywhere? https://github.com/w3c/ortc/issues/738
 
 
 # mediasoup 2.0.0 related TODO

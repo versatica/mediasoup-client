@@ -25,6 +25,19 @@ Response:
 ```
 
 
+### leave
+
+Notification:
+
+```js
+{
+  method: 'leave',
+  notification: true,
+  appData: Any
+}
+```
+
+
 ### createTransport
 
 Request:
@@ -34,7 +47,7 @@ Request:
   method: 'createTransport',
   id: 1111,
   options: {},
-  dtlsParameters: {},
+  dtlsParameters: {}, // Optional.
   appData: Any
 }
 ```
@@ -46,6 +59,34 @@ Response:
   iceParameters: {},
   iceCandidates: [],
   dtlsParameters: {}
+}
+```
+
+
+### updateTransport
+
+Notification:
+
+```js
+{
+  method: 'updateTransport',
+  notification: true,
+  id: 1111,
+  dtlsParameters: {}
+}
+```
+
+
+### closeTransport
+
+Notification:
+
+```js
+{
+  method: 'closeTransport',
+  notification: true,
+  id: 1111,
+  appData: Any
 }
 ```
 
@@ -70,33 +111,6 @@ Response:
 
 ```js
 {}
-```
-
-
-### leave
-
-Notification:
-
-```js
-{
-  method: 'leave',
-  notification: true,
-  appData: Any
-}
-```
-
-
-### closeTransport
-
-Notification:
-
-```js
-{
-  method: 'closeTransport',
-  notification: true,
-  id: 1111,
-  appData: Any
-}
 ```
 
 
