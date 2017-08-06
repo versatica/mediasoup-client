@@ -253,13 +253,13 @@ Notification:
 ```
 
 
-### peerClosed
+### peerLeft
 
 Notification:
 
 ```js
 {
-  method: 'peerClosed',
+  method: 'peerLeft',
   notification: true,
   name: 'alice',
   appData: Any
