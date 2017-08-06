@@ -1,9 +1,8 @@
 # TODO
 
+* Rename events to past time ("close" => "closed", "pause" => paused"...)?
 
-* Must check that we can receive a remote track before trying it.
-
-* Add `receiver.canReceive()` => Boolean based on RTP capabilities. Or better `transport.canReceive(receive)`?
+* Notification to indicate "paused"/"resumed" in Receiver.
 
 * Lowcase codec names before matching.
 
@@ -14,8 +13,6 @@
   * red
   * telephone-event
   * CN
-
-* Rename `numChannels` to `channels` everywhere? https://github.com/w3c/ortc/issues/738
 
 
 # mediasoup 2.0.0 related TODO

@@ -216,7 +216,16 @@ Notification:
   method: 'newPeer',
   notification: true,
   name: 'alice',
-  receivers: [],
+  receivers:
+  [
+    {
+      id: 3333,
+      kind: 'alice',
+      rtpParameters: {},
+      paused: false,
+      appData: Any
+    }
+  ],
   appData: Any
 }
 ```
@@ -230,7 +239,7 @@ Notification:
 {
   method: 'newReceiver',
   notification: true,
-  id: 3333,
+  id: 4444,
   kind: 'video',
   peerName: 'alice',
   rtpParameters: {},
