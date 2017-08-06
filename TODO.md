@@ -2,9 +2,9 @@
 
 * Rename events to past time ("close" => "closed", "pause" => paused"...)? Also, `peer.on('left')` rather than `peer.on('close')` looks nicer...
 
-* Lowcase codec names before matching.
+* Properly match H264 parameters.
 
-* Also ignore RED codecs and other pseudo-codecs:
+* Ignore RED codecs and other pseudo-codecs:
   * ulpfec
   * flexfec
   * x-ulpfecuc
