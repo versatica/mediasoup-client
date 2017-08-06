@@ -238,7 +238,7 @@ Notification:
   method: 'newPeer',
   notification: true,
   name: 'alice',
-  receivers:
+  senders:
   [
     {
       id: 3333,
@@ -253,19 +253,78 @@ Notification:
 ```
 
 
-### newReceiver
+### peerClosed
 
 Notification:
 
 ```js
 {
-  method: 'newReceiver',
+  method: 'peerClosed',
+  notification: true,
+  name: 'alice',
+  appData: Any
+}
+```
+
+
+### newSender
+
+Notification:
+
+```js
+{
+  method: 'newSender',
   notification: true,
   id: 4444,
   kind: 'video',
   peerName: 'alice',
   rtpParameters: {},
   paused: false
+  appData: Any
+}
+```
+
+
+### senderClosed
+
+Notification:
+
+```js
+{
+  method: 'senderClosed',
+  notification: true,
+  id: 4444,
+  peerName: 'alice',
+  appData: Any
+}
+```
+
+
+### senderPaused
+
+Notification:
+
+```js
+{
+  method: 'senderPaused',
+  notification: true,
+  id: 4444,
+  peerName: 'alice',
+  appData: Any
+}
+```
+
+
+### senderResumed
+
+Notification:
+
+```js
+{
+  method: 'senderResumed',
+  notification: true,
+  id: 4444,
+  peerName: 'alice',
   appData: Any
 }
 ```
