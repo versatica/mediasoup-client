@@ -2,8 +2,6 @@
 
 * Rename events to past time ("close" => "closed", "pause" => paused"...)?
 
-* Notification to indicate "paused"/"resumed" in Receiver.
-
 * Lowcase codec names before matching.
 
 * Also ignore RED codecs and other pseudo-codecs:
