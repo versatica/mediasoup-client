@@ -15,8 +15,10 @@
   * CN
 
 
-# mediasoup 2.0.0 related TODO
+# TODO in mediasoup 2.0.0 (server)
 
 * mediasoup should accept `peer.createTransport()` by passing a `transportId` number. The same for `RtpReceiver`.
 
 * mediasoup should provide `const transport = peer.Transport()` rather than `createTransport()` (that returns a Promise).
+
+* Rename `numChannels` to `channels` everywhere? https://github.com/w3c/ortc/issues/738
