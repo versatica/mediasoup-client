@@ -130,29 +130,77 @@ Notification:
 
 ### pauseReceiver
 
-Notification:
+Request:
 
 ```js
 {
   method: 'pauseReceiver',
-  notification: true,
   id: 2222,
   appData: Any
 }
 ```
 
+Response:
+
+```js
+{}
+```
+
 
 ### resumeReceiver
 
-Notification:
+Request:
 
 ```js
 {
   method: 'resumeReceiver',
-  notification: true,
   id: 2222,
   appData: Any
 }
+```
+
+Response:
+
+```js
+{}
+```
+
+
+### playSender
+
+Request:
+
+```js
+{
+  method: 'playSender',
+  id: 3333,
+  appData: Any
+}
+```
+
+Response:
+
+```js
+{}
+```
+
+
+### stopSender
+
+Request:
+
+```js
+{
+  method: 'stopSender',
+  id: 3333,
+  appData: Any
+}
+```
+
+Response:
+
+```js
+{}
 ```
 
 

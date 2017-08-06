@@ -37,7 +37,7 @@ room.on('request', (request, callback, errback) =>
 });
 
 // Setup notifications from mediasoup-client to mediasoup server.
-room.on('notification', (notification) =>
+room.on('notify', (notification) =>
 {
   // Application's signaling request (up to the app).
   const signalingRequest =
@@ -66,7 +66,7 @@ room.join()
     const audioTrack = stream.getAudioTracks()[0];
     const videoTrack = stream.getVideoTracks()[0];
     
-    // Create a Transport.
+    // Create a Transport for sending our media.
     const transport = room.createTransport('send');
 
     // Create Senders for audio and video.
