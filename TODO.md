@@ -1,5 +1,7 @@
 # TODO
 
+* Notification for "room closed"?
+
 * Rename events to past time ("close" => "closed", "pause" => paused"...)?
 
 * Lowcase codec names before matching.
