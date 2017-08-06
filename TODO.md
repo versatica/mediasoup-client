@@ -1,7 +1,5 @@
 # TODO
 
-* Notification for "room closed"?
-
 * Rename events to past time ("close" => "closed", "pause" => paused"...)? Also, `peer.on('left')` rather than `peer.on('close')` looks nicer...
 
 * Lowcase codec names before matching.

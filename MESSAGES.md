@@ -229,6 +229,33 @@ Response:
 ## From server to client
 
 
+### roomClosed
+
+Notification:
+
+```js
+{
+  method: 'roomClosed',
+  notification: true,
+  appData: Any
+}
+```
+
+
+### transportClosed
+
+Notification:
+
+```js
+{
+  method: 'transportClosed',
+  notification: true,
+  id: 1111,
+  appData: Any
+}
+```
+
+
 ### newPeer
 
 Notification:
