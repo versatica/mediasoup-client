@@ -10,7 +10,7 @@ JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based
 ```js
 import * as mediasoupClient from 'mediasoup-client';
 
-// Create a Room.
+// Create a local Room instance associated to a Room in mediasoup server.
 const room = new mediasoupClient.Room();
 
 // Create a Transport for sending our media.
@@ -111,9 +111,9 @@ function handlePeer(peer)
   }
 
   // Fired when the remote Peer disconects from the Room.
-  peer.on('leave', (appData) =>
+  peer.on('leave', () =>
   {
-    console.log(`Peer ${peer.name} left the room`);
+    console.log('Peer left the room');
   });
 
   // Fired when the remote Peer adds a new Sender.
