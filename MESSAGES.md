@@ -166,6 +166,28 @@ Response:
 ```
 
 
+### enableSender
+
+Request:
+
+```js
+{
+  method: 'enableSender',
+  id: 2222,
+  rtpSettings:
+  {
+    useRtx: true
+  }
+}
+```
+
+Response:
+
+```js
+{}
+```
+
+
 ### playSender
 
 Request:
