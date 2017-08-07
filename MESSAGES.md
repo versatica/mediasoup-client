@@ -130,39 +130,29 @@ Notification:
 
 ### pauseReceiver
 
-Request:
+Notification:
 
 ```js
 {
   method: 'pauseReceiver',
+  notification: true,
   id: 2222,
   appData: Any
 }
-```
-
-Response:
-
-```js
-{}
 ```
 
 
 ### resumeReceiver
 
-Request:
+Notification:
 
 ```js
 {
   method: 'resumeReceiver',
+  notification: true,
   id: 2222,
   appData: Any
 }
-```
-
-Response:
-
-```js
-{}
 ```
 
 
@@ -173,7 +163,7 @@ Request:
 ```js
 {
   method: 'enableSender',
-  id: 2222,
+  id: 3333,
   rtpSettings:
   {
     useRtx: true
@@ -188,41 +178,31 @@ Response:
 ```
 
 
-### playSender
+### pauseSender
 
-Request:
+Notification:
 
 ```js
 {
-  method: 'playSender',
+  method: 'pauseSender',
+  notification: true,
   id: 3333,
   appData: Any
 }
 ```
 
-Response:
 
-```js
-{}
-```
+### resumeSender
 
-
-### stopSender
-
-Request:
+Notification:
 
 ```js
 {
-  method: 'stopSender',
+  method: 'resumeSender',
+  notification: true,
   id: 3333,
   appData: Any
 }
-```
-
-Response:
-
-```js
-{}
 ```
 
 
@@ -230,6 +210,8 @@ Response:
 
 
 ### roomClosed
+
+The remote `Room` has been closed.
 
 Notification:
 
@@ -268,7 +250,7 @@ Notification:
   senders:
   [
     {
-      id: 3333,
+      id: 5555,
       kind: 'alice',
       rtpParameters: {},
       paused: false,
@@ -280,15 +262,57 @@ Notification:
 ```
 
 
-### peerLeft
+### peerClosed
 
 Notification:
 
 ```js
 {
-  method: 'peerLeft',
+  method: 'peerClosed',
   notification: true,
   name: 'alice',
+  appData: Any
+}
+```
+
+
+### receiverClosed
+
+Notification:
+
+```js
+{
+  method: 'receiverClosed',
+  notification: true,
+  id: 2222,
+  appData: Any
+}
+```
+
+
+### receiverPaused
+
+Notification:
+
+```js
+{
+  method: 'receiverPaused',
+  notification: true,
+  id: 2222,
+  appData: Any
+}
+```
+
+
+### receiverResumed
+
+Notification:
+
+```js
+{
+  method: 'receiverResumed',
+  notification: true,
+  id: 2222,
   appData: Any
 }
 ```
@@ -302,7 +326,7 @@ Notification:
 {
   method: 'newSender',
   notification: true,
-  id: 4444,
+  id: 3333,
   kind: 'video',
   peerName: 'alice',
   rtpParameters: {},
@@ -320,7 +344,7 @@ Notification:
 {
   method: 'senderClosed',
   notification: true,
-  id: 4444,
+  id: 3333,
   peerName: 'alice',
   appData: Any
 }
@@ -335,7 +359,7 @@ Notification:
 {
   method: 'senderPaused',
   notification: true,
-  id: 4444,
+  id: 3333,
   peerName: 'alice',
   appData: Any
 }
@@ -350,7 +374,7 @@ Notification:
 {
   method: 'senderResumed',
   notification: true,
-  id: 4444,
+  id: 3333,
   peerName: 'alice',
   appData: Any
 }

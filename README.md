@@ -111,7 +111,7 @@ function handlePeer(peer)
   }
 
   // Fired when the remote Peer disconects from the Room.
-  peer.on('leave', () =>
+  peer.on('left', () =>
   {
     console.log('Peer left the room');
   });
@@ -135,22 +135,22 @@ function handleReceiver(receiver)
       console.log('new receiving MediaStreamTrack');
     });
 
-  // Fired when the remote Peer closes his associated Sender.
-  receiver.on('close', () =>
+  // Fired when the Receiver is closed.
+  receiver.on('closed', () =>
   {
     console.log('Receiver closed');
   });
 
-  // Fired when the remote Peer pauses his associated Sender.
-  receiver.on('pause', () =>
+  // Fired when the remote stream is paused.
+  receiver.on('paused', (originator) =>
   {
-    console.log('Receiver paused');
+    console.log('Receiver paused, originator:%s', originator);
   });
 
-  // Fired when the remote Peer resumes his associated Sender.
-  receiver.on('resume', () =>
+  // Fired when the remote stream is resumed.
+  receiver.on('resumed', (originator) =>
   {
-    console.log('Receiver resumed');
+    console.log('Receiver resumed, originator:%s', originator);
   });
 }
 ```

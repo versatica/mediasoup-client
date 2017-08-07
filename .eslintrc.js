@@ -32,7 +32,16 @@ module.exports =
 		'comma-style'                   : 2,
 		'computed-property-spacing'     : 2,
 		'indent'                        : [ 2, 'tab', { 'SwitchCase': 1 } ],
-		'max-len'                       : [ 2, 90, { 'tabWidth': 2 } ],
+		'max-len'                       : [ 2, 90,
+		                                    {
+		                                    	tabWidth               : 2,
+		                                    	comments               : 110,
+		                                    	ignoreUrls             : true,
+		                                    	ignoreStrings          : true,
+		                                    	ignoreTemplateLiterals : true,
+		                                    	ignoreRegExpLiterals   : true
+		                                    }
+		                                  ],
 		'no-console'                    : 0,
 		'no-duplicate-case'             : 2,
 		'no-empty'                      : 0,

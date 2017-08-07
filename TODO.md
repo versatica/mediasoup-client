@@ -1,7 +1,5 @@
 # TODO
 
-* Rename events to past time ("close" => "closed", "pause" => paused"...)? Also, `peer.on('left')` rather than `peer.on('close')` looks nicer...
-
 * Properly match H264 parameters.
 
 * Ignore RED codecs and other pseudo-codecs:
@@ -27,6 +25,8 @@
 
 * mediasoup should provide `const transport = peer.Transport()` rather than `createTransport()` (that returns a Promise).
 
-* Rename `numChannels` to `channels` everywhere? https://github.com/w3c/ortc/issues/738
-
 * May have to react on DTLS ALERT CLOSE in the server and make it "really" close the Transport and notify the client. Bufff... I don't like this...
+
+* mediasoup must ignore a `resumeReceiver` request (so re-enabling a client `Sender`) if it was remotely paused in mediasoup. However, mediasoup `RtpReceiver` must also keep state about `locallyPaused` and `remotelyPaused`.
+
+* mediasoup must be ready for the case in which the client closes a `Transport` on which a `RtpReceiver` was running.
