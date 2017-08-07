@@ -16,6 +16,10 @@
   - Or we can have a fake DataChannel, but Firefox does also close the DTLS if there is no audio/video tracks.
   - This is for both sending and receiving PeerConnections.
 
+* Implement `getStats()` in browsers? or better report uniformely from mediasoup?
+
+* `sender.replaceTrack(newTrack)`.
+
 
 # TODO in mediasoup 2.0.0 (server)
 
