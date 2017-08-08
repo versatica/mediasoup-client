@@ -1,7 +1,5 @@
 # TODO
 
-* `enableConsumer` should provide exact receiving capabilities rather than a `rtpSettings` minimal Object.
-
 * Properly match H264 parameters.
 
 * Ignore FEC and RED feature codecs:

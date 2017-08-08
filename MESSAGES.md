@@ -4,13 +4,33 @@
 ## From client to server
 
 
-### join
+### queryRoom
 
 Request:
 
 ```js
 {
-  method: 'join',
+  method: 'queryRoom'
+}
+```
+
+Response:
+
+```js
+{
+  rtpCapabilities: {}
+}
+```
+
+
+### joinRoom
+
+Request:
+
+```js
+{
+  method: 'joinRoom',
+  rtpCapabilities: {},
   appData: Any
 }
 ```
@@ -19,7 +39,6 @@ Response:
 
 ```js
 {
-  rtpCapabilities: {},
   peers: []
 }
 ```
@@ -163,11 +182,7 @@ Request:
 ```js
 {
   method: 'enableConsumer',
-  id: 3333,
-  rtpSettings:
-  {
-    useRtx: true
-  }
+  id: 3333
 }
 ```
 
