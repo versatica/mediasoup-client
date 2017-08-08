@@ -91,13 +91,13 @@ Notification:
 ```
 
 
-### createReceiver
+### createProducer
 
 Request:
 
 ```js
 {
-  method: 'createReceiver',
+  method: 'createProducer',
   id: 2222,
   kind: 'audio',
   transportId: 1111,
@@ -114,13 +114,13 @@ Response:
 ```
 
 
-### closeReceiver
+### closeProducer
 
 Notification:
 
 ```js
 {
-  method: 'closeReceiver',
+  method: 'closeProducer',
   notification: true,
   id: 2222,
   appData: Any
@@ -128,13 +128,13 @@ Notification:
 ```
 
 
-### pauseReceiver
+### pauseProducer
 
 Notification:
 
 ```js
 {
-  method: 'pauseReceiver',
+  method: 'pauseProducer',
   notification: true,
   id: 2222,
   appData: Any
@@ -142,13 +142,13 @@ Notification:
 ```
 
 
-### resumeReceiver
+### resumeProducer
 
 Notification:
 
 ```js
 {
-  method: 'resumeReceiver',
+  method: 'resumeProducer',
   notification: true,
   id: 2222,
   appData: Any
@@ -156,13 +156,13 @@ Notification:
 ```
 
 
-### enableSender
+### enableConsumer
 
 Request:
 
 ```js
 {
-  method: 'enableSender',
+  method: 'enableConsumer',
   id: 3333,
   rtpSettings:
   {
@@ -178,13 +178,13 @@ Response:
 ```
 
 
-### pauseSender
+### pauseConsumer
 
 Notification:
 
 ```js
 {
-  method: 'pauseSender',
+  method: 'pauseConsumer',
   notification: true,
   id: 3333,
   appData: Any
@@ -192,13 +192,13 @@ Notification:
 ```
 
 
-### resumeSender
+### resumeConsumer
 
 Notification:
 
 ```js
 {
-  method: 'resumeSender',
+  method: 'resumeConsumer',
   notification: true,
   id: 3333,
   appData: Any
@@ -247,7 +247,7 @@ Notification:
   method: 'newPeer',
   notification: true,
   name: 'alice',
-  senders:
+  consumers:
   [
     {
       id: 5555,
@@ -276,13 +276,13 @@ Notification:
 ```
 
 
-### receiverClosed
+### producerClosed
 
 Notification:
 
 ```js
 {
-  method: 'receiverClosed',
+  method: 'producerClosed',
   notification: true,
   id: 2222,
   appData: Any
@@ -290,13 +290,13 @@ Notification:
 ```
 
 
-### receiverPaused
+### producerPaused
 
 Notification:
 
 ```js
 {
-  method: 'receiverPaused',
+  method: 'producerPaused',
   notification: true,
   id: 2222,
   appData: Any
@@ -304,13 +304,13 @@ Notification:
 ```
 
 
-### receiverResumed
+### producerResumed
 
 Notification:
 
 ```js
 {
-  method: 'receiverResumed',
+  method: 'producerResumed',
   notification: true,
   id: 2222,
   appData: Any
@@ -318,13 +318,13 @@ Notification:
 ```
 
 
-### newSender
+### newConsumer
 
 Notification:
 
 ```js
 {
-  method: 'newSender',
+  method: 'newConsumer',
   notification: true,
   id: 3333,
   kind: 'video',
@@ -336,13 +336,13 @@ Notification:
 ```
 
 
-### senderClosed
+### consumerClosed
 
 Notification:
 
 ```js
 {
-  method: 'senderClosed',
+  method: 'consumerClosed',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -351,13 +351,13 @@ Notification:
 ```
 
 
-### senderPaused
+### consumerPaused
 
 Notification:
 
 ```js
 {
-  method: 'senderPaused',
+  method: 'consumerPaused',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -366,13 +366,13 @@ Notification:
 ```
 
 
-### senderResumed
+### consumerResumed
 
 Notification:
 
 ```js
 {
-  method: 'senderResumed',
+  method: 'consumerResumed',
   notification: true,
   id: 3333,
   peerName: 'alice',

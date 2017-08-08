@@ -1,12 +1,16 @@
 # TODO
 
+* `enableConsumer` should provide exact receiving capabilities rather than a `rtpSettings` minimal Object.
+
 * Properly match H264 parameters.
 
-* Ignore RED codecs and other pseudo-codecs:
+* Ignore FEC and RED feature codecs:
   * ulpfec
   * flexfec
   * x-ulpfecuc
   * red
+
+* Should not ignore pseudo media codecs:
   * telephone-event
   * CN
 
@@ -16,11 +20,13 @@
 
 * Implement `getStats()` in browsers? or better report uniformely from mediasoup?
 
-* `sender.replaceTrack(newTrack)`.
+* Implement `sender.replaceTrack(newTrack)`.
 
 
 # TODO in mediasoup 2.0.0 (server)
 
+* Rename `RtpReceiver` to `Producer` and `RtpSender` to `Consumer`
+* 
 * mediasoup should accept `peer.createTransport()` by passing a `transportId` number. The same for `RtpReceiver`.
 
 * mediasoup should provide `const transport = peer.Transport()` rather than `createTransport()` (that returns a Promise).
