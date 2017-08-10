@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const fs = require('fs');
 const gulp = require('gulp');
@@ -22,7 +22,7 @@ function logError(error)
 
 gulp.task('lint', () =>
 {
-	let src = [ 'gulpfile.js', 'lib/**/*.js' ];
+	let src = [ 'gulpfile.js', '.eslintrc.js', 'lib/**/*.js' ];
 
 	return gulp.src(src)
 		.pipe(plumber())
