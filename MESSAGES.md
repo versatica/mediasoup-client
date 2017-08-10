@@ -6,6 +6,8 @@
 
 ### queryRoom
 
+Get info about the server-side `Room`. 
+
 Request:
 
 ```js
@@ -24,6 +26,9 @@ Response:
 
 
 ### joinRoom
+
+Join the server-side `Room`.
+Other peers will be notified with a `newPeer` notification.
 
 Request:
 
@@ -44,7 +49,10 @@ Response:
 ```
 
 
-### leave
+### leaveRoom
+
+Leave the server-side `Room`.
+Other peers will be notified with a `peerClosed` notification.
 
 Notification:
 
@@ -58,6 +66,8 @@ Notification:
 
 
 ### createTransport
+
+Create a server-side `Transport`.
 
 Request:
 
@@ -84,6 +94,8 @@ Response:
 
 ### updateTransport
 
+Provide pending local parameters (if needed) to a server-side `Transport`.
+
 Notification:
 
 ```js
@@ -98,6 +110,8 @@ Notification:
 
 ### closeTransport
 
+Close a server-side `Transport`.
+
 Notification:
 
 ```js
@@ -111,6 +125,9 @@ Notification:
 
 
 ### createProducer
+
+Create a server-side `Producer` for sending media over the indicate `Transport`.
+Other peers will be notified with a `newConsumer` notification.
 
 Request:
 
@@ -135,6 +152,9 @@ Response:
 
 ### closeProducer
 
+Close a server-side `Producer`.
+Other peers will be notified with a `consumerClosed` notification.
+
 Notification:
 
 ```js
@@ -148,6 +168,9 @@ Notification:
 
 
 ### pauseProducer
+
+Pause a server-side `Producer`.
+Other peers will be notified with a `consumerPaused` notification.
 
 Notification:
 
@@ -163,6 +186,9 @@ Notification:
 
 ### resumeProducer
 
+Resume a server-side `Producer`.
+Other peers will be notified with a `consumerResumed` notification.
+
 Notification:
 
 ```js
@@ -176,6 +202,8 @@ Notification:
 
 
 ### enableConsumer
+
+Enable the reception of media from a server-side `Consumer`.
 
 Request:
 
@@ -195,6 +223,8 @@ Response:
 
 ### pauseConsumer
 
+Pause the reception of media from a server-side `Consumer`.
+
 Notification:
 
 ```js
@@ -208,6 +238,8 @@ Notification:
 
 
 ### resumeConsumer
+
+Resume the reception of media from a server-side `Consumer`.
 
 Notification:
 
@@ -226,7 +258,7 @@ Notification:
 
 ### roomClosed
 
-The remote `Room` has been closed.
+The server-side `Room` or my server-side `Peer` has been closed in the server.
 
 Notification:
 
@@ -240,6 +272,8 @@ Notification:
 
 
 ### transportClosed
+
+A server-side `Transport` has been closed in the server.
 
 Notification:
 
@@ -255,6 +289,8 @@ Notification:
 
 ### newPeer
 
+A new `Peer` has joined the server-side `Room`.
+
 Notification:
 
 ```js
@@ -266,7 +302,7 @@ Notification:
   [
     {
       id: 5555,
-      kind: 'alice',
+      kind: 'audio',
       rtpParameters: {},
       paused: false,
       appData: Any
@@ -278,6 +314,8 @@ Notification:
 
 
 ### peerClosed
+
+A server-side `Peer` has been closed (it may have left the room or his server-side `Peer` has been closed in the server).
 
 Notification:
 
@@ -293,6 +331,8 @@ Notification:
 
 ### producerClosed
 
+A server-side `Producer` has been closed in the server.
+
 Notification:
 
 ```js
@@ -306,6 +346,8 @@ Notification:
 
 
 ### producerPaused
+
+A server-side `Producer` has been paused in the server.
 
 Notification:
 
@@ -321,6 +363,8 @@ Notification:
 
 ### producerResumed
 
+A server-side `Producer` has been resumed in the server.
+
 Notification:
 
 ```js
@@ -334,6 +378,8 @@ Notification:
 
 
 ### newConsumer
+
+A new server-side `Consumer` has been created.
 
 Notification:
 
@@ -353,6 +399,8 @@ Notification:
 
 ### consumerClosed
 
+A server-side `Consumer` has been closed (its originating `Peer` may have left the room, he may have closed it, or his server-side `Peer` or `Producer` may have been closed in the server).
+
 Notification:
 
 ```js
@@ -368,6 +416,8 @@ Notification:
 
 ### consumerPaused
 
+A server-side `Consumer` has been paused (its originating `Peer` may have paused it, or his server-side `Producer` may have been paused in the server, or my associated `Consumer` may have been paused in the server).
+
 Notification:
 
 ```js
@@ -382,6 +432,8 @@ Notification:
 
 
 ### consumerResumed
+
+A server-side `Consumer` has been resumed (its originating `Peer` may have resumed it, or his server-side `Producer` may have been resumed in the server, or my associated `Consumer` may have been resumed in the server).
 
 Notification:
 
