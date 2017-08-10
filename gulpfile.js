@@ -22,7 +22,7 @@ function logError(error)
 
 gulp.task('lint', () =>
 {
-	let src = [ 'gulpfile.js', '.eslintrc.js', 'lib/**/*.js' ];
+	const src = [ 'gulpfile.js', '.eslintrc.js', 'lib/**/*.js' ];
 
 	return gulp.src(src)
 		.pipe(plumber())
