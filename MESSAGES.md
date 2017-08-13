@@ -138,7 +138,6 @@ Request:
   kind: 'audio',
   transportId: 1111,
   rtpParameters: {},
-  paused: false,
   appData: Any
 }
 ```
