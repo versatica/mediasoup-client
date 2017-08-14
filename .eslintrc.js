@@ -29,7 +29,7 @@ module.exports =
 		'array-bracket-spacing': [ 2, 'always',
 		{
 			objectsInArrays: true,
-		  arraysInArrays: true
+			arraysInArrays: true
 		}],
 		'arrow-parens': [ 2, 'always' ],
 		'arrow-spacing': 2,
