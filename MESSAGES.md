@@ -20,7 +20,8 @@ Response:
 
 ```js
 {
-  rtpCapabilities: {}
+  rtpCapabilities: {},
+  mandatoryCodecPayloadTypes: []
 }
 ```
 
