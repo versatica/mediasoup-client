@@ -139,6 +139,7 @@ Request:
   kind: 'audio',
   transportId: 1111,
   rtpParameters: {},
+  paused: false,
   appData: Any
 }
 ```
@@ -210,7 +211,8 @@ Request:
 ```js
 {
   method: 'enableConsumer',
-  id: 3333
+  id: 3333,
+  paused: false
 }
 ```
 
