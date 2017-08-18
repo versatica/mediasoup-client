@@ -6,7 +6,7 @@
   "license": "ISC",
   "main": "lib/index.js",
   "dependencies": {
-    "bowser": "^1.7.1",
+    "bowser": "^1.7.2",
     "debug": "^3.0.0",
     "random-number": "0.0.7",
     "sdp-transform": "^2.3.0",
