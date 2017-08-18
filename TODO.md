@@ -36,3 +36,5 @@
 * mediasoup must ignore a `resumeReceiver` request (so re-enabling a client `Sender`) if it was remotely paused in mediasoup. However, mediasoup `RtpReceiver` must also keep state about `locallyPaused` and `remotelyPaused`.
 
 * mediasoup must be ready for the case in which the client closes a `Transport` on which a `RtpReceiver` was running.
+
+* Upon a `updateProducer` notification, map the new SSRCs of the `Producer` and send a PLI back to the browser (otherwise, consumers will get frozen video).

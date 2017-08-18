@@ -185,6 +185,24 @@ Notification:
 ```
 
 
+### updateProducer
+
+Just for libwebrtc based devices (no `replaceTrack()` support).
+Indicates that the `Producer` has changed its sending RTP parameters (in fact, just the SSRCs).
+
+Notification:
+
+```js
+{
+  method: 'updateProducer',
+  notification: true,
+  id: 2222,
+  rtpParameters: {},
+  paused: false
+}
+```
+
+
 ### resumeProducer
 
 Resume a server-side `Producer`.
