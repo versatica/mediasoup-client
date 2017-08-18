@@ -39,7 +39,7 @@ room.join()
   .then((peers) =>
   {
     // Handle Peers already in to the Room.
-    for (let peer of peers)
+    for (const peer of peers)
     {
       handlePeer(peer);
     }
@@ -104,7 +104,7 @@ room.on('request', (request, callback, errback) =>
 // Peer in the server
 room.on('notify', (notification) =>
 {
-  channel.send({ type: 'mediasoup-notification', body: notification })
+  channel.send({ type: 'mediasoup-notification', body: notification });
 });
 
 
@@ -127,7 +127,7 @@ channel.on('message', (message) =>
 function handlePeer(peer)
 {
   // Handle all the Consumers in the Peer.
-  for (let consumer of peer.consumers)
+  for (const consumer of peer.consumers)
   {
     handleConsumer(consumer);
   }
@@ -156,6 +156,8 @@ function handleConsumer(consumer)
     .then((track) =>
     {
       console.log('receiving a new remote MediaStreamTrack');
+
+      // Attach the track to a MediaStream and play it.
     });
 
   // Event fired when the Consumer is closed.
