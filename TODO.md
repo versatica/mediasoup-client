@@ -20,8 +20,6 @@
 
 * Implement `getStats()` in browsers? or better report uniformely from mediasoup?
 
-* Implement `sender.replaceTrack(newTrack)`.
-
 
 # TODO in mediasoup 2.0.0 (server)
 
@@ -33,8 +31,6 @@
 
 * May have to react on DTLS ALERT CLOSE in the server and make it "really" close the Transport and notify the client. Bufff... I don't like this...
 
-* mediasoup must ignore a `resumeReceiver` request (so re-enabling a client `Sender`) if it was remotely paused in mediasoup. However, mediasoup `RtpReceiver` must also keep state about `locallyPaused` and `remotelyPaused`.
-
-* mediasoup must be ready for the case in which the client closes a `Transport` on which a `RtpReceiver` was running.
+* mediasoup must be ready for the case in which the client closes a `Transport` on which a `Producer` was running.
 
 * Upon a `updateProducer` notification, map the new SSRCs of the `Producer` and send a PLI back to the browser (otherwise, consumers will get frozen video).
