@@ -7,7 +7,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "bowser": "^1.7.2",
-    "debug": "^3.0.0",
+    "debug": "git://github.com/ibc/debug.git#disable-colors-in-edge-and-ie",
     "random-number": "0.0.7",
     "sdp-transform": "^2.3.0",
     "supports-color": "^4.2.1"
