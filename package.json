@@ -1,16 +1,16 @@
 {
   "name": "mediasoup-client",
-  "version": "0.1.2",
-  "description": "mediasoup client SDK for mediasoup 2.X",
+  "version": "0.2.0",
+  "description": "mediasoup client SDK for mediasoup >= 2.0.0",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "license": "ISC",
+  "homepage": "https://mediasoup.org",
   "main": "lib/index.js",
   "dependencies": {
     "bowser": "^1.7.2",
     "debug": "git://github.com/ibc/debug.git#disable-colors-in-edge-and-ie",
-    "random-number": "0.0.7",
-    "sdp-transform": "^2.3.0",
-    "supports-color": "^4.2.1"
+    "random-number": "0.0.9",
+    "sdp-transform": "^2.3.0"
   },
   "browserify": {
     "transform": [
@@ -36,7 +36,7 @@
     "babel-preset-react": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
-    "eslint": "^4.4.1",
+    "eslint": "^4.5.0",
     "eslint-plugin-import": "^2.7.0",
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-eslint": "^4.0.0",
