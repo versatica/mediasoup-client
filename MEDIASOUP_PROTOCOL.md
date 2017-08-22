@@ -328,48 +328,6 @@ Notification:
 ```
 
 
-### newPeer
-
-A new `Peer` has joined the server-side `Room`.
-
-Notification:
-
-```js
-{
-  method: 'newPeer',
-  notification: true,
-  name: 'alice',
-  consumers:
-  [
-    {
-      id: 5555,
-      kind: 'audio',
-      rtpParameters: {},
-      paused: false,
-      appData: Any
-    }
-  ],
-  appData: Any
-}
-```
-
-
-### peerClosed
-
-A server-side `Peer` has been closed (it may have left the room or his server-side `Peer` has been closed in the server).
-
-Notification:
-
-```js
-{
-  method: 'peerClosed',
-  notification: true,
-  name: 'alice',
-  appData: Any
-}
-```
-
-
 ### producerClosed
 
 A server-side `Producer` has been closed in the server.
@@ -413,6 +371,48 @@ Notification:
   method: 'producerResumed',
   notification: true,
   id: 2222,
+  appData: Any
+}
+```
+
+
+### newPeer
+
+A new `Peer` has joined the server-side `Room`.
+
+Notification:
+
+```js
+{
+  method: 'newPeer',
+  notification: true,
+  name: 'alice',
+  consumers:
+  [
+    {
+      id: 5555,
+      kind: 'audio',
+      rtpParameters: {},
+      paused: false,
+      appData: Any
+    }
+  ],
+  appData: Any
+}
+```
+
+
+### peerClosed
+
+A server-side `Peer` has been closed (it may have left the room or his server-side `Peer` has been closed in the server).
+
+Notification:
+
+```js
+{
+  method: 'peerClosed',
+  notification: true,
+  name: 'alice',
   appData: Any
 }
 ```
