@@ -35,7 +35,7 @@ const recvTransport = room.createTransport('recv');
 
 
 // Join the remote Room.
-room.join()
+room.join('alice')
   .then((peers) =>
   {
     // Handle Peers already in to the Room.
@@ -132,10 +132,10 @@ function handlePeer(peer)
     handleConsumer(consumer);
   }
 
-  // Event fired when the remote Peer is closed.
-  peer.on('closed', () =>
+  // Event fired when the remote Room or Peer is closed.
+  peer.on('close', () =>
   {
-    console.log('Peer closed');
+    console.log('My Peer closed');
   });
 
   // Event fired when the remote Peer sends a new media to mediasoup server.
@@ -161,7 +161,7 @@ function handleConsumer(consumer)
     });
 
   // Event fired when the Consumer is closed.
-  consumer.on('closed', () =>
+  consumer.on('close', () =>
   {
     console.log('Consumer closed');
   });

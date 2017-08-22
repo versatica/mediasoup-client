@@ -1,6 +1,6 @@
 # TODO
 
-* Change public event names to present (Twitter rules).
+* Must check peerconnection "closed" state or related event (it may happen without calling close on it, although I think it shouldn't...). Investigate it. Some for ORTC XxxTransports, etc.
 
 * We are allowing calling `room.join()` after closed, but this means that events are also duplicated when re-joined! NOTE: This is a user error, but must document it.
 
