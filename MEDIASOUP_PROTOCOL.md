@@ -1,4 +1,6 @@
-# Messages
+# mediasoup protocol
+
+List of messages (requests/responses/notifications) that must be exchanged between client and server side of the mediasoup based application. No signaling protocol is provided but just message payloads. The application is responsible of sending and receiving these messages.
 
 
 ## From client to server
