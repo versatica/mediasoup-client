@@ -1,5 +1,7 @@
 # TODO
 
+* Change public event names to present (Twitter rules).
+
 * We are allowing calling `room.join()` after closed, but this means that events are also duplicated when re-joined! NOTE: This is a user error, but must document it.
 
 * Properly match H264 parameters.
