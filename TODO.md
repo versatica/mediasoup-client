@@ -21,18 +21,3 @@
   - This is for both sending and receiving PeerConnections.
 
 * Implement `getStats()` in browsers? or better report uniformely from mediasoup?
-
-
-# TODO in mediasoup 2.0.0 (server)
-
-* Rename `RtpReceiver` to `Producer` and `RtpSender` to `Consumer`
-* 
-* mediasoup should accept `peer.createTransport()` by passing a `transportId` number. The same for `RtpReceiver`.
-
-* mediasoup should provide `const transport = peer.Transport()` rather than `createTransport()` (that returns a Promise).
-
-* May have to react on DTLS ALERT CLOSE in the server and make it "really" close the Transport and notify the client. Bufff... I don't like this...
-
-* mediasoup must be ready for the case in which the client closes a `Transport` on which a `Producer` was running.
-
-* Upon a `updateProducer` notification, map the new SSRCs of the `Producer` and send a PLI back to the browser (otherwise, consumers will get frozen video).
