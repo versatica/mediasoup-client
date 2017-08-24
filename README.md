@@ -94,8 +94,8 @@ room.on('request', (request, callback, errback) =>
     })
     .catch((error) =>
     {
-      // Error response, so pass the error message to the local Room.
-      errback(String(error));
+      // Error response, so pass the error to the local Room.
+      errback(error);
     });
 });
 
