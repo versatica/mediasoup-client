@@ -19,5 +19,8 @@
 * In Firefox, if the PC has no active send/recv tracks, its transport is closed via DTLS CLOSE ALERT (https://bugzilla.mozilla.org/show_bug.cgi?id=1355486), so we can avoid SDP O/A if there are 0 active tracks, (and leave only one) or we can react on DTLS CLOSE ALERT in the server, notify it to the client, and reset the handler.
   - Or we can have a fake DataChannel, but Firefox does also close the DTLS if there is no audio/video tracks.
   - This is for both sending and receiving PeerConnections.
+Currently, in Firefox50.removeProducer/Consumer, we don't do SDP O/A if this is the latest Producer/Consumer. However, it does not work. When clater adding a new Producer Firefox sends nothing. I think that it's changing the transport ICE and DTLS stuff...
+Hummm, no no, it was a problem with H264 (not yet properly negotiated). When using opus and VP8, if I close the audio Producer, Firefox stops sending VP8. Fucking SDP and BUNDLE.
+https://github.com/versatica/mediasoup-client/issues/2
 
 * Implement `getStats()` in browsers? or better report uniformely from mediasoup?
