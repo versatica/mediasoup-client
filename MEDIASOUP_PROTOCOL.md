@@ -247,6 +247,7 @@ Request:
   method: 'enableConsumer',
   target: 'peer',
   id: 3333,
+  transportId: 9999,
   paused: false
 }
 ```
