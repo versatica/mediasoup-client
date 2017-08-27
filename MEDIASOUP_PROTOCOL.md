@@ -181,24 +181,6 @@ Notification:
 ```
 
 
-### pauseProducer
-
-Pause a server-side `Producer`.
-Other peers will be notified with a `consumerPaused` notification.
-
-Notification:
-
-```js
-{
-  method: 'pauseProducer',
-  target: 'peer',
-  notification: true,
-  id: 2222,
-  appData: Any
-}
-```
-
-
 ### updateProducer
 
 Just for libwebrtc based devices (no `replaceTrack()` support).
@@ -214,6 +196,24 @@ Notification:
   id: 2222,
   rtpParameters: {},
   paused: false
+}
+```
+
+
+### pauseProducer
+
+Pause a server-side `Producer`.
+Other peers will be notified with a `consumerPaused` notification.
+
+Notification:
+
+```js
+{
+  method: 'pauseProducer',
+  target: 'peer',
+  notification: true,
+  id: 2222,
+  appData: Any
 }
 ```
 
