@@ -63,11 +63,11 @@ room.join('alice')
     const videoProducer = room.createProducer(videoTrack);
 
     // Send our audio.
-    sendTransport.send(audioProducer)
+    audioProducer.send(sendTransport)
       .then(() => console.log('sending our mic'));
 
     // Send our video.
-    sendTransport.send(videoProducer)
+    videoProducer.send(sendTransport)
       .then(() => console.log('sending our webcam'));
   });
 
@@ -152,7 +152,7 @@ function handlePeer(peer)
 function handleConsumer(consumer)
 {
   // Receive the media over our receiving Transport.
-  recvTransport.receive(consumer)
+  consumer.receive(recvTransport)
     .then((track) =>
     {
       console.log('receiving a new remote MediaStreamTrack');
