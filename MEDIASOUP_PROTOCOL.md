@@ -119,6 +119,29 @@ Notification:
 ```
 
 
+### restartTransport
+
+Request the server-side `Transport` to generate new values for its ICE `userFragment` and `password`.
+
+Request:
+
+```js
+{
+  method: 'restartTransport',
+  target: 'peer',
+  id: 1111
+}
+```
+
+Response:
+
+```js
+{
+  iceParameters: {}
+}
+```
+
+
 ### closeTransport
 
 Close a server-side `Transport`.
@@ -160,24 +183,6 @@ Response:
 
 ```js
 {}
-```
-
-
-### closeProducer
-
-Close a server-side `Producer`.
-Other peers will be notified with a `consumerClosed` notification.
-
-Notification:
-
-```js
-{
-  method: 'closeProducer',
-  target: 'peer',
-  notification: true,
-  id: 2222,
-  appData: Any
-}
 ```
 
 
@@ -228,6 +233,24 @@ Notification:
 ```js
 {
   method: 'resumeProducer',
+  target: 'peer',
+  notification: true,
+  id: 2222,
+  appData: Any
+}
+```
+
+
+### closeProducer
+
+Close a server-side `Producer`.
+Other peers will be notified with a `consumerClosed` notification.
+
+Notification:
+
+```js
+{
+  method: 'closeProducer',
   target: 'peer',
   notification: true,
   id: 2222,
@@ -329,22 +352,6 @@ Notification:
 ```
 
 
-### producerClosed
-
-A server-side `Producer` has been closed in the server.
-
-Notification:
-
-```js
-{
-  method: 'producerClosed',
-  notification: true,
-  id: 2222,
-  appData: Any
-}
-```
-
-
 ### producerPaused
 
 A server-side `Producer` has been paused in the server.
@@ -370,6 +377,22 @@ Notification:
 ```js
 {
   method: 'producerResumed',
+  notification: true,
+  id: 2222,
+  appData: Any
+}
+```
+
+
+### producerClosed
+
+A server-side `Producer` has been closed in the server.
+
+Notification:
+
+```js
+{
+  method: 'producerClosed',
   notification: true,
   id: 2222,
   appData: Any
@@ -439,23 +462,6 @@ Notification:
 ```
 
 
-### consumerClosed
-
-A server-side `Consumer` has been closed (its originating `Peer` may have left the room, he may have closed it, or his server-side `Peer` or `Producer` may have been closed in the server).
-
-Notification:
-
-```js
-{
-  method: 'consumerClosed',
-  notification: true,
-  id: 3333,
-  peerName: 'alice',
-  appData: Any
-}
-```
-
-
 ### consumerPaused
 
 A server-side `Consumer` has been paused (its originating `Peer` may have paused it, or his server-side `Producer` may have been paused in the server, or my associated `Consumer` may have been paused in the server).
@@ -482,6 +488,23 @@ Notification:
 ```js
 {
   method: 'consumerResumed',
+  notification: true,
+  id: 3333,
+  peerName: 'alice',
+  appData: Any
+}
+```
+
+
+### consumerClosed
+
+A server-side `Consumer` has been closed (its originating `Peer` may have left the room, he may have closed it, or his server-side `Peer` or `Producer` may have been closed in the server).
+
+Notification:
+
+```js
+{
+  method: 'consumerClosed',
   notification: true,
   id: 3333,
   peerName: 'alice',
