@@ -507,7 +507,6 @@ Notification:
   method: 'consumerClosed',
   notification: true,
   id: 3333,
-  peerName: 'alice',
-  appData: Any
+  peerName: 'alice'
 }
 ```
