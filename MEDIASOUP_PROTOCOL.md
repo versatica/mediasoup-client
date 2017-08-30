@@ -384,6 +384,22 @@ Notification:
 ```
 
 
+### producerClosed
+
+A server-side `Producer` has been closed in the server.
+
+Notification:
+
+```js
+{
+  method: 'producerClosed',
+  notification: true,
+  id: 2222,
+  appData: Any
+}
+```
+
+
 ### newPeer
 
 A new `Peer` has joined the server-side `Room`.
