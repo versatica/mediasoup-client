@@ -7,7 +7,7 @@
   "homepage": "https://mediasoup.org",
   "main": "lib/index.js",
   "dependencies": {
-    "bowser": "^1.7.2",
+    "bowser": "^1.7.3",
     "debug": "^3.0.1",
     "random-number": "0.0.9",
     "sdp-transform": "^2.3.0"
