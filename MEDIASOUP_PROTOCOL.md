@@ -278,7 +278,9 @@ Request:
 Response:
 
 ```js
-{}
+{
+  paused : false
+}
 ```
 
 
