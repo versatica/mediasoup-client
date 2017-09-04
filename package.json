@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "mediasoup client SDK for mediasoup >= 2.0.0",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "license": "ISC",
