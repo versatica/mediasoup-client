@@ -199,8 +199,7 @@ Notification:
   target: 'peer',
   notification: true,
   id: 2222,
-  rtpParameters: {},
-  paused: false
+  rtpParameters: {}
 }
 ```
 
