@@ -270,7 +270,8 @@ Request:
   target: 'peer',
   id: 3333,
   transportId: 9999,
-  paused: false
+  paused: false,
+  preferredProfile: 'low'
 }
 ```
 
@@ -278,7 +279,9 @@ Response:
 
 ```js
 {
-  paused : false
+  paused: false,
+  preferredProfile: null,
+  effectiveProfile: 'default'
 }
 ```
 
@@ -313,6 +316,22 @@ Notification:
   notification: true,
   id: 3333,
   appData: Any
+}
+```
+
+
+### setConsumerPreferredProfile
+
+Set the desired receiving profile.
+
+Notification:
+
+```js
+{
+  method: 'setConsumerPreferredProfile',
+  notification: true,
+  id: 3333,
+  profile: 'high'
 }
 ```
 
@@ -457,7 +476,9 @@ Notification:
   kind: 'video',
   peerName: 'alice',
   rtpParameters: {},
-  paused: false
+  paused: false,
+  preferredProfile: 'high',
+  effectiveProfile: 'medium',
   appData: Any
 }
 ```
@@ -497,17 +518,35 @@ Notification:
 ```
 
 
-### consumerClosed
+### consumerPreferredProfileSet
 
-A server-side `Consumer` has been closed (its originating `Peer` may have left the room, he may have closed it, or his server-side `Peer` or `Producer` may have been closed in the server).
+A server-side `Consumer` has set its preferred receiving profile.
 
 Notification:
 
 ```js
 {
-  method: 'consumerClosed',
+  method: 'consumerPreferredProfileSet',
   notification: true,
   id: 3333,
-  peerName: 'alice'
+  peerName: 'alice',
+  profile: 'medium'
+}
+```
+
+
+### consumerEffectiveProfileChanged
+
+The effective receiving profile in a server-side `Consumer` changed.
+
+Notification:
+
+```js
+{
+  method: 'consumerEffectiveProfileChanged',
+  notification: true,
+  id: 3333,
+  peerName: 'alice',
+  profile: 'high'
 }
 ```
