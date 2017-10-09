@@ -1,6 +1,6 @@
 # TODO
 
-* The abs-send-time header extension has `kind: ''` in the server capabilities (valid for any kind) which means that is always compared to true and it produces that the SDP offer of Chrome, in the m=audio, does not have it but our generated answer does it, and hence also the remote Transport.
+* `appData` MUST always be an existing Object, so no setter but just a getter.
 
 * Must check peerconnection "closed" state or related event (it may happen without calling close on it, although I think it shouldn't...). Investigate it. Some for ORTC XxxTransports, etc.
 
