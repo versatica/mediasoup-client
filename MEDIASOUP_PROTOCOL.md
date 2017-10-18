@@ -467,7 +467,7 @@ Notification:
   method: 'transportStats',
   notification: true,
   id: 3333,
-  stats: {}
+  stats: []
 }
 ```
 
@@ -531,7 +531,7 @@ Notification:
   method: 'producerStats',
   notification: true,
   id: 3333,
-  stats: {}
+  stats: []
 }
 ```
 
@@ -679,6 +679,6 @@ Notification:
   method: 'consumerStats',
   notification: true,
   id: 3333,
-  stats: {}
+  stats: []
 }
 ```
