@@ -1,13 +1,13 @@
 {
   "name": "mediasoup-client",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "mediasoup client SDK for mediasoup >= 2.0.0",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "license": "ISC",
   "homepage": "https://mediasoup.org",
   "main": "lib/index.js",
   "dependencies": {
-    "bowser": "^1.7.3",
+    "bowser": "^1.8.0",
     "debug": "^3.1.0",
     "random-number": "0.0.9",
     "sdp-transform": "^2.3.0"
@@ -36,7 +36,7 @@
     "babel-preset-react": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
-    "eslint": "^4.8.0",
+    "eslint": "^4.9.0",
     "eslint-plugin-import": "^2.7.0",
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-eslint": "^4.0.0",
