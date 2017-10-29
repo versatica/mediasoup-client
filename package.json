@@ -6,8 +6,12 @@
   "contributors": [
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)"
   ],
-  "license": "ISC",
   "homepage": "https://mediasoup.org",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/versatica/mediasoup-client.git"
+  },
   "main": "lib/index.js",
   "dependencies": {
     "bowser": "^1.8.1",
