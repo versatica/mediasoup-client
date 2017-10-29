@@ -2,7 +2,10 @@
 
 JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based applications.
 
-**NOTE:** Work in progress. See the roadmap for [mediasoup v2](https://github.com/versatica/mediasoup/milestone/2).
+
+## Website and documentation
+
+* [mediasoup.org][mediasoup-website]
 
 
 ## Usage example
@@ -135,7 +138,7 @@ function handlePeer(peer)
   // Event fired when the remote Room or Peer is closed.
   peer.on('close', () =>
   {
-    console.log('My Peer closed');
+    console.log('Peer closed');
   });
 
   // Event fired when the remote Peer sends a new media to mediasoup server.
@@ -178,3 +181,8 @@ function handleConsumer(consumer)
 ## License
 
 [ISC](./LICENSE)
+
+
+
+
+[mediasoup-website]: https://mediasoup.org
