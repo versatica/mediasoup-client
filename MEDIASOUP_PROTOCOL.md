@@ -434,6 +434,7 @@ Notification:
 ```js
 {
   method: 'closed',
+  target: 'peer',
   notification: true,
   appData: Any
 }
@@ -449,6 +450,7 @@ Notification:
 ```js
 {
   method: 'transportClosed',
+  target: 'peer',
   notification: true,
   id: 1111,
   appData: Any
@@ -465,6 +467,7 @@ Notification:
 ```js
 {
   method: 'transportStats',
+  target: 'peer',
   notification: true,
   id: 3333,
   stats: []
@@ -481,6 +484,7 @@ Notification:
 ```js
 {
   method: 'producerPaused',
+  target: 'peer',
   notification: true,
   id: 2222,
   appData: Any
@@ -497,6 +501,7 @@ Notification:
 ```js
 {
   method: 'producerResumed',
+  target: 'peer',
   notification: true,
   id: 2222,
   appData: Any
@@ -513,6 +518,7 @@ Notification:
 ```js
 {
   method: 'producerClosed',
+  target: 'peer',
   notification: true,
   id: 2222,
   appData: Any
@@ -529,6 +535,7 @@ Notification:
 ```js
 {
   method: 'producerStats',
+  target: 'peer',
   notification: true,
   id: 3333,
   stats: []
@@ -545,6 +552,7 @@ Notification:
 ```js
 {
   method: 'newPeer',
+  target: 'peer',
   notification: true,
   name: 'alice',
   consumers:
@@ -571,6 +579,7 @@ Notification:
 ```js
 {
   method: 'peerClosed',
+  target: 'peer',
   notification: true,
   name: 'alice',
   appData: Any
@@ -587,6 +596,7 @@ Notification:
 ```js
 {
   method: 'newConsumer',
+  target: 'peer',
   notification: true,
   id: 3333,
   kind: 'video',
@@ -609,6 +619,7 @@ Notification:
 ```js
 {
   method: 'consumerPaused',
+  target: 'peer',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -626,6 +637,7 @@ Notification:
 ```js
 {
   method: 'consumerResumed',
+  target: 'peer',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -643,6 +655,7 @@ Notification:
 ```js
 {
   method: 'consumerPreferredProfileSet',
+  target: 'peer',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -660,6 +673,7 @@ Notification:
 ```js
 {
   method: 'consumerEffectiveProfileChanged',
+  target: 'peer',
   notification: true,
   id: 3333,
   peerName: 'alice',
@@ -677,6 +691,7 @@ Notification:
 ```js
 {
   method: 'consumerStats',
+  target: 'peer',
   notification: true,
   id: 3333,
   stats: []
