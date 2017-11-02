@@ -169,6 +169,7 @@ Notification:
 {
   method: 'enableTransportStats',
   id: 3333,
+  interval: 1
 }
 ```
 
@@ -296,6 +297,7 @@ Notification:
 {
   method: 'enableProducerStats',
   id: 3333,
+  interval: 1
 }
 ```
 
@@ -402,6 +404,7 @@ Notification:
 {
   method: 'enableConsumerStats',
   id: 3333,
+  interval: 1
 }
 ```
 
