@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "mediasoup client side JavaScript SDK",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -44,7 +44,7 @@
     "babel-preset-react": "^6.24.1",
     "babelify": "^8.0.0",
     "browserify": "^14.5.0",
-    "eslint": "^4.10.0",
+    "eslint": "^4.11.0",
     "eslint-plugin-import": "^2.8.0",
     "gulp": "git://github.com/gulpjs/gulp.git#4.0",
     "gulp-eslint": "^4.0.0",
