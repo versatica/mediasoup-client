@@ -1,5 +1,7 @@
 # mediasoup-client
 
+[![][npm-shield-mediasoup-client]][npm-mediasoup-client]
+
 JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based applications.
 
 
@@ -186,3 +188,4 @@ function handleConsumer(consumer)
 
 
 [mediasoup-website]: https://mediasoup.org
+[npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg

@@ -7,6 +7,7 @@ const plumber = require('gulp-plumber');
 const rename = require('gulp-rename');
 const header = require('gulp-header');
 const browserify = require('browserify');
+const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
@@ -28,6 +29,14 @@ gulp.task('lint', () =>
 		.pipe(plumber())
 		.pipe(eslint())
 		.pipe(eslint.format());
+});
+
+gulp.task('babel', () =>
+{
+	return gulp
+		.src([ 'lib/**/*.js' ])
+		.pipe(babel())
+		.pipe(gulp.dest('lib-es5'));
 });
 
 gulp.task('bundle', () =>
@@ -56,4 +65,4 @@ gulp.task('bundle', () =>
 		.pipe(gulp.dest('dist/'));
 });
 
-gulp.task('default', gulp.series('lint', 'bundle'));
+gulp.task('default', gulp.series('lint', 'babel', 'bundle'));

@@ -17,5 +17,3 @@
 * Should not ignore pseudo media codecs:
   * telephone-event
   * CN
-
-* Implement `getStats()` in browsers? or better report uniformely from mediasoup?
