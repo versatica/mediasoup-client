@@ -17,7 +17,7 @@ module.exports =
 	settings: {},
 	parserOptions:
 	{
-		ecmaVersion: 6,
+		ecmaVersion: 8,
 		sourceType: 'module',
 		ecmaFeatures:
 		{
