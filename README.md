@@ -32,17 +32,23 @@ const channel = new mySignalingChannel(
 // Create a local Room instance associated to the remote Room.
 const room = new mediasoupClient.Room();
 
-// Create a Transport for sending our media.
-const sendTransport = room.createTransport('send');
+// Transport for sending our media.
+let sendTransport;
 
-// Create a Transport for receiving media from remote Peers.
-const recvTransport = room.createTransport('recv');
+// Transport for receiving media from remote Peers.
+let recvTransport;
 
 
 // Join the remote Room.
 room.join('alice')
   .then((peers) =>
   {
+    // Create the Transport for sending our media.
+    sendTransport = room.createTransport('send');
+
+    // Create the Transport for receiving media from remote Peers.
+    recvTransport = room.createTransport('recv');
+
     // Handle Peers already in to the Room.
     for (const peer of peers)
     {
