@@ -195,3 +195,4 @@ function handleConsumer(consumer)
 
 [mediasoup-website]: https://mediasoup.org
 [npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg
+[npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
