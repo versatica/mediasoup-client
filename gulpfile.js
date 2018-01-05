@@ -65,4 +65,6 @@ gulp.task('bundle', () =>
 		.pipe(gulp.dest('dist/'));
 });
 
+gulp.task('devel', gulp.series('lint', 'babel'));
+
 gulp.task('default', gulp.series('lint', 'babel', 'bundle'));
