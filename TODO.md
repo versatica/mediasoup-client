@@ -17,3 +17,11 @@
 * Should not ignore pseudo media codecs:
   * telephone-event
   * CN
+
+
+### React-Native (react-native-webrtc)
+
+* It does not support `track.close()` so we must not do it and must document it.
+  - Done. Doc missing.
+
+* In iOS, we must use a new stream `id` (in the `a=msid` line) for each new received `track`.
