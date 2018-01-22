@@ -1,5 +1,5 @@
 /*
- * mediasoup-client v2.0.6
+ * mediasoup-client v2.0.7
  * mediasoup client side JavaScript SDK
  * https://mediasoup.org
  * Copyright © 2017, Iñaki Baz Castillo <ibc@aliax.net>

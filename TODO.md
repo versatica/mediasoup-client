@@ -20,6 +20,3 @@
 
 
 ### React-Native (react-native-webrtc)
-
-* It does not support `track.clone()` so we must not do it and must document it.
-  - Done. Doc missing.
