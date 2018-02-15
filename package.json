@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "description": "mediasoup client side JavaScript SDK",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -36,8 +36,5 @@
     "gulp-util": "^3.0.8",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
-  },
-  "scripts": {
-    "prepare": "gulp"
   }
 }
