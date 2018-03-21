@@ -85,6 +85,7 @@ Request:
   method: 'createTransport',
   target: 'peer',
   id: 1111,
+  direction: 'send', // 'send'/'recv'.
   options: {},
   dtlsParameters: {}, // Optional.
   appData: Any
