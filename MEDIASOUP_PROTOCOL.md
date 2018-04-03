@@ -209,11 +209,7 @@ Request:
 }
 ```
 
-Response:
-
-```js
-{}
-```
+Response: (empty)
 
 
 ### updateProducer
