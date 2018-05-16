@@ -14,6 +14,7 @@
   },
   "main": "lib-es5/index.js",
   "dependencies": {
+    "babel-plugin-transform-builtin-classes": "^0.6.1",
     "bowser": "^1.9.3",
     "debug": "^3.1.0",
     "events": "^2.0.0",
@@ -21,10 +22,9 @@
     "sdp-transform": "^2.4.1"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-plugin-transform-builtin-classes": "^0.6.1",
-    "babel-preset-env": "^1.6.1",
-    "browserify": "^16.2.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "browserify": "^16.2.2",
     "eslint": "^4.19.1",
     "eslint-plugin-import": "^2.11.0",
     "gulp": "^4.0.0",
@@ -32,7 +32,7 @@
     "gulp-eslint": "^4.0.2",
     "gulp-header": "^2.0.5",
     "gulp-plumber": "^1.2.0",
-    "gulp-rename": "^1.2.2",
+    "gulp-rename": "^1.2.3",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "vinyl-buffer": "^1.0.1",
