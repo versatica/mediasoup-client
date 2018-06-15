@@ -86,7 +86,7 @@ Request:
   target: 'peer',
   id: 1111,
   direction: 'send', // 'send'/'recv'.
-  options: {},
+  options: {tcp: true}, // enable or disable ICE-TCP
   dtlsParameters: {}, // Optional.
   appData: Any
 }
