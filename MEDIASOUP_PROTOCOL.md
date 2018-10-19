@@ -44,6 +44,7 @@ Request:
   target: 'room',
   peerName: 'myname',
   rtpCapabilities: {},
+  spy: false,
   appData: Any
 }
 ```
