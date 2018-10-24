@@ -3,5 +3,5 @@
 	[
 		[ "transform-builtin-classes", { "globals": [ "Error" ] } ]
 	],
-	"presets": [ "@babel/env" ]
+	"presets": [ "env" ]
 }

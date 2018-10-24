@@ -17,6 +17,9 @@
     "build": "gulp dist:production"
   },
   "main": "lib-es5/index.js",
+  "jest": {
+    "verbose": true
+  },
   "dependencies": {
     "babel-plugin-transform-builtin-classes": "^0.6.1",
     "bowser": "^1.9.3",
@@ -29,6 +32,8 @@
     "@babel/core": "^7.1.2",
     "@babel/plugin-transform-runtime": "^7.1.0",
     "@babel/preset-env": "^7.1.0",
+    "babel-jest": "^23.6.0",
+    "babel-preset-env": "^1.7.0",
     "browserify": "^16.2.3",
     "eslint": "^5.7.0",
     "eslint-plugin-import": "^2.14.0",
@@ -40,6 +45,8 @@
     "gulp-rename": "^1.4.0",
     "gulp-uglify-es": "^1.0.4",
     "gulp-util": "^3.0.8",
+    "jest": "^23.6.0",
+    "jest-cli": "^23.6.0",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   }
