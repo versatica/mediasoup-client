@@ -23,14 +23,14 @@
     "debug": "^4.1.0",
     "events": "^3.0.0",
     "random-number": "^0.0.9",
-    "sdp-transform": "^2.4.1"
+    "sdp-transform": "^2.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/plugin-transform-runtime": "^7.1.0",
     "@babel/preset-env": "^7.1.0",
     "browserify": "^16.2.3",
-    "eslint": "^5.7.0",
+    "eslint": "^5.8.0",
     "eslint-plugin-import": "^2.14.0",
     "gulp": "^4.0.0",
     "gulp-babel": "^8.0.0",
