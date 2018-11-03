@@ -23,7 +23,7 @@
     "debug": "^4.1.0",
     "events": "^3.0.0",
     "random-number": "^0.0.9",
-    "sdp-transform": "^2.4.1"
+    "sdp-transform": "^2.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
