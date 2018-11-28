@@ -22,7 +22,6 @@
     "bowser": "^1.9.3",
     "debug": "^4.1.0",
     "events": "^3.0.0",
-    "random-number": "^0.0.9",
     "sdp-transform": "^2.6.0"
   },
   "devDependencies": {
