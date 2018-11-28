@@ -45,3 +45,5 @@ transport.restartIce(remoteIceParameters)
 ```
 
 * Remove `direction` stuff from server-side Transport.
+
+* Remove "@needupdateproducer" in client and related stuff in server (it's just for old Chrome versions and React-Native).
