@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "mediasoup client side JavaScript SDK",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
