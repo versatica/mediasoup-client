@@ -4,11 +4,13 @@ module.exports =
 	{
 		browser: true,
 		es6: true,
-		node: true
+		node: true,
+		'jest/globals': true
 	},
 	plugins:
 	[
-		'import'
+		'import',
+		'jest'
 	],
 	extends:
 	[
