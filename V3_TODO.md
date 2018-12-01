@@ -86,4 +86,5 @@ transport.receive({ producerId, rtpCapabilities, appData })
 
 * `transport.receive()` must fail if not supported. The app is supposed to call  `device.canReceive()` first. The server side `transport.receive()` would fail and return an error.
 
-* Handlers now need a method to update transport remote parameters (specifically, the DTLS role).
+* Handlers now need a method to update transport remote parameters (specifically, the DTLS role). Anyway, must refactor DTLS role stuff.
+  - We may want to always be DTLS client to avoid FF problem.
