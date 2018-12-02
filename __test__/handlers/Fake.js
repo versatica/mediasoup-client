@@ -1,38 +1,22 @@
-import sdpTransform from 'sdp-transform';
-import Logger from '../Logger';
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
-import * as utils from '../utils';
-import * as ortc from '../ortc';
-import * as sdpCommonUtils from './sdp/commonUtils';
-import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import RemoteUnifiedPlanSdp from './sdp/RemoteUnifiedPlanSdp';
+import Logger from '../../lib/Logger';
+import EnhancedEventEmitter from '../../lib/EnhancedEventEmitter';
+import * as ortc from '../../lib/ortc';
 
-const logger = new Logger('Chrome70');
+const logger = new Logger('Fake');
 
 class Handler extends EnhancedEventEmitter
 {
 	constructor(
 		{
-			remoteTransportData,
-			direction,
-			turnServers,
-			iceTransportPolicy,
+			/* remoteTransportData, */
+			/* direction, */
+			/* turnServers, */
+			/* iceTransportPolicy, */
 			rtpParametersByKind
 		}
 	)
 	{
 		super(logger);
-
-		// RTCPeerConnection instance.
-		// @type {RTCPeerConnection}
-		this._pc = new RTCPeerConnection(
-			{
-				iceServers         : turnServers || [],
-				iceTransportPolicy : iceTransportPolicy,
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'unified-plan'
-			});
 
 		// Generic sending RTP parameters for audio and video.
 		// @type {Object}
@@ -41,53 +25,17 @@ class Handler extends EnhancedEventEmitter
 		// Got transport local and remote parameters.
 		// @type {Boolean}
 		this._transportReady = false;
-
-		// Remote SDP handler.
-		// @type {RemoteUnifiedPlanSdp}
-		this._remoteSdp = new RemoteUnifiedPlanSdp(direction, rtpParametersByKind);
-
-		this._remoteSdp.setTransportRemoteParameters(remoteTransportData);
-
-		// Handle RTCPeerConnection connection status.
-		this._pc.addEventListener('iceconnectionstatechange', () =>
-		{
-			switch (this._pc.iceConnectionState)
-			{
-				case 'checking':
-					this.emit('@connectionstatechange', 'connecting');
-					break;
-				case 'connected':
-				case 'completed':
-					this.emit('@connectionstatechange', 'connected');
-					break;
-				case 'failed':
-					this.emit('@connectionstatechange', 'failed');
-					break;
-				case 'disconnected':
-					this.emit('@connectionstatechange', 'disconnected');
-					break;
-				case 'closed':
-					this.emit('@connectionstatechange', 'closed');
-					break;
-			}
-		});
 	}
 
 	close()
 	{
 		logger.debug('close()');
-
-		// Close RTCPeerConnection.
-		try { this._pc.close(); }
-		catch (error) {}
 	}
 
 	// TODO
 	remoteClosed()
 	{
 		logger.debug('remoteClosed()');
-
-		this._transportReady = false;
 	}
 
 	_setupTransport({ localDtlsRole } = {})
@@ -95,10 +43,16 @@ class Handler extends EnhancedEventEmitter
 		return Promise.resolve()
 			.then(() =>
 			{
-				// Get our local DTLS parameters.
-				const sdp = this._pc.localDescription.sdp;
-				const sdpObj = sdpTransform.parse(sdp);
-				const dtlsParameters = sdpCommonUtils.extractDtlsParameters(sdpObj);
+				const dtlsParameters =
+				{
+					fingerprints :
+					[
+						{
+							algorithm : 'sha-256',
+							value     : '82:5A:68:3D:36:C3:0A:DE:AF:E7:32:43:D2:88:83:57:AC:2D:65:E5:80:C4:B6:FB:AF:1A:A0:21:9F:6D:0C:AD'
+						}
+					]
+				};
 
 				// Set our DTLS role.
 				if (localDtlsRole)
@@ -123,61 +77,11 @@ class SendHandler extends Handler
 		super(data);
 	}
 
-	send({ track, simulcast })
+	send({ track /*, simulcast */ })
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
 
-		let transceiver;
-		let localSdpObj;
-
 		return Promise.resolve()
-			.then(() =>
-			{
-				// Let's check if there is any inactive transceiver for same kind and
-				// reuse it if so.
-				transceiver = this._pc.getTransceivers()
-					.find((t) => (
-						t.receiver.track.kind === track.kind &&
-						t.direction === 'inactive'
-					));
-
-				if (transceiver)
-				{
-					logger.debug('send() | reusing an inactive transceiver');
-
-					transceiver.direction = 'sendonly';
-
-					return transceiver.sender.replaceTrack(track);
-				}
-				else
-				{
-					transceiver = this._pc.addTransceiver(track, { direction: 'sendonly' });
-				}
-			})
-			.then(() => this._pc.createOffer())
-			.then((offer) =>
-			{
-				// If simulcast is set, mangle the offer.
-				if (simulcast)
-				{
-					logger.debug('send() | enabling simulcast');
-
-					const sdpObject = sdpTransform.parse(offer.sdp);
-
-					sdpUnifiedPlanUtils.addPlanBSimulcast(
-						sdpObject, track, { mid: transceiver.mid });
-
-					const offerSdp = sdpTransform.write(sdpObject);
-
-					offer = { type: 'offer', sdp: offerSdp };
-				}
-
-				logger.debug(
-					'send() | calling pc.setLocalDescription() [offer:%o]',
-					offer);
-
-				return this._pc.setLocalDescription(offer);
-			})
 			.then(() =>
 			{
 				if (!this._transportReady)
@@ -461,43 +365,20 @@ class RecvHandler extends Handler
 	}
 }
 
-export default class Chrome70
+let nativeRtpCapabilities;
+
+export default class Fake
 {
+	static setNativeRtpCapabilities(rtpCapabilities)
+	{
+		nativeRtpCapabilities = rtpCapabilities;
+	}
+
 	static getNativeRtpCapabilities()
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const pc = new RTCPeerConnection(
-			{
-				iceServers         : [],
-				iceTransportPolicy : 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'unified-plan'
-			});
-
-		pc.addTransceiver('audio');
-		pc.addTransceiver('video');
-
-		return pc.createOffer()
-			.then((offer) =>
-			{
-				try { pc.close(); }
-				catch (error) {}
-
-				const sdpObj = sdpTransform.parse(offer.sdp);
-				const nativeRtpCapabilities =
-					sdpCommonUtils.extractRtpCapabilities(sdpObj);
-
-				return nativeRtpCapabilities;
-			})
-			.catch((error) =>
-			{
-				try { pc.close(); }
-				catch (error2) {}
-
-				throw error;
-			});
+		return Promise.resolve(nativeRtpCapabilities);
 	}
 
 	constructor(
