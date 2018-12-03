@@ -47,6 +47,8 @@
     "gulp-uglify-es": "^1.0.4",
     "gulp-util": "^3.0.8",
     "jest": "^23.6.0",
+    "node-mediastreamtrack": "0.0.3",
+    "uuid": "^3.3.2",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   }
