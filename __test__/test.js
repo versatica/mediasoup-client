@@ -2,12 +2,7 @@ import MediaStreamTrack from 'node-mediastreamtrack';
 import Device from '../lib/Device';
 import { UnsupportedError, InvalidStateError } from '../lib/errors';
 import FakeHandler from './handlers/FakeHandler';
-import {
-	generateRoomRtpCapabilities,
-	generateTransportRemoteParameters,
-	generateProducerRemoteParameters,
-	generateConsumerRemoteParameters
-} from './handlers/fakeParameters';
+import * as fakeParameters from './handlers/fakeParameters';
 
 test('creating a device in Node without custom Handler throws UnsupportedError', () =>
 {
@@ -17,7 +12,7 @@ test('creating a device in Node without custom Handler throws UnsupportedError',
 
 describe('create a device in Node with a FakeHandler', () =>
 {
-	const roomRtpCapabilities = generateRoomRtpCapabilities();
+	const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
 	let device;
 	let sendTransport;
 	let recvTransport;
@@ -85,9 +80,9 @@ describe('create a device in Node with a FakeHandler', () =>
 	test('device.canReceive() succeeds for supported RTP parameters', () =>
 	{
 		const opusConsumerRemoteParameters =
-			generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 		const vp8ConsumerRemoteParameters =
-			generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 
 		expect(device.canReceive(opusConsumerRemoteParameters.rtpParameters))
 			.toBe(true);
@@ -98,7 +93,7 @@ describe('create a device in Node with a FakeHandler', () =>
 	test('device.canReceive() fails for unsupported RTP parameters', () =>
 	{
 		const isacConsumerRemoteParameters =
-			generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 
 		expect(device.canReceive(isacConsumerRemoteParameters.rtpParameters))
 			.toBe(false);
@@ -106,7 +101,8 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.createTransport() for sending media succeeds', () =>
 	{
-		const transportRemoteParameters = generateTransportRemoteParameters();
+		const transportRemoteParameters =
+			fakeParameters.generateTransportRemoteParameters();
 
 		expect(sendTransport = device.createTransport(
 			{
@@ -153,12 +149,14 @@ describe('create a device in Node with a FakeHandler', () =>
 			switch (producerLocalParameters.kind)
 			{
 				case 'audio':
-					audioProducerRemoteParameters = generateProducerRemoteParameters();
+					audioProducerRemoteParameters =
+						fakeParameters.generateProducerRemoteParameters();
 					callback(audioProducerRemoteParameters);
 					break;
 
 				case 'video':
-					videoProducerRemoteParameters = generateProducerRemoteParameters();
+					videoProducerRemoteParameters =
+						fakeParameters.generateProducerRemoteParameters();
 					callback(videoProducerRemoteParameters);
 					break;
 			}
@@ -203,7 +201,8 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.createTransport() for receiving media succeeds', () =>
 	{
-		const transportRemoteParameters = generateTransportRemoteParameters();
+		const transportRemoteParameters =
+			fakeParameters.generateTransportRemoteParameters();
 
 		expect(recvTransport = device.createTransport(
 			{
@@ -221,9 +220,9 @@ describe('create a device in Node with a FakeHandler', () =>
 	test('recvTransport.receive() succeeds', () =>
 	{
 		const opusConsumerRemoteParameters =
-			generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 		const vp8ConsumerRemoteParameters =
-			generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 		let connectEventNumTimesCalled = 0;
 		let receiveEventNumTimesCalled = 0;
 

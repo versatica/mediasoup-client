@@ -3,14 +3,11 @@ import Logger from '../../lib/Logger';
 import EnhancedEventEmitter from '../../lib/EnhancedEventEmitter';
 import * as utils from '../../lib/utils';
 import * as ortc from '../../lib/ortc';
-import {
-	generateNativeRtpCapabilities,
-	generateLocalDtlsParameters
-} from './fakeParameters';
+import * as fakeParameters from './fakeParameters';
 
 const logger = new Logger('FakeHandler');
-const nativeRtpCapabilities = generateNativeRtpCapabilities();
-const localDtlsParameters = generateLocalDtlsParameters();
+const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
+const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
 export default class FakeHandler extends EnhancedEventEmitter
 {
