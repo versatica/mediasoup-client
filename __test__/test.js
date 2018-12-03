@@ -4,19 +4,10 @@ import { UnsupportedError, InvalidStateError } from '../lib/errors';
 import FakeHandler from './handlers/FakeHandler';
 import {
 	generateRoomRtpCapabilities,
-	generateNativeRtpCapabilities,
-	generateLocalDtlsParameters,
 	generateTransportRemoteParameters,
 	generateProducerRemoteParameters,
 	generateConsumerRemoteParameters
 } from './handlers/fakeParameters';
-
-const roomRtpCapabilities = generateRoomRtpCapabilities();
-const nativeRtpCapabilities = generateNativeRtpCapabilities();
-const localDtlsParameters = generateLocalDtlsParameters();
-
-FakeHandler.setNativeRtpCapabilities(nativeRtpCapabilities);
-FakeHandler.setLocalDtlsParameters(localDtlsParameters);
 
 test('creating a device in Node without custom Handler throws UnsupportedError', () =>
 {
@@ -26,6 +17,7 @@ test('creating a device in Node without custom Handler throws UnsupportedError',
 
 describe('create a device in Node with a FakeHandler', () =>
 {
+	const roomRtpCapabilities = generateRoomRtpCapabilities();
 	let device;
 	let sendTransport;
 	let recvTransport;
@@ -37,13 +29,6 @@ describe('create a device in Node with a FakeHandler', () =>
 	test('FakeHandler name mathes', () =>
 	{
 		expect(FakeHandler.name).toBe('FakeHandler');
-	});
-
-	test('FakeHandler native capabilities match', () =>
-	{
-		return expect(FakeHandler.getNativeRtpCapabilities())
-			.resolves
-			.toBe(nativeRtpCapabilities);
 	});
 
 	test('Device constructor succeeds', () =>
