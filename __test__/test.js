@@ -6,7 +6,8 @@ import {
 	generateRoomRtpCapabilities,
 	generateLocalNativeRtpCapabilities,
 	generateRemoteTransportData,
-	generateLocalDtlsParameters
+	generateLocalDtlsParameters,
+	generateRemoteProducerData
 } from './handlers/fakeParameters';
 
 const roomRtpCapabilities = generateRoomRtpCapabilities();
@@ -102,22 +103,58 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('sendTransport.send() succeeds', () =>
 	{
-		const track = new MediaStreamTrack({ kind: 'audio' });
+		const audioTrack = new MediaStreamTrack({ kind: 'audio' });
+		const videoTrack = new MediaStreamTrack({ kind: 'video' });
+		let remoteAudioProducerData;
+		let remoteVideoProducerData;
+		let localparametersEventNumTimesCalled = 0;
+		let sendEventNumTimesCalled = 0;
 
 		// eslint-disable-next-line no-unused-vars
-		sendTransport.once('localparameters', (parameters, callback, errback) =>
+		sendTransport.on('localparameters', (parameters, callback, errback) =>
 		{
+			localparametersEventNumTimesCalled++;
+
 			callback();
 		});
 
 		// eslint-disable-next-line no-unused-vars
-		sendTransport.once('send', (parameters, callback, errback) =>
+		sendTransport.on('send', (producerData, callback, errback) =>
 		{
-			callback({ id: '1234-5678' });
+			sendEventNumTimesCalled++;
+
+			switch (producerData.kind)
+			{
+				case 'audio':
+					remoteAudioProducerData = generateRemoteProducerData();
+					callback(remoteAudioProducerData);
+					break;
+
+				case 'video':
+					remoteVideoProducerData = generateRemoteProducerData();
+					callback(remoteVideoProducerData);
+					break;
+			}
 		});
 
-		return expect(sendTransport.send({ track }))
-			.resolves
-			.toBeDefined();
+		return Promise.resolve()
+			.then(() => sendTransport.send({ track: audioTrack }))
+			.then((producer) =>
+			{
+				expect(localparametersEventNumTimesCalled).toBe(1);
+				expect(sendEventNumTimesCalled).toBe(1);
+				expect(producer).toBeDefined();
+				expect(producer.kind).toBe('audio');
+				expect(producer.id).toBe(remoteAudioProducerData.id);
+			})
+			.then(() => sendTransport.send({ track: videoTrack }))
+			.then((producer) =>
+			{
+				expect(localparametersEventNumTimesCalled).toBe(1);
+				expect(sendEventNumTimesCalled).toBe(2);
+				expect(producer).toBeDefined();
+				expect(producer.kind).toBe('video');
+				expect(producer.id).toBe(remoteVideoProducerData.id);
+			});
 	});
 });

@@ -327,3 +327,10 @@ export function generateLocalDtlsParameters()
 		role : 'auto'
 	};
 }
+
+export function generateRemoteProducerData()
+{
+	return {
+		id : uuidv1()
+	};
+}
