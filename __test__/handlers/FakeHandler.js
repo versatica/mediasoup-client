@@ -4,14 +4,14 @@ import * as utils from '../../lib/utils';
 import * as ortc from '../../lib/ortc';
 
 const logger = new Logger('FakeHandler');
-let localNativeRtpCapabilities;
+let nativeRtpCapabilities;
 let localDtlsParameters;
 
 export default class FakeHandler extends EnhancedEventEmitter
 {
-	static setLocalNativeRtpCapabilities(rtpCapabilities)
+	static setNativeRtpCapabilities(rtpCapabilities)
 	{
-		localNativeRtpCapabilities = rtpCapabilities;
+		nativeRtpCapabilities = rtpCapabilities;
 	}
 
 	static setLocalDtlsParameters(dtlsParameters)
@@ -23,12 +23,12 @@ export default class FakeHandler extends EnhancedEventEmitter
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		return Promise.resolve(localNativeRtpCapabilities);
+		return Promise.resolve(nativeRtpCapabilities);
 	}
 
 	constructor(
 		{
-			remoteTransportData, // eslint-disable-line no-unused-vars
+			transportRemoteParameters, // eslint-disable-line no-unused-vars
 			direction,
 			turnServers, // eslint-disable-line no-unused-vars
 			iceTransportPolicy, // eslint-disable-line no-unused-vars
@@ -131,8 +131,7 @@ export default class FakeHandler extends EnhancedEventEmitter
 				const transportLocalParameters = { dtlsParameters };
 
 				// Need to tell the remote transport about our parameters.
-				return this.safeEmitAsPromise(
-					'@localparameters', transportLocalParameters);
+				return this.safeEmitAsPromise('@connect', transportLocalParameters);
 			})
 			.then(() =>
 			{

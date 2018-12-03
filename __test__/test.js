@@ -4,17 +4,17 @@ import { UnsupportedError, InvalidStateError } from '../lib/errors';
 import FakeHandler from './handlers/FakeHandler';
 import {
 	generateRoomRtpCapabilities,
-	generateLocalNativeRtpCapabilities,
-	generateRemoteTransportData,
+	generateNativeRtpCapabilities,
 	generateLocalDtlsParameters,
-	generateRemoteProducerData
+	generateTransportRemoteParameters,
+	generateProducerRemoteParameters
 } from './handlers/fakeParameters';
 
 const roomRtpCapabilities = generateRoomRtpCapabilities();
-const localNativeRtpCapabilities = generateLocalNativeRtpCapabilities();
+const nativeRtpCapabilities = generateNativeRtpCapabilities();
 const localDtlsParameters = generateLocalDtlsParameters();
 
-FakeHandler.setLocalNativeRtpCapabilities(localNativeRtpCapabilities);
+FakeHandler.setNativeRtpCapabilities(nativeRtpCapabilities);
 FakeHandler.setLocalDtlsParameters(localDtlsParameters);
 
 test('creating a device in Node without custom Handler throws UnsupportedError', () =>
@@ -37,12 +37,13 @@ describe('create a device in Node with a FakeHandler', () =>
 	{
 		return expect(FakeHandler.getNativeRtpCapabilities())
 			.resolves
-			.toBe(localNativeRtpCapabilities);
+			.toBe(nativeRtpCapabilities);
 	});
 
 	test('Device constructor succeeds', () =>
 	{
-		expect(device = new Device({ Handler: FakeHandler })).toBeTruthy();
+		expect(device = new Device({ Handler: FakeHandler }))
+			.toBeDefined();
 	});
 
 	test('device.canSend() throws InvalidStateError if not loaded', () =>
@@ -86,16 +87,16 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.createTransport() for sending media succeeds', () =>
 	{
-		const remoteTransportData = generateRemoteTransportData();
+		const transportRemoteParameters = generateTransportRemoteParameters();
 
 		expect(sendTransport = device.createTransport(
 			{
-				remoteTransportData,
+				transportRemoteParameters,
 				direction : 'send'
 			}))
 			.toBeDefined();
 
-		expect(sendTransport.id).toBe(remoteTransportData.id);
+		expect(sendTransport.id).toBe(transportRemoteParameters.id);
 		expect(sendTransport.closed).toBe(false);
 		expect(sendTransport.direction).toBe('send');
 		expect(sendTransport.connectionState).toBe('new');
@@ -105,13 +106,13 @@ describe('create a device in Node with a FakeHandler', () =>
 	{
 		const audioTrack = new MediaStreamTrack({ kind: 'audio' });
 		const videoTrack = new MediaStreamTrack({ kind: 'video' });
-		let remoteAudioProducerData;
-		let remoteVideoProducerData;
+		let audioProducerRemoteParameters;
+		let videoProducerRemoteParameters;
 		let localparametersEventNumTimesCalled = 0;
 		let sendEventNumTimesCalled = 0;
 
 		// eslint-disable-next-line no-unused-vars
-		sendTransport.on('localparameters', (parameters, callback, errback) =>
+		sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
 		{
 			localparametersEventNumTimesCalled++;
 
@@ -119,20 +120,20 @@ describe('create a device in Node with a FakeHandler', () =>
 		});
 
 		// eslint-disable-next-line no-unused-vars
-		sendTransport.on('send', (producerData, callback, errback) =>
+		sendTransport.on('send', (producerLocalParameters, callback, errback) =>
 		{
 			sendEventNumTimesCalled++;
 
-			switch (producerData.kind)
+			switch (producerLocalParameters.kind)
 			{
 				case 'audio':
-					remoteAudioProducerData = generateRemoteProducerData();
-					callback(remoteAudioProducerData);
+					audioProducerRemoteParameters = generateProducerRemoteParameters();
+					callback(audioProducerRemoteParameters);
 					break;
 
 				case 'video':
-					remoteVideoProducerData = generateRemoteProducerData();
-					callback(remoteVideoProducerData);
+					videoProducerRemoteParameters = generateProducerRemoteParameters();
+					callback(videoProducerRemoteParameters);
 					break;
 			}
 		});
@@ -145,7 +146,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(sendEventNumTimesCalled).toBe(1);
 				expect(producer).toBeDefined();
 				expect(producer.kind).toBe('audio');
-				expect(producer.id).toBe(remoteAudioProducerData.id);
+				expect(producer.id).toBe(audioProducerRemoteParameters.id);
 			})
 			.then(() => sendTransport.send({ track: videoTrack }))
 			.then((producer) =>
@@ -154,7 +155,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(sendEventNumTimesCalled).toBe(2);
 				expect(producer).toBeDefined();
 				expect(producer.kind).toBe('video');
-				expect(producer.id).toBe(remoteVideoProducerData.id);
+				expect(producer.id).toBe(videoProducerRemoteParameters.id);
 			});
 	});
 });

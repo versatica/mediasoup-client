@@ -142,7 +142,7 @@ export function generateRoomRtpCapabilities()
 	};
 }
 
-export function generateLocalNativeRtpCapabilities()
+export function generateNativeRtpCapabilities()
 {
 	return {
 		codecs :
@@ -270,7 +270,21 @@ export function generateLocalNativeRtpCapabilities()
 	};
 }
 
-export function generateRemoteTransportData()
+export function generateLocalDtlsParameters()
+{
+	return {
+		fingerprints :
+		[
+			{
+				algorithm : 'sha-256',
+				value     : '82:5A:68:3D:36:C3:0A:DE:AF:E7:32:43:D2:88:83:57:AC:2D:65:E5:80:C4:B6:FB:AF:1A:A0:21:9F:6D:0C:AD'
+			}
+		],
+		role : 'auto'
+	};
+}
+
+export function generateTransportRemoteParameters()
 {
 	return {
 		id             : uuidv1(),
@@ -303,6 +317,15 @@ export function generateRemoteTransportData()
 				priority   : 1078862079,
 				protocol   : 'udp',
 				type       : 'host'
+			},
+			{
+				family     : 'ipv6',
+				foundation : 'udpcandidate',
+				ip         : '9:9:9:9:9:9',
+				port       : 41333,
+				priority   : 1078862089,
+				protocol   : 'udp',
+				type       : 'host'
 			}
 		],
 		iceParameters :
@@ -314,21 +337,7 @@ export function generateRemoteTransportData()
 	};
 }
 
-export function generateLocalDtlsParameters()
-{
-	return {
-		fingerprints :
-		[
-			{
-				algorithm : 'sha-256',
-				value     : '82:5A:68:3D:36:C3:0A:DE:AF:E7:32:43:D2:88:83:57:AC:2D:65:E5:80:C4:B6:FB:AF:1A:A0:21:9F:6D:0C:AD'
-			}
-		],
-		role : 'auto'
-	};
-}
-
-export function generateRemoteProducerData()
+export function generateProducerRemoteParameters()
 {
 	return {
 		id : uuidv1()
