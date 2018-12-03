@@ -168,20 +168,14 @@ describe('create a device in Node with a FakeHandler', () =>
 			switch (producerLocalParameters.kind)
 			{
 				case 'audio':
-				{
 					audioProducerRemoteParameters = generateProducerRemoteParameters();
 					callback(audioProducerRemoteParameters);
-
 					break;
-				}
 
 				case 'video':
-				{
 					videoProducerRemoteParameters = generateProducerRemoteParameters();
 					callback(videoProducerRemoteParameters);
-
 					break;
-				}
 			}
 		});
 
@@ -271,23 +265,15 @@ describe('create a device in Node with a FakeHandler', () =>
 			switch (consumerLocalParameters.producerId)
 			{
 				case opusConsumerRemoteParameters.producerId:
-				{
 					callback(opusConsumerRemoteParameters);
-
 					break;
-				}
 
 				case vp8ConsumerRemoteParameters.producerId:
-				{
 					callback(vp8ConsumerRemoteParameters);
-
 					break;
-				}
 
 				default:
-				{
 					throw new Error('unknown consumerLocalParameters.producerId');
-				}
 			}
 		});
 
