@@ -1,3 +1,4 @@
+import MediaStreamTrack from 'node-mediastreamtrack';
 import Logger from '../../lib/Logger';
 import EnhancedEventEmitter from '../../lib/EnhancedEventEmitter';
 import * as utils from '../../lib/utils';
@@ -108,6 +109,8 @@ export default class FakeHandler extends EnhancedEventEmitter
 	stopSending({ track })
 	{
 		logger.debug('stopSending() [trackId:%s]', track.id);
+
+		return Promise.resolve();
 	}
 
 	replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
@@ -115,6 +118,31 @@ export default class FakeHandler extends EnhancedEventEmitter
 		logger.debug('replaceTrack() [newTrackId:%s]', newTrack);
 
 		return Promise.resolve(newTrack);
+	}
+
+	receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
+	{
+		logger.debug('receive() [id:%s, kind:%s]', id, kind);
+
+		return Promise.resolve()
+			.then(() =>
+			{
+				if (!this._transportReady)
+					return this._setupTransport({ localDtlsRole: 'client' });
+			})
+			.then(() =>
+			{
+				const track = new MediaStreamTrack({ kind });
+
+				return track;
+			});
+	}
+
+	stopReceiving({ id })
+	{
+		logger.debug('stopReceiving() [id:%s]', id);
+
+		return Promise.resolve();
 	}
 
 	_setupTransport({ localDtlsRole } = {})

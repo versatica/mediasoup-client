@@ -343,3 +343,176 @@ export function generateProducerRemoteParameters()
 		id : uuidv1()
 	};
 }
+
+export function generateConsumerRemoteParameters({ codecMimeType } = {})
+{
+	switch (codecMimeType)
+	{
+		case 'audio/opus':
+		{
+			return {
+				producerId    : uuidv1(),
+				id            : uuidv1(),
+				kind          : 'audio',
+				rtpParameters :
+				{
+					codecs :
+					[
+						{
+							name         : 'opus',
+							mimeType     : 'audio/opus',
+							clockRate    : 48000,
+							payloadType  : 100,
+							channels     : 2,
+							rtcpFeedback : [],
+							parameters   :
+							{
+								useinbandfec : 1
+							}
+						}
+					],
+					encodings :
+					[
+						{
+							ssrc : 46687003
+						}
+					],
+					headerExtensions :
+					[
+						{
+							uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+							id  : 1
+						}
+					],
+					rtcp :
+					{
+						cname       : 'wB4Ql4lrsxYLjzuN',
+						reducedSize : true,
+						mux         : true
+					}
+				}
+			};
+		}
+
+		case 'audio/ISAC':
+		{
+			return {
+				producerId    : uuidv1(),
+				id            : uuidv1(),
+				kind          : 'audio',
+				rtpParameters :
+				{
+					codecs :
+					[
+						{
+							name         : 'ISAC',
+							mimeType     : 'audio/ISAC',
+							clockRate    : 16000,
+							payloadType  : 111,
+							channels     : 1,
+							rtcpFeedback : [],
+							parameters   : {}
+						}
+					],
+					encodings :
+					[
+						{
+							ssrc : 46687004
+						}
+					],
+					headerExtensions :
+					[
+						{
+							uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+							id  : 1
+						}
+					],
+					rtcp :
+					{
+						cname       : 'wB4Ql4lrsxYLjzuN',
+						reducedSize : true,
+						mux         : true
+					}
+				}
+			};
+		}
+
+		case 'video/VP8':
+		{
+			return {
+				producerId    : uuidv1(),
+				id            : uuidv1(),
+				kind          : 'video',
+				rtpParameters :
+				{
+					codecs :
+					[
+						{
+							name         : 'VP8',
+							mimeType     : 'video/VP8',
+							clockRate    : 90000,
+							payloadType  : 101,
+							rtcpFeedback :
+							[
+								{ type: 'nack' },
+								{ type: 'nack', parameter: 'pli' },
+								{ type: 'nack', parameter: 'sli' },
+								{ type: 'nack', parameter: 'rpsi' },
+								{ type: 'nack', parameter: 'app' },
+								{ type: 'ccm', parameter: 'fir' },
+								{ type: 'goog-remb' }
+							],
+							parameters :
+							{
+								'x-google-start-bitrate' : 1500
+							}
+						},
+						{
+							name         : 'rtx',
+							mimeType     : 'video/rtx',
+							clockRate    : 90000,
+							payloadType  : 102,
+							rtcpFeedback : [],
+							parameters   :
+							{
+								apt : 101
+							}
+						}
+					],
+					encodings :
+					[
+						{
+							ssrc : 99991111,
+							rtx  :
+							{
+								ssrc : 99991112
+							}
+						}
+					],
+					headerExtensions :
+					[
+						{
+							uri : 'urn:ietf:params:rtp-hdrext:toffset',
+							id  : 2
+						},
+						{
+							uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time', // eslint-disable-line max-len
+							id  : 3
+						}
+					],
+					rtcp :
+					{
+						cname       : 'wB4Ql4lrsxYLjzuN',
+						reducedSize : true,
+						mux         : true
+					}
+				}
+			};
+		}
+
+		default:
+		{
+			throw new TypeError(`unknown codecMimeType "${codecMimeType}"`);
+		}
+	}
+}

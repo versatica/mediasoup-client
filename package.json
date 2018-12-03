@@ -15,7 +15,7 @@
   "main": "lib-es5/index.js",
   "scripts": {
     "lint": "gulp lint",
-    "test": "DEBUG='mediasoup-client:WARN* mediasoup-client:ERROR*' jest"
+    "test": "DEBUG=${DEBUG:='mediasoup-client:WARN* mediasoup-client:ERROR*'} jest"
   },
   "jest": {
     "verbose": true
