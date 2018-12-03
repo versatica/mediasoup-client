@@ -73,7 +73,7 @@ describe('create a device in Node with a FakeHandler', () =>
 			.toThrow(InvalidStateError);
 	});
 
-	test('device can send audio and video', () =>
+	test('device.canSend() succeeds for "audio" and "video"', () =>
 	{
 		expect(device.canSend('audio')).toBe(true);
 		expect(device.canSend('video')).toBe(true);
