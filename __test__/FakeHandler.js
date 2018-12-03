@@ -1,8 +1,8 @@
 import MediaStreamTrack from 'node-mediastreamtrack';
-import Logger from '../../lib/Logger';
-import EnhancedEventEmitter from '../../lib/EnhancedEventEmitter';
-import * as utils from '../../lib/utils';
-import * as ortc from '../../lib/ortc';
+import Logger from '../lib/Logger';
+import EnhancedEventEmitter from '../lib/EnhancedEventEmitter';
+import * as utils from '../lib/utils';
+import * as ortc from '../lib/ortc';
 import * as fakeParameters from './fakeParameters';
 
 const logger = new Logger('FakeHandler');

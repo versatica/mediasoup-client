@@ -1,8 +1,13 @@
+/**
+ * This test runs in Node so no browser auto-detection is done. Instead, a
+ * FakeHandler device is used.
+ */
+
 import MediaStreamTrack from 'node-mediastreamtrack';
 import Device from '../lib/Device';
 import { UnsupportedError, InvalidStateError } from '../lib/errors';
-import FakeHandler from './handlers/FakeHandler';
-import * as fakeParameters from './handlers/fakeParameters';
+import FakeHandler from './FakeHandler';
+import * as fakeParameters from './fakeParameters';
 
 test('creating a device in Node without custom Handler throws UnsupportedError', () =>
 {
