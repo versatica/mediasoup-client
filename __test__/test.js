@@ -17,6 +17,7 @@ test('creating a device in Node without custom Handler throws UnsupportedError',
 
 describe('create a device in Node with a FakeHandler', () =>
 {
+	// Assume we get the room RTP capabilities.
 	const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
 	let device;
 	let sendTransport;
@@ -106,6 +107,7 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.createTransport() for sending media succeeds', () =>
 	{
+		// Assume we create a transport in the server and get its remote parameters.
 		const transportRemoteParameters =
 			fakeParameters.generateTransportRemoteParameters();
 
@@ -139,7 +141,9 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(transportLocalParameters).toBeDefined();
 			expect(transportLocalParameters.dtlsParameters).toBeDefined();
 
-			callback();
+			// Emulate communication with the server and success response (no response
+			// data needed).
+			setTimeout(callback);
 		});
 
 		// eslint-disable-next-line no-unused-vars
@@ -151,20 +155,29 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(producerLocalParameters.kind).toBeDefined();
 			expect(producerLocalParameters.rtpParameters).toBeDefined();
 
+			let producerRemoteParameters;
+
 			switch (producerLocalParameters.kind)
 			{
 				case 'audio':
 					audioProducerRemoteParameters =
 						fakeParameters.generateProducerRemoteParameters();
-					callback(audioProducerRemoteParameters);
+					producerRemoteParameters = audioProducerRemoteParameters;
 					break;
 
 				case 'video':
 					videoProducerRemoteParameters =
 						fakeParameters.generateProducerRemoteParameters();
-					callback(videoProducerRemoteParameters);
+					producerRemoteParameters = videoProducerRemoteParameters;
 					break;
+
+				default:
+					throw new Error('unknown producerLocalParameters.kind');
 			}
+
+			// Emulate communication with the server and success response with producer
+			// remote parameters.
+			setTimeout(() => callback(producerRemoteParameters));
 		});
 
 		return Promise.resolve()
@@ -222,6 +235,7 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.createTransport() for receiving media succeeds', () =>
 	{
+		// Assume we create a transport in the server and get its remote parameters.
 		const transportRemoteParameters =
 			fakeParameters.generateTransportRemoteParameters();
 
@@ -255,7 +269,9 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(transportLocalParameters).toBeDefined();
 			expect(transportLocalParameters.dtlsParameters).toBeDefined();
 
-			callback();
+			// Emulate communication with the server and success response (no response
+			// data needed).
+			setTimeout(callback);
 		});
 
 		// eslint-disable-next-line no-unused-vars
@@ -267,19 +283,25 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(consumerLocalParameters.producerId).toBeDefined();
 			expect(consumerLocalParameters.rtpCapabilities).toBeDefined();
 
+			let consumerRemoteParameters;
+
 			switch (consumerLocalParameters.producerId)
 			{
 				case opusConsumerRemoteParameters.producerId:
-					callback(opusConsumerRemoteParameters);
+					consumerRemoteParameters = opusConsumerRemoteParameters;
 					break;
 
 				case vp8ConsumerRemoteParameters.producerId:
-					callback(vp8ConsumerRemoteParameters);
+					consumerRemoteParameters = vp8ConsumerRemoteParameters;
 					break;
 
 				default:
 					throw new Error('unknown consumerLocalParameters.producerId');
 			}
+
+			// Emulate communication with the server and success response with consumer
+			// remote parameters.
+			setTimeout(() => callback(consumerRemoteParameters));
 		});
 
 		return Promise.resolve()
