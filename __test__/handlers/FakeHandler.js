@@ -106,9 +106,9 @@ export default class FakeHandler extends EnhancedEventEmitter
 
 	replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
 	{
-		logger.debug('replaceTrack() [newTrackId:%s]', newTrack);
+		logger.debug('replaceTrack() [newTrackId:%s]', newTrack.id);
 
-		return Promise.resolve(newTrack);
+		return Promise.resolve();
 	}
 
 	receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars

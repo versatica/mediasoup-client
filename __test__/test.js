@@ -174,6 +174,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(audioProducer.closed).toBe(false);
 				expect(audioProducer.kind).toBe('audio');
 				expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
+				expect(audioProducer.track).not.toBe(audioTrack);
 				expect(audioProducer.appData).toBe('FOO AUDIO');
 
 				audioProducer.close();
@@ -190,12 +191,26 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(videoProducer.closed).toBe(false);
 				expect(videoProducer.kind).toBe('video');
 				expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
+				expect(videoProducer.track).not.toBe(videoTrack);
+				expect(videoProducer.appData).toBe(undefined);
 
 				expect(videoProducer.paused).toBe(false);
 				videoProducer.pause();
 				expect(videoProducer.paused).toBe(true);
 				videoProducer.resume();
 				expect(videoProducer.paused).toBe(false);
+				videoProducer.pause();
+			})
+			.then(() =>
+			{
+				const producerPreviousVideoTrack = videoProducer.track;
+				const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+
+				return videoProducer.replaceTrack({ track: newVideoTrack })
+					.then(() =>
+					{
+						expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+					});
 			});
 	});
 
@@ -297,6 +312,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(vp8Consumer.kind).toBe('video');
 				expect(vp8Consumer.id).toBe(vp8ConsumerRemoteParameters.id);
 				expect(vp8Consumer.rtpParameters).toBeDefined();
+				expect(vp8Consumer.appData).toBe(undefined);
 
 				expect(vp8Consumer.paused).toBe(false);
 				vp8Consumer.pause();
@@ -316,6 +332,48 @@ describe('create a device in Node with a FakeHandler', () =>
 				vp8Consumer.effectiveProfile = 'chicken';
 				expect(vp8Consumer.effectiveProfile).toBe('medium');
 			});
+	});
+
+	test('remotetely stopping a track produces "trackended" in live producers/consumers', () =>
+	{
+		let audioProducerTrackendedEventCalled = false;
+		let videoProducerTrackendedEventCalled = false;
+		let opusConsumerTrackendedEventCalled = false;
+		let vp8ConsumerTrackendedEventCalled = false;
+
+		audioProducer.on('trackended', () =>
+		{
+			audioProducerTrackendedEventCalled = true;
+		});
+
+		videoProducer.on('trackended', () =>
+		{
+			videoProducerTrackendedEventCalled = true;
+		});
+
+		opusConsumer.on('trackended', () =>
+		{
+			opusConsumerTrackendedEventCalled = true;
+		});
+
+		vp8Consumer.on('trackended', () =>
+		{
+			vp8ConsumerTrackendedEventCalled = true;
+		});
+
+		audioProducer.track.remoteStop();
+		// Audio producer was already closed.
+		expect(audioProducerTrackendedEventCalled).toBe(false);
+
+		videoProducer.track.remoteStop();
+		expect(videoProducerTrackendedEventCalled).toBe(true);
+
+		opusConsumer.track.remoteStop();
+		// Opus consumer was already closed.
+		expect(opusConsumerTrackendedEventCalled).toBe(false);
+
+		vp8Consumer.track.remoteStop();
+		expect(vp8ConsumerTrackendedEventCalled).toBe(true);
 	});
 
 	test('sendTransport.close() produces "transportclose" in live producers/consumers', () =>
