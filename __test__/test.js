@@ -140,22 +140,22 @@ describe('create a device in Node with a FakeHandler', () =>
 
 		return Promise.resolve()
 			.then(() => sendTransport.send({ track: audioTrack }))
-			.then((producer) =>
+			.then((audioProducer) =>
 			{
 				expect(localparametersEventNumTimesCalled).toBe(1);
 				expect(sendEventNumTimesCalled).toBe(1);
-				expect(producer).toBeDefined();
-				expect(producer.kind).toBe('audio');
-				expect(producer.id).toBe(audioProducerRemoteParameters.id);
+				expect(audioProducer).toBeDefined();
+				expect(audioProducer.kind).toBe('audio');
+				expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 			})
 			.then(() => sendTransport.send({ track: videoTrack }))
-			.then((producer) =>
+			.then((videoProducer) =>
 			{
 				expect(localparametersEventNumTimesCalled).toBe(1);
 				expect(sendEventNumTimesCalled).toBe(2);
-				expect(producer).toBeDefined();
-				expect(producer.kind).toBe('video');
-				expect(producer.id).toBe(videoProducerRemoteParameters.id);
+				expect(videoProducer).toBeDefined();
+				expect(videoProducer.kind).toBe('video');
+				expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 			});
 	});
 });
