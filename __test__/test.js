@@ -303,6 +303,18 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(vp8Consumer.paused).toBe(true);
 				vp8Consumer.resume();
 				expect(vp8Consumer.paused).toBe(false);
+
+				expect(vp8Consumer.preferredProfile).toBe('default');
+				vp8Consumer.preferredProfile = 'high';
+				// Must ignore invalid profile.
+				vp8Consumer.preferredProfile = 'chicken';
+				expect(vp8Consumer.preferredProfile).toBe('high');
+
+				expect(vp8Consumer.effectiveProfile).toBe(null);
+				vp8Consumer.effectiveProfile = 'medium';
+				// Must ignore invalid profile.
+				vp8Consumer.effectiveProfile = 'chicken';
+				expect(vp8Consumer.effectiveProfile).toBe('medium');
 			});
 	});
 
