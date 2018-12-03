@@ -215,6 +215,7 @@ describe('create a device in Node with a FakeHandler', () =>
 					.then(() =>
 					{
 						expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+						expect(videoProducer.paused).toBe(true);
 					});
 			});
 	});
@@ -339,32 +340,28 @@ describe('create a device in Node with a FakeHandler', () =>
 			});
 	});
 
-	test('remotetely stopping a track produces "trackended" in live producers/consumers', () =>
+	test('remotetely stopped track produces "trackended" in live producers/consumers', () =>
 	{
 		let audioProducerTrackendedEventCalled = false;
 		let videoProducerTrackendedEventCalled = false;
 		let opusConsumerTrackendedEventCalled = false;
 		let vp8ConsumerTrackendedEventCalled = false;
 
-		audioProducer.on('trackended', () =>
-		{
-			audioProducerTrackendedEventCalled = true;
-		});
+		audioProducer.on('trackended', () => (
+			audioProducerTrackendedEventCalled = true
+		));
 
-		videoProducer.on('trackended', () =>
-		{
-			videoProducerTrackendedEventCalled = true;
-		});
+		videoProducer.on('trackended', () => (
+			videoProducerTrackendedEventCalled = true
+		));
 
-		opusConsumer.on('trackended', () =>
-		{
-			opusConsumerTrackendedEventCalled = true;
-		});
+		opusConsumer.on('trackended', () => (
+			opusConsumerTrackendedEventCalled = true
+		));
 
-		vp8Consumer.on('trackended', () =>
-		{
-			vp8ConsumerTrackendedEventCalled = true;
-		});
+		vp8Consumer.on('trackended', () => (
+			vp8ConsumerTrackendedEventCalled = true
+		));
 
 		audioProducer.track.remoteStop();
 		// Audio producer was already closed.
@@ -388,25 +385,21 @@ describe('create a device in Node with a FakeHandler', () =>
 		let opusConsumerTransportcloseEventCalled = false;
 		let vp8ConsumerTransportcloseEventCalled = false;
 
-		audioProducer.on('transportclose', () =>
-		{
-			audioProducerTransportcloseEventCalled = true;
-		});
+		audioProducer.on('transportclose', () => (
+			audioProducerTransportcloseEventCalled = true
+		));
 
-		videoProducer.on('transportclose', () =>
-		{
-			videoProducerTransportcloseEventCalled = true;
-		});
+		videoProducer.on('transportclose', () => (
+			videoProducerTransportcloseEventCalled = true
+		));
 
-		opusConsumer.on('transportclose', () =>
-		{
-			opusConsumerTransportcloseEventCalled = true;
-		});
+		opusConsumer.on('transportclose', () => (
+			opusConsumerTransportcloseEventCalled = true
+		));
 
-		vp8Consumer.on('transportclose', () =>
-		{
-			vp8ConsumerTransportcloseEventCalled = true;
-		});
+		vp8Consumer.on('transportclose', () => (
+			vp8ConsumerTransportcloseEventCalled = true
+		));
 
 		// Audio producer was already closed.
 		expect(audioProducer.closed).toBe(true);
