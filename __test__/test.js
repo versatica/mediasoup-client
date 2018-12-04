@@ -304,6 +304,8 @@ describe('create a device in Node with a FakeHandler', () =>
 			setTimeout(() => callback(consumerRemoteParameters));
 		});
 
+		// Here we assume that the server created two producers and sent us notifications
+		// about them.
 		return Promise.resolve()
 			.then(() => (
 				recvTransport.receive(
