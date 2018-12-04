@@ -12,3 +12,5 @@
 * Expose `RTCRtpSender/Receiver` objects into `Producer` and `Consumer`? I don't like it because the app could change simulcast settings, etc, without lib knowledge. May be just expose an API to get native local stats (also in `Transport` which would mean the `pc`).
 
 * `transport.receive()` must fail if not supported. The app is supposed to call  `device.canReceive()` first. The server side `transport.receive()` would fail and return an error.
+
+* Currently, if `transport.receive()` is called with unsupported RTP parameters, I don't know what will happen. Theoretically `handler.receive()` and its `pc.setRemoteDescription()` will fail, but I'm not sure how things become later...
