@@ -27,7 +27,7 @@ describe('create a device in Node with a FakeHandler', () =>
 	let opusConsumer;
 	let vp8Consumer;
 
-	test('FakeHandler name mathes', () =>
+	test('FakeHandler name mathes class name', () =>
 	{
 		expect(FakeHandler.name).toBe('FakeHandler');
 	});
@@ -124,7 +124,7 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(sendTransport.connectionState).toBe('new');
 	});
 
-	test('sendTransport.send() succeeds', () =>
+	test('transport.send() succeeds', () =>
 	{
 		const audioTrack = new MediaStreamTrack({ kind: 'audio' });
 		const videoTrack = new MediaStreamTrack({ kind: 'video' });
@@ -252,7 +252,7 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(recvTransport.connectionState).toBe('new');
 	});
 
-	test('recvTransport.receive() succeeds', () =>
+	test('transport.receive() succeeds', () =>
 	{
 		const opusConsumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
