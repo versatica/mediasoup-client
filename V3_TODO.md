@@ -1,13 +1,6 @@
 ## v3 TODO
 
-* Remove `static get tag()` from handler classes. Instead use `Handler.name` which returns the class name :)
-
-* Modernize handler classes for Opera Next versions!
-
 * Update `bowser` to v2 (ask the author first since it's beta yet).
-
-* Remove "unhandled" events stuff in producers and consumers since those belongs to a specific transport in v3, so when the transport is closed, all its producers and consumers are automatically closed.
-  - TODO: "close" event in producers and consumers?
 
 * Refactor `handler.remoteClosed()` (which just must happen when the ICE or DTLS is closed via DTLS alert).
   - TODO: mediasoup server should not close a `Transport` instance (nor its C++ `WebRtcTransport` instance) when its `DtlsTransport` is closed/failed. Instead it should reset its `DtlsTransport` instance.  
@@ -22,23 +15,15 @@ transport.restartIce()
 
 # It client:
 
-transport.restartIce(remoteIceParameters)
+transport.restartIce({ remoteIceParameters })
   .then(() => done);
 ```
 
 * Remove `direction` stuff from server-side Transport.
 
-* Remove "@needupdateproducer" in client and related stuff in server (it's just for old Chrome versions and React-Native).
+* Remove "@needupdateproducer" also in server (it's just for old Chrome versions and React-Native).
 
-* Rethink `appData` stuff.
-
-* Expose `RTCRtpSender/Reeiver` objects into `Producer` and `Consumer`? I don't like it because the app could change simulcast settings, etc, without lib knowledge. May be just expose an API to get native local stats.
-
-* Don't forget `consumer.supported` stuff. Take into account that now we cannot know it in advance, but just after calling `transport.receive()` in client side... Or may be we can anticipate it in server side...
-  - NO. See below.
-
-* When creating a "recv" transport, we need to provide our local capabilities to the server-side transport, so it knows if the `consumer` is "supported".
-  - NO. See below.
+* Expose `RTCRtpSender/Receiver` objects into `Producer` and `Consumer`? I don't like it because the app could change simulcast settings, etc, without lib knowledge. May be just expose an API to get native local stats (also in `Transport` which would mean the `pc`).
 
 * Should `transport.receive()` allow `preferredProfile` as argument?
 
@@ -85,6 +70,3 @@ transport.receive({ producerId, rtpCapabilities, appData })
 ```
 
 * `transport.receive()` must fail if not supported. The app is supposed to call  `device.canReceive()` first. The server side `transport.receive()` would fail and return an error.
-
-* Handlers now need a method to update transport remote parameters (specifically, the DTLS role). Anyway, must refactor DTLS role stuff.
-  - We may want to always be DTLS client to avoid FF problem.

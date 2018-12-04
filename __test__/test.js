@@ -114,7 +114,8 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(sendTransport = device.createTransport(
 			{
 				transportRemoteParameters,
-				direction : 'send'
+				direction : 'send',
+				appData   : 'BAZ'
 			}))
 			.toBeDefined();
 
@@ -122,6 +123,7 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(sendTransport.closed).toBe(false);
 		expect(sendTransport.direction).toBe('send');
 		expect(sendTransport.connectionState).toBe('new');
+		expect(sendTransport.appData).toBe('BAZ');
 	});
 
 	test('transport.send() succeeds', () =>
@@ -155,32 +157,29 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(producerLocalParameters.kind).toBeDefined();
 			expect(producerLocalParameters.rtpParameters).toBeDefined();
 
+			let producerRemoteParameters;
+
+			switch (producerLocalParameters.kind)
+			{
+				case 'audio':
+					audioProducerRemoteParameters =
+						fakeParameters.generateProducerRemoteParameters();
+					producerRemoteParameters = audioProducerRemoteParameters;
+					break;
+
+				case 'video':
+					videoProducerRemoteParameters =
+						fakeParameters.generateProducerRemoteParameters();
+					producerRemoteParameters = videoProducerRemoteParameters;
+					break;
+
+				default:
+					throw new Error('unknown producerLocalParameters.kind');
+			}
+
 			// Emulate communication with the server and success response with producer
 			// remote parameters.
-			setTimeout(() =>
-			{
-				let producerRemoteParameters;
-
-				switch (producerLocalParameters.kind)
-				{
-					case 'audio':
-						audioProducerRemoteParameters =
-							fakeParameters.generateProducerRemoteParameters();
-						producerRemoteParameters = audioProducerRemoteParameters;
-						break;
-
-					case 'video':
-						videoProducerRemoteParameters =
-							fakeParameters.generateProducerRemoteParameters();
-						producerRemoteParameters = videoProducerRemoteParameters;
-						break;
-
-					default:
-						throw new Error('unknown producerLocalParameters.kind');
-				}
-
-				callback(producerRemoteParameters);
-			});
+			setTimeout(() => callback(producerRemoteParameters));
 		});
 
 		return Promise.resolve()
@@ -286,28 +285,27 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(consumerLocalParameters.producerId).toBeDefined();
 			expect(consumerLocalParameters.rtpCapabilities).toBeDefined();
 
+			let consumerRemoteParameters;
+
+			switch (consumerLocalParameters.producerId)
+			{
+				case audioConsumerRemoteParameters.producerId:
+					consumerRemoteParameters = audioConsumerRemoteParameters;
+					expect(consumerLocalParameters.preferredProfile).toBe(undefined);
+					break;
+
+				case videoConsumerRemoteParameters.producerId:
+					consumerRemoteParameters = videoConsumerRemoteParameters;
+					expect(consumerLocalParameters.preferredProfile).toBe('high');
+					break;
+
+				default:
+					throw new Error('unknown consumerLocalParameters.producerId');
+			}
+
 			// Emulate communication with the server and success response with consumer
 			// remote parameters.
-			setTimeout(() =>
-			{
-				let consumerRemoteParameters;
-
-				switch (consumerLocalParameters.producerId)
-				{
-					case audioConsumerRemoteParameters.producerId:
-						consumerRemoteParameters = audioConsumerRemoteParameters;
-						break;
-
-					case videoConsumerRemoteParameters.producerId:
-						consumerRemoteParameters = videoConsumerRemoteParameters;
-						break;
-
-					default:
-						throw new Error('unknown consumerLocalParameters.producerId');
-				}
-
-				callback(consumerRemoteParameters);
-			});
+			setTimeout(() => callback(consumerRemoteParameters));
 		});
 
 		// Here we assume that the server created two producers and sent us notifications
@@ -328,6 +326,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(audioConsumer.kind).toBe('audio');
 				expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 				expect(audioConsumer.rtpParameters).toBeDefined();
+				expect(audioConsumer.preferredProfile).toBe('default');
 				expect(audioConsumer.appData).toBe('BAR');
 
 				audioConsumer.close();
@@ -335,7 +334,10 @@ describe('create a device in Node with a FakeHandler', () =>
 			})
 			.then(() => (
 				recvTransport.receive(
-					{ producerId: videoConsumerRemoteParameters.producerId })
+					{
+						producerId       : videoConsumerRemoteParameters.producerId,
+						preferredProfile : 'high'
+					})
 			))
 			.then((consumer) =>
 			{
@@ -348,6 +350,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(videoConsumer.kind).toBe('video');
 				expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 				expect(videoConsumer.rtpParameters).toBeDefined();
+				expect(videoConsumer.preferredProfile).toBe('high');
 				expect(videoConsumer.appData).toBe(undefined);
 
 				expect(videoConsumer.paused).toBe(false);
@@ -356,7 +359,6 @@ describe('create a device in Node with a FakeHandler', () =>
 				videoConsumer.resume();
 				expect(videoConsumer.paused).toBe(false);
 
-				expect(videoConsumer.preferredProfile).toBe('default');
 				videoConsumer.preferredProfile = 'high';
 				// Must ignore invalid profile.
 				videoConsumer.preferredProfile = 'chicken';
