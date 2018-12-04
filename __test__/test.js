@@ -24,8 +24,8 @@ describe('create a device in Node with a FakeHandler', () =>
 	let recvTransport;
 	let audioProducer;
 	let videoProducer;
-	let opusConsumer;
-	let vp8Consumer;
+	let audioConsumer;
+	let videoConsumer;
 
 	test('FakeHandler name mathes class name', () =>
 	{
@@ -85,23 +85,23 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('device.canReceive() succeeds for supported RTP parameters', () =>
 	{
-		const opusConsumerRemoteParameters =
+		const audioConsumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
-		const vp8ConsumerRemoteParameters =
+		const videoConsumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 
-		expect(device.canReceive(opusConsumerRemoteParameters.rtpParameters))
+		expect(device.canReceive(audioConsumerRemoteParameters.rtpParameters))
 			.toBe(true);
-		expect(device.canReceive(vp8ConsumerRemoteParameters.rtpParameters))
+		expect(device.canReceive(videoConsumerRemoteParameters.rtpParameters))
 			.toBe(true);
 	});
 
 	test('device.canReceive() fails for unsupported RTP parameters', () =>
 	{
-		const isacConsumerRemoteParameters =
+		const consumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 
-		expect(device.canReceive(isacConsumerRemoteParameters.rtpParameters))
+		expect(device.canReceive(consumerRemoteParameters.rtpParameters))
 			.toBe(false);
 	});
 
@@ -181,7 +181,7 @@ describe('create a device in Node with a FakeHandler', () =>
 		});
 
 		return Promise.resolve()
-			.then(() => sendTransport.send({ track: audioTrack, appData: 'FOO AUDIO' }))
+			.then(() => sendTransport.send({ track: audioTrack, appData: 'FOO' }))
 			.then((producer) =>
 			{
 				audioProducer = producer;
@@ -193,7 +193,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(audioProducer.kind).toBe('audio');
 				expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 				expect(audioProducer.track).not.toBe(audioTrack);
-				expect(audioProducer.appData).toBe('FOO AUDIO');
+				expect(audioProducer.appData).toBe('FOO');
 
 				audioProducer.close();
 				expect(audioProducer.closed).toBe(true);
@@ -254,9 +254,9 @@ describe('create a device in Node with a FakeHandler', () =>
 
 	test('transport.receive() succeeds', () =>
 	{
-		const opusConsumerRemoteParameters =
+		const audioConsumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
-		const vp8ConsumerRemoteParameters =
+		const videoConsumerRemoteParameters =
 			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 		let connectEventNumTimesCalled = 0;
 		let receiveEventNumTimesCalled = 0;
@@ -287,12 +287,12 @@ describe('create a device in Node with a FakeHandler', () =>
 
 			switch (consumerLocalParameters.producerId)
 			{
-				case opusConsumerRemoteParameters.producerId:
-					consumerRemoteParameters = opusConsumerRemoteParameters;
+				case audioConsumerRemoteParameters.producerId:
+					consumerRemoteParameters = audioConsumerRemoteParameters;
 					break;
 
-				case vp8ConsumerRemoteParameters.producerId:
-					consumerRemoteParameters = vp8ConsumerRemoteParameters;
+				case videoConsumerRemoteParameters.producerId:
+					consumerRemoteParameters = videoConsumerRemoteParameters;
 					break;
 
 				default:
@@ -309,58 +309,58 @@ describe('create a device in Node with a FakeHandler', () =>
 		return Promise.resolve()
 			.then(() => (
 				recvTransport.receive(
-					{ producerId: opusConsumerRemoteParameters.producerId, appData: 'FOO OPUS' })
+					{ producerId: audioConsumerRemoteParameters.producerId, appData: 'BAR' })
 			))
 			.then((consumer) =>
 			{
-				opusConsumer = consumer;
+				audioConsumer = consumer;
 
 				expect(connectEventNumTimesCalled).toBe(1);
 				expect(receiveEventNumTimesCalled).toBe(1);
-				expect(opusConsumer).toBeDefined();
-				expect(opusConsumer.closed).toBe(false);
-				expect(opusConsumer.kind).toBe('audio');
-				expect(opusConsumer.id).toBe(opusConsumerRemoteParameters.id);
-				expect(opusConsumer.rtpParameters).toBeDefined();
-				expect(opusConsumer.appData).toBe('FOO OPUS');
+				expect(audioConsumer).toBeDefined();
+				expect(audioConsumer.closed).toBe(false);
+				expect(audioConsumer.kind).toBe('audio');
+				expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
+				expect(audioConsumer.rtpParameters).toBeDefined();
+				expect(audioConsumer.appData).toBe('BAR');
 
-				opusConsumer.close();
-				expect(opusConsumer.closed).toBe(true);
+				audioConsumer.close();
+				expect(audioConsumer.closed).toBe(true);
 			})
 			.then(() => (
 				recvTransport.receive(
-					{ producerId: vp8ConsumerRemoteParameters.producerId })
+					{ producerId: videoConsumerRemoteParameters.producerId })
 			))
 			.then((consumer) =>
 			{
-				vp8Consumer = consumer;
+				videoConsumer = consumer;
 
 				expect(connectEventNumTimesCalled).toBe(1);
 				expect(receiveEventNumTimesCalled).toBe(2);
-				expect(vp8Consumer).toBeDefined();
-				expect(vp8Consumer.closed).toBe(false);
-				expect(vp8Consumer.kind).toBe('video');
-				expect(vp8Consumer.id).toBe(vp8ConsumerRemoteParameters.id);
-				expect(vp8Consumer.rtpParameters).toBeDefined();
-				expect(vp8Consumer.appData).toBe(undefined);
+				expect(videoConsumer).toBeDefined();
+				expect(videoConsumer.closed).toBe(false);
+				expect(videoConsumer.kind).toBe('video');
+				expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
+				expect(videoConsumer.rtpParameters).toBeDefined();
+				expect(videoConsumer.appData).toBe(undefined);
 
-				expect(vp8Consumer.paused).toBe(false);
-				vp8Consumer.pause();
-				expect(vp8Consumer.paused).toBe(true);
-				vp8Consumer.resume();
-				expect(vp8Consumer.paused).toBe(false);
+				expect(videoConsumer.paused).toBe(false);
+				videoConsumer.pause();
+				expect(videoConsumer.paused).toBe(true);
+				videoConsumer.resume();
+				expect(videoConsumer.paused).toBe(false);
 
-				expect(vp8Consumer.preferredProfile).toBe('default');
-				vp8Consumer.preferredProfile = 'high';
+				expect(videoConsumer.preferredProfile).toBe('default');
+				videoConsumer.preferredProfile = 'high';
 				// Must ignore invalid profile.
-				vp8Consumer.preferredProfile = 'chicken';
-				expect(vp8Consumer.preferredProfile).toBe('high');
+				videoConsumer.preferredProfile = 'chicken';
+				expect(videoConsumer.preferredProfile).toBe('high');
 
-				expect(vp8Consumer.effectiveProfile).toBe(null);
-				vp8Consumer.effectiveProfile = 'medium';
+				expect(videoConsumer.effectiveProfile).toBe(null);
+				videoConsumer.effectiveProfile = 'medium';
 				// Must ignore invalid profile.
-				vp8Consumer.effectiveProfile = 'chicken';
-				expect(vp8Consumer.effectiveProfile).toBe('medium');
+				videoConsumer.effectiveProfile = 'chicken';
+				expect(videoConsumer.effectiveProfile).toBe('medium');
 			});
 	});
 
@@ -368,8 +368,8 @@ describe('create a device in Node with a FakeHandler', () =>
 	{
 		let audioProducerTrackendedEventCalled = false;
 		let videoProducerTrackendedEventCalled = false;
-		let opusConsumerTrackendedEventCalled = false;
-		let vp8ConsumerTrackendedEventCalled = false;
+		let audiosConsumerTrackendedEventCalled = false;
+		let videoConsumerTrackendedEventCalled = false;
 
 		audioProducer.on('trackended', () => (
 			audioProducerTrackendedEventCalled = true
@@ -379,12 +379,12 @@ describe('create a device in Node with a FakeHandler', () =>
 			videoProducerTrackendedEventCalled = true
 		));
 
-		opusConsumer.on('trackended', () => (
-			opusConsumerTrackendedEventCalled = true
+		audioConsumer.on('trackended', () => (
+			audiosConsumerTrackendedEventCalled = true
 		));
 
-		vp8Consumer.on('trackended', () => (
-			vp8ConsumerTrackendedEventCalled = true
+		videoConsumer.on('trackended', () => (
+			videoConsumerTrackendedEventCalled = true
 		));
 
 		audioProducer.track.remoteStop();
@@ -394,20 +394,20 @@ describe('create a device in Node with a FakeHandler', () =>
 		videoProducer.track.remoteStop();
 		expect(videoProducerTrackendedEventCalled).toBe(true);
 
-		opusConsumer.track.remoteStop();
-		// Opus consumer was already closed.
-		expect(opusConsumerTrackendedEventCalled).toBe(false);
+		audioConsumer.track.remoteStop();
+		// Audio consumer was already closed.
+		expect(audiosConsumerTrackendedEventCalled).toBe(false);
 
-		vp8Consumer.track.remoteStop();
-		expect(vp8ConsumerTrackendedEventCalled).toBe(true);
+		videoConsumer.track.remoteStop();
+		expect(videoConsumerTrackendedEventCalled).toBe(true);
 	});
 
 	test('transport.close() produces "transportclose" in live producers/consumers', () =>
 	{
 		let audioProducerTransportcloseEventCalled = false;
 		let videoProducerTransportcloseEventCalled = false;
-		let opusConsumerTransportcloseEventCalled = false;
-		let vp8ConsumerTransportcloseEventCalled = false;
+		let audioConsumerTransportcloseEventCalled = false;
+		let videoConsumerTransportcloseEventCalled = false;
 
 		audioProducer.on('transportclose', () => (
 			audioProducerTransportcloseEventCalled = true
@@ -417,12 +417,12 @@ describe('create a device in Node with a FakeHandler', () =>
 			videoProducerTransportcloseEventCalled = true
 		));
 
-		opusConsumer.on('transportclose', () => (
-			opusConsumerTransportcloseEventCalled = true
+		audioConsumer.on('transportclose', () => (
+			audioConsumerTransportcloseEventCalled = true
 		));
 
-		vp8Consumer.on('transportclose', () => (
-			vp8ConsumerTransportcloseEventCalled = true
+		videoConsumer.on('transportclose', () => (
+			videoConsumerTransportcloseEventCalled = true
 		));
 
 		// Audio producer was already closed.
@@ -435,14 +435,14 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(audioProducerTransportcloseEventCalled).toBe(false);
 		expect(videoProducerTransportcloseEventCalled).toBe(true);
 
-		// Opus consumer was already closed.
-		expect(opusConsumer.closed).toBe(true);
-		expect(vp8Consumer.closed).toBe(false);
+		// Audio consumer was already closed.
+		expect(audioConsumer.closed).toBe(true);
+		expect(videoConsumer.closed).toBe(false);
 		// Close recv transport.
 		recvTransport.close();
-		expect(vp8Consumer.closed).toBe(true);
-		// Opus consumer was already closed.
-		expect(opusConsumerTransportcloseEventCalled).toBe(false);
-		expect(vp8ConsumerTransportcloseEventCalled).toBe(true);
+		expect(videoConsumer.closed).toBe(true);
+		// Audio consumer was already closed.
+		expect(audioConsumerTransportcloseEventCalled).toBe(false);
+		expect(videoConsumerTransportcloseEventCalled).toBe(true);
 	});
 });
