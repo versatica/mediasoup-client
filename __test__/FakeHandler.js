@@ -69,6 +69,8 @@ export default class FakeHandler extends EnhancedEventEmitter
 				const rtpParameters =
 					utils.clone(this._rtpParametersByKind[track.kind]);
 
+				rtpParameters.muxId = String(utils.generateRandomNumber());
+
 				// Fill RTCRtpParameters.encodings.
 				const encoding =
 				{
