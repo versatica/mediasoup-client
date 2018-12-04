@@ -400,7 +400,7 @@ describe('create a device in Node with a FakeHandler', () =>
 		expect(vp8ConsumerTrackendedEventCalled).toBe(true);
 	});
 
-	test('sendTransport.close() produces "transportclose" in live producers/consumers', () =>
+	test('transport.close() produces "transportclose" in live producers/consumers', () =>
 	{
 		let audioProducerTransportcloseEventCalled = false;
 		let videoProducerTransportcloseEventCalled = false;
