@@ -62,7 +62,7 @@ export default class FakeHandler extends EnhancedEventEmitter
 			.then(() =>
 			{
 				if (!this._transportReady)
-					return this._setupTransport({ localDtlsRole: 'client' });
+					return this._setupTransport({ localDtlsRole: 'server' });
 			})
 			.then(() =>
 			{
