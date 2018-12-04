@@ -4,7 +4,7 @@ module.exports =
 	{
 		browser: true,
 		es6: true,
-		node: true,
+		node: false,
 		'jest/globals': true
 	},
 	plugins:
