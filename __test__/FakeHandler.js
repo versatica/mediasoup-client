@@ -1,15 +1,15 @@
-import MediaStreamTrack from 'node-mediastreamtrack';
-import Logger from '../lib/Logger';
-import EnhancedEventEmitter from '../lib/EnhancedEventEmitter';
-import * as utils from '../lib/utils';
-import * as ortc from '../lib/ortc';
-import * as fakeParameters from './fakeParameters';
+const MediaStreamTrack = require('node-mediastreamtrack');
+const Logger = require('../lib/Logger');
+const EnhancedEventEmitter = require('../lib/EnhancedEventEmitter');
+const utils = require('../lib/utils');
+const ortc = require('../lib/ortc');
+const fakeParameters = require('./fakeParameters');
 
 const logger = new Logger('FakeHandler');
 const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
 const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
-export default class FakeHandler extends EnhancedEventEmitter
+class FakeHandler extends EnhancedEventEmitter
 {
 	static getNativeRtpCapabilities()
 	{
@@ -160,3 +160,5 @@ export default class FakeHandler extends EnhancedEventEmitter
 			});
 	}
 }
+
+module.exports = FakeHandler;

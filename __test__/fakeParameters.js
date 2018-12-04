@@ -1,6 +1,6 @@
-import uuidv1 from 'uuid/v1';
+const uuidv1 = require('uuid/v1');
 
-export function generateRoomRtpCapabilities()
+exports.generateRoomRtpCapabilities = function()
 {
 	return {
 		codecs :
@@ -140,9 +140,9 @@ export function generateRoomRtpCapabilities()
 		],
 		fecMechanisms : []
 	};
-}
+};
 
-export function generateNativeRtpCapabilities()
+exports.generateNativeRtpCapabilities = function()
 {
 	return {
 		codecs :
@@ -268,9 +268,9 @@ export function generateNativeRtpCapabilities()
 		],
 		fecMechanisms : []
 	};
-}
+};
 
-export function generateLocalDtlsParameters()
+exports.generateLocalDtlsParameters = function()
 {
 	return {
 		fingerprints :
@@ -282,9 +282,9 @@ export function generateLocalDtlsParameters()
 		],
 		role : 'auto'
 	};
-}
+};
 
-export function generateTransportRemoteParameters()
+exports.generateTransportRemoteParameters = function()
 {
 	return {
 		id             : uuidv1(),
@@ -335,16 +335,16 @@ export function generateTransportRemoteParameters()
 			usernameFragment : 'h3hk1iz6qqlnqlne'
 		}
 	};
-}
+};
 
-export function generateProducerRemoteParameters()
+exports.generateProducerRemoteParameters = function()
 {
 	return {
 		id : uuidv1()
 	};
-}
+};
 
-export function generateConsumerRemoteParameters({ codecMimeType } = {})
+exports.generateConsumerRemoteParameters = function({ codecMimeType } = {})
 {
 	switch (codecMimeType)
 	{
@@ -515,4 +515,4 @@ export function generateConsumerRemoteParameters({ codecMimeType } = {})
 			throw new TypeError(`unknown codecMimeType "${codecMimeType}"`);
 		}
 	}
-}
+};

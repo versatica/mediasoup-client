@@ -12,9 +12,12 @@
     "type": "git",
     "url": "https://github.com/versatica/mediasoup-client.git"
   },
-  "main": "lib-es5/index.js",
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=8"
+  },
   "scripts": {
-    "lint": "gulp lint",
+    "lint": "eslint -c .eslintrc.js lib __test__",
     "test": "jest"
   },
   "jest": {
@@ -28,27 +31,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
-    "@babel/plugin-transform-classes": "^7.2.0",
-    "@babel/plugin-transform-runtime": "^7.2.0",
-    "@babel/preset-env": "^7.2.0",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.6.0",
-    "browserify": "^16.2.3",
     "eslint": "^5.9.0",
-    "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jest": "^22.1.2",
-    "gulp": "^4.0.0",
-    "gulp-babel": "^8.0.0",
-    "gulp-eslint": "^5.0.0",
-    "gulp-header": "^2.0.5",
-    "gulp-plumber": "^1.2.1",
-    "gulp-rename": "^1.4.0",
-    "gulp-uglify-es": "^1.0.4",
-    "gulp-util": "^3.0.8",
     "jest": "^23.6.0",
     "node-mediastreamtrack": "0.0.4",
-    "uuid": "^3.3.2",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
+    "uuid": "^3.3.2"
   }
 }

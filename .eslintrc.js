@@ -4,12 +4,11 @@ module.exports =
 	{
 		browser: true,
 		es6: true,
-		node: false,
+		node: true,
 		'jest/globals': true
 	},
 	plugins:
 	[
-		'import',
 		'jest'
 	],
 	extends:
@@ -169,9 +168,6 @@ module.exports =
 		'spaced-comment': [ 2, 'always' ],
 		'strict': 2,
 		'valid-typeof': 2,
-		'yoda': 2,
-		// eslint-plugin-import options.
-		'import/extensions': 2,
-		'import/no-duplicates': 2
+		'yoda': 2
 	}
 };

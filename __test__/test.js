@@ -3,11 +3,11 @@
  * FakeHandler device is used.
  */
 
-import MediaStreamTrack from 'node-mediastreamtrack';
-import Device from '../lib/Device';
-import { UnsupportedError, InvalidStateError } from '../lib/errors';
-import FakeHandler from './FakeHandler';
-import * as fakeParameters from './fakeParameters';
+const MediaStreamTrack = require('node-mediastreamtrack');
+const Device = require('../lib/Device');
+const { UnsupportedError, InvalidStateError } = require('../lib/errors');
+const FakeHandler = require('./FakeHandler');
+const fakeParameters = require('./fakeParameters');
 
 test('creating a device in Node without custom Handler throws UnsupportedError', () =>
 {
