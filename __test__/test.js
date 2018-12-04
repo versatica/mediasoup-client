@@ -194,7 +194,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(audioProducer.closed).toBe(false);
 				expect(audioProducer.kind).toBe('audio');
 				expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
-				expect(audioProducer.track).not.toBe(audioTrack);
+				expect(audioProducer.track).toBe(audioTrack);
 				expect(audioProducer.appData).toBe('FOO');
 
 				audioProducer.close();
@@ -211,7 +211,7 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(videoProducer.closed).toBe(false);
 				expect(videoProducer.kind).toBe('video');
 				expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
-				expect(videoProducer.track).not.toBe(videoTrack);
+				expect(videoProducer.track).toBe(videoTrack);
 				expect(videoProducer.appData).toBe(undefined);
 
 				expect(videoProducer.paused).toBe(false);
@@ -219,17 +219,19 @@ describe('create a device in Node with a FakeHandler', () =>
 				expect(videoProducer.paused).toBe(true);
 				videoProducer.resume();
 				expect(videoProducer.paused).toBe(false);
-				videoProducer.pause();
 			})
 			.then(() =>
 			{
 				const producerPreviousVideoTrack = videoProducer.track;
 				const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
 
+				videoProducer.pause();
+
 				return videoProducer.replaceTrack({ track: newVideoTrack })
 					.then(() =>
 					{
 						expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+						expect(videoProducer.track).toBe(newVideoTrack);
 						expect(videoProducer.paused).toBe(true);
 					});
 			});
