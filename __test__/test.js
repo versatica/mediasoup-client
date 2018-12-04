@@ -155,29 +155,32 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(producerLocalParameters.kind).toBeDefined();
 			expect(producerLocalParameters.rtpParameters).toBeDefined();
 
-			let producerRemoteParameters;
-
-			switch (producerLocalParameters.kind)
-			{
-				case 'audio':
-					audioProducerRemoteParameters =
-						fakeParameters.generateProducerRemoteParameters();
-					producerRemoteParameters = audioProducerRemoteParameters;
-					break;
-
-				case 'video':
-					videoProducerRemoteParameters =
-						fakeParameters.generateProducerRemoteParameters();
-					producerRemoteParameters = videoProducerRemoteParameters;
-					break;
-
-				default:
-					throw new Error('unknown producerLocalParameters.kind');
-			}
-
 			// Emulate communication with the server and success response with producer
 			// remote parameters.
-			setTimeout(() => callback(producerRemoteParameters));
+			setTimeout(() =>
+			{
+				let producerRemoteParameters;
+
+				switch (producerLocalParameters.kind)
+				{
+					case 'audio':
+						audioProducerRemoteParameters =
+							fakeParameters.generateProducerRemoteParameters();
+						producerRemoteParameters = audioProducerRemoteParameters;
+						break;
+
+					case 'video':
+						videoProducerRemoteParameters =
+							fakeParameters.generateProducerRemoteParameters();
+						producerRemoteParameters = videoProducerRemoteParameters;
+						break;
+
+					default:
+						throw new Error('unknown producerLocalParameters.kind');
+				}
+
+				callback(producerRemoteParameters);
+			});
 		});
 
 		return Promise.resolve()
@@ -283,25 +286,28 @@ describe('create a device in Node with a FakeHandler', () =>
 			expect(consumerLocalParameters.producerId).toBeDefined();
 			expect(consumerLocalParameters.rtpCapabilities).toBeDefined();
 
-			let consumerRemoteParameters;
-
-			switch (consumerLocalParameters.producerId)
-			{
-				case audioConsumerRemoteParameters.producerId:
-					consumerRemoteParameters = audioConsumerRemoteParameters;
-					break;
-
-				case videoConsumerRemoteParameters.producerId:
-					consumerRemoteParameters = videoConsumerRemoteParameters;
-					break;
-
-				default:
-					throw new Error('unknown consumerLocalParameters.producerId');
-			}
-
 			// Emulate communication with the server and success response with consumer
 			// remote parameters.
-			setTimeout(() => callback(consumerRemoteParameters));
+			setTimeout(() =>
+			{
+				let consumerRemoteParameters;
+
+				switch (consumerLocalParameters.producerId)
+				{
+					case audioConsumerRemoteParameters.producerId:
+						consumerRemoteParameters = audioConsumerRemoteParameters;
+						break;
+
+					case videoConsumerRemoteParameters.producerId:
+						consumerRemoteParameters = videoConsumerRemoteParameters;
+						break;
+
+					default:
+						throw new Error('unknown consumerLocalParameters.producerId');
+				}
+
+				callback(consumerRemoteParameters);
+			});
 		});
 
 		// Here we assume that the server created two producers and sent us notifications
