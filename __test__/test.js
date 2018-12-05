@@ -125,7 +125,7 @@ test('device.createTransport() for sending media succeeds', () =>
 	expect(sendTransport.appData).toBe('BAZ');
 });
 
-test('transport.send() succeeds', () =>
+test('transport.send() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
 	const videoTrack = new MediaStreamTrack({ kind: 'video' });
@@ -181,59 +181,47 @@ test('transport.send() succeeds', () =>
 		setTimeout(() => callback(producerRemoteParameters));
 	});
 
-	return Promise.resolve()
-		.then(() => sendTransport.send({ track: audioTrack, appData: 'FOO' }))
-		.then((producer) =>
-		{
-			audioProducer = producer;
+	audioProducer = await sendTransport.send({ track: audioTrack, appData: 'FOO' });
 
-			expect(connectEventNumTimesCalled).toBe(1);
-			expect(sendEventNumTimesCalled).toBe(1);
-			expect(audioProducer).toBeDefined();
-			expect(audioProducer.closed).toBe(false);
-			expect(audioProducer.kind).toBe('audio');
-			expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
-			expect(audioProducer.track).toBe(audioTrack);
-			expect(audioProducer.appData).toBe('FOO');
+	expect(connectEventNumTimesCalled).toBe(1);
+	expect(sendEventNumTimesCalled).toBe(1);
+	expect(audioProducer).toBeDefined();
+	expect(audioProducer.closed).toBe(false);
+	expect(audioProducer.kind).toBe('audio');
+	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
+	expect(audioProducer.track).toBe(audioTrack);
+	expect(audioProducer.appData).toBe('FOO');
 
-			audioProducer.close();
-			expect(audioProducer.closed).toBe(true);
-		})
-		.then(() => sendTransport.send({ track: videoTrack }))
-		.then((producer) =>
-		{
-			videoProducer = producer;
+	audioProducer.close();
+	expect(audioProducer.closed).toBe(true);
 
-			expect(connectEventNumTimesCalled).toBe(1);
-			expect(sendEventNumTimesCalled).toBe(2);
-			expect(videoProducer).toBeDefined();
-			expect(videoProducer.closed).toBe(false);
-			expect(videoProducer.kind).toBe('video');
-			expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
-			expect(videoProducer.track).toBe(videoTrack);
-			expect(videoProducer.appData).toBe(undefined);
+	videoProducer = await sendTransport.send({ track: videoTrack });
 
-			expect(videoProducer.paused).toBe(false);
-			videoProducer.pause();
-			expect(videoProducer.paused).toBe(true);
-			videoProducer.resume();
-			expect(videoProducer.paused).toBe(false);
-		})
-		.then(() =>
-		{
-			const producerPreviousVideoTrack = videoProducer.track;
-			const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+	expect(connectEventNumTimesCalled).toBe(1);
+	expect(sendEventNumTimesCalled).toBe(2);
+	expect(videoProducer).toBeDefined();
+	expect(videoProducer.closed).toBe(false);
+	expect(videoProducer.kind).toBe('video');
+	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
+	expect(videoProducer.track).toBe(videoTrack);
+	expect(videoProducer.appData).toBe(undefined);
 
-			videoProducer.pause();
+	expect(videoProducer.paused).toBe(false);
+	videoProducer.pause();
+	expect(videoProducer.paused).toBe(true);
+	videoProducer.resume();
+	expect(videoProducer.paused).toBe(false);
 
-			return videoProducer.replaceTrack({ track: newVideoTrack })
-				.then(() =>
-				{
-					expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
-					expect(videoProducer.track).toBe(newVideoTrack);
-					expect(videoProducer.paused).toBe(true);
-				});
-		});
+	const producerPreviousVideoTrack = videoProducer.track;
+	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+
+	videoProducer.pause();
+
+	await videoProducer.replaceTrack({ track: newVideoTrack });
+
+	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+	expect(videoProducer.track).toBe(newVideoTrack);
+	expect(videoProducer.paused).toBe(true);
 });
 
 test('device.createTransport() for receiving media succeeds', () =>
@@ -255,7 +243,7 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.connectionState).toBe('new');
 });
 
-test('transport.receive() succeeds', () =>
+test('transport.receive() succeeds', async () =>
 {
 	const audioConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
@@ -311,66 +299,54 @@ test('transport.receive() succeeds', () =>
 
 	// Here we assume that the server created two producers and sent us notifications
 	// about them.
-	return Promise.resolve()
-		.then(() => (
-			recvTransport.receive(
-				{ producerId: audioConsumerRemoteParameters.producerId, appData: 'BAR' })
-		))
-		.then((consumer) =>
+	audioConsumer = await recvTransport.receive(
+		{ producerId: audioConsumerRemoteParameters.producerId, appData: 'BAR' });
+
+	expect(connectEventNumTimesCalled).toBe(1);
+	expect(receiveEventNumTimesCalled).toBe(1);
+	expect(audioConsumer).toBeDefined();
+	expect(audioConsumer.closed).toBe(false);
+	expect(audioConsumer.kind).toBe('audio');
+	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
+	expect(audioConsumer.rtpParameters).toBeDefined();
+	expect(audioConsumer.preferredProfile).toBe('default');
+	expect(audioConsumer.appData).toBe('BAR');
+
+	audioConsumer.close();
+	expect(audioConsumer.closed).toBe(true);
+
+	videoConsumer = await recvTransport.receive(
 		{
-			audioConsumer = consumer;
-
-			expect(connectEventNumTimesCalled).toBe(1);
-			expect(receiveEventNumTimesCalled).toBe(1);
-			expect(audioConsumer).toBeDefined();
-			expect(audioConsumer.closed).toBe(false);
-			expect(audioConsumer.kind).toBe('audio');
-			expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
-			expect(audioConsumer.rtpParameters).toBeDefined();
-			expect(audioConsumer.preferredProfile).toBe('default');
-			expect(audioConsumer.appData).toBe('BAR');
-
-			audioConsumer.close();
-			expect(audioConsumer.closed).toBe(true);
-		})
-		.then(() => (
-			recvTransport.receive(
-				{
-					producerId       : videoConsumerRemoteParameters.producerId,
-					preferredProfile : 'high'
-				})
-		))
-		.then((consumer) =>
-		{
-			videoConsumer = consumer;
-
-			expect(connectEventNumTimesCalled).toBe(1);
-			expect(receiveEventNumTimesCalled).toBe(2);
-			expect(videoConsumer).toBeDefined();
-			expect(videoConsumer.closed).toBe(false);
-			expect(videoConsumer.kind).toBe('video');
-			expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
-			expect(videoConsumer.rtpParameters).toBeDefined();
-			expect(videoConsumer.preferredProfile).toBe('high');
-			expect(videoConsumer.appData).toBe(undefined);
-
-			expect(videoConsumer.paused).toBe(false);
-			videoConsumer.pause();
-			expect(videoConsumer.paused).toBe(true);
-			videoConsumer.resume();
-			expect(videoConsumer.paused).toBe(false);
-
-			videoConsumer.preferredProfile = 'high';
-			// Must ignore invalid profile.
-			videoConsumer.preferredProfile = 'chicken';
-			expect(videoConsumer.preferredProfile).toBe('high');
-
-			expect(videoConsumer.effectiveProfile).toBe(null);
-			videoConsumer.effectiveProfile = 'medium';
-			// Must ignore invalid profile.
-			videoConsumer.effectiveProfile = 'chicken';
-			expect(videoConsumer.effectiveProfile).toBe('medium');
+			producerId       : videoConsumerRemoteParameters.producerId,
+			preferredProfile : 'high'
 		});
+
+	expect(connectEventNumTimesCalled).toBe(1);
+	expect(receiveEventNumTimesCalled).toBe(2);
+	expect(videoConsumer).toBeDefined();
+	expect(videoConsumer.closed).toBe(false);
+	expect(videoConsumer.kind).toBe('video');
+	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
+	expect(videoConsumer.rtpParameters).toBeDefined();
+	expect(videoConsumer.preferredProfile).toBe('high');
+	expect(videoConsumer.appData).toBe(undefined);
+
+	expect(videoConsumer.paused).toBe(false);
+	videoConsumer.pause();
+	expect(videoConsumer.paused).toBe(true);
+	videoConsumer.resume();
+	expect(videoConsumer.paused).toBe(false);
+
+	videoConsumer.preferredProfile = 'high';
+	// Must ignore invalid profile.
+	videoConsumer.preferredProfile = 'chicken';
+	expect(videoConsumer.preferredProfile).toBe('high');
+
+	expect(videoConsumer.effectiveProfile).toBe(null);
+	videoConsumer.effectiveProfile = 'medium';
+	// Must ignore invalid profile.
+	videoConsumer.effectiveProfile = 'chicken';
+	expect(videoConsumer.effectiveProfile).toBe('medium');
 });
 
 test('remotetely stopped track produces "trackended" in live producers/consumers', () =>
