@@ -65,19 +65,19 @@ test('device.load() throws InvalidStateError if already loaded', () =>
 		.toThrow(InvalidStateError);
 });
 
-test('device.canSend() succeeds for "audio" and "video"', () =>
+test('device.canSend() succeeds with "audio"/"video" kind', () =>
 {
 	expect(device.canSend('audio')).toBe(true);
 	expect(device.canSend('video')).toBe(true);
 });
 
-test('device.canSend() throws TypeError if invalid kind', () =>
+test('device.canSend() throws TypeError with invalid kind', () =>
 {
 	expect(() => device.canSend('chicken'))
 		.toThrow(TypeError);
 });
 
-test('device.canReceive() succeeds for supported RTP parameters', () =>
+test('device.canReceive() succeeds with supported consumableRtpParameters', () =>
 {
 	const audioConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
@@ -90,13 +90,19 @@ test('device.canReceive() succeeds for supported RTP parameters', () =>
 		.toBe(true);
 });
 
-test('device.canReceive() fails for unsupported RTP parameters', () =>
+test('device.canReceive() fails with unsupported consumableRtpParameters', () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 
 	expect(device.canReceive(consumerRemoteParameters.rtpParameters))
 		.toBe(false);
+});
+
+test('device.createTransport() throws TypeError with invalid direction', () =>
+{
+	expect(() => device.createTransport({ direction: 'chicken' }))
+		.toThrow(TypeError);
 });
 
 test('device.createTransport() for sending media succeeds', () =>
