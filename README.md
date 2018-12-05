@@ -1,6 +1,10 @@
-# mediasoup-client
+# mediasoup-client v3
 
+*NOTE:* Work in progress.
+
+<!--
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
+-->
 
 JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based applications.
 
