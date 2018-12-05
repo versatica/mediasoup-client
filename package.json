@@ -30,7 +30,7 @@
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "babel-jest": "^23.6.0",
+    "@babel/core": "^7.2.0",
     "eslint": "^5.9.0",
     "eslint-plugin-jest": "^22.1.2",
     "jest": "^23.6.0",
