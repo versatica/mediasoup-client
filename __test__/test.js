@@ -19,15 +19,14 @@ let videoProducer;
 let audioConsumer;
 let videoConsumer;
 
-test('creating a device in Node without custom Handler throws UnsupportedError', () =>
+test('create a device in Node without custom Handler throws UnsupportedError', () =>
 {
 	expect(() => new Device({ Handler: null }))
 		.toThrow(UnsupportedError);
 });
 
-test('creating a device in Node with a FakeHandler succeeds', () =>
+test('create a device in Node with a FakeHandler succeeds', () =>
 {
-	expect(FakeHandler.name).toBe('FakeHandler');
 	expect(device = new Device({ Handler: FakeHandler }))
 		.toBeDefined();
 });
@@ -44,7 +43,7 @@ test('device.canReceive() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 });
 
-test('device.load() without roomRtpCapabilities throws TypeError', () =>
+test('device.load() without roomRtpCapabilities rejects with TypeError', () =>
 {
 	return expect(device.load())
 		.rejects
@@ -58,7 +57,7 @@ test('device.load() succeeds', () =>
 		.toBe(undefined);
 });
 
-test('device.load() throws InvalidStateError if already loaded', () =>
+test('device.load() rejects with InvalidStateError if already loaded', () =>
 {
 	return expect(device.load({ roomRtpCapabilities }))
 		.rejects
