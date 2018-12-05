@@ -300,7 +300,10 @@ test('transport.receive() succeeds', async () =>
 	// Here we assume that the server created two producers and sent us notifications
 	// about them.
 	audioConsumer = await recvTransport.receive(
-		{ producerId: audioConsumerRemoteParameters.producerId, appData: 'BAR' });
+		{
+			producerId : audioConsumerRemoteParameters.producerId,
+			appData    : 'BAR'
+		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(receiveEventNumTimesCalled).toBe(1);
