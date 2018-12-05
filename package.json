@@ -14,7 +14,7 @@
   },
   "main": "lib/index.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=6.4"
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js lib __test__",
@@ -36,7 +36,7 @@
     "eslint": "^5.9.0",
     "eslint-plugin-jest": "^22.1.2",
     "jest": "^23.6.0",
-    "node-mediastreamtrack": "0.0.4",
+    "node-mediastreamtrack": "0.1.0",
     "uuid": "^3.3.2"
   }
 }

@@ -14,5 +14,3 @@
 * `transport.receive()` must fail if not supported. The app is supposed to call  `device.canReceive()` first. The server side `transport.receive()` would fail and return an error.
 
 * Currently, if `transport.receive()` is called with unsupported RTP parameters, I don't know what will happen. Theoretically `handler.receive()` and its `pc.setRemoteDescription()` will fail, but I'm not sure how things become later...
-
-* `package.json`: Set min node engine to `"node": ">=6.4"` once this issue is fixed: https://github.com/ibc/node-mediastreamtrack/issues/1
