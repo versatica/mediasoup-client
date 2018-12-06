@@ -18,7 +18,8 @@
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js lib __test__",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "jest": {
     "verbose": true
