@@ -14,3 +14,5 @@
 * `transport.receive()` must fail if not supported. The app is supposed to call  `device.canReceive()` first. The server side `transport.receive()` would fail and return an error.
 
 * Currently, if `transport.receive()` is called with unsupported RTP parameters, I don't know what will happen. Theoretically `handler.receive()` and its `pc.setRemoteDescription()` will fail, but I'm not sure how things become later...
+
+* Test changes to simulcast in Chrome/Safari by passing an object with just `low` and `medium`.
