@@ -125,6 +125,25 @@ test('device.createTransport() for sending media succeeds', () =>
 	expect(sendTransport.appData).toBe('BAZ');
 });
 
+test('device.createTransport() for receiving media succeeds', () =>
+{
+	// Assume we create a transport in the server and get its remote parameters.
+	const transportRemoteParameters =
+		fakeParameters.generateTransportRemoteParameters();
+
+	expect(recvTransport = device.createTransport(
+		{
+			transportRemoteParameters,
+			direction : 'recv'
+		}))
+		.toBeDefined();
+
+	expect(recvTransport.id).toBe(transportRemoteParameters.id);
+	expect(recvTransport.closed).toBe(false);
+	expect(recvTransport.direction).toBe('recv');
+	expect(recvTransport.connectionState).toBe('new');
+});
+
 test('transport.send() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
@@ -222,25 +241,6 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
 	expect(videoProducer.paused).toBe(true);
-});
-
-test('device.createTransport() for receiving media succeeds', () =>
-{
-	// Assume we create a transport in the server and get its remote parameters.
-	const transportRemoteParameters =
-		fakeParameters.generateTransportRemoteParameters();
-
-	expect(recvTransport = device.createTransport(
-		{
-			transportRemoteParameters,
-			direction : 'recv'
-		}))
-		.toBeDefined();
-
-	expect(recvTransport.id).toBe(transportRemoteParameters.id);
-	expect(recvTransport.closed).toBe(false);
-	expect(recvTransport.direction).toBe('recv');
-	expect(recvTransport.connectionState).toBe('new');
 });
 
 test('transport.receive() succeeds', async () =>
@@ -350,6 +350,27 @@ test('transport.receive() succeeds', async () =>
 	// Must ignore invalid profile.
 	videoConsumer.effectiveProfile = 'chicken';
 	expect(videoConsumer.effectiveProfile).toBe('medium');
+});
+
+test('transport.receive() rejects with UnsupportedError if unsupported consumerRtpParameters', async () =>
+{
+	const consumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
+	const producerId = consumerRemoteParameters.producerId;
+
+	recvTransport.removeAllListeners('receive');
+
+	// eslint-disable-next-line no-unused-vars
+	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
+	{
+		// Emulate communication with the server and success response with consumer
+		// remote parameters.
+		setTimeout(() => callback(consumerRemoteParameters));
+	});
+
+	return expect(recvTransport.receive({ producerId }))
+		.rejects
+		.toThrow(UnsupportedError);
 });
 
 test('remotetely stopped track produces "trackended" in live producers/consumers', () =>
