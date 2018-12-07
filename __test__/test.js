@@ -43,6 +43,12 @@ test('device.canReceive() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 });
 
+test('device.rtpCapabilities() throws InvalidStateError if not loaded', () =>
+{
+	expect(() => device.rtpCapabilities)
+		.toThrow(InvalidStateError);
+});
+
 test('device.load() without roomRtpCapabilities rejects with TypeError', () =>
 {
 	return expect(device.load())
@@ -96,6 +102,12 @@ test('device.canReceive() with unsupported consumableRtpParameters returns false
 
 	expect(device.canReceive(consumerRemoteParameters.rtpParameters))
 		.toBe(false);
+});
+
+test('device.rtpCapabilities() succeeds', () =>
+{
+	expect(device.rtpCapabilities)
+		.toBeDefined();
 });
 
 test('device.createTransport() for sending media succeeds', () =>
