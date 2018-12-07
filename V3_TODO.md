@@ -12,3 +12,5 @@
 * API to select which codec to use when sending? For this, `ortc.getSendingRtpParameters()` should become `getSendingFullRtpParameters()` and include all the supported codecs (that matches the ones in the room, of course). And then, `handler.send()` should be told somehow about which one to use. This also means that remote SDP classes should keep info about senders to know which codecs to use for each m=section when building a SDP answer.
   - NOTE: Throw in PlanB browsers (or just for the second one or so on).
   - Or easier: do nothing. Instead, the client app could generate a second `device` and provide it with a subset of the `roomRtpCapabilities`.
+
+* Currently the producer limits to 1 PLI every two seconds. If you PLIs are requested together, the second one is delayed for 1 second, and then a PLI is sent to the producer. The problem here is that, at that time, we may already receive a keyframe for the producer so sending a new PLI to the producer is a waste of resources. The producer should clean the "PLIs queue" (unset the flag and stop the timer) for every received keyframe.
