@@ -50,7 +50,7 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', () =>
 		.toThrow(TypeError);
 });
 
-test('device.load() succeeds', () =>
+test('device.load() with proper roomRtpCapabilities succeeds', () =>
 {
 	return expect(device.load({ roomRtpCapabilities }))
 		.resolves
@@ -98,12 +98,6 @@ test('device.canReceive() fails with unsupported consumableRtpParameters', () =>
 		.toBe(false);
 });
 
-test('device.createTransport() throws TypeError with invalid direction', () =>
-{
-	expect(() => device.createTransport({ direction: 'chicken' }))
-		.toThrow(TypeError);
-});
-
 test('device.createTransport() for sending media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
@@ -142,6 +136,12 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.closed).toBe(false);
 	expect(recvTransport.direction).toBe('recv');
 	expect(recvTransport.connectionState).toBe('new');
+});
+
+test('device.createTransport() throws TypeError with invalid direction', () =>
+{
+	expect(() => device.createTransport({ direction: 'chicken' }))
+		.toThrow(TypeError);
 });
 
 test('transport.send() succeeds', async () =>
