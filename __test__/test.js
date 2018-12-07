@@ -352,7 +352,7 @@ test('transport.receive() succeeds', async () =>
 	expect(videoConsumer.effectiveProfile).toBe('medium');
 });
 
-test('transport.receive() rejects with UnsupportedError if unsupported consumerRtpParameters', async () =>
+test('transport.receive() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
@@ -373,7 +373,7 @@ test('transport.receive() rejects with UnsupportedError if unsupported consumerR
 		.toThrow(UnsupportedError);
 });
 
-test('remotetely stopped track produces "trackended" in live producers/consumers', () =>
+test('remotetely stopped track fires "trackended" in live producers/consumers', () =>
 {
 	let audioProducerTrackendedEventCalled = false;
 	let videoProducerTrackendedEventCalled = false;
@@ -411,7 +411,7 @@ test('remotetely stopped track produces "trackended" in live producers/consumers
 	expect(videoConsumerTrackendedEventCalled).toBe(true);
 });
 
-test('transport.close() produces "transportclose" in live producers/consumers', () =>
+test('transport.close() fires "transportclose" in live producers/consumers', () =>
 {
 	let audioProducerTransportcloseEventCalled = false;
 	let videoProducerTransportcloseEventCalled = false;
