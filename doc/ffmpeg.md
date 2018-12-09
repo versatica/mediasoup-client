@@ -53,7 +53,7 @@ Notes:
 Let's assume that we want to read an mp3 file (located in the mediasoup server) and send it to the mediasoup "room". In mediasoup v3 it would be something as follows (still to be designed):
 
 * Decide which IP, RTP port and RTCP port we are gonna use in `ffmpeg`:
-  - IP: '127.0.0.1'
+  - IP: 127.0.0.1
   - RTP port: 2000
   - RTCP port: 2001
 
