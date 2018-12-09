@@ -437,11 +437,14 @@ test('consumer.getStats() succeeds', () =>
 		.toBeType('map');
 });
 
-test('producer.close() and consumer.close() succeed', () =>
+test('producer.close() succeed', () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
+});
 
+test('consumer.close() succeed', () =>
+{
 	audioConsumer.close();
 	expect(audioConsumer.closed).toBe(true);
 });
