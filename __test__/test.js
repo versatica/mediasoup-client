@@ -223,9 +223,6 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.appData).toBe('FOO');
 
-	audioProducer.close();
-	expect(audioProducer.closed).toBe(true);
-
 	videoProducer = await sendTransport.send({ track: videoTrack });
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -327,9 +324,6 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.preferredProfile).toBe('default');
 	expect(audioConsumer.appData).toBe('BAR');
 
-	audioConsumer.close();
-	expect(audioConsumer.closed).toBe(true);
-
 	videoConsumer = await recvTransport.receive(
 		{
 			producerId       : videoConsumerRemoteParameters.producerId,
@@ -383,6 +377,50 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 	return expect(recvTransport.receive({ producerId }))
 		.rejects
 		.toThrow(UnsupportedError);
+});
+
+test('close producer and consumer', () =>
+{
+	audioProducer.close();
+	expect(audioProducer.closed).toBe(true);
+
+	audioConsumer.close();
+	expect(audioConsumer.closed).toBe(true);
+});
+
+test('transport.getStats() succeeds', () =>
+{
+	return expect(sendTransport.getStats())
+		.resolves
+		.toBeDefined();
+});
+
+test('producer.getStats() succeeds', () =>
+{
+	return expect(videoProducer.getStats())
+		.resolves
+		.toBeDefined();
+});
+
+test('consumer.getStats() succeeds', () =>
+{
+	return expect(videoConsumer.getStats())
+		.resolves
+		.toBeDefined();
+});
+
+test('producer.getStats() rejects with InvalidStateError if closed', () =>
+{
+	return expect(audioProducer.getStats())
+		.rejects
+		.toThrow(InvalidStateError);
+});
+
+test('consumer.getStats() rejects with InvalidStateError if closed', () =>
+{
+	return expect(audioConsumer.getStats())
+		.rejects
+		.toThrow(InvalidStateError);
 });
 
 test('remotetely stopped track fires "trackended" in live producers/consumers', () =>
@@ -465,4 +503,11 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	// Audio consumer was already closed.
 	expect(audioConsumerTransportcloseEventCalled).toBe(false);
 	expect(videoConsumerTransportcloseEventCalled).toBe(true);
+});
+
+test('transport.getStats() rejects with InvalidStateError if closed', () =>
+{
+	return expect(sendTransport.getStats())
+		.rejects
+		.toThrow(InvalidStateError);
 });

@@ -54,6 +54,11 @@ class FakeHandler extends EnhancedEventEmitter
 		logger.debug('close()');
 	}
 
+	getTransportStats()
+	{
+		return Promise.resolve(new Map());
+	}
+
 	send({ track, simulcast }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
@@ -113,6 +118,11 @@ class FakeHandler extends EnhancedEventEmitter
 		return Promise.resolve();
 	}
 
+	getSenderStats({ track }) // eslint-disable-line no-unused-vars
+	{
+		return Promise.resolve(new Map());
+	}
+
 	receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('receive() [id:%s, kind:%s]', id, kind);
@@ -136,6 +146,11 @@ class FakeHandler extends EnhancedEventEmitter
 		logger.debug('stopReceiving() [id:%s]', id);
 
 		return Promise.resolve();
+	}
+
+	getReceiverStats({ track }) // eslint-disable-line no-unused-vars
+	{
+		return Promise.resolve(new Map());
 	}
 
 	_setupTransport({ localDtlsRole } = {})
