@@ -3,11 +3,14 @@
  * FakeHandler device is used.
  */
 
+const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
 const Device = require('../lib/Device');
 const { UnsupportedError, InvalidStateError } = require('../lib/errors');
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
+
+expect.extend({ toBeType });
 
 // Assume we get the room RTP capabilities.
 const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
@@ -28,7 +31,7 @@ test('create a device in Node without custom Handler throws UnsupportedError', (
 test('create a device in Node with a FakeHandler succeeds', () =>
 {
 	expect(device = new Device({ Handler: FakeHandler }))
-		.toBeDefined();
+		.toBeType('object');
 });
 
 test('device.canSend() throws InvalidStateError if not loaded', () =>
@@ -107,7 +110,7 @@ test('device.canReceive() with unsupported consumableRtpParameters returns false
 test('device.rtpCapabilities() succeeds', () =>
 {
 	expect(device.rtpCapabilities)
-		.toBeDefined();
+		.toBeType('object');
 });
 
 test('device.createTransport() for sending media succeeds', () =>
@@ -122,11 +125,12 @@ test('device.createTransport() for sending media succeeds', () =>
 			direction : 'send',
 			appData   : 'BAZ'
 		}))
-		.toBeDefined();
+		.toBeType('object');
 
 	expect(sendTransport.id).toBe(transportRemoteParameters.id);
 	expect(sendTransport.closed).toBe(false);
 	expect(sendTransport.direction).toBe('send');
+	expect(sendTransport.handler).toBeType('object');
 	expect(sendTransport.connectionState).toBe('new');
 	expect(sendTransport.appData).toBe('BAZ');
 });
@@ -142,11 +146,12 @@ test('device.createTransport() for receiving media succeeds', () =>
 			transportRemoteParameters,
 			direction : 'recv'
 		}))
-		.toBeDefined();
+		.toBeType('object');
 
 	expect(recvTransport.id).toBe(transportRemoteParameters.id);
 	expect(recvTransport.closed).toBe(false);
 	expect(recvTransport.direction).toBe('recv');
+	expect(recvTransport.handler).toBeType('object');
 	expect(recvTransport.connectionState).toBe('new');
 });
 
@@ -170,8 +175,8 @@ test('transport.send() succeeds', async () =>
 	{
 		connectEventNumTimesCalled++;
 
-		expect(transportLocalParameters).toBeDefined();
-		expect(transportLocalParameters.dtlsParameters).toBeDefined();
+		expect(transportLocalParameters).toBeType('object');
+		expect(transportLocalParameters.dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
 		// data needed).
@@ -183,9 +188,9 @@ test('transport.send() succeeds', async () =>
 	{
 		sendEventNumTimesCalled++;
 
-		expect(producerLocalParameters).toBeDefined();
-		expect(producerLocalParameters.kind).toBeDefined();
-		expect(producerLocalParameters.rtpParameters).toBeDefined();
+		expect(producerLocalParameters).toBeType('object');
+		expect(producerLocalParameters.kind).toBeType('string');
+		expect(producerLocalParameters.rtpParameters).toBeType('object');
 
 		let producerRemoteParameters;
 
@@ -216,22 +221,24 @@ test('transport.send() succeeds', async () =>
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(1);
-	expect(audioProducer).toBeDefined();
+	expect(audioProducer).toBeType('object');
 	expect(audioProducer.closed).toBe(false);
 	expect(audioProducer.kind).toBe('audio');
 	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 	expect(audioProducer.track).toBe(audioTrack);
+	expect(audioProducer.rtpParameters).toBeType('object');
 	expect(audioProducer.appData).toBe('FOO');
 
-	videoProducer = await sendTransport.send({ track: videoTrack });
+	videoProducer = await sendTransport.send({ track: videoTrack, simulcast: true });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(2);
-	expect(videoProducer).toBeDefined();
+	expect(videoProducer).toBeType('object');
 	expect(videoProducer.closed).toBe(false);
 	expect(videoProducer.kind).toBe('video');
 	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 	expect(videoProducer.track).toBe(videoTrack);
+	expect(videoProducer.rtpParameters).toBeType('object');
 	expect(videoProducer.appData).toBe(undefined);
 
 	expect(videoProducer.paused).toBe(false);
@@ -252,6 +259,22 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.paused).toBe(true);
 });
 
+test('transport.send() without track rejects with TypeError', () =>
+{
+	return expect(sendTransport.send())
+		.rejects
+		.toThrow(TypeError);
+});
+
+test('transport.send() in a receiving transport rejects with UnsupportedError', () =>
+{
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	return expect(recvTransport.send({ track }))
+		.rejects
+		.toThrow(UnsupportedError);
+});
+
 test('transport.receive() succeeds', async () =>
 {
 	const audioConsumerRemoteParameters =
@@ -266,8 +289,8 @@ test('transport.receive() succeeds', async () =>
 	{
 		connectEventNumTimesCalled++;
 
-		expect(transportLocalParameters).toBeDefined();
-		expect(transportLocalParameters.dtlsParameters).toBeDefined();
+		expect(transportLocalParameters).toBeType('object');
+		expect(transportLocalParameters.dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
 		// data needed).
@@ -279,9 +302,9 @@ test('transport.receive() succeeds', async () =>
 	{
 		receiveEventNumTimesCalled++;
 
-		expect(consumerLocalParameters).toBeDefined();
-		expect(consumerLocalParameters.producerId).toBeDefined();
-		expect(consumerLocalParameters.rtpCapabilities).toBeDefined();
+		expect(consumerLocalParameters).toBeType('object');
+		expect(consumerLocalParameters.producerId).toBeType('string');
+		expect(consumerLocalParameters.rtpCapabilities).toBeType('object');
 
 		let consumerRemoteParameters;
 
@@ -316,11 +339,11 @@ test('transport.receive() succeeds', async () =>
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(receiveEventNumTimesCalled).toBe(1);
-	expect(audioConsumer).toBeDefined();
+	expect(audioConsumer).toBeType('object');
 	expect(audioConsumer.closed).toBe(false);
 	expect(audioConsumer.kind).toBe('audio');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
-	expect(audioConsumer.rtpParameters).toBeDefined();
+	expect(audioConsumer.rtpParameters).toBeType('object');
 	expect(audioConsumer.preferredProfile).toBe('default');
 	expect(audioConsumer.appData).toBe('BAR');
 
@@ -332,11 +355,11 @@ test('transport.receive() succeeds', async () =>
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(receiveEventNumTimesCalled).toBe(2);
-	expect(videoConsumer).toBeDefined();
+	expect(videoConsumer).toBeType('object');
 	expect(videoConsumer.closed).toBe(false);
 	expect(videoConsumer.kind).toBe('video');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
-	expect(videoConsumer.rtpParameters).toBeDefined();
+	expect(videoConsumer.rtpParameters).toBeType('object');
 	expect(videoConsumer.preferredProfile).toBe('high');
 	expect(videoConsumer.appData).toBe(undefined);
 
@@ -356,6 +379,20 @@ test('transport.receive() succeeds', async () =>
 	// Must ignore invalid profile.
 	videoConsumer.effectiveProfile = 'chicken';
 	expect(videoConsumer.effectiveProfile).toBe('medium');
+});
+
+test('transport.receive() without producerId rejects with TypeError', () =>
+{
+	return expect(recvTransport.receive())
+		.rejects
+		.toThrow(TypeError);
+});
+
+test('transport.receive() in a sending transport rejects with UnsupportedError', () =>
+{
+	return expect(sendTransport.receive({ producerId: '1234' }))
+		.rejects
+		.toThrow(UnsupportedError);
 });
 
 test('transport.receive() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
@@ -379,34 +416,34 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 		.toThrow(UnsupportedError);
 });
 
-test('close producer and consumer', () =>
-{
-	audioProducer.close();
-	expect(audioProducer.closed).toBe(true);
-
-	audioConsumer.close();
-	expect(audioConsumer.closed).toBe(true);
-});
-
 test('transport.getStats() succeeds', () =>
 {
 	return expect(sendTransport.getStats())
 		.resolves
-		.toBeDefined();
+		.toBeType('map');
 });
 
 test('producer.getStats() succeeds', () =>
 {
 	return expect(videoProducer.getStats())
 		.resolves
-		.toBeDefined();
+		.toBeType('map');
 });
 
 test('consumer.getStats() succeeds', () =>
 {
 	return expect(videoConsumer.getStats())
 		.resolves
-		.toBeDefined();
+		.toBeType('map');
+});
+
+test('producer.close() and consumer.close() succeed', () =>
+{
+	audioProducer.close();
+	expect(audioProducer.closed).toBe(true);
+
+	audioConsumer.close();
+	expect(audioConsumer.closed).toBe(true);
 });
 
 test('producer.getStats() rejects with InvalidStateError if closed', () =>
@@ -503,6 +540,20 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	// Audio consumer was already closed.
 	expect(audioConsumerTransportcloseEventCalled).toBe(false);
 	expect(videoConsumerTransportcloseEventCalled).toBe(true);
+});
+
+test('transport.send() rejects with InvalidStateError if closed', () =>
+{
+	return expect(sendTransport.send())
+		.rejects
+		.toThrow(InvalidStateError);
+});
+
+test('transport.receive() rejects with InvalidStateError if closed', () =>
+{
+	return expect(recvTransport.receive())
+		.rejects
+		.toThrow(InvalidStateError);
 });
 
 test('transport.getStats() rejects with InvalidStateError if closed', () =>
