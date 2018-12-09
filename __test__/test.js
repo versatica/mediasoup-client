@@ -52,23 +52,23 @@ test('device.rtpCapabilities() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 });
 
-test('device.load() without roomRtpCapabilities rejects with TypeError', () =>
+test('device.load() without roomRtpCapabilities rejects with TypeError', async () =>
 {
-	return expect(device.load())
+	await expect(device.load())
 		.rejects
 		.toThrow(TypeError);
 });
 
-test('device.load() with proper roomRtpCapabilities succeeds', () =>
+test('device.load() with proper roomRtpCapabilities succeeds', async () =>
 {
-	return expect(device.load({ roomRtpCapabilities }))
+	await expect(device.load({ roomRtpCapabilities }))
 		.resolves
 		.toBe(undefined);
 });
 
-test('device.load() rejects with InvalidStateError if already loaded', () =>
+test('device.load() rejects with InvalidStateError if already loaded', async () =>
 {
-	return expect(device.load({ roomRtpCapabilities }))
+	await expect(device.load({ roomRtpCapabilities }))
 		.rejects
 		.toThrow(InvalidStateError);
 });
@@ -261,18 +261,18 @@ test('transport.send() succeeds', async () =>
 	sendTransport.removeAllListeners();
 });
 
-test('transport.send() without track rejects with TypeError', () =>
+test('transport.send() without track rejects with TypeError', async () =>
 {
-	return expect(sendTransport.send())
+	await expect(sendTransport.send())
 		.rejects
 		.toThrow(TypeError);
 });
 
-test('transport.send() in a receiving transport rejects with UnsupportedError', () =>
+test('transport.send() in a receiving transport rejects with UnsupportedError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
-	return expect(recvTransport.send({ track }))
+	await expect(recvTransport.send({ track }))
 		.rejects
 		.toThrow(UnsupportedError);
 });
@@ -385,16 +385,16 @@ test('transport.receive() succeeds', async () =>
 	recvTransport.removeAllListeners();
 });
 
-test('transport.receive() without producerId rejects with TypeError', () =>
+test('transport.receive() without producerId rejects with TypeError', async () =>
 {
-	return expect(recvTransport.receive())
+	await expect(recvTransport.receive())
 		.rejects
 		.toThrow(TypeError);
 });
 
-test('transport.receive() in a sending transport rejects with UnsupportedError', () =>
+test('transport.receive() in a sending transport rejects with UnsupportedError', async () =>
 {
-	return expect(sendTransport.receive({ producerId: '1234' }))
+	await expect(sendTransport.receive({ producerId: '1234' }))
 		.rejects
 		.toThrow(UnsupportedError);
 });
@@ -413,28 +413,30 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 		setTimeout(() => callback(consumerRemoteParameters));
 	});
 
-	return expect(recvTransport.receive({ producerId }))
+	await expect(recvTransport.receive({ producerId }))
 		.rejects
 		.toThrow(UnsupportedError);
+
+	recvTransport.removeAllListeners();
 });
 
-test('transport.getStats() succeeds', () =>
+test('transport.getStats() succeeds', async () =>
 {
-	return expect(sendTransport.getStats())
+	await expect(sendTransport.getStats())
 		.resolves
 		.toBeType('map');
 });
 
-test('producer.getStats() succeeds', () =>
+test('producer.getStats() succeeds', async () =>
 {
-	return expect(videoProducer.getStats())
+	await expect(videoProducer.getStats())
 		.resolves
 		.toBeType('map');
 });
 
-test('consumer.getStats() succeeds', () =>
+test('consumer.getStats() succeeds', async () =>
 {
-	return expect(videoConsumer.getStats())
+	await expect(videoConsumer.getStats())
 		.resolves
 		.toBeType('map');
 });
@@ -451,16 +453,16 @@ test('consumer.close() succeed', () =>
 	expect(audioConsumer.closed).toBe(true);
 });
 
-test('producer.getStats() rejects with InvalidStateError if closed', () =>
+test('producer.getStats() rejects with InvalidStateError if closed', async () =>
 {
-	return expect(audioProducer.getStats())
+	await expect(audioProducer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
 });
 
-test('consumer.getStats() rejects with InvalidStateError if closed', () =>
+test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 {
-	return expect(audioConsumer.getStats())
+	await expect(audioConsumer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
 });
@@ -501,6 +503,11 @@ test('remotetely stopped track fires "trackended" in live producers/consumers', 
 
 	videoConsumer.track.remoteStop();
 	expect(videoConsumerTrackendedEventCalled).toBe(true);
+
+	audioProducer.removeAllListeners();
+	videoProducer.removeAllListeners();
+	audioConsumer.removeAllListeners();
+	videoConsumer.removeAllListeners();
 });
 
 test('transport.close() fires "transportclose" in live producers/consumers', () =>
@@ -547,23 +554,23 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	expect(videoConsumerTransportcloseEventCalled).toBe(true);
 });
 
-test('transport.send() rejects with InvalidStateError if closed', () =>
+test('transport.send() rejects with InvalidStateError if closed', async () =>
 {
-	return expect(sendTransport.send())
+	await expect(sendTransport.send())
 		.rejects
 		.toThrow(InvalidStateError);
 });
 
-test('transport.receive() rejects with InvalidStateError if closed', () =>
+test('transport.receive() rejects with InvalidStateError if closed', async () =>
 {
-	return expect(recvTransport.receive())
+	await expect(recvTransport.receive())
 		.rejects
 		.toThrow(InvalidStateError);
 });
 
-test('transport.getStats() rejects with InvalidStateError if closed', () =>
+test('transport.getStats() rejects with InvalidStateError if closed', async () =>
 {
-	return expect(sendTransport.getStats())
+	await expect(sendTransport.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
 });
