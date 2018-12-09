@@ -257,6 +257,8 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
 	expect(videoProducer.paused).toBe(true);
+
+	sendTransport.removeAllListeners();
 });
 
 test('transport.send() without track rejects with TypeError', () =>
@@ -379,6 +381,8 @@ test('transport.receive() succeeds', async () =>
 	// Must ignore invalid profile.
 	videoConsumer.effectiveProfile = 'chicken';
 	expect(videoConsumer.effectiveProfile).toBe('medium');
+
+	recvTransport.removeAllListeners();
 });
 
 test('transport.receive() without producerId rejects with TypeError', () =>
@@ -400,8 +404,6 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 	const producerId = consumerRemoteParameters.producerId;
-
-	recvTransport.removeAllListeners('receive');
 
 	// eslint-disable-next-line no-unused-vars
 	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
