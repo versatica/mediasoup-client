@@ -372,10 +372,10 @@ test('transport.receive() succeeds', async () =>
 	videoConsumer.resume();
 	expect(videoConsumer.paused).toBe(false);
 
-	videoConsumer.preferredProfile = 'high';
+	videoConsumer.preferredProfile = 'medium';
 	// Must ignore invalid profile.
 	videoConsumer.preferredProfile = 'chicken';
-	expect(videoConsumer.preferredProfile).toBe('high');
+	expect(videoConsumer.preferredProfile).toBe('medium');
 
 	expect(videoConsumer.effectiveProfile).toBe(null);
 	videoConsumer.effectiveProfile = 'medium';
