@@ -5,7 +5,8 @@ Some stuff to make `ffmpeg` work with mediasoup v3.
 Resources:
 
 * [FFmpeg Protocols Documentation](https://ffmpeg.org/ffmpeg-protocols.html)
-* [node-fluent-ffmpeg](https://github.com/fluent-ffmpeg/node-fluent-ffmpeg) - Unmaintained, but interesting. Do we need this?
+* [libopus encoding options in ffmpeg](http://ffmpeg.org/ffmpeg-codecs.html#libopus-1)
+* [node-fluent-ffmpeg](https://github.com/fluent-ffmpeg/node-fluent-ffmpeg) - Unmaintained, but interesting.
 
 
 ## Sending a MP3 file encoded in Opus
@@ -58,7 +59,7 @@ Let's assume that we want to read an mp3 file (located in the mediasoup server) 
   - RTCP port: 2001
 
 * Decide which codec, SSRC and PT (payload type) we are gonna send:
-  - Codec: OPUS
+  - Codec: Opus
   - SSRC: 12345678
   - PT: 100
 
@@ -105,7 +106,7 @@ const producer = await transport.send(
           rtcpFeedback : [],
           parameters   :
           {
-            useinbandfec : 1 // NOTE: Assuming ffmpeg supports it.
+            useinbandfec : 1 // NOTE: Not sure if ffmpeg allows this for Opus.
           }
         }
       ],
