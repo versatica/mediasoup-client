@@ -12,8 +12,6 @@ const fakeParameters = require('./fakeParameters');
 
 expect.extend({ toBeType });
 
-// Assume we get the room RTP capabilities.
-const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
 let device;
 let sendTransport;
 let recvTransport;
@@ -61,6 +59,9 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', async (
 
 test('device.load() with proper roomRtpCapabilities succeeds', async () =>
 {
+	// Assume we get the room RTP capabilities.
+	const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
+
 	await expect(device.load({ roomRtpCapabilities }))
 		.resolves
 		.toBe(undefined);
@@ -68,7 +69,7 @@ test('device.load() with proper roomRtpCapabilities succeeds', async () =>
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
 {
-	await expect(device.load({ roomRtpCapabilities }))
+	await expect(device.load())
 		.rejects
 		.toThrow(InvalidStateError);
 });
