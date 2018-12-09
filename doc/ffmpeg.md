@@ -45,4 +45,90 @@ Commandline options and URL query parameters mean (some of them):
 
 Notes:
 
-* `ffmpeg` can send RTP and RTCP to the same port, which is great, but it cannot listen for RTP and RTCP in the same local port. So we need something in `PlainRtpTransport` to send RTP and RTCP to different destination ports.
+* `ffmpeg` can send RTP and RTCP to the same port, which is great, but it cannot listen for RTP and RTCP in the same local port. So we need something in `PlainRtpTransport` to send RTP and RTCP to different destination ports. Easier: we can have a tuple for RTP and another for RTCP in `PlainRtpTransport` (easy).
+
+
+## Using ffmpeg to send audio to mediasoup
+
+Let's assume that we want to read an mp3 file (located in the mediasiup server) and send it to the mediasoup "room". In mediasoup v3 it would be something as follows (still to be designed):
+
+* Decide which IP, RTP port and RTCP port we are gonna use in `ffmpeg`:
+  - IP: '127.0.0.1'
+  - RTP port: 2000
+  - RTCP port: 2001
+
+* Decide which codec, SSRC and PT (payload type) we are gonna send:
+  - Codec: OPUS
+  - SSRC: 12345678
+  - PT: 100
+
+* Create a `PlainRtpTransport` in mediasoup:
+
+```js
+const transport = await router.createPlainTransport(
+  { 
+    ip      : '127.0.0.1',
+    rtcpMux : false
+    rtpPort  : 2000, 
+    rtcpPort : 2001
+  });
+
+// Read transport local RTP and RTCP ports.
+const rtpPort = transport.localRtpPort; // => For example 3301.
+const rtcpPort = transport.localRtpPort; // => For example 4502.
+
+// Provide ffmpeg IP/ports.
+transport.connect(
+  {
+    ip       : '127.0.0.1',
+    rtcpMux  : false,
+    rtpPort  : 2000, 
+    rtcpPort : 2001
+  });
+```
+
+* Create a `Producer` in such a transport:
+
+```js
+const producer = await transport.send(
+  {
+    rtpParameters :
+    {
+      codecs :
+      [
+        {
+          name         : 'opus',
+          mimeType     : 'audio/opus',
+          clockRate    : 48000,
+          payloadType  : 100,
+          channels     : 2,
+          rtcpFeedback : [],
+          parameters   :
+          {
+            useinbandfec : 1 // NOTE: Assuming ffmpeg supports it.
+          }
+        }
+      ],
+      encodings :
+      [
+        {
+          ssrc : 12345678
+        }
+      ],
+    }
+  });
+```
+
+* Tell `ffmpeg` to send the audio file with the parameters defined above:
+
+```bash
+$ ffmpeg \
+  -re -f mp3 -i audio.mp3 -acodec libopus -ab 128k -ac 2 -ar 48000 \
+  -ssrc 12345678 -payload_type 100 \
+  -f rtp "rtp://127.0.0.1:3301?rtcpport=4502&localrtpport=2000&localrtcpport=2001"
+```
+
+
+## TODO
+
+* What about sending a mp4 file with both audio and video? Can `ffmpeg` be told to send the audio track and the video track to different IPs and ports with separate SSRC and PT values in the commandline, etc?
