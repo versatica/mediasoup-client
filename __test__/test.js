@@ -442,16 +442,26 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
-test('producer.close() succeed', () =>
+test('producer.close() succeed', async () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
+	expect(audioProducer.track.readyState).toBe('ended');
+
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(audioProducer.replaceTrack({ track }))
+		.rejects
+		.toThrow(InvalidStateError);
+
+	expect(track.readyState).toBe('ended');
 });
 
 test('consumer.close() succeed', () =>
 {
 	audioConsumer.close();
 	expect(audioConsumer.closed).toBe(true);
+	expect(audioConsumer.track.readyState).toBe('ended');
 });
 
 test('producer.getStats() rejects with InvalidStateError if closed', async () =>
@@ -557,9 +567,13 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 
 test('transport.send() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(sendTransport.send())
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(sendTransport.send({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	expect(track.readyState).toBe('ended');
 });
 
 test('transport.receive() rejects with InvalidStateError if closed', async () =>
