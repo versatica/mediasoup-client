@@ -53,6 +53,19 @@ test('device.canReceive() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 });
 
+test('device.createTransport() throws InvalidStateError if not loaded', () =>
+{
+	const transportRemoteParameters =
+		fakeParameters.generateTransportRemoteParameters();
+
+	expect(() => device.createTransport(
+		{
+			transportRemoteParameters,
+			direction : 'send'
+		}))
+		.toThrow(InvalidStateError);
+});
+
 test('device.load() without roomRtpCapabilities rejects with TypeError', async () =>
 {
 	await expect(device.load())
@@ -118,6 +131,12 @@ test('device.canReceive() with unsupported consumableRtpParameters returns false
 		.toBe(false);
 });
 
+test('device.canReceive() without consumableRtpParameters throws TypeError', () =>
+{
+	expect(() => device.canReceive())
+		.toThrow(TypeError);
+});
+
 test('device.createTransport() for sending media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
@@ -164,6 +183,12 @@ test('device.createTransport() for receiving media succeeds', () =>
 test('device.createTransport() with invalid direction throws TypeError', () =>
 {
 	expect(() => device.createTransport({ direction: 'chicken' }))
+		.toThrow(TypeError);
+});
+
+test('device.createTransport() without transportRemoteParameters throws TypeError', () =>
+{
+	expect(() => device.createTransport({ direction: 'send' }))
 		.toThrow(TypeError);
 });
 
@@ -437,6 +462,25 @@ test('transport.appData setter succeeds', () =>
 	expect(sendTransport.appData).toEqual({ foo: 'lalala' });
 });
 
+test('connection state change fires "connectionstatechange"', async () =>
+{
+	let connectionStateChangeEventNumTimesCalled = 0;
+
+	sendTransport.on('connectionstatechange', (connectionState) =>
+	{
+		connectionStateChangeEventNumTimesCalled++;
+
+		expect(connectionState).toBe('completed');
+	});
+
+	await sendTransport.handler.setConnectionState('completed');
+
+	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
+	expect(sendTransport.connectionState).toBe('completed');
+
+	sendTransport.removeAllListeners();
+});
+
 test('producer.pause() succeeds', () =>
 {
 	videoProducer.pause();
@@ -456,7 +500,9 @@ test('producer.replaceTrack() succeeds', async () =>
 
 	videoProducer.pause();
 
-	await videoProducer.replaceTrack({ track: newVideoTrack });
+	await expect(videoProducer.replaceTrack({ track: newVideoTrack }))
+		.resolves
+		.toBe(undefined);
 
 	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
@@ -690,4 +736,22 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 	await expect(sendTransport.updateIceServers({ iceServers: [] }))
 		.rejects
 		.toThrow(InvalidStateError);
+});
+
+test('connection state change does not fire "connectionstatechange" if closed', async () =>
+{
+	let connectionStateChangeEventNumTimesCalled = 0;
+
+	// eslint-disable-next-line no-unused-vars
+	sendTransport.on('connectionstatechange', (connectionState) =>
+	{
+		connectionStateChangeEventNumTimesCalled++;
+	});
+
+	await sendTransport.handler.setConnectionState('disconnected');
+
+	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
+	expect(sendTransport.connectionState).toBe('disconnected');
+
+	sendTransport.removeAllListeners();
 });

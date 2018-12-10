@@ -55,6 +55,12 @@ class FakeHandler extends EnhancedEventEmitter
 		logger.debug('close()');
 	}
 
+	// For simulation purposes.
+	setConnectionState(connectionState)
+	{
+		this.emit('@connectionstatechange', connectionState);
+	}
+
 	getTransportStats()
 	{
 		return Promise.resolve(new Map());
