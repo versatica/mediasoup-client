@@ -62,7 +62,7 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', async (
 	expect(device.loaded).toBe(false);
 });
 
-test('device.load() with proper roomRtpCapabilities succeeds', async () =>
+test('device.load() succeeds', async () =>
 {
 	// Assume we get the room RTP capabilities.
 	const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
@@ -163,6 +163,7 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.direction).toBe('recv');
 	expect(recvTransport.handler).toBeType('object');
 	expect(recvTransport.connectionState).toBe('new');
+	expect(recvTransport.appData).toBe(undefined);
 });
 
 test('device.createTransport() with invalid direction throws TypeError', () =>
@@ -237,6 +238,7 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
+	expect(audioProducer.paused).toBe(false);
 	expect(audioProducer.appData).toBe('FOO');
 
 	videoProducer = await sendTransport.send({ track: videoTrack, simulcast: true });
@@ -249,24 +251,8 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(videoProducer.rtpParameters).toBeType('object');
+	expect(videoProducer.paused).toBe(false);
 	expect(videoProducer.appData).toBe(undefined);
-
-	expect(videoProducer.paused).toBe(false);
-	videoProducer.pause();
-	expect(videoProducer.paused).toBe(true);
-	videoProducer.resume();
-	expect(videoProducer.paused).toBe(false);
-
-	const producerPreviousVideoTrack = videoProducer.track;
-	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
-
-	videoProducer.pause();
-
-	await videoProducer.replaceTrack({ track: newVideoTrack });
-
-	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
-	expect(videoProducer.track).toBe(newVideoTrack);
-	expect(videoProducer.paused).toBe(true);
 
 	sendTransport.removeAllListeners();
 });
@@ -356,6 +342,7 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.kind).toBe('audio');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.rtpParameters).toBeType('object');
+	expect(audioConsumer.paused).toBe(false);
 	expect(audioConsumer.preferredProfile).toBe('default');
 	expect(audioConsumer.appData).toBe('BAR');
 
@@ -372,25 +359,9 @@ test('transport.receive() succeeds', async () =>
 	expect(videoConsumer.kind).toBe('video');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.rtpParameters).toBeType('object');
+	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.preferredProfile).toBe('high');
 	expect(videoConsumer.appData).toBe(undefined);
-
-	expect(videoConsumer.paused).toBe(false);
-	videoConsumer.pause();
-	expect(videoConsumer.paused).toBe(true);
-	videoConsumer.resume();
-	expect(videoConsumer.paused).toBe(false);
-
-	videoConsumer.preferredProfile = 'medium';
-	// Must ignore invalid profile.
-	videoConsumer.preferredProfile = 'chicken';
-	expect(videoConsumer.preferredProfile).toBe('medium');
-
-	expect(videoConsumer.effectiveProfile).toBe(null);
-	videoConsumer.effectiveProfile = 'medium';
-	// Must ignore invalid profile.
-	videoConsumer.effectiveProfile = 'chicken';
-	expect(videoConsumer.effectiveProfile).toBe('medium');
 
 	recvTransport.removeAllListeners();
 });
@@ -437,11 +408,85 @@ test('transport.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
+test('transport.appData setter succeeds', () =>
+{
+	sendTransport.appData = { foo: 'lalala' };
+	expect(sendTransport.appData).toEqual({ foo: 'lalala' });
+});
+
+test('producer.pause() succeeds', () =>
+{
+	videoProducer.pause();
+	expect(videoProducer.paused).toBe(true);
+});
+
+test('producer.resume() succeeds', () =>
+{
+	videoProducer.resume();
+	expect(videoProducer.paused).toBe(false);
+});
+
+test('producer.replaceTrack() succeeds', async () =>
+{
+	const producerPreviousVideoTrack = videoProducer.track;
+	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+
+	videoProducer.pause();
+
+	await videoProducer.replaceTrack({ track: newVideoTrack });
+
+	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+	expect(videoProducer.track).toBe(newVideoTrack);
+	expect(videoProducer.paused).toBe(true);
+});
+
+test('producer.replaceTrack() without track rejects with TypeError', async () =>
+{
+	await expect(videoProducer.replaceTrack())
+		.rejects
+		.toThrow(TypeError);
+});
+
 test('producer.getStats() succeeds', async () =>
 {
 	await expect(videoProducer.getStats())
 		.resolves
 		.toBeType('map');
+});
+
+test('producer.appData setter succeeds', () =>
+{
+	videoProducer.appData = 1234;
+	expect(videoProducer.appData).toBe(1234);
+});
+
+test('consumer.pause() succeeds', () =>
+{
+	videoConsumer.pause();
+	expect(videoConsumer.paused).toBe(true);
+});
+
+test('consumer.resume() succeeds', () =>
+{
+	videoConsumer.resume();
+	expect(videoConsumer.paused).toBe(false);
+});
+
+test('consumer.preferredProfile setter succeeds', () =>
+{
+	videoConsumer.preferredProfile = 'medium';
+	// Must ignore invalid profile.
+	videoConsumer.preferredProfile = 'chicken';
+	expect(videoConsumer.preferredProfile).toBe('medium');
+});
+
+test('consumer.effectiveProfile setter succeeds', () =>
+{
+	expect(videoConsumer.effectiveProfile).toBe(null);
+	videoConsumer.effectiveProfile = 'medium';
+	// Must ignore invalid profile.
+	videoConsumer.effectiveProfile = 'chicken';
+	expect(videoConsumer.effectiveProfile).toBe('medium');
 });
 
 test('consumer.getStats() succeeds', async () =>
@@ -451,12 +496,21 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
-test('producer.close() succeed', async () =>
+test('consumer.appData setter succeeds', () =>
+{
+	videoConsumer.appData = { foo: 'bar' };
+	expect(videoConsumer.appData).toEqual({ foo: 'bar' });
+});
+
+test('producer.close() succeed', () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
 	expect(audioProducer.track.readyState).toBe('ended');
+});
 
+test('producer.replaceTrack() rejects with InvalidStateError if closed', async () =>
+{
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
 	await expect(audioProducer.replaceTrack({ track }))
@@ -466,18 +520,18 @@ test('producer.close() succeed', async () =>
 	expect(track.readyState).toBe('ended');
 });
 
-test('consumer.close() succeed', () =>
-{
-	audioConsumer.close();
-	expect(audioConsumer.closed).toBe(true);
-	expect(audioConsumer.track.readyState).toBe('ended');
-});
-
 test('producer.getStats() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(audioProducer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
+});
+
+test('consumer.close() succeed', () =>
+{
+	audioConsumer.close();
+	expect(audioConsumer.closed).toBe(true);
+	expect(audioConsumer.track.readyState).toBe('ended');
 });
 
 test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
@@ -558,6 +612,7 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	expect(videoProducer.closed).toBe(false);
 	// Close send transport.
 	sendTransport.close();
+	expect(sendTransport.closed).toBe(true);
 	expect(videoProducer.closed).toBe(true);
 	// Audio producer was already closed.
 	expect(audioProducerTransportcloseEventCalled).toBe(false);
@@ -568,6 +623,7 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	expect(videoConsumer.closed).toBe(false);
 	// Close recv transport.
 	recvTransport.close();
+	expect(recvTransport.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(true);
 	// Audio consumer was already closed.
 	expect(audioConsumerTransportcloseEventCalled).toBe(false);
