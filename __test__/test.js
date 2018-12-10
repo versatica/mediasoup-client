@@ -677,3 +677,17 @@ test('transport.getStats() rejects with InvalidStateError if closed', async () =
 		.rejects
 		.toThrow(InvalidStateError);
 });
+
+test('transport.restartIce() rejects with InvalidStateError if closed', async () =>
+{
+	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
+		.rejects
+		.toThrow(InvalidStateError);
+});
+
+test('transport.updateIceServers() rejects with InvalidStateError if closed', async () =>
+{
+	await expect(sendTransport.updateIceServers({ iceServers: [] }))
+		.rejects
+		.toThrow(InvalidStateError);
+});
