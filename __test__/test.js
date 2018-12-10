@@ -30,6 +30,9 @@ test('create a device in Node with a FakeHandler succeeds', () =>
 {
 	expect(device = new Device({ Handler: FakeHandler }))
 		.toBeType('object');
+
+	expect(device.handlerName).toBe('FakeHandler');
+	expect(device.loaded).toBe(false);
 });
 
 test('device.canSend() throws InvalidStateError if not loaded', () =>
@@ -55,6 +58,8 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', async (
 	await expect(device.load())
 		.rejects
 		.toThrow(TypeError);
+
+	expect(device.loaded).toBe(false);
 });
 
 test('device.load() with proper roomRtpCapabilities succeeds', async () =>
@@ -66,7 +71,7 @@ test('device.load() with proper roomRtpCapabilities succeeds', async () =>
 		.resolves
 		.toBe(undefined);
 
-	expect(device.handlerName).toBe('FakeHandler');
+	expect(device.loaded).toBe(true);
 });
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
@@ -74,6 +79,8 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 	await expect(device.load())
 		.rejects
 		.toThrow(InvalidStateError);
+
+	expect(device.loaded).toBe(true);
 });
 
 test('device.canSend() with "audio"/"video" kind returns true', () =>
