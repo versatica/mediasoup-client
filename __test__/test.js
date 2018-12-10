@@ -462,7 +462,7 @@ test('transport.appData setter succeeds', () =>
 	expect(sendTransport.appData).toEqual({ foo: 'lalala' });
 });
 
-test('connection state change fires "connectionstatechange"', async () =>
+test('connection state change fires "connectionstatechange" in live transport', async () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
@@ -738,7 +738,7 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 		.toThrow(InvalidStateError);
 });
 
-test('connection state change does not fire "connectionstatechange" if closed', async () =>
+test('connection state change does not fire "connectionstatechange" in closed transport', async () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
