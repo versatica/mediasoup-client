@@ -257,9 +257,9 @@ test('transport.send() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(1);
 	expect(audioProducer).toBeType('object');
+	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 	expect(audioProducer.closed).toBe(false);
 	expect(audioProducer.kind).toBe('audio');
-	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
 	expect(audioProducer.paused).toBe(false);
@@ -270,9 +270,9 @@ test('transport.send() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(2);
 	expect(videoProducer).toBeType('object');
+	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 	expect(videoProducer.closed).toBe(false);
 	expect(videoProducer.kind).toBe('video');
-	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(videoProducer.rtpParameters).toBeType('object');
 	expect(videoProducer.paused).toBe(false);
@@ -362,12 +362,14 @@ test('transport.receive() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(receiveEventNumTimesCalled).toBe(1);
 	expect(audioConsumer).toBeType('object');
+	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.closed).toBe(false);
 	expect(audioConsumer.kind).toBe('audio');
-	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
+	expect(audioConsumer.track).toBeType('object');
 	expect(audioConsumer.rtpParameters).toBeType('object');
 	expect(audioConsumer.paused).toBe(false);
 	expect(audioConsumer.preferredProfile).toBe('default');
+	expect(audioConsumer.effectiveProfile).toBe('none');
 	expect(audioConsumer.appData).toBe('BAR');
 
 	videoConsumer = await recvTransport.receive(
@@ -379,12 +381,14 @@ test('transport.receive() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(receiveEventNumTimesCalled).toBe(2);
 	expect(videoConsumer).toBeType('object');
+	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.closed).toBe(false);
 	expect(videoConsumer.kind).toBe('video');
-	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
+	expect(videoConsumer.track).toBeType('object');
 	expect(videoConsumer.rtpParameters).toBeType('object');
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.preferredProfile).toBe('high');
+	expect(videoConsumer.effectiveProfile).toBe('none');
 	expect(videoConsumer.appData).toBe(undefined);
 
 	recvTransport.removeAllListeners();
@@ -408,7 +412,7 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
-	const producerId = consumerRemoteParameters.producerId;
+	const { producerId } = consumerRemoteParameters;
 
 	// eslint-disable-next-line no-unused-vars
 	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
@@ -548,18 +552,29 @@ test('consumer.resume() succeeds', () =>
 test('consumer.preferredProfile setter succeeds', () =>
 {
 	videoConsumer.preferredProfile = 'medium';
+	expect(videoConsumer.preferredProfile).toBe('medium');
+
 	// Must ignore invalid profile.
 	videoConsumer.preferredProfile = 'chicken';
+	expect(videoConsumer.preferredProfile).toBe('medium');
+
+	// Must ignore 'none' profile.
+	videoConsumer.preferredProfile = 'none';
 	expect(videoConsumer.preferredProfile).toBe('medium');
 });
 
 test('consumer.effectiveProfile setter succeeds', () =>
 {
-	expect(videoConsumer.effectiveProfile).toBe(null);
 	videoConsumer.effectiveProfile = 'medium';
+	expect(videoConsumer.effectiveProfile).toBe('medium');
+
 	// Must ignore invalid profile.
 	videoConsumer.effectiveProfile = 'chicken';
 	expect(videoConsumer.effectiveProfile).toBe('medium');
+
+	// Must allow 'none' profile.
+	videoConsumer.effectiveProfile = 'none';
+	expect(videoConsumer.effectiveProfile).toBe('none');
 });
 
 test('consumer.getStats() succeeds', async () =>
@@ -683,7 +698,7 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	// Audio producer was already closed.
 	expect(audioProducer.closed).toBe(true);
 	expect(videoProducer.closed).toBe(false);
-	// Close send transport.
+
 	sendTransport.close();
 	expect(sendTransport.closed).toBe(true);
 	expect(videoProducer.closed).toBe(true);
@@ -694,13 +709,18 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	// Audio consumer was already closed.
 	expect(audioConsumer.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(false);
-	// Close recv transport.
+
 	recvTransport.close();
 	expect(recvTransport.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(true);
 	// Audio consumer was already closed.
 	expect(audioConsumerTransportcloseEventCalled).toBe(false);
 	expect(videoConsumerTransportcloseEventCalled).toBe(true);
+
+	audioProducer.removeAllListeners();
+	videoProducer.removeAllListeners();
+	audioConsumer.removeAllListeners();
+	videoConsumer.removeAllListeners();
 });
 
 test('transport.send() rejects with InvalidStateError if closed', async () =>
@@ -742,7 +762,7 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 		.toThrow(InvalidStateError);
 });
 
-test('connection state change does not fire "connectionstatechange" in closed transport', async () =>
+test('connection state change does not fire "connectionstatechange" in closed transport', () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
@@ -752,8 +772,7 @@ test('connection state change does not fire "connectionstatechange" in closed tr
 		connectionStateChangeEventNumTimesCalled++;
 	});
 
-	await sendTransport.handler.setConnectionState('disconnected');
-
+	sendTransport.handler.setConnectionState('disconnected');
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
 	expect(sendTransport.connectionState).toBe('disconnected');
 
