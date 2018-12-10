@@ -35,6 +35,12 @@ test('create a device in Node with a FakeHandler succeeds', () =>
 	expect(device.loaded).toBe(false);
 });
 
+test('device.rtpCapabilities() throws InvalidStateError if not loaded', () =>
+{
+	expect(() => device.rtpCapabilities)
+		.toThrow(InvalidStateError);
+});
+
 test('device.canSend() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canSend('audio'))
@@ -44,12 +50,6 @@ test('device.canSend() throws InvalidStateError if not loaded', () =>
 test('device.canReceive() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canReceive({}))
-		.toThrow(InvalidStateError);
-});
-
-test('device.rtpCapabilities() throws InvalidStateError if not loaded', () =>
-{
-	expect(() => device.rtpCapabilities)
 		.toThrow(InvalidStateError);
 });
 
@@ -72,6 +72,7 @@ test('device.load() succeeds', async () =>
 		.toBe(undefined);
 
 	expect(device.loaded).toBe(true);
+	expect(device.rtpCapabilities).toBeType('object');
 });
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
@@ -115,12 +116,6 @@ test('device.canReceive() with unsupported consumableRtpParameters returns false
 
 	expect(device.canReceive(consumerRemoteParameters.rtpParameters))
 		.toBe(false);
-});
-
-test('device.rtpCapabilities() succeeds', () =>
-{
-	expect(device.rtpCapabilities)
-		.toBeType('object');
 });
 
 test('device.createTransport() for sending media succeeds', () =>
