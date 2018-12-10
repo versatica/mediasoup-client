@@ -24,6 +24,7 @@ class FakeHandler extends EnhancedEventEmitter
 			direction,
 			turnServers, // eslint-disable-line no-unused-vars
 			iceTransportPolicy, // eslint-disable-line no-unused-vars
+			proprietaryConstraints, // eslint-disable-line no-unused-vars
 			extendedRtpCapabilities
 		}
 	)

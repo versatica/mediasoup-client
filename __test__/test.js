@@ -65,6 +65,8 @@ test('device.load() with proper roomRtpCapabilities succeeds', async () =>
 	await expect(device.load({ roomRtpCapabilities }))
 		.resolves
 		.toBe(undefined);
+
+	expect(device.handlerName).toBe('FakeHandler');
 });
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
