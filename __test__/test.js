@@ -403,6 +403,34 @@ test('transport.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
+test('transport.restartIce() succeeds', async () =>
+{
+	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
+		.resolves
+		.toBe(undefined);
+});
+
+test('transport.restartIce() without remoteIceParameters rejects with TypeError', async () =>
+{
+	await expect(sendTransport.restartIce())
+		.rejects
+		.toThrow(TypeError);
+});
+
+test('transport.updateIceServers() succeeds', async () =>
+{
+	await expect(sendTransport.updateIceServers({ iceServers: [] }))
+		.resolves
+		.toBe(undefined);
+});
+
+test('transport.updateIceServers() without iceServers rejects with TypeError', async () =>
+{
+	await expect(sendTransport.updateIceServers())
+		.rejects
+		.toThrow(TypeError);
+});
+
 test('transport.appData setter succeeds', () =>
 {
 	sendTransport.appData = { foo: 'lalala' };

@@ -60,6 +60,16 @@ class FakeHandler extends EnhancedEventEmitter
 		return Promise.resolve(new Map());
 	}
 
+	restartIce({ remoteIceParameters } = {}) // eslint-disable-line no-unused-vars
+	{
+		return Promise.resolve();
+	}
+
+	updateIceServers({ iceServers }) // eslint-disable-line no-unused-vars
+	{
+		return Promise.resolve();
+	}
+
 	send({ track, simulcast }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
