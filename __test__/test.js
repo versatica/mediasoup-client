@@ -5,12 +5,15 @@
 
 const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
-const Device = require('../lib/Device');
+const pkg = require('../package.json');
+const mediasoup = require('../');
+const mediasoupInternals = require('../lib/internals.js');
+const { version, Device } = mediasoup;
 const {
 	UnsupportedError,
 	InvalidStateError,
 	DuplicatedError
-} = require('../lib/errors');
+} = mediasoupInternals.errors;
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
@@ -23,6 +26,12 @@ let audioProducer;
 let videoProducer;
 let audioConsumer;
 let videoConsumer;
+
+test('mediasoup-client exposes a version property', () =>
+{
+	expect(version).toBeType('string');
+	expect(version).toBe(pkg.version);
+});
 
 test('create a device in Node without custom Handler throws UnsupportedError', () =>
 {
