@@ -387,6 +387,7 @@ test('transport.receive() succeeds', async () =>
 	expect(receiveEventNumTimesCalled).toBe(1);
 	expect(audioConsumer).toBeType('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
+	expect(audioConsumer.producerId).toBe(audioConsumerRemoteParameters.producerId);
 	expect(audioConsumer.closed).toBe(false);
 	expect(audioConsumer.kind).toBe('audio');
 	expect(audioConsumer.track).toBeType('object');
@@ -406,6 +407,7 @@ test('transport.receive() succeeds', async () =>
 	expect(receiveEventNumTimesCalled).toBe(2);
 	expect(videoConsumer).toBeType('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
+	expect(videoConsumer.producerId).toBe(videoConsumerRemoteParameters.producerId);
 	expect(videoConsumer.closed).toBe(false);
 	expect(videoConsumer.kind).toBe('video');
 	expect(videoConsumer.track).toBeType('object');
