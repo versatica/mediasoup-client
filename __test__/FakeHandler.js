@@ -1,6 +1,7 @@
 const MediaStreamTrack = require('node-mediastreamtrack');
 const Logger = require('../lib/Logger');
 const EnhancedEventEmitter = require('../lib/EnhancedEventEmitter');
+const { DuplicatedError } = require('../lib/errors');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');
@@ -48,6 +49,10 @@ class FakeHandler extends EnhancedEventEmitter
 		// Got transport local and remote parameters.
 		// @type {Boolean}
 		this._transportReady = false;
+
+		// Sending tracks.
+		// @type {Set<MediaStreamTrack>}
+		this._sendingTracks = new Set();
 	}
 
 	close()
@@ -79,6 +84,9 @@ class FakeHandler extends EnhancedEventEmitter
 	send({ track, simulcast }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
+
+		if (this._sendingTracks.has(track))
+			return Promise.reject(new DuplicatedError('track already handled'));
 
 		return Promise.resolve()
 			.then(() =>
@@ -117,6 +125,8 @@ class FakeHandler extends EnhancedEventEmitter
 					mux         : true
 				};
 
+				this._sendingTracks.add(track);
+
 				return rtpParameters;
 			});
 	}
@@ -125,12 +135,23 @@ class FakeHandler extends EnhancedEventEmitter
 	{
 		logger.debug('stopSending() [trackId:%s]', track.id);
 
+		if (!this._sendingTracks.has(track))
+			return Promise.reject(new DuplicatedError('local track not found'));
+
+		this._sendingTracks.delete(track);
+
 		return Promise.resolve();
 	}
 
 	replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('replaceTrack() [newTrackId:%s]', newTrack.id);
+
+		if (this._sendingTracks.has(newTrack))
+			return Promise.reject(new DuplicatedError('track already handled'));
+
+		this._sendingTracks.delete(track);
+		this._sendingTracks.add(newTrack);
 
 		return Promise.resolve();
 	}

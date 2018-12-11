@@ -6,7 +6,11 @@
 const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
 const Device = require('../lib/Device');
-const { UnsupportedError, InvalidStateError } = require('../lib/errors');
+const {
+	UnsupportedError,
+	InvalidStateError,
+	DuplicatedError
+} = require('../lib/errors');
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
@@ -297,6 +301,26 @@ test('transport.send() in a receiving transport rejects with UnsupportedError', 
 		.toThrow(UnsupportedError);
 });
 
+test('transport.send() with an already handled track rejects with DuplicatedError', async () =>
+{
+	const { track } = audioProducer;
+
+	await expect(sendTransport.send({ track }))
+		.rejects
+		.toThrow(DuplicatedError);
+});
+
+test('transport.send() with an ended track rejects with InvalidStateError', async () =>
+{
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	track.stop();
+
+	await expect(sendTransport.send({ track }))
+		.rejects
+		.toThrow(InvalidStateError);
+});
+
 test('transport.receive() succeeds', async () =>
 {
 	const audioConsumerRemoteParameters =
@@ -522,6 +546,26 @@ test('producer.replaceTrack() without track rejects with TypeError', async () =>
 	await expect(videoProducer.replaceTrack())
 		.rejects
 		.toThrow(TypeError);
+});
+
+test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
+{
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	track.stop();
+
+	await expect(videoProducer.replaceTrack({ track }))
+		.rejects
+		.toThrow(InvalidStateError);
+});
+
+test('producer.replaceTrack() with an already handled track rejects with DuplicatedError', async () =>
+{
+	const { track } = videoProducer;
+
+	await expect(videoProducer.replaceTrack({ track }))
+		.rejects
+		.toThrow(DuplicatedError);
 });
 
 test('producer.getStats() succeeds', async () =>
