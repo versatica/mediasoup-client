@@ -344,7 +344,7 @@ exports.generateProducerRemoteParameters = function()
 	};
 };
 
-exports.generateConsumerRemoteParameters = function({ codecMimeType } = {})
+exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 {
 	switch (codecMimeType)
 	{
@@ -352,7 +352,7 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType } = {})
 		{
 			return {
 				producerId    : uuidv1(),
-				id            : uuidv1(),
+				id            : id || uuidv1(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -398,7 +398,7 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType } = {})
 		{
 			return {
 				producerId    : uuidv1(),
-				id            : uuidv1(),
+				id            : id || uuidv1(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -441,7 +441,7 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType } = {})
 		{
 			return {
 				producerId    : uuidv1(),
-				id            : uuidv1(),
+				id            : id || uuidv1(),
 				kind          : 'video',
 				rtpParameters :
 				{

@@ -453,6 +453,28 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 	recvTransport.removeAllListeners();
 });
 
+test('transport.receive() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
+{
+	const { id } = audioConsumer;
+	const consumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({ id, codecMimeType: 'audio/opus' });
+	const { producerId } = consumerRemoteParameters;
+
+	// eslint-disable-next-line no-unused-vars
+	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
+	{
+		// Emulate communication with the server and success response with consumer
+		// remote parameters.
+		setTimeout(() => callback(consumerRemoteParameters));
+	});
+
+	await expect(recvTransport.receive({ producerId }))
+		.rejects
+		.toThrow(DuplicatedError);
+
+	recvTransport.removeAllListeners();
+});
+
 test('transport.getStats() succeeds', async () =>
 {
 	await expect(sendTransport.getStats())

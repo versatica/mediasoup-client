@@ -53,6 +53,10 @@ class FakeHandler extends EnhancedEventEmitter
 		// Sending tracks.
 		// @type {Set<MediaStreamTrack>}
 		this._sendingTracks = new Set();
+
+		// Receiving sources.
+		// @type {Set<Number>}
+		this._receivingSources = new Set();
 	}
 
 	close()
@@ -165,6 +169,9 @@ class FakeHandler extends EnhancedEventEmitter
 	{
 		logger.debug('receive() [id:%s, kind:%s]', id, kind);
 
+		if (this._receivingSources.has(id))
+			return Promise.reject(new DuplicatedError('already receiving this source'));
+
 		return Promise.resolve()
 			.then(() =>
 			{
@@ -173,6 +180,8 @@ class FakeHandler extends EnhancedEventEmitter
 			})
 			.then(() =>
 			{
+				this._receivingSources.add(id);
+
 				const track = new MediaStreamTrack({ kind });
 
 				return track;
@@ -182,6 +191,8 @@ class FakeHandler extends EnhancedEventEmitter
 	stopReceiving({ id })
 	{
 		logger.debug('stopReceiving() [id:%s]', id);
+
+		this._receivingSources.delete(id);
 
 		return Promise.resolve();
 	}
