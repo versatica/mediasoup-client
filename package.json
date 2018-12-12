@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.0.0-pre1",
+  "version": "3.0.0-alpha1",
   "description": "mediasoup client side JavaScript SDK",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -19,7 +19,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js lib __test__",
     "test": "jest",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage && opn coverage/lcov-report/index.html"
   },
   "jest": {
     "verbose": true
@@ -36,6 +36,7 @@
     "jest": "^23.6.0",
     "jest-tobetype": "^1.2.0",
     "node-mediastreamtrack": "0.1.0",
+    "opn-cli": "^4.0.0",
     "uuid": "^3.3.2"
   }
 }

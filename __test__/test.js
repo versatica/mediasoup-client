@@ -367,12 +367,12 @@ test('transport.receive() succeeds', async () =>
 		{
 			case audioConsumerRemoteParameters.producerId:
 				consumerRemoteParameters = audioConsumerRemoteParameters;
-				expect(consumerLocalParameters.preferredProfile).toBe(undefined);
+				expect(consumerLocalParameters.preferredSpatialLayer).toBe(undefined);
 				break;
 
 			case videoConsumerRemoteParameters.producerId:
 				consumerRemoteParameters = videoConsumerRemoteParameters;
-				expect(consumerLocalParameters.preferredProfile).toBe('high');
+				expect(consumerLocalParameters.preferredSpatialLayer).toBe('high');
 				break;
 
 			default:
@@ -402,14 +402,14 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.track).toBeType('object');
 	expect(audioConsumer.rtpParameters).toBeType('object');
 	expect(audioConsumer.paused).toBe(false);
-	expect(audioConsumer.preferredProfile).toBe('default');
-	expect(audioConsumer.effectiveProfile).toBe('none');
+	expect(audioConsumer.preferredSpatialLayer).toBe('none');
+	expect(audioConsumer.effectiveSpatialLayer).toBe('none');
 	expect(audioConsumer.appData).toBe('BAR');
 
 	videoConsumer = await recvTransport.receive(
 		{
-			producerId       : videoConsumerRemoteParameters.producerId,
-			preferredProfile : 'high'
+			producerId            : videoConsumerRemoteParameters.producerId,
+			preferredSpatialLayer : 'high'
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -422,8 +422,8 @@ test('transport.receive() succeeds', async () =>
 	expect(videoConsumer.track).toBeType('object');
 	expect(videoConsumer.rtpParameters).toBeType('object');
 	expect(videoConsumer.paused).toBe(false);
-	expect(videoConsumer.preferredProfile).toBe('high');
-	expect(videoConsumer.effectiveProfile).toBe('none');
+	expect(videoConsumer.preferredSpatialLayer).toBe('high');
+	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
 	expect(videoConsumer.appData).toBe(undefined);
 
 	recvTransport.removeAllListeners();
@@ -626,32 +626,47 @@ test('consumer.resume() succeeds', () =>
 	expect(videoConsumer.paused).toBe(false);
 });
 
-test('consumer.preferredProfile setter succeeds', () =>
+test('consumer.preferredSpatialLayer setter succeeds for video', () =>
 {
-	videoConsumer.preferredProfile = 'medium';
-	expect(videoConsumer.preferredProfile).toBe('medium');
+	videoConsumer.preferredSpatialLayer = 'medium';
+	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
 
-	// Must ignore invalid profile.
-	videoConsumer.preferredProfile = 'chicken';
-	expect(videoConsumer.preferredProfile).toBe('medium');
+	// Must ignore invalid spatial layer.
+	videoConsumer.preferredSpatialLayer = 'chicken';
+	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
 
-	// Must ignore 'none' profile.
-	videoConsumer.preferredProfile = 'none';
-	expect(videoConsumer.preferredProfile).toBe('medium');
+	// Must ignore 'none' spatial layer.
+	videoConsumer.preferredSpatialLayer = 'none';
+	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
 });
 
-test('consumer.effectiveProfile setter succeeds', () =>
+test('consumer.preferredSpatialLayer setter fails for audio', () =>
 {
-	videoConsumer.effectiveProfile = 'medium';
-	expect(videoConsumer.effectiveProfile).toBe('medium');
+	audioConsumer.preferredSpatialLayer = 'medium';
+	expect(audioConsumer.preferredSpatialLayer).toBe('none');
+});
 
-	// Must ignore invalid profile.
-	videoConsumer.effectiveProfile = 'chicken';
-	expect(videoConsumer.effectiveProfile).toBe('medium');
+test('consumer.effectiveSpatialLayer setter succeeds for video', () =>
+{
+	videoConsumer.effectiveSpatialLayer = 'medium';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
 
-	// Must allow 'none' profile.
-	videoConsumer.effectiveProfile = 'none';
-	expect(videoConsumer.effectiveProfile).toBe('none');
+	// Must ignore invalid spatial layer.
+	videoConsumer.effectiveSpatialLayer = 'chicken';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
+
+	// Must allow 'none' spatial layer.
+	videoConsumer.effectiveSpatialLayer = 'none';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
+
+	videoConsumer.effectiveSpatialLayer = 'medium';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
+});
+
+test('consumer.effectiveSpatialLayer setter fails for audio', () =>
+{
+	audioConsumer.effectiveSpatialLayer = 'medium';
+	expect(audioConsumer.effectiveSpatialLayer).toBe('none');
 });
 
 test('consumer.getStats() succeeds', async () =>
@@ -854,4 +869,16 @@ test('connection state change does not fire "connectionstatechange" in closed tr
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners();
+});
+
+test('consumer.preferredSpatialLayer setter fails for video if closed', () =>
+{
+	videoConsumer.preferredSpatialLayer = 'low';
+	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
+});
+
+test('consumer.effectiveSpatialLayer setter fails for video if closed', () =>
+{
+	videoConsumer.effectiveSpatialLayer = 'low';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
 });
