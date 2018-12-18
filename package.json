@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "2.4.6",
+  "version": "3.0.0-alpha1",
   "description": "mediasoup client side JavaScript SDK",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -12,35 +12,31 @@
     "type": "git",
     "url": "https://github.com/versatica/mediasoup-client.git"
   },
-  "scripts": {
-    "lint": "eslint -c .eslintrc.js gulpfile.js lib",
-    "build": "gulp dist:production"
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=6.4"
   },
-  "main": "lib-es5/index.js",
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js lib __test__",
+    "test": "jest",
+    "coverage": "jest --coverage && opn coverage/lcov-report/index.html"
+  },
+  "jest": {
+    "verbose": true
+  },
   "dependencies": {
     "bowser": "^1.9.3",
     "debug": "^4.1.0",
     "events": "^3.0.0",
-    "random-number": "^0.0.9",
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.2.0",
-    "@babel/plugin-transform-classes": "^7.2.0",
-    "@babel/plugin-transform-runtime": "^7.2.0",
-    "@babel/preset-env": "^7.2.0",
-    "browserify": "^16.2.3",
-    "eslint": "^5.9.0",
-    "eslint-plugin-import": "^2.14.0",
-    "gulp": "^4.0.0",
-    "gulp-babel": "^8.0.0",
-    "gulp-eslint": "^5.0.0",
-    "gulp-header": "^2.0.5",
-    "gulp-plumber": "^1.2.1",
-    "gulp-rename": "^1.4.0",
-    "gulp-uglify-es": "^1.0.4",
-    "gulp-util": "^3.0.8",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
+    "eslint": "^5.10.0",
+    "eslint-plugin-jest": "^22.1.2",
+    "jest": "^23.6.0",
+    "jest-tobetype": "^1.2.0",
+    "node-mediastreamtrack": "0.1.0",
+    "opn-cli": "^4.0.0",
+    "uuid": "^3.3.2"
   }
 }
