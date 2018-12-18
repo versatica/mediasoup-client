@@ -1,6 +1,9 @@
 # mediasoup-client v3
 
-*NOTE:* Work in progress.
+[![][npm-shield-mediasoup-client]][npm-mediasoup-client]
+[![][travis-ci-shield-mediasoup-client]][travis-ci-mediasoup-client]
+
+**NOTE:** v3 is work in progress. The current stable version is 2.X.Y.
 
 <!--
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
@@ -118,3 +121,5 @@ const webcamProducer = sendTransport.send({ track: webcamTrack });
 [mediasoup-website]: https://mediasoup.org
 [npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg
 [npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
+[travis-ci-shield-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client.svg?branch=master
+[travis-ci-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client
