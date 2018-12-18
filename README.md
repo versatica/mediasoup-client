@@ -59,7 +59,7 @@ sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
   try
   {
     await mySignaling.send(
-      'transportParameters',
+      'transport-connect',
       { 
         id                  : sendTransport.id, 
         transportParameters : transportLocalParameters
@@ -76,7 +76,7 @@ sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
 });
 
 // Set transport "send" event handler.
-sendTransport.on('connect', (producerLocalParameters, callback, errback) =>
+sendTransport.on('send', (producerLocalParameters, callback, errback) =>
 {
   // Here we must communicate our remote transport the sending parameters.
   try
@@ -101,7 +101,7 @@ sendTransport.on('connect', (producerLocalParameters, callback, errback) =>
 // Send our webcam video.
 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 const webcamTrack = stream.getVideoTracks()[0];
-const webcamProducer = sendTransport.send({ track: webcamTrack });
+const webcamProducer = await sendTransport.send({ track: webcamTrack });
 ```
 
 
