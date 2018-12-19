@@ -165,6 +165,15 @@ class FakeHandler extends EnhancedEventEmitter
 		return Promise.resolve(new Map());
 	}
 
+	setMaxSpatialLayer({ track, spatialLayer }) // eslint-disable-line no-unused-vars
+	{
+		logger.debug(
+			'setMaxSpatialLayer() [track.id:%s, spatialLayer:%s]',
+			track.id, spatialLayer);
+
+		return Promise.resolve();
+	}
+
 	receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('receive() [id:%s, kind:%s]', id, kind);

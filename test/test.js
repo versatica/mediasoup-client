@@ -303,6 +303,7 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
 	expect(audioProducer.paused).toBe(false);
+	expect(audioProducer.maxSpatialLayer).toBe('none');
 	expect(audioProducer.appData).toEqual({ foo: 'FOO' });
 
 	videoProducer =
@@ -317,6 +318,7 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(videoProducer.rtpParameters).toBeType('object');
 	expect(videoProducer.paused).toBe(false);
+	expect(videoProducer.maxSpatialLayer).toBe('high');
 	expect(videoProducer.appData).toEqual({});
 
 	sendTransport.removeAllListeners();
@@ -666,6 +668,38 @@ test('producer.replaceTrack() with an already handled track rejects with Duplica
 	await expect(videoProducer.replaceTrack({ track }))
 		.rejects
 		.toThrow(DuplicatedError);
+});
+
+test('producer.setMaxSpatialLayer() succeeds', async () =>
+{
+	await expect(videoProducer.setMaxSpatialLayer('medium'))
+		.resolves
+		.toBe(undefined);
+
+	expect(videoProducer.maxSpatialLayer).toBe('medium');
+});
+
+test('producer.setMaxSpatialLayer() in an audio producer rejects with UnsupportedError', async () =>
+{
+	await expect(audioProducer.setMaxSpatialLayer('low'))
+		.rejects
+		.toThrow(UnsupportedError);
+
+	expect(audioProducer.maxSpatialLayer).toBe('none');
+});
+
+test('producer.setMaxSpatialLayer() with invalid spatialLayer rejects with TypeError', async () =>
+{
+	await expect(videoProducer.setMaxSpatialLayer('chicken'))
+		.rejects
+		.toThrow(TypeError);
+});
+
+test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError', async () =>
+{
+	await expect(videoProducer.setMaxSpatialLayer())
+		.rejects
+		.toThrow(TypeError);
 });
 
 test('producer.getStats() succeeds', async () =>
