@@ -164,7 +164,7 @@ test('device.createTransport() for sending media succeeds', () =>
 		{
 			transportRemoteParameters,
 			direction : 'send',
-			appData   : 'BAZ'
+			appData   : { baz: 'BAZ' }
 		}))
 		.toBeType('object');
 
@@ -173,7 +173,7 @@ test('device.createTransport() for sending media succeeds', () =>
 	expect(sendTransport.direction).toBe('send');
 	expect(sendTransport.handler).toBeType('object');
 	expect(sendTransport.connectionState).toBe('new');
-	expect(sendTransport.appData).toBe('BAZ');
+	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
 });
 
 test('device.createTransport() for receiving media succeeds', () =>
@@ -194,7 +194,7 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.direction).toBe('recv');
 	expect(recvTransport.handler).toBeType('object');
 	expect(recvTransport.connectionState).toBe('new');
-	expect(recvTransport.appData).toBe(undefined);
+	expect(recvTransport.appData).toEqual({});
 });
 
 test('device.createTransport() with invalid direction throws TypeError', () =>
@@ -245,19 +245,30 @@ test('transport.send() succeeds', async () =>
 		switch (producerLocalParameters.kind)
 		{
 			case 'audio':
+			{
+				expect(producerLocalParameters.appData).toEqual({ foo: 'FOO' });
+
 				audioProducerRemoteParameters =
 					fakeParameters.generateProducerRemoteParameters();
 				producerRemoteParameters = audioProducerRemoteParameters;
+
 				break;
+			}
 
 			case 'video':
+			{
+				expect(producerLocalParameters.appData).toEqual({});
+
 				videoProducerRemoteParameters =
 					fakeParameters.generateProducerRemoteParameters();
 				producerRemoteParameters = videoProducerRemoteParameters;
 				break;
+			}
 
 			default:
+			{
 				throw new Error('unknown producerLocalParameters.kind');
+			}
 		}
 
 		// Emulate communication with the server and success response with producer
@@ -265,7 +276,8 @@ test('transport.send() succeeds', async () =>
 		setTimeout(() => callback(producerRemoteParameters));
 	});
 
-	audioProducer = await sendTransport.send({ track: audioTrack, appData: 'FOO' });
+	audioProducer =
+		await sendTransport.send({ track: audioTrack, appData: { foo: 'FOO' } });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(1);
@@ -276,9 +288,10 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
 	expect(audioProducer.paused).toBe(false);
-	expect(audioProducer.appData).toBe('FOO');
+	expect(audioProducer.appData).toEqual({ foo: 'FOO' });
 
-	videoProducer = await sendTransport.send({ track: videoTrack, simulcast: true });
+	videoProducer =
+		await sendTransport.send({ track: videoTrack, simulcast: true });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(2);
@@ -289,7 +302,7 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(videoProducer.rtpParameters).toBeType('object');
 	expect(videoProducer.paused).toBe(false);
-	expect(videoProducer.appData).toBe(undefined);
+	expect(videoProducer.appData).toEqual({});
 
 	sendTransport.removeAllListeners();
 });
@@ -366,17 +379,29 @@ test('transport.receive() succeeds', async () =>
 		switch (consumerLocalParameters.producerId)
 		{
 			case audioConsumerRemoteParameters.producerId:
+			{
+				expect(consumerLocalParameters.appData).toEqual({ bar: 'BAR' });
+
 				consumerRemoteParameters = audioConsumerRemoteParameters;
 				expect(consumerLocalParameters.preferredSpatialLayer).toBe(undefined);
+
 				break;
+			}
 
 			case videoConsumerRemoteParameters.producerId:
+			{
+				expect(consumerLocalParameters.appData).toEqual({});
+
 				consumerRemoteParameters = videoConsumerRemoteParameters;
 				expect(consumerLocalParameters.preferredSpatialLayer).toBe('high');
+
 				break;
+			}
 
 			default:
+			{
 				throw new Error('unknown consumerLocalParameters.producerId');
+			}
 		}
 
 		// Emulate communication with the server and success response with consumer
@@ -389,7 +414,7 @@ test('transport.receive() succeeds', async () =>
 	audioConsumer = await recvTransport.receive(
 		{
 			producerId : audioConsumerRemoteParameters.producerId,
-			appData    : 'BAR'
+			appData    : { bar: 'BAR' }
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -404,7 +429,7 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.paused).toBe(false);
 	expect(audioConsumer.preferredSpatialLayer).toBe('none');
 	expect(audioConsumer.effectiveSpatialLayer).toBe('none');
-	expect(audioConsumer.appData).toBe('BAR');
+	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
 	videoConsumer = await recvTransport.receive(
 		{
@@ -424,7 +449,7 @@ test('transport.receive() succeeds', async () =>
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.preferredSpatialLayer).toBe('high');
 	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
-	expect(videoConsumer.appData).toBe(undefined);
+	expect(videoConsumer.appData).toEqual({});
 
 	recvTransport.removeAllListeners();
 });
@@ -521,10 +546,21 @@ test('transport.updateIceServers() without iceServers rejects with TypeError', a
 		.toThrow(TypeError);
 });
 
-test('transport.appData setter succeeds', () =>
+test('transport.appData cannot be overridden', () =>
 {
-	sendTransport.appData = { foo: 'lalala' };
-	expect(sendTransport.appData).toEqual({ foo: 'lalala' });
+	expect(() => (sendTransport.appData = { lalala: 'LALALA' }))
+		.toThrow(Error);
+
+	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
+});
+
+test('transport.appData can be modified', () =>
+{
+	sendTransport.appData.lololo = 'LOLOLO';
+	recvTransport.appData.nanana = 'NANANA';
+
+	expect(sendTransport.appData).toEqual({ baz: 'BAZ', lololo: 'LOLOLO' });
+	expect(recvTransport.appData).toEqual({ nanana: 'NANANA' });
 });
 
 test('connection state change fires "connectionstatechange" in live transport', async () =>
@@ -608,10 +644,12 @@ test('producer.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
-test('producer.appData setter succeeds', () =>
+test('producer.appData cannot be overridden', () =>
 {
-	videoProducer.appData = 1234;
-	expect(videoProducer.appData).toBe(1234);
+	expect(() => (videoProducer.appData = { lalala: 'LALALA' }))
+		.toThrow(Error);
+
+	expect(videoProducer.appData).toEqual({});
 });
 
 test('consumer.pause() succeeds', () =>
@@ -676,10 +714,12 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('map');
 });
 
-test('consumer.appData setter succeeds', () =>
+test('cnosumer.appData cannot be overridden', () =>
 {
-	videoConsumer.appData = { foo: 'bar' };
-	expect(videoConsumer.appData).toEqual({ foo: 'bar' });
+	expect(() => (audioConsumer.appData = { lalala: 'LALALA' }))
+		.toThrow(Error);
+
+	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 });
 
 test('producer.close() succeed', () =>
