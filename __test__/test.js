@@ -209,6 +209,21 @@ test('device.createTransport() without transportRemoteParameters throws TypeErro
 		.toThrow(TypeError);
 });
 
+test('device.createTransport() with a non Object appData throws TypeError', () =>
+{
+	const transportRemoteParameters =
+		fakeParameters.generateTransportRemoteParameters();
+
+	expect(
+		() => device.createTransport(
+			{
+				transportRemoteParameters,
+				direction : 'send',
+				appData   : 1234
+			}))
+		.toThrow(TypeError);
+});
+
 test('transport.send() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
@@ -341,6 +356,15 @@ test('transport.send() with an ended track rejects with InvalidStateError', asyn
 	await expect(sendTransport.send({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
+});
+
+test('transport.send() with a non Object appData rejects with TypeError', async () =>
+{
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(sendTransport.send({ track, appData: true }))
+		.rejects
+		.toThrow(TypeError);
 });
 
 test('transport.receive() succeeds', async () =>
@@ -509,6 +533,13 @@ test('transport.receive() with duplicated consumerRtpParameters.id rejects with 
 		.toThrow(DuplicatedError);
 
 	recvTransport.removeAllListeners();
+});
+
+test('transport.receive() with a non Object appData rejects with TypeError', async () =>
+{
+	await expect(recvTransport.receive({ producerId: '1234-qwer-8888', appData: true }))
+		.rejects
+		.toThrow(TypeError);
 });
 
 test('transport.getStats() succeeds', async () =>
