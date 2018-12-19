@@ -140,7 +140,7 @@ class FakeHandler extends EnhancedEventEmitter
 		logger.debug('stopSending() [trackId:%s]', track.id);
 
 		if (!this._sendingTracks.has(track))
-			return Promise.reject(new DuplicatedError('local track not found'));
+			return Promise.reject(new Error('local track not found'));
 
 		this._sendingTracks.delete(track);
 
