@@ -594,7 +594,7 @@ test('transport.appData can be modified', () =>
 	expect(recvTransport.appData).toEqual({ nanana: 'NANANA' });
 });
 
-test('connection state change fires "connectionstatechange" in live transport', async () =>
+test('connection state change fires "connectionstatechange" in live transport', () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
@@ -605,7 +605,7 @@ test('connection state change fires "connectionstatechange" in live transport', 
 		expect(connectionState).toBe('completed');
 	});
 
-	await sendTransport.handler.setConnectionState('completed');
+	sendTransport.handler.setConnectionState('completed');
 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
 	expect(sendTransport.connectionState).toBe('completed');
