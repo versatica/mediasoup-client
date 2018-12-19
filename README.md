@@ -21,14 +21,14 @@ JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based
 
 ```js
 import { Device } from 'mediasoup-client';
-import mySignaling from './my-signaling';
+import mySignaling from './my-signaling'; // Our own signaling stuff.
 
 // Create a device (use browser auto-detection).
 const device = new Device();
 
 // Communicate with our server app to retrieve room RTP capabilities.
 const roomRtpCapabilities = 
-  await mySignaling.send('getRoomCapabilities');
+  await mySignaling.request('getRoomCapabilities');
 
 // Load the device with the room RTP capabilities.
 await device.load({ roomRtpCapabilities });
@@ -43,7 +43,7 @@ if (!device.canSend('video'))
 
 // Create a transport in the server for sending our media through it.
 const sendTransportRemoteParameters = 
-  await mySignaling.send('createTransport');
+  await mySignaling.request('createTransport');
 
 // Create the local representation of our server-side transport.
 const sendTransport = device.createTransport(
@@ -55,10 +55,10 @@ const sendTransport = device.createTransport(
 // Set transport "connect" event handler.
 sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
 {
-  // Here we must communicate our remote transport our local parameters.
+  // Here we must communicate our local parameters to our remote transport.
   try
   {
-    await mySignaling.send(
+    await mySignaling.request(
       'transport-connect',
       { 
         id                  : sendTransport.id, 
@@ -78,10 +78,10 @@ sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
 // Set transport "send" event handler.
 sendTransport.on('send', (producerLocalParameters, callback, errback) =>
 {
-  // Here we must communicate our remote transport the sending parameters.
+  // Here we must communicate our sending parameters to our remote transport.
   try
   {
-    const producerRemoteParameters = await mySignaling.send(
+    const producerRemoteParameters = await mySignaling.request(
       'send',
       { 
         id            : sendTransport.id, 
