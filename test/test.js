@@ -35,7 +35,7 @@ test('mediasoup-client exposes a version property', () =>
 
 test('create a device in Node without custom Handler throws UnsupportedError', () =>
 {
-	expect(() => new Device({ Handler: null }))
+	expect(() => new Device())
 		.toThrow(UnsupportedError);
 });
 

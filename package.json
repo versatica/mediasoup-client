@@ -17,12 +17,13 @@
     "node": ">=6.4"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.js lib __test__",
-    "test": "jest",
-    "coverage": "jest --coverage && opn coverage/lcov-report/index.html"
+    "lint": "eslint -c .eslintrc.js lib test",
+    "test": "jest --env=node",
+    "coverage": "jest --env=node --coverage && opn coverage/lcov-report/index.html"
   },
   "jest": {
-    "verbose": true
+    "verbose": true,
+    "testRegex": "test/test\\.js"
   },
   "dependencies": {
     "bowser": "^1.9.3",
