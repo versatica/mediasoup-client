@@ -31,13 +31,13 @@ test('mediasoup-client exposes a version property', () =>
 {
 	expect(version).toBeType('string');
 	expect(version).toBe(pkg.version);
-});
+}, 500);
 
 test('create a device in Node without custom Handler throws UnsupportedError', () =>
 {
 	expect(() => new Device())
 		.toThrow(UnsupportedError);
-});
+}, 500);
 
 test('create a device in Node with a FakeHandler succeeds', () =>
 {
@@ -46,25 +46,25 @@ test('create a device in Node with a FakeHandler succeeds', () =>
 
 	expect(device.handlerName).toBe('FakeHandler');
 	expect(device.loaded).toBe(false);
-});
+}, 500);
 
 test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.rtpCapabilities)
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('device.canSend() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canSend('audio'))
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('device.canReceive() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canReceive({}))
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('device.createTransport() throws InvalidStateError if not loaded', () =>
 {
@@ -77,7 +77,7 @@ test('device.createTransport() throws InvalidStateError if not loaded', () =>
 			direction : 'send'
 		}))
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('device.load() without roomRtpCapabilities rejects with TypeError', async () =>
 {
@@ -86,7 +86,7 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', async (
 		.toThrow(TypeError);
 
 	expect(device.loaded).toBe(false);
-});
+}, 500);
 
 test('device.load() succeeds', async () =>
 {
@@ -98,7 +98,7 @@ test('device.load() succeeds', async () =>
 		.toBe(undefined);
 
 	expect(device.loaded).toBe(true);
-});
+}, 500);
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
 {
@@ -107,24 +107,24 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 		.toThrow(InvalidStateError);
 
 	expect(device.loaded).toBe(true);
-});
+}, 500);
 
 test('device.rtpCapabilities getter succeeds', () =>
 {
 	expect(device.rtpCapabilities).toBeType('object');
-});
+}, 500);
 
 test('device.canSend() with "audio"/"video" kind returns true', () =>
 {
 	expect(device.canSend('audio')).toBe(true);
 	expect(device.canSend('video')).toBe(true);
-});
+}, 500);
 
 test('device.canSend() with invalid kind throws TypeError', () =>
 {
 	expect(() => device.canSend('chicken'))
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('device.canReceive() with supported consumableRtpParameters returns true', () =>
 {
@@ -137,7 +137,7 @@ test('device.canReceive() with supported consumableRtpParameters returns true', 
 		.toBe(true);
 	expect(device.canReceive(videoConsumerRemoteParameters.rtpParameters))
 		.toBe(true);
-});
+}, 500);
 
 test('device.canReceive() with unsupported consumableRtpParameters returns false', () =>
 {
@@ -146,13 +146,13 @@ test('device.canReceive() with unsupported consumableRtpParameters returns false
 
 	expect(device.canReceive(consumerRemoteParameters.rtpParameters))
 		.toBe(false);
-});
+}, 500);
 
 test('device.canReceive() without consumableRtpParameters throws TypeError', () =>
 {
 	expect(() => device.canReceive())
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('device.createTransport() for sending media succeeds', () =>
 {
@@ -173,8 +173,8 @@ test('device.createTransport() for sending media succeeds', () =>
 	expect(sendTransport.direction).toBe('send');
 	expect(sendTransport.handler).toBeType('object');
 	expect(sendTransport.connectionState).toBe('new');
-	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
-});
+	expect(sendTransport.appData).toEqual({ baz: 'BAZ' }, 500);
+}, 500);
 
 test('device.createTransport() for receiving media succeeds', () =>
 {
@@ -195,19 +195,19 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.handler).toBeType('object');
 	expect(recvTransport.connectionState).toBe('new');
 	expect(recvTransport.appData).toEqual({});
-});
+}, 500);
 
 test('device.createTransport() with invalid direction throws TypeError', () =>
 {
 	expect(() => device.createTransport({ direction: 'chicken' }))
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('device.createTransport() without transportRemoteParameters throws TypeError', () =>
 {
 	expect(() => device.createTransport({ direction: 'send' }))
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('device.createTransport() with a non Object appData throws TypeError', () =>
 {
@@ -222,7 +222,7 @@ test('device.createTransport() with a non Object appData throws TypeError', () =
 				appData   : 1234
 			}))
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.send() succeeds', async () =>
 {
@@ -291,8 +291,8 @@ test('transport.send() succeeds', async () =>
 		setTimeout(() => callback(producerRemoteParameters));
 	});
 
-	audioProducer =
-		await sendTransport.send({ track: audioTrack, appData: { foo: 'FOO' } });
+	audioProducer = await sendTransport.send(
+		{ track: audioTrack, appData: { foo: 'FOO' } });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(1);
@@ -303,11 +303,11 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
 	expect(audioProducer.paused).toBe(false);
-	expect(audioProducer.maxSpatialLayer).toBe('none');
+	expect(audioProducer.maxSpatialLayer).toBe(undefined);
 	expect(audioProducer.appData).toEqual({ foo: 'FOO' });
 
-	videoProducer =
-		await sendTransport.send({ track: videoTrack, simulcast: true });
+	videoProducer = await sendTransport.send(
+		{ track: videoTrack, simulcast: true, maxSpatialLayer: 'medium' });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(sendEventNumTimesCalled).toBe(2);
@@ -318,18 +318,18 @@ test('transport.send() succeeds', async () =>
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(videoProducer.rtpParameters).toBeType('object');
 	expect(videoProducer.paused).toBe(false);
-	expect(videoProducer.maxSpatialLayer).toBe('high');
+	expect(videoProducer.maxSpatialLayer).toBe('medium');
 	expect(videoProducer.appData).toEqual({});
 
 	sendTransport.removeAllListeners();
-});
+}, 500);
 
 test('transport.send() without track rejects with TypeError', async () =>
 {
 	await expect(sendTransport.send())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.send() in a receiving transport rejects with UnsupportedError', async () =>
 {
@@ -338,7 +338,7 @@ test('transport.send() in a receiving transport rejects with UnsupportedError', 
 	await expect(recvTransport.send({ track }))
 		.rejects
 		.toThrow(UnsupportedError);
-});
+}, 500);
 
 test('transport.send() with an already handled track rejects with DuplicatedError', async () =>
 {
@@ -347,7 +347,7 @@ test('transport.send() with an already handled track rejects with DuplicatedErro
 	await expect(sendTransport.send({ track }))
 		.rejects
 		.toThrow(DuplicatedError);
-});
+}, 500);
 
 test('transport.send() with an ended track rejects with InvalidStateError', async () =>
 {
@@ -358,7 +358,25 @@ test('transport.send() with an ended track rejects with InvalidStateError', asyn
 	await expect(sendTransport.send({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
+
+test('transport.send() with invalid maxSpatialLayer rejects with TypeError', async () =>
+{
+	const track = new MediaStreamTrack({ kind: 'video' });
+
+	await expect(sendTransport.send({ track, maxSpatialLayer: 'chicken' }))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
+test('transport.send() with audio track and maxSpatialLayer rejects with TypeError', async () =>
+{
+	const track = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(sendTransport.send({ track, maxSpatialLayer: 'medium' }))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
 
 test('transport.send() with a non Object appData rejects with TypeError', async () =>
 {
@@ -367,7 +385,7 @@ test('transport.send() with a non Object appData rejects with TypeError', async 
 	await expect(sendTransport.send({ track, appData: true }))
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.receive() succeeds', async () =>
 {
@@ -453,8 +471,8 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.track).toBeType('object');
 	expect(audioConsumer.rtpParameters).toBeType('object');
 	expect(audioConsumer.paused).toBe(false);
-	expect(audioConsumer.preferredSpatialLayer).toBe('none');
-	expect(audioConsumer.effectiveSpatialLayer).toBe('none');
+	expect(audioConsumer.preferredSpatialLayer).toBe(undefined);
+	expect(audioConsumer.effectiveSpatialLayer).toBe(undefined);
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
 	videoConsumer = await recvTransport.receive(
@@ -478,21 +496,21 @@ test('transport.receive() succeeds', async () =>
 	expect(videoConsumer.appData).toEqual({});
 
 	recvTransport.removeAllListeners();
-});
+}, 500);
 
 test('transport.receive() without producerId rejects with TypeError', async () =>
 {
 	await expect(recvTransport.receive())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.receive() in a sending transport rejects with UnsupportedError', async () =>
 {
 	await expect(sendTransport.receive({ producerId: '1234' }))
 		.rejects
 		.toThrow(UnsupportedError);
-});
+}, 500);
 
 test('transport.receive() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
 {
@@ -513,7 +531,7 @@ test('transport.receive() with unsupported consumerRtpParameters rejects with Un
 		.toThrow(UnsupportedError);
 
 	recvTransport.removeAllListeners();
-});
+}, 500);
 
 test('transport.receive() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
 {
@@ -535,49 +553,49 @@ test('transport.receive() with duplicated consumerRtpParameters.id rejects with 
 		.toThrow(DuplicatedError);
 
 	recvTransport.removeAllListeners();
-});
+}, 500);
 
 test('transport.receive() with a non Object appData rejects with TypeError', async () =>
 {
 	await expect(recvTransport.receive({ producerId: '1234-qwer-8888', appData: true }))
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.getStats() succeeds', async () =>
 {
 	await expect(sendTransport.getStats())
 		.resolves
 		.toBeType('map');
-});
+}, 500);
 
 test('transport.restartIce() succeeds', async () =>
 {
 	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
 		.resolves
 		.toBe(undefined);
-});
+}, 500);
 
 test('transport.restartIce() without remoteIceParameters rejects with TypeError', async () =>
 {
 	await expect(sendTransport.restartIce())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.updateIceServers() succeeds', async () =>
 {
 	await expect(sendTransport.updateIceServers({ iceServers: [] }))
 		.resolves
 		.toBe(undefined);
-});
+}, 500);
 
 test('transport.updateIceServers() without iceServers rejects with TypeError', async () =>
 {
 	await expect(sendTransport.updateIceServers())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('transport.appData cannot be overridden', () =>
 {
@@ -585,7 +603,7 @@ test('transport.appData cannot be overridden', () =>
 		.toThrow(Error);
 
 	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
-});
+}, 500);
 
 test('transport.appData can be modified', () =>
 {
@@ -594,7 +612,7 @@ test('transport.appData can be modified', () =>
 
 	expect(sendTransport.appData).toEqual({ baz: 'BAZ', lololo: 'LOLOLO' });
 	expect(recvTransport.appData).toEqual({ nanana: 'NANANA' });
-});
+}, 500);
 
 test('connection state change fires "connectionstatechange" in live transport', () =>
 {
@@ -613,19 +631,19 @@ test('connection state change fires "connectionstatechange" in live transport', 
 	expect(sendTransport.connectionState).toBe('completed');
 
 	sendTransport.removeAllListeners();
-});
+}, 500);
 
 test('producer.pause() succeeds', () =>
 {
 	videoProducer.pause();
 	expect(videoProducer.paused).toBe(true);
-});
+}, 500);
 
 test('producer.resume() succeeds', () =>
 {
 	videoProducer.resume();
 	expect(videoProducer.paused).toBe(false);
-});
+}, 500);
 
 test('producer.replaceTrack() succeeds', async () =>
 {
@@ -641,14 +659,14 @@ test('producer.replaceTrack() succeeds', async () =>
 	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
 	expect(videoProducer.paused).toBe(true);
-});
+}, 500);
 
 test('producer.replaceTrack() without track rejects with TypeError', async () =>
 {
 	await expect(videoProducer.replaceTrack())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
 {
@@ -659,7 +677,7 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 	await expect(videoProducer.replaceTrack({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('producer.replaceTrack() with an already handled track rejects with DuplicatedError', async () =>
 {
@@ -668,16 +686,16 @@ test('producer.replaceTrack() with an already handled track rejects with Duplica
 	await expect(videoProducer.replaceTrack({ track }))
 		.rejects
 		.toThrow(DuplicatedError);
-});
+}, 500);
 
 test('producer.setMaxSpatialLayer() succeeds', async () =>
 {
-	await expect(videoProducer.setMaxSpatialLayer('medium'))
+	await expect(videoProducer.setMaxSpatialLayer('low'))
 		.resolves
 		.toBe(undefined);
 
-	expect(videoProducer.maxSpatialLayer).toBe('medium');
-});
+	expect(videoProducer.maxSpatialLayer).toBe('low');
+}, 500);
 
 test('producer.setMaxSpatialLayer() in an audio producer rejects with UnsupportedError', async () =>
 {
@@ -685,29 +703,29 @@ test('producer.setMaxSpatialLayer() in an audio producer rejects with Unsupporte
 		.rejects
 		.toThrow(UnsupportedError);
 
-	expect(audioProducer.maxSpatialLayer).toBe('none');
-});
+	expect(audioProducer.maxSpatialLayer).toBe(undefined);
+}, 500);
 
 test('producer.setMaxSpatialLayer() with invalid spatialLayer rejects with TypeError', async () =>
 {
 	await expect(videoProducer.setMaxSpatialLayer('chicken'))
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError', async () =>
 {
 	await expect(videoProducer.setMaxSpatialLayer())
 		.rejects
 		.toThrow(TypeError);
-});
+}, 500);
 
 test('producer.getStats() succeeds', async () =>
 {
 	await expect(videoProducer.getStats())
 		.resolves
 		.toBeType('map');
-});
+}, 500);
 
 test('producer.appData cannot be overridden', () =>
 {
@@ -715,19 +733,19 @@ test('producer.appData cannot be overridden', () =>
 		.toThrow(Error);
 
 	expect(videoProducer.appData).toEqual({});
-});
+}, 500);
 
 test('consumer.pause() succeeds', () =>
 {
 	videoConsumer.pause();
 	expect(videoConsumer.paused).toBe(true);
-});
+}, 500);
 
 test('consumer.resume() succeeds', () =>
 {
 	videoConsumer.resume();
 	expect(videoConsumer.paused).toBe(false);
-});
+}, 500);
 
 test('consumer.preferredSpatialLayer setter succeeds for video', () =>
 {
@@ -741,13 +759,17 @@ test('consumer.preferredSpatialLayer setter succeeds for video', () =>
 	// Must ignore 'none' spatial layer.
 	videoConsumer.preferredSpatialLayer = 'none';
 	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-});
+
+	// Must ignore 'default' spatial layer.
+	videoConsumer.preferredSpatialLayer = 'default';
+	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
+}, 500);
 
 test('consumer.preferredSpatialLayer setter fails for audio', () =>
 {
 	audioConsumer.preferredSpatialLayer = 'medium';
-	expect(audioConsumer.preferredSpatialLayer).toBe('none');
-});
+	expect(audioConsumer.preferredSpatialLayer).toBe(undefined);
+}, 500);
 
 test('consumer.effectiveSpatialLayer setter succeeds for video', () =>
 {
@@ -762,22 +784,26 @@ test('consumer.effectiveSpatialLayer setter succeeds for video', () =>
 	videoConsumer.effectiveSpatialLayer = 'none';
 	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
 
+	// Must allow 'default' spatial layer.
+	videoConsumer.effectiveSpatialLayer = 'default';
+	expect(videoConsumer.effectiveSpatialLayer).toBe('default');
+
 	videoConsumer.effectiveSpatialLayer = 'medium';
 	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
-});
+}, 500);
 
 test('consumer.effectiveSpatialLayer setter fails for audio', () =>
 {
 	audioConsumer.effectiveSpatialLayer = 'medium';
-	expect(audioConsumer.effectiveSpatialLayer).toBe('none');
-});
+	expect(audioConsumer.effectiveSpatialLayer).toBe(undefined);
+}, 500);
 
 test('consumer.getStats() succeeds', async () =>
 {
 	await expect(videoConsumer.getStats())
 		.resolves
 		.toBeType('map');
-});
+}, 500);
 
 test('cnosumer.appData cannot be overridden', () =>
 {
@@ -785,14 +811,14 @@ test('cnosumer.appData cannot be overridden', () =>
 		.toThrow(Error);
 
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
-});
+}, 500);
 
 test('producer.close() succeed', () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
 	expect(audioProducer.track.readyState).toBe('ended');
-});
+}, 500);
 
 test('producer.replaceTrack() rejects with InvalidStateError if closed', async () =>
 {
@@ -803,28 +829,29 @@ test('producer.replaceTrack() rejects with InvalidStateError if closed', async (
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
-});
+}, 500);
 
 test('producer.getStats() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(audioProducer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('consumer.close() succeed', () =>
 {
 	audioConsumer.close();
 	expect(audioConsumer.closed).toBe(true);
 	expect(audioConsumer.track.readyState).toBe('ended');
-});
+	expect(audioConsumer.effectiveSpatialLayer).toBe(undefined);
+}, 500);
 
 test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(audioConsumer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('remotetely stopped track fires "trackended" in live producers/consumers', () =>
 {
@@ -867,7 +894,7 @@ test('remotetely stopped track fires "trackended" in live producers/consumers', 
 	videoProducer.removeAllListeners();
 	audioConsumer.removeAllListeners();
 	videoConsumer.removeAllListeners();
-});
+}, 500);
 
 test('transport.close() fires "transportclose" in live producers/consumers', () =>
 {
@@ -918,7 +945,7 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	videoProducer.removeAllListeners();
 	audioConsumer.removeAllListeners();
 	videoConsumer.removeAllListeners();
-});
+}, 500);
 
 test('transport.send() rejects with InvalidStateError if closed', async () =>
 {
@@ -929,35 +956,35 @@ test('transport.send() rejects with InvalidStateError if closed', async () =>
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
-});
+}, 500);
 
 test('transport.receive() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(recvTransport.receive())
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('transport.getStats() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(sendTransport.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('transport.restartIce() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('transport.updateIceServers() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(sendTransport.updateIceServers({ iceServers: [] }))
 		.rejects
 		.toThrow(InvalidStateError);
-});
+}, 500);
 
 test('connection state change does not fire "connectionstatechange" in closed transport', () =>
 {
@@ -974,16 +1001,16 @@ test('connection state change does not fire "connectionstatechange" in closed tr
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners();
-});
+}, 500);
 
 test('consumer.preferredSpatialLayer setter fails for video if closed', () =>
 {
 	videoConsumer.preferredSpatialLayer = 'low';
 	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-});
+}, 500);
 
 test('consumer.effectiveSpatialLayer setter fails for video if closed', () =>
 {
 	videoConsumer.effectiveSpatialLayer = 'low';
 	expect(videoConsumer.effectiveSpatialLayer).toBe('none');
-});
+}, 500);
