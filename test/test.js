@@ -860,21 +860,25 @@ test('remotetely stopped track fires "trackended" in live producers/consumers', 
 	let audiosConsumerTrackendedEventCalled = false;
 	let videoConsumerTrackendedEventCalled = false;
 
-	audioProducer.on('trackended', () => (
-		audioProducerTrackendedEventCalled = true
-	));
+	audioProducer.on('trackended', () =>
+	{
+		audioProducerTrackendedEventCalled = true;
+	});
 
-	videoProducer.on('trackended', () => (
-		videoProducerTrackendedEventCalled = true
-	));
+	videoProducer.on('trackended', () =>
+	{
+		videoProducerTrackendedEventCalled = true;
+	});
 
-	audioConsumer.on('trackended', () => (
-		audiosConsumerTrackendedEventCalled = true
-	));
+	audioConsumer.on('trackended', () =>
+	{
+		audiosConsumerTrackendedEventCalled = true;
+	});
 
-	videoConsumer.on('trackended', () => (
-		videoConsumerTrackendedEventCalled = true
-	));
+	videoConsumer.on('trackended', () =>
+	{
+		videoConsumerTrackendedEventCalled = true;
+	});
 
 	audioProducer.track.remoteStop();
 	// Audio producer was already closed.
@@ -903,21 +907,25 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	let audioConsumerTransportcloseEventCalled = false;
 	let videoConsumerTransportcloseEventCalled = false;
 
-	audioProducer.on('transportclose', () => (
-		audioProducerTransportcloseEventCalled = true
-	));
+	audioProducer.on('transportclose', () =>
+	{
+		audioProducerTransportcloseEventCalled = true;
+	});
 
-	videoProducer.on('transportclose', () => (
-		videoProducerTransportcloseEventCalled = true
-	));
+	videoProducer.on('transportclose', () =>
+	{
+		videoProducerTransportcloseEventCalled = true;
+	});
 
-	audioConsumer.on('transportclose', () => (
-		audioConsumerTransportcloseEventCalled = true
-	));
+	audioConsumer.on('transportclose', () =>
+	{
+		audioConsumerTransportcloseEventCalled = true;
+	});
 
-	videoConsumer.on('transportclose', () => (
-		videoConsumerTransportcloseEventCalled = true
-	));
+	videoConsumer.on('transportclose', () =>
+	{
+		videoConsumerTransportcloseEventCalled = true;
+	});
 
 	// Audio producer was already closed.
 	expect(audioProducer.closed).toBe(true);
