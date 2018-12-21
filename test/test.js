@@ -291,6 +291,9 @@ test('transport.send() succeeds', async () =>
 		setTimeout(() => callback(producerRemoteParameters));
 	});
 
+	// Pause the audio track before creating its producer.
+	audioTrack.enabled = false;
+
 	audioProducer = await sendTransport.send(
 		{ track: audioTrack, appData: { foo: 'FOO' } });
 
@@ -302,9 +305,12 @@ test('transport.send() succeeds', async () =>
 	expect(audioProducer.kind).toBe('audio');
 	expect(audioProducer.track).toBe(audioTrack);
 	expect(audioProducer.rtpParameters).toBeType('object');
-	expect(audioProducer.paused).toBe(false);
+	expect(audioProducer.paused).toBe(true);
 	expect(audioProducer.maxSpatialLayer).toBe(null);
 	expect(audioProducer.appData).toEqual({ foo: 'FOO' });
+
+	// Reset the audio paused state.
+	audioProducer.resume();
 
 	videoProducer = await sendTransport.send(
 		{ track: videoTrack, simulcast: true, maxSpatialLayer: 'medium' });
@@ -647,18 +653,35 @@ test('producer.resume() succeeds', () =>
 
 test('producer.replaceTrack() succeeds', async () =>
 {
-	const producerPreviousVideoTrack = videoProducer.track;
-	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+	// Have the audio producer paused.
+	audioProducer.pause();
 
-	videoProducer.pause();
+	const audioProducerPreviousTrack = audioProducer.track;
+	const newAudioTrack = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(audioProducer.replaceTrack({ track: newAudioTrack }))
+		.resolves
+		.toBe(undefined);
+
+	expect(audioProducerPreviousTrack.readyState).toBe('ended');
+	expect(audioProducer.track).not.toBe(audioProducerPreviousTrack);
+	expect(audioProducer.track).toBe(newAudioTrack);
+	// Producer was already paused.
+	expect(audioProducer.paused).toBe(true);
+
+	// Reset the audio paused state.
+	audioProducer.resume();
+
+	const videoProducerPreviousTrack = videoProducer.track;
+	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
 
 	await expect(videoProducer.replaceTrack({ track: newVideoTrack }))
 		.resolves
 		.toBe(undefined);
 
-	expect(videoProducer.track).not.toBe(producerPreviousVideoTrack);
+	expect(videoProducer.track).not.toBe(videoProducerPreviousTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
-	expect(videoProducer.paused).toBe(true);
+	expect(videoProducer.paused).toBe(false);
 }, 500);
 
 test('producer.replaceTrack() without track rejects with TypeError', async () =>
@@ -666,6 +689,8 @@ test('producer.replaceTrack() without track rejects with TypeError', async () =>
 	await expect(videoProducer.replaceTrack())
 		.rejects
 		.toThrow(TypeError);
+
+	expect(videoProducer.track.readyState).toBe('live');
 }, 500);
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
@@ -677,6 +702,9 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 	await expect(videoProducer.replaceTrack({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	expect(track.readyState).toBe('ended');
+	expect(videoProducer.track.readyState).toBe('live');
 }, 500);
 
 test('producer.replaceTrack() with an already handled track rejects with DuplicatedError', async () =>
@@ -686,6 +714,9 @@ test('producer.replaceTrack() with an already handled track rejects with Duplica
 	await expect(videoProducer.replaceTrack({ track }))
 		.rejects
 		.toThrow(DuplicatedError);
+
+	expect(videoProducer.track).toBe(track);
+	expect(videoProducer.track.readyState).toBe('live');
 }, 500);
 
 test('producer.setMaxSpatialLayer() succeeds', async () =>
@@ -735,16 +766,16 @@ test('producer.appData cannot be overridden', () =>
 	expect(videoProducer.appData).toEqual({});
 }, 500);
 
-test('consumer.pause() succeeds', () =>
-{
-	videoConsumer.pause();
-	expect(videoConsumer.paused).toBe(true);
-}, 500);
-
 test('consumer.resume() succeeds', () =>
 {
 	videoConsumer.resume();
 	expect(videoConsumer.paused).toBe(false);
+}, 500);
+
+test('consumer.pause() succeeds', () =>
+{
+	videoConsumer.pause();
+	expect(videoConsumer.paused).toBe(true);
 }, 500);
 
 test('consumer.preferredSpatialLayer setter succeeds for video', () =>
