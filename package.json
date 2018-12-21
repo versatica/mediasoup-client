@@ -18,11 +18,12 @@
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js lib test",
-    "test": "jest --env=node",
-    "coverage": "jest --env=node --coverage && opn coverage/lcov-report/index.html"
+    "test": "jest",
+    "coverage": "jest --coverage && opn coverage/lcov-report/index.html"
   },
   "jest": {
     "verbose": true,
+    "testEnvironment": "node",
     "testRegex": "test/test\\.js"
   },
   "dependencies": {
