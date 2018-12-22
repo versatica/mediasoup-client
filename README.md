@@ -26,14 +26,14 @@ import mySignaling from './my-signaling'; // Our own signaling stuff.
 // Create a device (use browser auto-detection).
 const device = new Device();
 
-// Communicate with our server app to retrieve room RTP capabilities.
-const roomRtpCapabilities = 
-  await mySignaling.request('getRoomCapabilities');
+// Communicate with our server app to retrieve router RTP capabilities.
+const routerRtpCapabilities = 
+  await mySignaling.request('getRouterCapabilities');
 
-// Load the device with the room RTP capabilities.
-await device.load({ roomRtpCapabilities });
+// Load the device with the router RTP capabilities.
+await device.load({ routerRtpCapabilities });
 
-// Check whether we can send video to the room.
+// Check whether we can send video to the router.
 if (!device.canSend('video'))
 {
   console.warn('cannot send video');
@@ -53,7 +53,7 @@ const sendTransport = device.createTransport(
   });
 
 // Set transport "connect" event handler.
-sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
+sendTransport.on('connect', async (transportLocalParameters, callback, errback) =>
 {
   // Here we must communicate our local parameters to our remote transport.
   try
@@ -76,7 +76,7 @@ sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
 });
 
 // Set transport "send" event handler.
-sendTransport.on('send', (producerLocalParameters, callback, errback) =>
+sendTransport.on('send', async (producerLocalParameters, callback, errback) =>
 {
   // Here we must communicate our sending parameters to our remote transport.
   try
