@@ -1,6 +1,6 @@
 const uuidv1 = require('uuid/v1');
 
-exports.generateRoomRtpCapabilities = function()
+exports.generateRouterRtpCapabilities = function()
 {
 	return {
 		codecs :

@@ -79,7 +79,7 @@ test('device.createTransport() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('device.load() without roomRtpCapabilities rejects with TypeError', async () =>
+test('device.load() without routerRtpCapabilities rejects with TypeError', async () =>
 {
 	await expect(device.load())
 		.rejects
@@ -90,10 +90,10 @@ test('device.load() without roomRtpCapabilities rejects with TypeError', async (
 
 test('device.load() succeeds', async () =>
 {
-	// Assume we get the room RTP capabilities.
-	const roomRtpCapabilities = fakeParameters.generateRoomRtpCapabilities();
+	// Assume we get the router RTP capabilities.
+	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
 
-	await expect(device.load({ roomRtpCapabilities }))
+	await expect(device.load({ routerRtpCapabilities }))
 		.resolves
 		.toBe(undefined);
 
