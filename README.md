@@ -61,7 +61,7 @@ sendTransport.on('connect', async (transportLocalParameters, callback, errback) 
     await mySignaling.request(
       'transport-connect',
       { 
-        id                  : sendTransport.id, 
+        transportId         : sendTransport.id,
         transportParameters : transportLocalParameters
       });
 
@@ -84,8 +84,8 @@ sendTransport.on('send', async (producerLocalParameters, callback, errback) =>
     const producerRemoteParameters = await mySignaling.request(
       'send',
       { 
-        id            : sendTransport.id, 
-        rtpParameters : producerLocalParameters
+        transportId        : sendTransport.id,
+        producerParameters : producerLocalParameters
       });
 
     // Done in the server, pass the response to our transport.

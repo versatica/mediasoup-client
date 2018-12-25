@@ -239,6 +239,7 @@ test('transport.send() succeeds', async () =>
 		connectEventNumTimesCalled++;
 
 		expect(transportLocalParameters).toBeType('object');
+		expect(transportLocalParameters.id).toBe(sendTransport.id);
 		expect(transportLocalParameters.dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
@@ -408,6 +409,7 @@ test('transport.receive() succeeds', async () =>
 		connectEventNumTimesCalled++;
 
 		expect(transportLocalParameters).toBeType('object');
+		expect(transportLocalParameters.id).toBe(recvTransport.id);
 		expect(transportLocalParameters.dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
