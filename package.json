@@ -28,12 +28,12 @@
   },
   "dependencies": {
     "bowser": "^1.9.3",
-    "debug": "^4.1.0",
+    "debug": "^4.1.1",
     "events": "^3.0.0",
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "eslint": "^5.10.0",
+    "eslint": "^5.11.0",
     "eslint-plugin-jest": "^22.1.2",
     "jest": "^23.6.0",
     "jest-tobetype": "^1.2.0",
