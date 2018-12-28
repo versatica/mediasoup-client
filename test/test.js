@@ -60,12 +60,6 @@ test('device.canProduce() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('device.canConsume() throws InvalidStateError if not loaded', () =>
-{
-	expect(() => device.canConsume({}))
-		.toThrow(InvalidStateError);
-}, 500);
-
 test('device.createTransport() throws InvalidStateError if not loaded', () =>
 {
 	const transportRemoteParameters =
@@ -123,34 +117,6 @@ test('device.canProduce() with "audio"/"video" kind returns true', () =>
 test('device.canProduce() with invalid kind throws TypeError', () =>
 {
 	expect(() => device.canProduce('chicken'))
-		.toThrow(TypeError);
-}, 500);
-
-test('device.canConsume() with supported consumableRtpParameters returns true', () =>
-{
-	const audioConsumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
-	const videoConsumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
-
-	expect(device.canConsume(audioConsumerRemoteParameters.rtpParameters))
-		.toBe(true);
-	expect(device.canConsume(videoConsumerRemoteParameters.rtpParameters))
-		.toBe(true);
-}, 500);
-
-test('device.canConsume() with unsupported consumableRtpParameters returns false', () =>
-{
-	const consumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
-
-	expect(device.canConsume(consumerRemoteParameters.rtpParameters))
-		.toBe(false);
-}, 500);
-
-test('device.canConsume() without consumableRtpParameters throws TypeError', () =>
-{
-	expect(() => device.canConsume())
 		.toThrow(TypeError);
 }, 500);
 
@@ -401,7 +367,7 @@ test('transport.consume() succeeds', async () =>
 	const videoConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 	let connectEventNumTimesCalled = 0;
-	let consumeEventNumTimesCalled = 0;
+	let startConsumerEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
 	recvTransport.on('connect', (transportLocalParameters, callback, errback) =>
@@ -418,57 +384,21 @@ test('transport.consume() succeeds', async () =>
 	});
 
 	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
+	recvTransport.on('startConsumer', (consumerId) =>
 	{
-		consumeEventNumTimesCalled++;
-
-		expect(consumerLocalParameters).toBeType('object');
-		expect(consumerLocalParameters.producerId).toBeType('string');
-		expect(consumerLocalParameters.rtpCapabilities).toBeType('object');
-
-		let consumerRemoteParameters;
-
-		switch (consumerLocalParameters.producerId)
-		{
-			case audioConsumerRemoteParameters.producerId:
-			{
-				expect(consumerLocalParameters.appData).toEqual({ bar: 'BAR' });
-
-				consumerRemoteParameters = audioConsumerRemoteParameters;
-
-				break;
-			}
-
-			case videoConsumerRemoteParameters.producerId:
-			{
-				expect(consumerLocalParameters.appData).toEqual({});
-
-				consumerRemoteParameters = videoConsumerRemoteParameters;
-
-				break;
-			}
-
-			default:
-			{
-				throw new Error('unknown consumerLocalParameters.producerId');
-			}
-		}
-
-		// Emulate communication with the server and success response with consumer
-		// remote parameters.
-		setTimeout(() => callback(consumerRemoteParameters));
+		startConsumerEventNumTimesCalled++;
 	});
 
 	// Here we assume that the server created two producers and sent us notifications
 	// about them.
 	audioConsumer = await recvTransport.consume(
 		{
-			producerId : audioConsumerRemoteParameters.producerId,
-			appData    : { bar: 'BAR' }
+			consumerRemoteParameters : audioConsumerRemoteParameters,
+			appData                  : { bar: 'BAR' }
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(consumeEventNumTimesCalled).toBe(1);
+	expect(startConsumerEventNumTimesCalled).toBe(1);
 	expect(audioConsumer).toBeType('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.producerId).toBe(audioConsumerRemoteParameters.producerId);
@@ -481,11 +411,11 @@ test('transport.consume() succeeds', async () =>
 
 	videoConsumer = await recvTransport.consume(
 		{
-			producerId : videoConsumerRemoteParameters.producerId
+			consumerRemoteParameters : videoConsumerRemoteParameters
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(consumeEventNumTimesCalled).toBe(2);
+	expect(startConsumerEventNumTimesCalled).toBe(2);
 	expect(videoConsumer).toBeType('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.producerId).toBe(videoConsumerRemoteParameters.producerId);
@@ -499,7 +429,7 @@ test('transport.consume() succeeds', async () =>
 	recvTransport.removeAllListeners();
 }, 500);
 
-test('transport.consume() without producerId rejects with TypeError', async () =>
+test('transport.consume() without consumerRemoteParameters rejects with TypeError', async () =>
 {
 	await expect(recvTransport.consume())
 		.rejects
@@ -508,7 +438,10 @@ test('transport.consume() without producerId rejects with TypeError', async () =
 
 test('transport.consume() in a sending transport rejects with UnsupportedError', async () =>
 {
-	await expect(sendTransport.consume({ producerId: '1234' }))
+	const consumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+
+	await expect(sendTransport.consume({ consumerRemoteParameters }))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
@@ -517,21 +450,10 @@ test('transport.consume() with unsupported consumerRtpParameters rejects with Un
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
-	const { producerId } = consumerRemoteParameters;
 
-	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
-	{
-		// Emulate communication with the server and success response with consumer
-		// remote parameters.
-		setTimeout(() => callback(consumerRemoteParameters));
-	});
-
-	await expect(recvTransport.consume({ producerId }))
+	await expect(recvTransport.consume({ consumerRemoteParameters }))
 		.rejects
 		.toThrow(UnsupportedError);
-
-	recvTransport.removeAllListeners();
 }, 500);
 
 test('transport.consume() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
@@ -539,26 +461,18 @@ test('transport.consume() with duplicated consumerRtpParameters.id rejects with 
 	const { id } = audioConsumer;
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ id, codecMimeType: 'audio/opus' });
-	const { producerId } = consumerRemoteParameters;
 
-	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
-	{
-		// Emulate communication with the server and success response with consumer
-		// remote parameters.
-		setTimeout(() => callback(consumerRemoteParameters));
-	});
-
-	await expect(recvTransport.consume({ producerId }))
+	await expect(recvTransport.consume({ consumerRemoteParameters }))
 		.rejects
 		.toThrow(DuplicatedError);
-
-	recvTransport.removeAllListeners();
 }, 500);
 
 test('transport.consume() with a non Object appData rejects with TypeError', async () =>
 {
-	await expect(recvTransport.consume({ producerId: '1234-qwer-8888', appData: true }))
+	const consumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+
+	await expect(recvTransport.consume({ consumerRemoteParameters, appData: true }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
