@@ -435,7 +435,6 @@ test('transport.consume() succeeds', async () =>
 				expect(consumerLocalParameters.appData).toEqual({ bar: 'BAR' });
 
 				consumerRemoteParameters = audioConsumerRemoteParameters;
-				expect(consumerLocalParameters.preferredSpatialLayer).toBe(undefined);
 
 				break;
 			}
@@ -445,7 +444,6 @@ test('transport.consume() succeeds', async () =>
 				expect(consumerLocalParameters.appData).toEqual({});
 
 				consumerRemoteParameters = videoConsumerRemoteParameters;
-				expect(consumerLocalParameters.preferredSpatialLayer).toBe('high');
 
 				break;
 			}
@@ -479,14 +477,11 @@ test('transport.consume() succeeds', async () =>
 	expect(audioConsumer.track).toBeType('object');
 	expect(audioConsumer.rtpParameters).toBeType('object');
 	expect(audioConsumer.paused).toBe(false);
-	expect(audioConsumer.preferredSpatialLayer).toBe(null);
-	expect(audioConsumer.effectiveSpatialLayer).toBe(null);
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
 	videoConsumer = await recvTransport.consume(
 		{
-			producerId            : videoConsumerRemoteParameters.producerId,
-			preferredSpatialLayer : 'high'
+			producerId : videoConsumerRemoteParameters.producerId
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -499,8 +494,6 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.track).toBeType('object');
 	expect(videoConsumer.rtpParameters).toBeType('object');
 	expect(videoConsumer.paused).toBe(false);
-	expect(videoConsumer.preferredSpatialLayer).toBe('high');
-	expect(videoConsumer.effectiveSpatialLayer).toBe(null);
 	expect(videoConsumer.appData).toEqual({});
 
 	recvTransport.removeAllListeners();
@@ -780,59 +773,6 @@ test('consumer.pause() succeeds', () =>
 	expect(videoConsumer.paused).toBe(true);
 }, 500);
 
-test('consumer.preferredSpatialLayer setter succeeds for video', () =>
-{
-	videoConsumer.preferredSpatialLayer = 'medium';
-	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-
-	// Must ignore invalid spatial layer.
-	videoConsumer.preferredSpatialLayer = 'chicken';
-	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-
-	// Must ignore null/undefined spatial layer.
-	videoConsumer.preferredSpatialLayer = null;
-	videoConsumer.preferredSpatialLayer = undefined;
-	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-
-	// Must ignore 'default' spatial layer.
-	videoConsumer.preferredSpatialLayer = 'default';
-	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-}, 500);
-
-test('consumer.preferredSpatialLayer setter fails for audio', () =>
-{
-	audioConsumer.preferredSpatialLayer = 'medium';
-	expect(audioConsumer.preferredSpatialLayer).toBe(null);
-}, 500);
-
-test('consumer.effectiveSpatialLayer setter succeeds for video', () =>
-{
-	videoConsumer.effectiveSpatialLayer = 'medium';
-	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
-
-	// Must ignore invalid spatial layer.
-	videoConsumer.effectiveSpatialLayer = 'chicken';
-	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
-
-	// Must allow null/undefined spatial layer.
-	videoConsumer.effectiveSpatialLayer = null;
-	videoConsumer.effectiveSpatialLayer = undefined;
-	expect(videoConsumer.effectiveSpatialLayer).toBe(null);
-
-	// Must allow 'default' spatial layer.
-	videoConsumer.effectiveSpatialLayer = 'default';
-	expect(videoConsumer.effectiveSpatialLayer).toBe('default');
-
-	videoConsumer.effectiveSpatialLayer = 'medium';
-	expect(videoConsumer.effectiveSpatialLayer).toBe('medium');
-}, 500);
-
-test('consumer.effectiveSpatialLayer setter fails for audio', () =>
-{
-	audioConsumer.effectiveSpatialLayer = 'medium';
-	expect(audioConsumer.effectiveSpatialLayer).toBe(null);
-}, 500);
-
 test('consumer.getStats() succeeds', async () =>
 {
 	await expect(videoConsumer.getStats())
@@ -878,7 +818,6 @@ test('consumer.close() succeed', () =>
 	audioConsumer.close();
 	expect(audioConsumer.closed).toBe(true);
 	expect(audioConsumer.track.readyState).toBe('ended');
-	expect(audioConsumer.effectiveSpatialLayer).toBe(null);
 }, 500);
 
 test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
@@ -1044,16 +983,4 @@ test('connection state change does not fire "connectionstatechange" in closed tr
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners();
-}, 500);
-
-test('consumer.preferredSpatialLayer setter fails for video if closed', () =>
-{
-	videoConsumer.preferredSpatialLayer = 'low';
-	expect(videoConsumer.preferredSpatialLayer).toBe('medium');
-}, 500);
-
-test('consumer.effectiveSpatialLayer setter fails for video if closed', () =>
-{
-	videoConsumer.effectiveSpatialLayer = 'low';
-	expect(videoConsumer.effectiveSpatialLayer).toBe(null);
 }, 500);
