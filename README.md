@@ -33,10 +33,10 @@ const routerRtpCapabilities =
 // Load the device with the router RTP capabilities.
 await device.load({ routerRtpCapabilities });
 
-// Check whether we can send video to the router.
-if (!device.canSend('video'))
+// Check whether we can produce video to the router.
+if (!device.canProduce('video'))
 {
-  console.warn('cannot send video');
+  console.warn('cannot produce video');
 
   // Abort next steps.
 }
@@ -75,14 +75,14 @@ sendTransport.on('connect', async (transportLocalParameters, callback, errback) 
   }
 });
 
-// Set transport "send" event handler.
-sendTransport.on('send', async (producerLocalParameters, callback, errback) =>
+// Set transport "produce" event handler.
+sendTransport.on('produce', async (producerLocalParameters, callback, errback) =>
 {
-  // Here we must communicate our sending parameters to our remote transport.
+  // Here we must communicate our local parameters to our remote transport.
   try
   {
     const producerRemoteParameters = await mySignaling.request(
-      'send',
+      'produce',
       { 
         transportId        : sendTransport.id,
         producerParameters : producerLocalParameters
@@ -98,10 +98,10 @@ sendTransport.on('send', async (producerLocalParameters, callback, errback) =>
   }
 });
 
-// Send our webcam video.
+// Produce our webcam video.
 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 const webcamTrack = stream.getVideoTracks()[0];
-const webcamProducer = await sendTransport.send({ track: webcamTrack });
+const webcamProducer = await sendTransport.produce({ track: webcamTrack });
 ```
 
 

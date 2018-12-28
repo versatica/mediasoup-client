@@ -54,15 +54,15 @@ test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () 
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('device.canSend() throws InvalidStateError if not loaded', () =>
+test('device.canProduce() throws InvalidStateError if not loaded', () =>
 {
-	expect(() => device.canSend('audio'))
+	expect(() => device.canProduce('audio'))
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('device.canReceive() throws InvalidStateError if not loaded', () =>
+test('device.canConsume() throws InvalidStateError if not loaded', () =>
 {
-	expect(() => device.canReceive({}))
+	expect(() => device.canConsume({}))
 		.toThrow(InvalidStateError);
 }, 500);
 
@@ -114,43 +114,43 @@ test('device.rtpCapabilities getter succeeds', () =>
 	expect(device.rtpCapabilities).toBeType('object');
 }, 500);
 
-test('device.canSend() with "audio"/"video" kind returns true', () =>
+test('device.canProduce() with "audio"/"video" kind returns true', () =>
 {
-	expect(device.canSend('audio')).toBe(true);
-	expect(device.canSend('video')).toBe(true);
+	expect(device.canProduce('audio')).toBe(true);
+	expect(device.canProduce('video')).toBe(true);
 }, 500);
 
-test('device.canSend() with invalid kind throws TypeError', () =>
+test('device.canProduce() with invalid kind throws TypeError', () =>
 {
-	expect(() => device.canSend('chicken'))
+	expect(() => device.canProduce('chicken'))
 		.toThrow(TypeError);
 }, 500);
 
-test('device.canReceive() with supported consumableRtpParameters returns true', () =>
+test('device.canConsume() with supported consumableRtpParameters returns true', () =>
 {
 	const audioConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 	const videoConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 
-	expect(device.canReceive(audioConsumerRemoteParameters.rtpParameters))
+	expect(device.canConsume(audioConsumerRemoteParameters.rtpParameters))
 		.toBe(true);
-	expect(device.canReceive(videoConsumerRemoteParameters.rtpParameters))
+	expect(device.canConsume(videoConsumerRemoteParameters.rtpParameters))
 		.toBe(true);
 }, 500);
 
-test('device.canReceive() with unsupported consumableRtpParameters returns false', () =>
+test('device.canConsume() with unsupported consumableRtpParameters returns false', () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 
-	expect(device.canReceive(consumerRemoteParameters.rtpParameters))
+	expect(device.canConsume(consumerRemoteParameters.rtpParameters))
 		.toBe(false);
 }, 500);
 
-test('device.canReceive() without consumableRtpParameters throws TypeError', () =>
+test('device.canConsume() without consumableRtpParameters throws TypeError', () =>
 {
-	expect(() => device.canReceive())
+	expect(() => device.canConsume())
 		.toThrow(TypeError);
 }, 500);
 
@@ -224,14 +224,14 @@ test('device.createTransport() with a non Object appData throws TypeError', () =
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.send() succeeds', async () =>
+test('transport.produce() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
 	const videoTrack = new MediaStreamTrack({ kind: 'video' });
 	let audioProducerRemoteParameters;
 	let videoProducerRemoteParameters;
 	let connectEventNumTimesCalled = 0;
-	let sendEventNumTimesCalled = 0;
+	let produceEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
 	sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
@@ -248,9 +248,9 @@ test('transport.send() succeeds', async () =>
 	});
 
 	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('send', (producerLocalParameters, callback, errback) =>
+	sendTransport.on('produce', (producerLocalParameters, callback, errback) =>
 	{
-		sendEventNumTimesCalled++;
+		produceEventNumTimesCalled++;
 
 		expect(producerLocalParameters).toBeType('object');
 		expect(producerLocalParameters.kind).toBeType('string');
@@ -295,11 +295,11 @@ test('transport.send() succeeds', async () =>
 	// Pause the audio track before creating its producer.
 	audioTrack.enabled = false;
 
-	audioProducer = await sendTransport.send(
+	audioProducer = await sendTransport.produce(
 		{ track: audioTrack, appData: { foo: 'FOO' } });
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(sendEventNumTimesCalled).toBe(1);
+	expect(produceEventNumTimesCalled).toBe(1);
 	expect(audioProducer).toBeType('object');
 	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
 	expect(audioProducer.closed).toBe(false);
@@ -313,11 +313,11 @@ test('transport.send() succeeds', async () =>
 	// Reset the audio paused state.
 	audioProducer.resume();
 
-	videoProducer = await sendTransport.send(
+	videoProducer = await sendTransport.produce(
 		{ track: videoTrack, simulcast: true, maxSpatialLayer: 'medium' });
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(sendEventNumTimesCalled).toBe(2);
+	expect(produceEventNumTimesCalled).toBe(2);
 	expect(videoProducer).toBeType('object');
 	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
 	expect(videoProducer.closed).toBe(false);
@@ -331,77 +331,77 @@ test('transport.send() succeeds', async () =>
 	sendTransport.removeAllListeners();
 }, 500);
 
-test('transport.send() without track rejects with TypeError', async () =>
+test('transport.produce() without track rejects with TypeError', async () =>
 {
-	await expect(sendTransport.send())
+	await expect(sendTransport.produce())
 		.rejects
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.send() in a receiving transport rejects with UnsupportedError', async () =>
+test('transport.produce() in a receiving transport rejects with UnsupportedError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
-	await expect(recvTransport.send({ track }))
+	await expect(recvTransport.produce({ track }))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.send() with an already handled track rejects with DuplicatedError', async () =>
+test('transport.produce() with an already handled track rejects with DuplicatedError', async () =>
 {
 	const { track } = audioProducer;
 
-	await expect(sendTransport.send({ track }))
+	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(DuplicatedError);
 }, 500);
 
-test('transport.send() with an ended track rejects with InvalidStateError', async () =>
+test('transport.produce() with an ended track rejects with InvalidStateError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
 	track.stop();
 
-	await expect(sendTransport.send({ track }))
+	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('transport.send() with invalid maxSpatialLayer rejects with TypeError', async () =>
+test('transport.produce() with invalid maxSpatialLayer rejects with TypeError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'video' });
 
-	await expect(sendTransport.send({ track, maxSpatialLayer: 'chicken' }))
+	await expect(sendTransport.produce({ track, maxSpatialLayer: 'chicken' }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.send() with audio track and maxSpatialLayer rejects with TypeError', async () =>
+test('transport.produce() with audio track and maxSpatialLayer rejects with TypeError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
-	await expect(sendTransport.send({ track, maxSpatialLayer: 'medium' }))
+	await expect(sendTransport.produce({ track, maxSpatialLayer: 'medium' }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.send() with a non Object appData rejects with TypeError', async () =>
+test('transport.produce() with a non Object appData rejects with TypeError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
-	await expect(sendTransport.send({ track, appData: true }))
+	await expect(sendTransport.produce({ track, appData: true }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.receive() succeeds', async () =>
+test('transport.consume() succeeds', async () =>
 {
 	const audioConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 	const videoConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 	let connectEventNumTimesCalled = 0;
-	let receiveEventNumTimesCalled = 0;
+	let consumeEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
 	recvTransport.on('connect', (transportLocalParameters, callback, errback) =>
@@ -418,9 +418,9 @@ test('transport.receive() succeeds', async () =>
 	});
 
 	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
+	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
 	{
-		receiveEventNumTimesCalled++;
+		consumeEventNumTimesCalled++;
 
 		expect(consumerLocalParameters).toBeType('object');
 		expect(consumerLocalParameters.producerId).toBeType('string');
@@ -463,14 +463,14 @@ test('transport.receive() succeeds', async () =>
 
 	// Here we assume that the server created two producers and sent us notifications
 	// about them.
-	audioConsumer = await recvTransport.receive(
+	audioConsumer = await recvTransport.consume(
 		{
 			producerId : audioConsumerRemoteParameters.producerId,
 			appData    : { bar: 'BAR' }
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(receiveEventNumTimesCalled).toBe(1);
+	expect(consumeEventNumTimesCalled).toBe(1);
 	expect(audioConsumer).toBeType('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.producerId).toBe(audioConsumerRemoteParameters.producerId);
@@ -483,14 +483,14 @@ test('transport.receive() succeeds', async () =>
 	expect(audioConsumer.effectiveSpatialLayer).toBe(null);
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
-	videoConsumer = await recvTransport.receive(
+	videoConsumer = await recvTransport.consume(
 		{
 			producerId            : videoConsumerRemoteParameters.producerId,
 			preferredSpatialLayer : 'high'
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(receiveEventNumTimesCalled).toBe(2);
+	expect(consumeEventNumTimesCalled).toBe(2);
 	expect(videoConsumer).toBeType('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.producerId).toBe(videoConsumerRemoteParameters.producerId);
@@ -506,42 +506,42 @@ test('transport.receive() succeeds', async () =>
 	recvTransport.removeAllListeners();
 }, 500);
 
-test('transport.receive() without producerId rejects with TypeError', async () =>
+test('transport.consume() without producerId rejects with TypeError', async () =>
 {
-	await expect(recvTransport.receive())
+	await expect(recvTransport.consume())
 		.rejects
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.receive() in a sending transport rejects with UnsupportedError', async () =>
+test('transport.consume() in a sending transport rejects with UnsupportedError', async () =>
 {
-	await expect(sendTransport.receive({ producerId: '1234' }))
+	await expect(sendTransport.consume({ producerId: '1234' }))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.receive() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
+test('transport.consume() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 	const { producerId } = consumerRemoteParameters;
 
 	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
+	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
 	{
 		// Emulate communication with the server and success response with consumer
 		// remote parameters.
 		setTimeout(() => callback(consumerRemoteParameters));
 	});
 
-	await expect(recvTransport.receive({ producerId }))
+	await expect(recvTransport.consume({ producerId }))
 		.rejects
 		.toThrow(UnsupportedError);
 
 	recvTransport.removeAllListeners();
 }, 500);
 
-test('transport.receive() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
+test('transport.consume() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
 {
 	const { id } = audioConsumer;
 	const consumerRemoteParameters =
@@ -549,23 +549,23 @@ test('transport.receive() with duplicated consumerRtpParameters.id rejects with 
 	const { producerId } = consumerRemoteParameters;
 
 	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('receive', (consumerLocalParameters, callback, errback) =>
+	recvTransport.on('consume', (consumerLocalParameters, callback, errback) =>
 	{
 		// Emulate communication with the server and success response with consumer
 		// remote parameters.
 		setTimeout(() => callback(consumerRemoteParameters));
 	});
 
-	await expect(recvTransport.receive({ producerId }))
+	await expect(recvTransport.consume({ producerId }))
 		.rejects
 		.toThrow(DuplicatedError);
 
 	recvTransport.removeAllListeners();
 }, 500);
 
-test('transport.receive() with a non Object appData rejects with TypeError', async () =>
+test('transport.consume() with a non Object appData rejects with TypeError', async () =>
 {
-	await expect(recvTransport.receive({ producerId: '1234-qwer-8888', appData: true }))
+	await expect(recvTransport.consume({ producerId: '1234-qwer-8888', appData: true }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -990,20 +990,20 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 	videoConsumer.removeAllListeners();
 }, 500);
 
-test('transport.send() rejects with InvalidStateError if closed', async () =>
+test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
-	await expect(sendTransport.send({ track }))
+	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
 }, 500);
 
-test('transport.receive() rejects with InvalidStateError if closed', async () =>
+test('transport.consume() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(recvTransport.receive())
+	await expect(recvTransport.consume())
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
