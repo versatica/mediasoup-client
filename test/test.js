@@ -33,13 +33,13 @@ test('mediasoup-client exposes a version property', () =>
 	expect(version).toBe(pkg.version);
 }, 500);
 
-test('create a device in Node without custom Handler throws UnsupportedError', () =>
+test('create a Device in Node without custom Handler throws UnsupportedError', () =>
 {
 	expect(() => new Device())
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('create a device in Node with a FakeHandler succeeds', () =>
+test('create a Device in Node with a FakeHandler succeeds', () =>
 {
 	expect(device = new Device({ Handler: FakeHandler }))
 		.toBeType('object');
@@ -175,7 +175,7 @@ test('device.createTransport() without transportRemoteParameters throws TypeErro
 		.toThrow(TypeError);
 }, 500);
 
-test('device.createTransport() with a non Object appData throws TypeError', () =>
+test('device.createTransport() with a non object appData throws TypeError', () =>
 {
 	const transportRemoteParameters =
 		fakeParameters.generateTransportRemoteParameters();
@@ -253,12 +253,12 @@ test('transport.produce() succeeds', async () =>
 			}
 		}
 
-		// Emulate communication with the server and success response with producer
+		// Emulate communication with the server and success response with Producer
 		// remote parameters.
 		setTimeout(() => callback(producerRemoteParameters));
 	});
 
-	// Pause the audio track before creating its producer.
+	// Pause the audio track before creating its Producer.
 	audioTrack.enabled = false;
 
 	audioProducer = await sendTransport.produce(
@@ -304,7 +304,7 @@ test('transport.produce() without track rejects with TypeError', async () =>
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.produce() in a receiving transport rejects with UnsupportedError', async () =>
+test('transport.produce() in a receiving Transport rejects with UnsupportedError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
@@ -351,7 +351,7 @@ test('transport.produce() with audio track and maxSpatialLayer rejects with Type
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.produce() with a non Object appData rejects with TypeError', async () =>
+test('transport.produce() with a non object appData rejects with TypeError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
@@ -389,8 +389,6 @@ test('transport.consume() succeeds', async () =>
 		startConsumerEventNumTimesCalled++;
 	});
 
-	// Here we assume that the server created two producers and sent us notifications
-	// about them.
 	audioConsumer = await recvTransport.consume(
 		{
 			consumerRemoteParameters : audioConsumerRemoteParameters,
@@ -436,7 +434,7 @@ test('transport.consume() without consumerRemoteParameters rejects with TypeErro
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.consume() in a sending transport rejects with UnsupportedError', async () =>
+test('transport.consume() in a sending Transport rejects with UnsupportedError', async () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
@@ -467,7 +465,7 @@ test('transport.consume() with duplicated consumerRtpParameters.id rejects with 
 		.toThrow(DuplicatedError);
 }, 500);
 
-test('transport.consume() with a non Object appData rejects with TypeError', async () =>
+test('transport.consume() with a non object appData rejects with TypeError', async () =>
 {
 	const consumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
@@ -512,7 +510,7 @@ test('transport.updateIceServers() without iceServers rejects with TypeError', a
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.appData cannot be overridden', () =>
+test('transport.appData cannot be overwritten', () =>
 {
 	expect(() => (sendTransport.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
@@ -529,7 +527,7 @@ test('transport.appData can be modified', () =>
 	expect(recvTransport.appData).toEqual({ nanana: 'NANANA' });
 }, 500);
 
-test('connection state change fires "connectionstatechange" in live transport', () =>
+test('connection state change fires "connectionstatechange" in live Transport', () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
@@ -562,7 +560,7 @@ test('producer.resume() succeeds', () =>
 
 test('producer.replaceTrack() succeeds', async () =>
 {
-	// Have the audio producer paused.
+	// Have the audio Producer paused.
 	audioProducer.pause();
 
 	const audioProducerPreviousTrack = audioProducer.track;
@@ -637,7 +635,7 @@ test('producer.setMaxSpatialLayer() succeeds', async () =>
 	expect(videoProducer.maxSpatialLayer).toBe('low');
 }, 500);
 
-test('producer.setMaxSpatialLayer() in an audio producer rejects with UnsupportedError', async () =>
+test('producer.setMaxSpatialLayer() in an audio Producer rejects with UnsupportedError', async () =>
 {
 	await expect(audioProducer.setMaxSpatialLayer('low'))
 		.rejects
@@ -667,7 +665,7 @@ test('producer.getStats() succeeds', async () =>
 		.toBeType('map');
 }, 500);
 
-test('producer.appData cannot be overridden', () =>
+test('producer.appData cannot be overwritten', () =>
 {
 	expect(() => (videoProducer.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
@@ -694,7 +692,7 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('map');
 }, 500);
 
-test('cnosumer.appData cannot be overridden', () =>
+test('cnosumer.appData cannot be overwritten', () =>
 {
 	expect(() => (audioConsumer.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
@@ -741,7 +739,7 @@ test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('remotetely stopped track fires "trackended" in live producers/consumers', () =>
+test('remotetely stopped track fires "trackended" in live Producers/Consumers', () =>
 {
 	let audioProducerTrackendedEventCalled = false;
 	let videoProducerTrackendedEventCalled = false;
@@ -769,14 +767,14 @@ test('remotetely stopped track fires "trackended" in live producers/consumers', 
 	});
 
 	audioProducer.track.remoteStop();
-	// Audio producer was already closed.
+	// Audio Producer was already closed.
 	expect(audioProducerTrackendedEventCalled).toBe(false);
 
 	videoProducer.track.remoteStop();
 	expect(videoProducerTrackendedEventCalled).toBe(true);
 
 	audioConsumer.track.remoteStop();
-	// Audio consumer was already closed.
+	// Audio Consumer was already closed.
 	expect(audiosConsumerTrackendedEventCalled).toBe(false);
 
 	videoConsumer.track.remoteStop();
@@ -788,7 +786,7 @@ test('remotetely stopped track fires "trackended" in live producers/consumers', 
 	videoConsumer.removeAllListeners();
 }, 500);
 
-test('transport.close() fires "transportclose" in live producers/consumers', () =>
+test('transport.close() fires "transportclose" in live Producers/Consumers', () =>
 {
 	let audioProducerTransportcloseEventCalled = false;
 	let videoProducerTransportcloseEventCalled = false;
@@ -815,25 +813,25 @@ test('transport.close() fires "transportclose" in live producers/consumers', () 
 		videoConsumerTransportcloseEventCalled = true;
 	});
 
-	// Audio producer was already closed.
+	// Audio Producer was already closed.
 	expect(audioProducer.closed).toBe(true);
 	expect(videoProducer.closed).toBe(false);
 
 	sendTransport.close();
 	expect(sendTransport.closed).toBe(true);
 	expect(videoProducer.closed).toBe(true);
-	// Audio producer was already closed.
+	// Audio Producer was already closed.
 	expect(audioProducerTransportcloseEventCalled).toBe(false);
 	expect(videoProducerTransportcloseEventCalled).toBe(true);
 
-	// Audio consumer was already closed.
+	// Audio Consumer was already closed.
 	expect(audioConsumer.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(false);
 
 	recvTransport.close();
 	expect(recvTransport.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(true);
-	// Audio consumer was already closed.
+	// Audio Consumer was already closed.
 	expect(audioConsumerTransportcloseEventCalled).toBe(false);
 	expect(videoConsumerTransportcloseEventCalled).toBe(true);
 
@@ -882,7 +880,7 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('connection state change does not fire "connectionstatechange" in closed transport', () =>
+test('connection state change does not fire "connectionstatechange" in closed Transport', () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
