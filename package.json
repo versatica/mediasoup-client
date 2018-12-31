@@ -24,7 +24,7 @@
   "jest": {
     "verbose": true,
     "testEnvironment": "node",
-    "testRegex": "test/test\\.js"
+    "testRegex": "test/test.*\\.js"
   },
   "dependencies": {
     "bowser": "^1.9.3",

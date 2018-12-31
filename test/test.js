@@ -6,9 +6,9 @@
 const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
 const pkg = require('../package.json');
-const mediasoup = require('../');
+const mediasoupClient = require('../');
 const mediasoupInternals = require('../lib/internals.js');
-const { version, Device } = mediasoup;
+const { version, Device } = mediasoupClient;
 const {
 	UnsupportedError,
 	InvalidStateError,
