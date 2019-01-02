@@ -510,7 +510,7 @@ test('transport.updateIceServers() without iceServers rejects with TypeError', a
 		.toThrow(TypeError);
 }, 500);
 
-test('transport.appData cannot be overwritten', () =>
+test('transport.appData cannot be overridden', () =>
 {
 	expect(() => (sendTransport.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
@@ -665,7 +665,7 @@ test('producer.getStats() succeeds', async () =>
 		.toBeType('map');
 }, 500);
 
-test('producer.appData cannot be overwritten', () =>
+test('producer.appData cannot be overridden', () =>
 {
 	expect(() => (videoProducer.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
@@ -692,7 +692,7 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('map');
 }, 500);
 
-test('cnosumer.appData cannot be overwritten', () =>
+test('cnosumer.appData cannot be overridden', () =>
 {
 	expect(() => (audioConsumer.appData = { lalala: 'LALALA' }))
 		.toThrow(Error);
