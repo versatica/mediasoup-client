@@ -1,4 +1,4 @@
-const uuidv1 = require('uuid/v1');
+const uuidv4 = require('uuid/v4');
 
 exports.generateRouterRtpCapabilities = function()
 {
@@ -287,7 +287,7 @@ exports.generateLocalDtlsParameters = function()
 exports.generateTransportRemoteParameters = function()
 {
 	return {
-		id             : uuidv1(),
+		id             : uuidv4(),
 		dtlsParameters :
 		{
 			fingerprints :
@@ -340,7 +340,7 @@ exports.generateTransportRemoteParameters = function()
 exports.generateProducerRemoteParameters = function()
 {
 	return {
-		id : uuidv1()
+		id : uuidv4()
 	};
 };
 
@@ -351,8 +351,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 		case 'audio/opus':
 		{
 			return {
-				producerId    : uuidv1(),
-				id            : id || uuidv1(),
+				producerId    : uuidv4(),
+				id            : id || uuidv4(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -397,8 +397,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 		case 'audio/ISAC':
 		{
 			return {
-				producerId    : uuidv1(),
-				id            : id || uuidv1(),
+				producerId    : uuidv4(),
+				id            : id || uuidv4(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -440,8 +440,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 		case 'video/VP8':
 		{
 			return {
-				producerId    : uuidv1(),
-				id            : id || uuidv1(),
+				producerId    : uuidv4(),
+				id            : id || uuidv4(),
 				kind          : 'video',
 				rtpParameters :
 				{
