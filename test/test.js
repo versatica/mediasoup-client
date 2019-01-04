@@ -60,16 +60,12 @@ test('device.canProduce() throws InvalidStateError if not loaded', () =>
 		.toThrow(InvalidStateError);
 }, 500);
 
-test('device.createTransport() throws InvalidStateError if not loaded', () =>
+test('device.createSendTransport() throws InvalidStateError if not loaded', () =>
 {
 	const transportRemoteParameters =
 		fakeParameters.generateTransportRemoteParameters();
 
-	expect(() => device.createTransport(
-		{
-			transportRemoteParameters,
-			direction : 'send'
-		}))
+	expect(() => device.createSendTransport({ transportRemoteParameters }))
 		.toThrow(InvalidStateError);
 }, 500);
 
@@ -120,17 +116,16 @@ test('device.canProduce() with invalid kind throws TypeError', () =>
 		.toThrow(TypeError);
 }, 500);
 
-test('device.createTransport() for sending media succeeds', () =>
+test('device.createSendTransport() for sending media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
 	const transportRemoteParameters =
 		fakeParameters.generateTransportRemoteParameters();
 
-	expect(sendTransport = device.createTransport(
+	expect(sendTransport = device.createSendTransport(
 		{
 			transportRemoteParameters,
-			direction : 'send',
-			appData   : { baz: 'BAZ' }
+			appData : { baz: 'BAZ' }
 		}))
 		.toBeType('object');
 
@@ -142,17 +137,13 @@ test('device.createTransport() for sending media succeeds', () =>
 	expect(sendTransport.appData).toEqual({ baz: 'BAZ' }, 500);
 }, 500);
 
-test('device.createTransport() for receiving media succeeds', () =>
+test('device.createRecvTransport() for receiving media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
 	const transportRemoteParameters =
 		fakeParameters.generateTransportRemoteParameters();
 
-	expect(recvTransport = device.createTransport(
-		{
-			transportRemoteParameters,
-			direction : 'recv'
-		}))
+	expect(recvTransport = device.createRecvTransport({ transportRemoteParameters }))
 		.toBeType('object');
 
 	expect(recvTransport.id).toBe(transportRemoteParameters.id);
@@ -163,29 +154,22 @@ test('device.createTransport() for receiving media succeeds', () =>
 	expect(recvTransport.appData).toEqual({});
 }, 500);
 
-test('device.createTransport() with invalid direction throws TypeError', () =>
+test('device.createSendTransport() without transportRemoteParameters throws TypeError', () =>
 {
-	expect(() => device.createTransport({ direction: 'chicken' }))
+	expect(() => device.createSendTransport())
 		.toThrow(TypeError);
 }, 500);
 
-test('device.createTransport() without transportRemoteParameters throws TypeError', () =>
-{
-	expect(() => device.createTransport({ direction: 'send' }))
-		.toThrow(TypeError);
-}, 500);
-
-test('device.createTransport() with a non object appData throws TypeError', () =>
+test('device.createRecvTransport() with a non object appData throws TypeError', () =>
 {
 	const transportRemoteParameters =
 		fakeParameters.generateTransportRemoteParameters();
 
 	expect(
-		() => device.createTransport(
+		() => device.createRecvTransport(
 			{
 				transportRemoteParameters,
-				direction : 'send',
-				appData   : 1234
+				appData : 1234
 			}))
 		.toThrow(TypeError);
 }, 500);
