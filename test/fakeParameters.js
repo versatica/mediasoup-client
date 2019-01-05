@@ -29,9 +29,6 @@ exports.generateRouterRtpCapabilities = function()
 				[
 					{ type: 'nack' },
 					{ type: 'nack', parameter: 'pli' },
-					{ type: 'nack', parameter: 'sli' },
-					{ type: 'nack', parameter: 'rpsi' },
-					{ type: 'nack', parameter: 'app' },
 					{ type: 'ccm', parameter: 'fir' },
 					{ type: 'goog-remb' }
 				],
@@ -62,9 +59,6 @@ exports.generateRouterRtpCapabilities = function()
 				[
 					{ type: 'nack' },
 					{ type: 'nack', parameter: 'pli' },
-					{ type: 'nack', parameter: 'sli' },
-					{ type: 'nack', parameter: 'rpsi' },
-					{ type: 'nack', parameter: 'app' },
 					{ type: 'ccm', parameter: 'fir' },
 					{ type: 'goog-remb' }
 				],
@@ -222,7 +216,7 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				kind        : 'audio',
 				uri         : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				preferredId : 1
+				preferredId : 10
 			},
 			{
 				kind        : 'audio',
@@ -461,9 +455,6 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 							[
 								{ type: 'nack' },
 								{ type: 'nack', parameter: 'pli' },
-								{ type: 'nack', parameter: 'sli' },
-								{ type: 'nack', parameter: 'rpsi' },
-								{ type: 'nack', parameter: 'app' },
 								{ type: 'ccm', parameter: 'fir' },
 								{ type: 'goog-remb' }
 							],
@@ -503,6 +494,10 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 						{
 							uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time', // eslint-disable-line max-len
 							id  : 3
+						},
+						{
+							uri : 'urn:3gpp:video-orientation',
+							id  : 4
 						}
 					],
 					rtcp :

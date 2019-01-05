@@ -285,7 +285,7 @@ test('transport.produce() succeeds', async () =>
 		[
 			{
 				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id  : 1
+				id  : 10
 			},
 			{
 				uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
@@ -491,6 +491,11 @@ test('transport.consume() succeeds', async () =>
 		startConsumerEventNumTimesCalled++;
 	});
 
+	let codecs;
+	let headerExtensions;
+	let encodings;
+	let rtcp;
+
 	audioConsumer = await recvTransport.consume(
 		{
 			consumerRemoteParameters : audioConsumerRemoteParameters,
@@ -506,6 +511,45 @@ test('transport.consume() succeeds', async () =>
 	expect(audioConsumer.kind).toBe('audio');
 	expect(audioConsumer.track).toBeType('object');
 	expect(audioConsumer.rtpParameters).toBeType('object');
+	expect(audioConsumer.rtpParameters.mid).toBe(undefined);
+	expect(audioConsumer.rtpParameters.codecs.length).toBe(1);
+
+	codecs = audioConsumer.rtpParameters.codecs;
+	expect(codecs[0]).toEqual(
+		{
+			name         : 'opus',
+			mimeType     : 'audio/opus',
+			clockRate    : 48000,
+			payloadType  : 100,
+			channels     : 2,
+			rtcpFeedback : [],
+			parameters   :
+			{
+				useinbandfec : 1,
+				foo          : 'bar'
+			}
+		});
+
+	headerExtensions = audioConsumer.rtpParameters.headerExtensions;
+	expect(headerExtensions).toEqual(
+		[
+			{
+				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id  : 1
+			}
+		]);
+
+	encodings = audioConsumer.rtpParameters.encodings;
+	expect(encodings).toBeType('array');
+	expect(encodings.length).toBe(1);
+	expect(encodings[0]).toBeType('object');
+	expect(Object.keys(encodings[0])).toEqual([ 'ssrc' ]);
+	expect(encodings[0].ssrc).toBeType('number');
+
+	rtcp = audioProducer.rtpParameters.rtcp;
+	expect(rtcp).toBeType('object');
+	expect(rtcp.cname).toBeType('string');
+
 	expect(audioConsumer.paused).toBe(false);
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
@@ -523,6 +567,72 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.kind).toBe('video');
 	expect(videoConsumer.track).toBeType('object');
 	expect(videoConsumer.rtpParameters).toBeType('object');
+	expect(videoConsumer.rtpParameters.mid).toBe(undefined);
+	expect(videoConsumer.rtpParameters.codecs.length).toBe(2);
+
+	codecs = videoConsumer.rtpParameters.codecs;
+	expect(codecs[0]).toEqual(
+		{
+			name         : 'VP8',
+			mimeType     : 'video/VP8',
+			clockRate    : 90000,
+			payloadType  : 101,
+			rtcpFeedback :
+			[
+				{ type: 'nack' },
+				{ type: 'nack', parameter: 'pli' },
+				{ type: 'ccm', parameter: 'fir' },
+				{ type: 'goog-remb' }
+			],
+			parameters :
+			{
+				'x-google-start-bitrate' : 1500
+			}
+		});
+	expect(codecs[1]).toEqual(
+		{
+			name         : 'rtx',
+			mimeType     : 'video/rtx',
+			clockRate    : 90000,
+			payloadType  : 102,
+			rtcpFeedback : [],
+			parameters   :
+			{
+				apt : 101
+			}
+		});
+
+	headerExtensions = videoConsumer.rtpParameters.headerExtensions;
+	expect(headerExtensions).toEqual(
+		[
+			{
+				uri : 'urn:ietf:params:rtp-hdrext:toffset',
+				id  : 2
+			},
+			{
+				uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				id  : 3
+			},
+			{
+				uri : 'urn:3gpp:video-orientation',
+				id  : 4
+			}
+		]);
+
+	encodings = videoConsumer.rtpParameters.encodings;
+	expect(encodings).toBeType('array');
+	expect(encodings.length).toBe(1);
+	expect(encodings[0]).toBeType('object');
+	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'rtx' ]);
+	expect(encodings[0].ssrc).toBeType('number');
+	expect(encodings[0].rtx).toBeType('object');
+	expect(Object.keys(encodings[0].rtx)).toEqual([ 'ssrc' ]);
+	expect(encodings[0].rtx.ssrc).toBeType('number');
+
+	rtcp = videoConsumer.rtpParameters.rtcp;
+	expect(rtcp).toBeType('object');
+	expect(rtcp.cname).toBeType('string');
+
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.appData).toEqual({});
 
