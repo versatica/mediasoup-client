@@ -15,7 +15,8 @@ exports.generateRouterRtpCapabilities = function()
 				rtcpFeedback         : [],
 				parameters           :
 				{
-					useinbandfec : 1
+					useinbandfec : 1,
+					foo          : 'bar'
 				}
 			},
 			{
@@ -198,7 +199,10 @@ exports.generateNativeRtpCapabilities = function()
 					{ type: 'nack' },
 					{ type: 'nack', parameter: 'pli' }
 				],
-				parameters : {}
+				parameters :
+				{
+					baz : '1234abcd'
+				}
 			},
 			{
 				name                 : 'rtx',
@@ -367,7 +371,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 							rtcpFeedback : [],
 							parameters   :
 							{
-								useinbandfec : 1
+								useinbandfec : 1,
+								foo          : 'bar'
 							}
 						}
 					],

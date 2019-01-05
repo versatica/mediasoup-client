@@ -103,7 +103,7 @@ class FakeHandler extends EnhancedEventEmitter
 				const rtpParameters =
 					utils.clone(this._rtpParametersByKind[track.kind]);
 
-				rtpParameters.mid = String(utils.generateRandomNumber());
+				rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
 				// Fill RTCRtpParameters.encodings.
 				const encoding =
