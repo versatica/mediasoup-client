@@ -14,7 +14,7 @@
   },
   "main": "lib/index.js",
   "engines": {
-    "node": ">=6.4"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js lib test",

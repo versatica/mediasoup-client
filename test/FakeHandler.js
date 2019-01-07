@@ -12,11 +12,11 @@ const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
 class FakeHandler extends EnhancedEventEmitter
 {
-	static getNativeRtpCapabilities()
+	static async getNativeRtpCapabilities()
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		return Promise.resolve(nativeRtpCapabilities);
+		return nativeRtpCapabilities;
 	}
 
 	constructor(
@@ -70,167 +70,141 @@ class FakeHandler extends EnhancedEventEmitter
 		this.emit('@connectionstatechange', connectionState);
 	}
 
-	getTransportStats()
+	async getTransportStats()
 	{
-		return Promise.resolve(new Map());
+		return new Map();
 	}
 
-	restartIce({ remoteIceParameters } = {}) // eslint-disable-line no-unused-vars
+	async restartIce({ remoteIceParameters } = {}) // eslint-disable-line no-unused-vars
 	{
-		return Promise.resolve();
+		return;
 	}
 
-	updateIceServers({ iceServers }) // eslint-disable-line no-unused-vars
+	async updateIceServers({ iceServers }) // eslint-disable-line no-unused-vars
 	{
-		return Promise.resolve();
+		return;
 	}
 
-	send({ track, simulcast }) // eslint-disable-line no-unused-vars
+	async send({ track, simulcast }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
 
 		if (this._sendingTracks.has(track))
-			return Promise.reject(new DuplicatedError('track already handled'));
+			throw new DuplicatedError('track already handled');
 
-		return Promise.resolve()
-			.then(() =>
+		if (!this._transportReady)
+			await this._setupTransport({ localDtlsRole: 'server' });
+
+		const rtpParameters =
+			utils.clone(this._rtpParametersByKind[track.kind]);
+
+		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
+
+		// Fill RTCRtpParameters.encodings.
+		const encoding =
+		{
+			ssrc : utils.generateRandomNumber()
+		};
+
+		if (rtpParameters.codecs.some((codec) => codec.name === 'rtx'))
+		{
+			encoding.rtx =
 			{
-				if (!this._transportReady)
-					return this._setupTransport({ localDtlsRole: 'server' });
-			})
-			.then(() =>
-			{
-				const rtpParameters =
-					utils.clone(this._rtpParametersByKind[track.kind]);
+				ssrc : utils.generateRandomNumber()
+			};
+		}
 
-				rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
+		rtpParameters.encodings.push(encoding);
 
-				// Fill RTCRtpParameters.encodings.
-				const encoding =
-				{
-					ssrc : utils.generateRandomNumber()
-				};
+		// Fill RTCRtpParameters.rtcp.
+		rtpParameters.rtcp =
+		{
+			cname       : this._cname,
+			reducedSize : true,
+			mux         : true
+		};
 
-				if (rtpParameters.codecs.some((codec) => codec.name === 'rtx'))
-				{
-					encoding.rtx =
-					{
-						ssrc : utils.generateRandomNumber()
-					};
-				}
+		this._sendingTracks.add(track);
 
-				rtpParameters.encodings.push(encoding);
-
-				// Fill RTCRtpParameters.rtcp.
-				rtpParameters.rtcp =
-				{
-					cname       : this._cname,
-					reducedSize : true,
-					mux         : true
-				};
-
-				this._sendingTracks.add(track);
-
-				return rtpParameters;
-			});
+		return rtpParameters;
 	}
 
-	stopSending({ track })
+	async stopSending({ track })
 	{
 		logger.debug('stopSending() [trackId:%s]', track.id);
 
 		if (!this._sendingTracks.has(track))
-			return Promise.reject(new Error('local track not found'));
+			throw new Error('local track not found');
 
 		this._sendingTracks.delete(track);
-
-		return Promise.resolve();
 	}
 
-	replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
+	async replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('replaceTrack() [newTrackId:%s]', newTrack.id);
 
 		if (this._sendingTracks.has(newTrack))
-			return Promise.reject(new DuplicatedError('track already handled'));
+			throw new DuplicatedError('track already handled');
 
 		this._sendingTracks.delete(track);
 		this._sendingTracks.add(newTrack);
-
-		return Promise.resolve();
 	}
 
-	getSenderStats({ track }) // eslint-disable-line no-unused-vars
+	async getSenderStats({ track }) // eslint-disable-line no-unused-vars
 	{
-		return Promise.resolve(new Map());
+		return new Map();
 	}
 
-	setMaxSpatialLayer({ track, spatialLayer }) // eslint-disable-line no-unused-vars
+	async setMaxSpatialLayer({ track, spatialLayer }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug(
 			'setMaxSpatialLayer() [track.id:%s, spatialLayer:%s]',
 			track.id, spatialLayer);
-
-		return Promise.resolve();
 	}
 
-	receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
+	async receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('receive() [id:%s, kind:%s]', id, kind);
 
 		if (this._receivingSources.has(id))
-			return Promise.reject(new DuplicatedError('already receiving this source'));
+			throw new DuplicatedError('already receiving this source');
 
-		return Promise.resolve()
-			.then(() =>
-			{
-				if (!this._transportReady)
-					return this._setupTransport({ localDtlsRole: 'client' });
-			})
-			.then(() =>
-			{
-				this._receivingSources.add(id);
+		if (!this._transportReady)
+			await this._setupTransport({ localDtlsRole: 'client' });
 
-				const track = new MediaStreamTrack({ kind });
+		this._receivingSources.add(id);
 
-				return track;
-			});
+		const track = new MediaStreamTrack({ kind });
+
+		return track;
 	}
 
-	stopReceiving({ id })
+	async stopReceiving({ id })
 	{
 		logger.debug('stopReceiving() [id:%s]', id);
 
 		this._receivingSources.delete(id);
-
-		return Promise.resolve();
 	}
 
-	getReceiverStats({ track }) // eslint-disable-line no-unused-vars
+	async getReceiverStats({ track }) // eslint-disable-line no-unused-vars
 	{
-		return Promise.resolve(new Map());
+		return new Map();
 	}
 
-	_setupTransport({ localDtlsRole } = {})
+	async _setupTransport({ localDtlsRole } = {})
 	{
-		return Promise.resolve()
-			.then(() =>
-			{
-				const dtlsParameters = utils.clone(localDtlsParameters);
+		const dtlsParameters = utils.clone(localDtlsParameters);
 
-				// Set our DTLS role.
-				if (localDtlsRole)
-					dtlsParameters.role = localDtlsRole;
+		// Set our DTLS role.
+		if (localDtlsRole)
+			dtlsParameters.role = localDtlsRole;
 
-				const transportLocalParameters = { dtlsParameters };
+		const transportLocalParameters = { dtlsParameters };
 
-				// Need to tell the remote transport about our parameters.
-				return this.safeEmitAsPromise('@connect', transportLocalParameters);
-			})
-			.then(() =>
-			{
-				this._transportReady = true;
-			});
+		// Need to tell the remote transport about our parameters.
+		await this.safeEmitAsPromise('@connect', transportLocalParameters);
+
+		this._transportReady = true;
 	}
 }
 
