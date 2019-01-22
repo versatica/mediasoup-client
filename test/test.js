@@ -469,7 +469,6 @@ test('transport.consume() succeeds', async () =>
 	const videoConsumerRemoteParameters =
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
 	let connectEventNumTimesCalled = 0;
-	let startConsumerEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
 	recvTransport.on('connect', (transportLocalParameters, callback, errback) =>
@@ -485,12 +484,6 @@ test('transport.consume() succeeds', async () =>
 		setTimeout(callback);
 	});
 
-	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('startConsumer', (consumerId) =>
-	{
-		startConsumerEventNumTimesCalled++;
-	});
-
 	let codecs;
 	let headerExtensions;
 	let encodings;
@@ -503,7 +496,6 @@ test('transport.consume() succeeds', async () =>
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(startConsumerEventNumTimesCalled).toBe(1);
 	expect(audioConsumer).toBeType('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.producerId).toBe(audioConsumerRemoteParameters.producerId);
@@ -559,7 +551,6 @@ test('transport.consume() succeeds', async () =>
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
-	expect(startConsumerEventNumTimesCalled).toBe(2);
 	expect(videoConsumer).toBeType('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.producerId).toBe(videoConsumerRemoteParameters.producerId);
