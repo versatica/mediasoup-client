@@ -311,8 +311,14 @@ test('transport.produce() succeeds', async () =>
 	// Reset the audio paused state.
 	audioProducer.resume();
 
+	const videoEncodings =
+	[
+		{ maxBitrate: 100000 },
+		{ maxBitrate: 500000 }
+	];
+
 	videoProducer = await sendTransport.produce(
-		{ track: videoTrack, simulcast: true, maxSpatialLayer: 1 });
+		{ track: videoTrack, encodings: videoEncodings });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(2);
@@ -380,20 +386,24 @@ test('transport.produce() succeeds', async () =>
 
 	encodings = videoProducer.rtpParameters.encodings;
 	expect(encodings).toBeType('array');
-	expect(encodings.length).toBe(1);
+	expect(encodings.length).toBe(2);
 	expect(encodings[0]).toBeType('object');
-	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'rtx' ]);
 	expect(encodings[0].ssrc).toBeType('number');
 	expect(encodings[0].rtx).toBeType('object');
 	expect(Object.keys(encodings[0].rtx)).toEqual([ 'ssrc' ]);
 	expect(encodings[0].rtx.ssrc).toBeType('number');
+	expect(encodings[1]).toBeType('object');
+	expect(encodings[1].ssrc).toBeType('number');
+	expect(encodings[1].rtx).toBeType('object');
+	expect(Object.keys(encodings[1].rtx)).toEqual([ 'ssrc' ]);
+	expect(encodings[1].rtx.ssrc).toBeType('number');
 
 	rtcp = videoProducer.rtpParameters.rtcp;
 	expect(rtcp).toBeType('object');
 	expect(rtcp.cname).toBeType('string');
 
 	expect(videoProducer.paused).toBe(false);
-	expect(videoProducer.maxSpatialLayer).toBe(1);
+	expect(videoProducer.maxSpatialLayer).toBe(undefined);
 	expect(videoProducer.appData).toEqual({});
 
 	sendTransport.removeAllListeners();
@@ -433,24 +443,6 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
-}, 500);
-
-test('transport.produce() with invalid maxSpatialLayer rejects with TypeError', async () =>
-{
-	const track = new MediaStreamTrack({ kind: 'video' });
-
-	await expect(sendTransport.produce({ track, maxSpatialLayer: 'chicken' }))
-		.rejects
-		.toThrow(TypeError);
-}, 500);
-
-test('transport.produce() with audio track and maxSpatialLayer rejects with TypeError', async () =>
-{
-	const track = new MediaStreamTrack({ kind: 'audio' });
-
-	await expect(sendTransport.produce({ track, maxSpatialLayer: 0 }))
-		.rejects
-		.toThrow(TypeError);
 }, 500);
 
 test('transport.produce() with a non object appData rejects with TypeError', async () =>

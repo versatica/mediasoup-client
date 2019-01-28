@@ -85,7 +85,7 @@ class FakeHandler extends EnhancedEventEmitter
 		return;
 	}
 
-	async send({ track, simulcast }) // eslint-disable-line no-unused-vars
+	async send({ track, encodings }) // eslint-disable-line no-unused-vars
 	{
 		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
 
@@ -97,24 +97,22 @@ class FakeHandler extends EnhancedEventEmitter
 
 		const rtpParameters =
 			utils.clone(this._rtpParametersByKind[track.kind]);
+		const useRtx = rtpParameters.codecs.some((codec) => codec.name === 'rtx');
 
 		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
-		// Fill RTCRtpParameters.encodings.
-		const encoding =
-		{
-			ssrc : utils.generateRandomNumber()
-		};
+		if (!encodings)
+			encodings = [ {} ];
 
-		if (rtpParameters.codecs.some((codec) => codec.name === 'rtx'))
+		for (const encoding of encodings)
 		{
-			encoding.rtx =
-			{
-				ssrc : utils.generateRandomNumber()
-			};
+			encoding.ssrc = utils.generateRandomNumber();
+
+			if (useRtx)
+				encoding.rtx = { ssrc: utils.generateRandomNumber() };
 		}
 
-		rtpParameters.encodings.push(encoding);
+		rtpParameters.encodings = encodings;
 
 		// Fill RTCRtpParameters.rtcp.
 		rtpParameters.rtcp =
