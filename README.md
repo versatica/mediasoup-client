@@ -27,8 +27,7 @@ import mySignaling from './my-signaling'; // Our own signaling stuff.
 const device = new Device();
 
 // Communicate with our server app to retrieve router RTP capabilities.
-const routerRtpCapabilities = 
-  await mySignaling.request('getRouterCapabilities');
+const routerRtpCapabilities = await mySignaling.request('getRouterCapabilities');
 
 // Load the device with the router RTP capabilities.
 await device.load({ routerRtpCapabilities });
@@ -42,27 +41,28 @@ if (!device.canProduce('video'))
 }
 
 // Create a transport in the server for sending our media through it.
-const sendTransportRemoteParameters = 
-  await mySignaling.request('createTransport');
+const { 
+  id, 
+  iceParameters, 
+  iceCandidates, 
+  dtlsParameters
+} = await mySignaling.request('createTransport');
 
 // Create the local representation of our server-side transport.
-const sendTransport = device.createTransport(
-  {
-    transportRemoteParameters : sendTransportRemoteParameters,
-    direction                 : 'send'
-  });
+const sendTransport =
+  device.createSendTransport({ id, iceParameters, iceCandidates, dtlsParameters });
 
 // Set transport "connect" event handler.
-sendTransport.on('connect', async (transportLocalParameters, callback, errback) =>
+sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) =>
 {
   // Here we must communicate our local parameters to our remote transport.
   try
   {
     await mySignaling.request(
       'transport-connect',
-      { 
-        transportId         : sendTransport.id,
-        transportParameters : transportLocalParameters
+      {
+        transportId: sendTransport.id,
+        dtlsParameters
       });
 
     // Done in the server, tell our transport.
@@ -76,20 +76,22 @@ sendTransport.on('connect', async (transportLocalParameters, callback, errback) 
 });
 
 // Set transport "produce" event handler.
-sendTransport.on('produce', async (producerLocalParameters, callback, errback) =>
+sendTransport.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
 {
   // Here we must communicate our local parameters to our remote transport.
   try
   {
-    const producerRemoteParameters = await mySignaling.request(
+    const { id } = await mySignaling.request(
       'produce',
       { 
-        transportId        : sendTransport.id,
-        producerParameters : producerLocalParameters
+        transportId : sendTransport.id,
+        kind,
+        rtpParameters,
+        appData
       });
 
     // Done in the server, pass the response to our transport.
-    callback(producerRemoteParameters);
+    callback({ id });
   }
   catch (error)
   {

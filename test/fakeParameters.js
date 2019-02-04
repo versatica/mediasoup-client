@@ -285,25 +285,12 @@ exports.generateLocalDtlsParameters = function()
 exports.generateTransportRemoteParameters = function()
 {
 	return {
-		id             : uuidv4(),
-		dtlsParameters :
+		id            : uuidv4(),
+		iceParameters :
 		{
-			fingerprints :
-			[
-				{
-					algorithm : 'sha-256',
-					value     : 'A9:F4:E0:D2:74:D3:0F:D9:CA:A5:2F:9F:7F:47:FA:F0:C4:72:DD:73:49:D0:3B:14:90:20:51:30:1B:90:8E:71'
-				},
-				{
-					algorithm : 'sha-384',
-					value     : '03:D9:0B:87:13:98:F6:6D:BC:FC:92:2E:39:D4:E1:97:32:61:30:56:84:70:81:6E:D1:82:97:EA:D9:C1:21:0F:6B:C5:E7:7F:E1:97:0C:17:97:6E:CF:B3:EF:2E:74:B0'
-				},
-				{
-					algorithm : 'sha-512',
-					value     : '84:27:A4:28:A4:73:AF:43:02:2A:44:68:FF:2F:29:5C:3B:11:9A:60:F4:A8:F0:F5:AC:A0:E3:49:3E:B1:34:53:A9:85:CE:51:9B:ED:87:5E:B8:F4:8E:3D:FA:20:51:B8:96:EE:DA:56:DC:2F:5C:62:79:15:23:E0:21:82:2B:2C'
-				}
-			],
-			role : 'auto'
+			iceLite          : true,
+			password         : 'yku5ej8nvfaor28lvtrabcx0wkrpkztz',
+			usernameFragment : 'h3hk1iz6qqlnqlne'
 		},
 		iceCandidates :
 		[
@@ -326,11 +313,24 @@ exports.generateTransportRemoteParameters = function()
 				type       : 'host'
 			}
 		],
-		iceParameters :
+		dtlsParameters :
 		{
-			iceLite          : true,
-			password         : 'yku5ej8nvfaor28lvtrabcx0wkrpkztz',
-			usernameFragment : 'h3hk1iz6qqlnqlne'
+			fingerprints :
+			[
+				{
+					algorithm : 'sha-256',
+					value     : 'A9:F4:E0:D2:74:D3:0F:D9:CA:A5:2F:9F:7F:47:FA:F0:C4:72:DD:73:49:D0:3B:14:90:20:51:30:1B:90:8E:71'
+				},
+				{
+					algorithm : 'sha-384',
+					value     : '03:D9:0B:87:13:98:F6:6D:BC:FC:92:2E:39:D4:E1:97:32:61:30:56:84:70:81:6E:D1:82:97:EA:D9:C1:21:0F:6B:C5:E7:7F:E1:97:0C:17:97:6E:CF:B3:EF:2E:74:B0'
+				},
+				{
+					algorithm : 'sha-512',
+					value     : '84:27:A4:28:A4:73:AF:43:02:2A:44:68:FF:2F:29:5C:3B:11:9A:60:F4:A8:F0:F5:AC:A0:E3:49:3E:B1:34:53:A9:85:CE:51:9B:ED:87:5E:B8:F4:8E:3D:FA:20:51:B8:96:EE:DA:56:DC:2F:5C:62:79:15:23:E0:21:82:2B:2C'
+				}
+			],
+			role : 'auto'
 		}
 	};
 };
@@ -342,15 +342,15 @@ exports.generateProducerRemoteParameters = function()
 	};
 };
 
-exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
+exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 {
 	switch (codecMimeType)
 	{
 		case 'audio/opus':
 		{
 			return {
-				producerId    : uuidv4(),
 				id            : id || uuidv4(),
+				producerId    : uuidv4(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -396,8 +396,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 		case 'audio/ISAC':
 		{
 			return {
-				producerId    : uuidv4(),
 				id            : id || uuidv4(),
+				producerId    : uuidv4(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -439,8 +439,8 @@ exports.generateConsumerRemoteParameters = function({ codecMimeType, id } = {})
 		case 'video/VP8':
 		{
 			return {
-				producerId    : uuidv4(),
 				id            : id || uuidv4(),
+				producerId    : uuidv4(),
 				kind          : 'video',
 				rtpParameters :
 				{

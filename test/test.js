@@ -62,10 +62,20 @@ test('device.canProduce() throws InvalidStateError if not loaded', () =>
 
 test('device.createSendTransport() throws InvalidStateError if not loaded', () =>
 {
-	const transportRemoteParameters =
-		fakeParameters.generateTransportRemoteParameters();
+	const {
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters
+	} = fakeParameters.generateTransportRemoteParameters();
 
-	expect(() => device.createSendTransport({ transportRemoteParameters }))
+	expect(() => device.createSendTransport(
+		{
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters
+		}))
 		.toThrow(InvalidStateError);
 }, 500);
 
@@ -119,17 +129,24 @@ test('device.canProduce() with invalid kind throws TypeError', () =>
 test('device.createSendTransport() for sending media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
-	const transportRemoteParameters =
-		fakeParameters.generateTransportRemoteParameters();
+	const {
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters
+	} = fakeParameters.generateTransportRemoteParameters();
 
 	expect(sendTransport = device.createSendTransport(
 		{
-			transportRemoteParameters,
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
 			appData : { baz: 'BAZ' }
 		}))
 		.toBeType('object');
 
-	expect(sendTransport.id).toBe(transportRemoteParameters.id);
+	expect(sendTransport.id).toBe(id);
 	expect(sendTransport.closed).toBe(false);
 	expect(sendTransport.direction).toBe('send');
 	expect(sendTransport.handler).toBeType('object');
@@ -140,13 +157,23 @@ test('device.createSendTransport() for sending media succeeds', () =>
 test('device.createRecvTransport() for receiving media succeeds', () =>
 {
 	// Assume we create a transport in the server and get its remote parameters.
-	const transportRemoteParameters =
-		fakeParameters.generateTransportRemoteParameters();
+	const {
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters
+	} = fakeParameters.generateTransportRemoteParameters();
 
-	expect(recvTransport = device.createRecvTransport({ transportRemoteParameters }))
+	expect(recvTransport = device.createRecvTransport(
+		{
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters
+		}))
 		.toBeType('object');
 
-	expect(recvTransport.id).toBe(transportRemoteParameters.id);
+	expect(recvTransport.id).toBe(id);
 	expect(recvTransport.closed).toBe(false);
 	expect(recvTransport.direction).toBe('recv');
 	expect(recvTransport.handler).toBeType('object');
@@ -154,23 +181,40 @@ test('device.createRecvTransport() for receiving media succeeds', () =>
 	expect(recvTransport.appData).toEqual({});
 }, 500);
 
-test('device.createSendTransport() without transportRemoteParameters throws TypeError', () =>
+test('device.createSendTransport() with missing remote Transport parameters throws TypeError', () =>
 {
-	expect(() => device.createSendTransport())
+	expect(() => device.createSendTransport({ id: '1234' }))
+		.toThrow(TypeError);
+
+	expect(() => device.createSendTransport({ id: '1234', iceParameters: {} }))
+		.toThrow(TypeError);
+
+	expect(() => device.createSendTransport(
+		{
+			id            : '1234',
+			iceParameters : {},
+			iceCandidates : []
+		}))
 		.toThrow(TypeError);
 }, 500);
 
 test('device.createRecvTransport() with a non object appData throws TypeError', () =>
 {
-	const transportRemoteParameters =
-		fakeParameters.generateTransportRemoteParameters();
+	const {
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters
+	} = fakeParameters.generateTransportRemoteParameters();
 
-	expect(
-		() => device.createRecvTransport(
-			{
-				transportRemoteParameters,
-				appData : 1234
-			}))
+	expect(() => device.createRecvTransport(
+		{
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			appData : 1234
+		}))
 		.toThrow(TypeError);
 }, 500);
 
@@ -178,19 +222,17 @@ test('transport.produce() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
 	const videoTrack = new MediaStreamTrack({ kind: 'video' });
-	let audioProducerRemoteParameters;
-	let videoProducerRemoteParameters;
+	let audioProducerId;
+	let videoProducerId;
 	let connectEventNumTimesCalled = 0;
 	let produceEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('connect', (transportLocalParameters, callback, errback) =>
+	sendTransport.on('connect', ({ dtlsParameters }, callback, errback) =>
 	{
 		connectEventNumTimesCalled++;
 
-		expect(transportLocalParameters).toBeType('object');
-		expect(transportLocalParameters.id).toBe(sendTransport.id);
-		expect(transportLocalParameters.dtlsParameters).toBeType('object');
+		expect(dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
 		// data needed).
@@ -198,48 +240,46 @@ test('transport.produce() succeeds', async () =>
 	});
 
 	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('produce', (producerLocalParameters, callback, errback) =>
+	sendTransport.on('produce', ({ kind, rtpParameters, appData }, callback, errback) =>
 	{
 		produceEventNumTimesCalled++;
 
-		expect(producerLocalParameters).toBeType('object');
-		expect(producerLocalParameters.kind).toBeType('string');
-		expect(producerLocalParameters.rtpParameters).toBeType('object');
+		expect(kind).toBeType('string');
+		expect(rtpParameters).toBeType('object');
 
-		let producerRemoteParameters;
+		let id;
 
-		switch (producerLocalParameters.kind)
+		switch (kind)
 		{
 			case 'audio':
 			{
-				expect(producerLocalParameters.appData).toEqual({ foo: 'FOO' });
+				expect(appData).toEqual({ foo: 'FOO' });
 
-				audioProducerRemoteParameters =
-					fakeParameters.generateProducerRemoteParameters();
-				producerRemoteParameters = audioProducerRemoteParameters;
+				id = fakeParameters.generateProducerRemoteParameters().id;
+				audioProducerId = id;
 
 				break;
 			}
 
 			case 'video':
 			{
-				expect(producerLocalParameters.appData).toEqual({});
+				expect(appData).toEqual({});
 
-				videoProducerRemoteParameters =
-					fakeParameters.generateProducerRemoteParameters();
-				producerRemoteParameters = videoProducerRemoteParameters;
+				id = fakeParameters.generateProducerRemoteParameters().id;
+				videoProducerId = id;
+
 				break;
 			}
 
 			default:
 			{
-				throw new Error('unknown producerLocalParameters.kind');
+				throw new Error('unknown kind');
 			}
 		}
 
 		// Emulate communication with the server and success response with Producer
 		// remote parameters.
-		setTimeout(() => callback(producerRemoteParameters));
+		setTimeout(() => callback({ id }));
 	});
 
 	let codecs;
@@ -256,7 +296,7 @@ test('transport.produce() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(1);
 	expect(audioProducer).toBeType('object');
-	expect(audioProducer.id).toBe(audioProducerRemoteParameters.id);
+	expect(audioProducer.id).toBe(audioProducerId);
 	expect(audioProducer.closed).toBe(false);
 	expect(audioProducer.kind).toBe('audio');
 	expect(audioProducer.track).toBe(audioTrack);
@@ -323,7 +363,7 @@ test('transport.produce() succeeds', async () =>
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(2);
 	expect(videoProducer).toBeType('object');
-	expect(videoProducer.id).toBe(videoProducerRemoteParameters.id);
+	expect(videoProducer.id).toBe(videoProducerId);
 	expect(videoProducer.closed).toBe(false);
 	expect(videoProducer.kind).toBe('video');
 	expect(videoProducer.track).toBe(videoTrack);
@@ -463,13 +503,11 @@ test('transport.consume() succeeds', async () =>
 	let connectEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('connect', (transportLocalParameters, callback, errback) =>
+	recvTransport.on('connect', ({ dtlsParameters }, callback, errback) =>
 	{
 		connectEventNumTimesCalled++;
 
-		expect(transportLocalParameters).toBeType('object');
-		expect(transportLocalParameters.id).toBe(recvTransport.id);
-		expect(transportLocalParameters.dtlsParameters).toBeType('object');
+		expect(dtlsParameters).toBeType('object');
 
 		// Emulate communication with the server and success response (no response
 		// data needed).
@@ -483,8 +521,11 @@ test('transport.consume() succeeds', async () =>
 
 	audioConsumer = await recvTransport.consume(
 		{
-			consumerRemoteParameters : audioConsumerRemoteParameters,
-			appData                  : { bar: 'BAR' }
+			id            : audioConsumerRemoteParameters.id,
+			producerId    : audioConsumerRemoteParameters.producerId,
+			kind          : audioConsumerRemoteParameters.kind,
+			rtpParameters : audioConsumerRemoteParameters.rtpParameters,
+			appData       : { bar: 'BAR' }
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -539,7 +580,10 @@ test('transport.consume() succeeds', async () =>
 
 	videoConsumer = await recvTransport.consume(
 		{
-			consumerRemoteParameters : videoConsumerRemoteParameters
+			id            : videoConsumerRemoteParameters.id,
+			producerId    : videoConsumerRemoteParameters.producerId,
+			kind          : videoConsumerRemoteParameters.kind,
+			rtpParameters : videoConsumerRemoteParameters.rtpParameters
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -629,33 +673,90 @@ test('transport.consume() without consumerRemoteParameters rejects with TypeErro
 		.toThrow(TypeError);
 }, 500);
 
+test('transport.consume() with missing remote Consumer parameters rejects with TypeError', async () =>
+{
+	await expect(recvTransport.consume({ id: '1234' }))
+		.rejects
+		.toThrow(TypeError);
+
+	await expect(recvTransport.consume({ id: '1234', producerId: '4444' }))
+		.rejects
+		.toThrow(TypeError);
+
+	await expect(recvTransport.consume(
+		{
+			id         : '1234',
+			producerId : '4444',
+			kind       : 'audio'
+		}))
+		.rejects
+		.toThrow(TypeError);
+
+	await expect(recvTransport.consume(
+		{
+			id         : '1234',
+			producerId : '4444',
+			kind       : 'audio'
+		}))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
 test('transport.consume() in a sending Transport rejects with UnsupportedError', async () =>
 {
-	const consumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+	const {
+		id,
+		producerId,
+		kind,
+		rtpParameters
+	} = fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 
-	await expect(sendTransport.consume({ consumerRemoteParameters }))
+	await expect(sendTransport.consume(
+		{
+			id,
+			producerId,
+			kind,
+			rtpParameters
+		}))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.consume() with unsupported consumerRtpParameters rejects with UnsupportedError', async () =>
+test('transport.consume() with unsupported rtpParameters rejects with UnsupportedError', async () =>
 {
-	const consumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
+	const {
+		id,
+		producerId,
+		kind,
+		rtpParameters
+	} = fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/ISAC' });
 
-	await expect(recvTransport.consume({ consumerRemoteParameters }))
+	await expect(sendTransport.consume(
+		{
+			id,
+			producerId,
+			kind,
+			rtpParameters
+		}))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.consume() with duplicated consumerRtpParameters.id rejects with DuplicatedError', async () =>
+test('transport.consume() with duplicated id rejects with DuplicatedError', async () =>
 {
-	const { id } = audioConsumer;
-	const consumerRemoteParameters =
-		fakeParameters.generateConsumerRemoteParameters({ id, codecMimeType: 'audio/opus' });
+	const {
+		producerId,
+		kind,
+		rtpParameters
+	} = fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 
-	await expect(recvTransport.consume({ consumerRemoteParameters }))
+	await expect(recvTransport.consume(
+		{
+			id : audioConsumer.id,
+			producerId,
+			kind,
+			rtpParameters
+		}))
 		.rejects
 		.toThrow(DuplicatedError);
 }, 500);
@@ -679,14 +780,14 @@ test('transport.getStats() succeeds', async () =>
 
 test('transport.restartIce() succeeds', async () =>
 {
-	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
+	await expect(sendTransport.restartIce({ iceParameters: {} }))
 		.resolves
 		.toBe(undefined);
 }, 500);
 
-test('transport.restartIce() without remoteIceParameters rejects with TypeError', async () =>
+test('transport.restartIce() without remote iceParameters rejects with TypeError', async () =>
 {
-	await expect(sendTransport.restartIce())
+	await expect(sendTransport.restartIce({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -1063,7 +1164,7 @@ test('transport.getStats() rejects with InvalidStateError if closed', async () =
 
 test('transport.restartIce() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(sendTransport.restartIce({ remoteIceParameters: {} }))
+	await expect(sendTransport.restartIce({ ieParameters: {} }))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);

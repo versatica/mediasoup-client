@@ -21,9 +21,11 @@ class FakeHandler extends EnhancedEventEmitter
 
 	constructor(
 		{
-			transportRemoteParameters, // eslint-disable-line no-unused-vars
 			direction,
-			turnServers, // eslint-disable-line no-unused-vars
+			iceParameters, // eslint-disable-line no-unused-vars
+			iceCandidates, // eslint-disable-line no-unused-vars
+			dtlsParameters, // eslint-disable-line no-unused-vars
+			iceServers, // eslint-disable-line no-unused-vars
 			iceTransportPolicy, // eslint-disable-line no-unused-vars
 			proprietaryConstraints, // eslint-disable-line no-unused-vars
 			extendedRtpCapabilities
@@ -75,7 +77,7 @@ class FakeHandler extends EnhancedEventEmitter
 		return new Map();
 	}
 
-	async restartIce({ remoteIceParameters } = {}) // eslint-disable-line no-unused-vars
+	async restartIce({ iceParameters } = {}) // eslint-disable-line no-unused-vars
 	{
 		return;
 	}
@@ -197,10 +199,8 @@ class FakeHandler extends EnhancedEventEmitter
 		if (localDtlsRole)
 			dtlsParameters.role = localDtlsRole;
 
-		const transportLocalParameters = { dtlsParameters };
-
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', transportLocalParameters);
+		await this.safeEmitAsPromise('@connect', { dtlsParameters });
 
 		this._transportReady = true;
 	}
