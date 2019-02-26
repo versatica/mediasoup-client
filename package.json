@@ -34,7 +34,7 @@
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "eslint": "^5.13.0",
+    "eslint": "^5.14.1",
     "eslint-plugin-jest": "^22.3.0",
     "jest": "^24.1.0",
     "jest-tobetype": "^1.2.2",
