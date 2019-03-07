@@ -9,11 +9,7 @@ const pkg = require('../package.json');
 const mediasoupClient = require('../');
 const mediasoupInternals = require('../lib/internals.js');
 const { version, Device } = mediasoupClient;
-const {
-	UnsupportedError,
-	InvalidStateError,
-	DuplicatedError
-} = mediasoupInternals.errors;
+const { UnsupportedError, InvalidStateError } = mediasoupInternals.errors;
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
@@ -465,15 +461,6 @@ test('transport.produce() in a receiving Transport rejects with UnsupportedError
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.produce() with an already handled track rejects with DuplicatedError', async () =>
-{
-	const { track } = audioProducer;
-
-	await expect(sendTransport.produce({ track }))
-		.rejects
-		.toThrow(DuplicatedError);
-}, 500);
-
 test('transport.produce() with an ended track rejects with InvalidStateError', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
@@ -742,25 +729,6 @@ test('transport.consume() with unsupported rtpParameters rejects with Unsupporte
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('transport.consume() with duplicated id rejects with DuplicatedError', async () =>
-{
-	const {
-		producerId,
-		kind,
-		rtpParameters
-	} = fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
-
-	await expect(recvTransport.consume(
-		{
-			id : audioConsumer.id,
-			producerId,
-			kind,
-			rtpParameters
-		}))
-		.rejects
-		.toThrow(DuplicatedError);
-}, 500);
-
 test('transport.consume() with a non object appData rejects with TypeError', async () =>
 {
 	const consumerRemoteParameters =
@@ -907,18 +875,6 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
-	expect(videoProducer.track.readyState).toBe('live');
-}, 500);
-
-test('producer.replaceTrack() with an already handled track rejects with DuplicatedError', async () =>
-{
-	const { track } = videoProducer;
-
-	await expect(videoProducer.replaceTrack({ track }))
-		.rejects
-		.toThrow(DuplicatedError);
-
-	expect(videoProducer.track).toBe(track);
 	expect(videoProducer.track.readyState).toBe('live');
 }, 500);
 
