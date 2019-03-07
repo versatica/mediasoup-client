@@ -1,12 +1,9 @@
 const MediaStreamTrack = require('node-mediastreamtrack');
-const Logger = require('../lib/Logger');
 const EnhancedEventEmitter = require('../lib/EnhancedEventEmitter');
-const { DuplicatedError } = require('../lib/errors');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');
 
-const logger = new Logger('FakeHandler');
 const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
 const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
@@ -14,14 +11,12 @@ class FakeHandler extends EnhancedEventEmitter
 {
 	static async getNativeRtpCapabilities()
 	{
-		logger.debug('getNativeRtpCapabilities()');
-
 		return nativeRtpCapabilities;
 	}
 
 	constructor(
 		{
-			direction,
+			direction, // eslint-disable-line no-unused-vars
 			iceParameters, // eslint-disable-line no-unused-vars
 			iceCandidates, // eslint-disable-line no-unused-vars
 			dtlsParameters, // eslint-disable-line no-unused-vars
@@ -32,9 +27,7 @@ class FakeHandler extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
-
-		logger.debug('constructor() [direction:%s]', direction);
+		super();
 
 		// Generic sending RTP parameters for audio and video.
 		// @type {Object}
@@ -52,18 +45,17 @@ class FakeHandler extends EnhancedEventEmitter
 		// @type {Boolean}
 		this._transportReady = false;
 
-		// Sending tracks.
-		// @type {Set<MediaStreamTrack>}
-		this._sendingTracks = new Set();
+		// Next localId.
+		// @type {Number}
+		this._nextLocalId = 1;
 
-		// Receiving sources.
-		// @type {Set<Number>}
-		this._receivingSources = new Set();
+		// Sending and receiving tracks indexed by localId.
+		// @type {Map<Number, MediaStreamTrack>}
+		this._tracks = new Map();
 	}
 
 	close()
 	{
-		logger.debug('close()');
 	}
 
 	// For simulation purposes.
@@ -89,11 +81,6 @@ class FakeHandler extends EnhancedEventEmitter
 
 	async send({ track, encodings }) // eslint-disable-line no-unused-vars
 	{
-		logger.debug('send() [kind:%s, trackId:%s]', track.kind, track.id);
-
-		if (this._sendingTracks.has(track))
-			throw new DuplicatedError('track already handled');
-
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server' });
 
@@ -124,30 +111,25 @@ class FakeHandler extends EnhancedEventEmitter
 			mux         : true
 		};
 
-		this._sendingTracks.add(track);
+		const localId = this._nextLocalId++;
 
-		return rtpParameters;
+		this._tracks.set(localId, track);
+
+		return { localId, rtpParameters };
 	}
 
-	async stopSending({ track })
+	async stopSending({ localId })
 	{
-		logger.debug('stopSending() [trackId:%s]', track.id);
-
-		if (!this._sendingTracks.has(track))
+		if (!this._tracks.has(localId))
 			throw new Error('local track not found');
 
-		this._sendingTracks.delete(track);
+		this._tracks.delete(localId);
 	}
 
-	async replaceTrack({ track, newTrack }) // eslint-disable-line no-unused-vars
+	async replaceTrack({ localId, track })
 	{
-		logger.debug('replaceTrack() [newTrackId:%s]', newTrack.id);
-
-		if (this._sendingTracks.has(newTrack))
-			throw new DuplicatedError('track already handled');
-
-		this._sendingTracks.delete(track);
-		this._sendingTracks.add(newTrack);
+		this._tracks.delete(localId);
+		this._tracks.set(localId, track);
 	}
 
 	async getSenderStats({ track }) // eslint-disable-line no-unused-vars
@@ -155,38 +137,30 @@ class FakeHandler extends EnhancedEventEmitter
 		return new Map();
 	}
 
-	async setMaxSpatialLayer({ track, spatialLayer }) // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line no-unused-vars
+	async setMaxSpatialLayer({ localId, spatialLayer })
 	{
-		logger.debug(
-			'setMaxSpatialLayer() [track.id:%s, spatialLayer:%s]',
-			track.id, spatialLayer);
 	}
 
 	async receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
-		logger.debug('receive() [id:%s, kind:%s]', id, kind);
-
-		if (this._receivingSources.has(id))
-			throw new DuplicatedError('already receiving this source');
-
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'client' });
 
-		this._receivingSources.add(id);
-
+		const localId = this._nextLocalId++;
 		const track = new MediaStreamTrack({ kind });
 
-		return track;
+		this._tracks.set(localId, track);
+
+		return { localId, track };
 	}
 
-	async stopReceiving({ id })
+	async stopReceiving({ localId })
 	{
-		logger.debug('stopReceiving() [id:%s]', id);
-
-		this._receivingSources.delete(id);
+		this._tracks.delete(localId);
 	}
 
-	async getReceiverStats({ track }) // eslint-disable-line no-unused-vars
+	async getReceiverStats({ localId }) // eslint-disable-line no-unused-vars
 	{
 		return new Map();
 	}
