@@ -28,15 +28,15 @@
   },
   "dependencies": {
     "awaitqueue": "^1.0.0",
-    "bowser": "^2.1.0",
+    "bowser": "^2.1.2",
     "debug": "^4.1.1",
     "events": "^3.0.0",
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "eslint": "^5.14.1",
+    "eslint": "^5.15.1",
     "eslint-plugin-jest": "^22.3.0",
-    "jest": "^24.1.0",
+    "jest": "^24.3.0",
     "jest-tobetype": "^1.2.2",
     "node-mediastreamtrack": "0.1.0",
     "opn-cli": "^4.0.0",
