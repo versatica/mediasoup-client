@@ -303,7 +303,6 @@ test('transport.produce() succeeds', async () =>
 	codecs = audioProducer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			name         : 'opus',
 			mimeType     : 'audio/opus',
 			clockRate    : 48000,
 			payloadType  : 111,
@@ -370,7 +369,6 @@ test('transport.produce() succeeds', async () =>
 	codecs = videoProducer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			name         : 'VP8',
 			mimeType     : 'video/VP8',
 			clockRate    : 90000,
 			payloadType  : 96,
@@ -388,7 +386,6 @@ test('transport.produce() succeeds', async () =>
 		});
 	expect(codecs[1]).toEqual(
 		{
-			name         : 'rtx',
 			mimeType     : 'video/rtx',
 			clockRate    : 90000,
 			payloadType  : 97,
@@ -529,7 +526,6 @@ test('transport.consume() succeeds', async () =>
 	codecs = audioConsumer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			name         : 'opus',
 			mimeType     : 'audio/opus',
 			clockRate    : 48000,
 			payloadType  : 100,
@@ -587,7 +583,6 @@ test('transport.consume() succeeds', async () =>
 	codecs = videoConsumer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			name         : 'VP8',
 			mimeType     : 'video/VP8',
 			clockRate    : 90000,
 			payloadType  : 101,
@@ -605,7 +600,6 @@ test('transport.consume() succeeds', async () =>
 		});
 	expect(codecs[1]).toEqual(
 		{
-			name         : 'rtx',
 			mimeType     : 'video/rtx',
 			clockRate    : 90000,
 			payloadType  : 102,

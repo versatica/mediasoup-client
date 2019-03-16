@@ -6,7 +6,6 @@ exports.generateRouterRtpCapabilities = function()
 		codecs :
 		[
 			{
-				name                 : 'opus',
 				mimeType             : 'audio/opus',
 				kind                 : 'audio',
 				clockRate            : 48000,
@@ -20,7 +19,6 @@ exports.generateRouterRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'VP8',
 				mimeType             : 'video/VP8',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -38,7 +36,6 @@ exports.generateRouterRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'rtx',
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -50,7 +47,6 @@ exports.generateRouterRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'H264',
 				mimeType             : 'video/H264',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -70,7 +66,6 @@ exports.generateRouterRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'rtx',
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -143,7 +138,6 @@ exports.generateNativeRtpCapabilities = function()
 		codecs :
 		[
 			{
-				name                 : 'opus',
 				mimeType             : 'audio/opus',
 				kind                 : 'audio',
 				clockRate            : 48000,
@@ -160,7 +154,6 @@ exports.generateNativeRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'ISAC',
 				mimeType             : 'audio/ISAC',
 				kind                 : 'audio',
 				clockRate            : 16000,
@@ -170,7 +163,6 @@ exports.generateNativeRtpCapabilities = function()
 				parameters           : {}
 			},
 			{
-				name                 : 'CN',
 				mimeType             : 'audio/CN',
 				kind                 : 'audio',
 				clockRate            : 32000,
@@ -180,7 +172,6 @@ exports.generateNativeRtpCapabilities = function()
 				parameters           : {}
 			},
 			{
-				name                 : 'VP8',
 				mimeType             : 'video/VP8',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -199,7 +190,6 @@ exports.generateNativeRtpCapabilities = function()
 				}
 			},
 			{
-				name                 : 'rtx',
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
 				clockRate            : 90000,
@@ -357,7 +347,6 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					codecs :
 					[
 						{
-							name         : 'opus',
 							mimeType     : 'audio/opus',
 							clockRate    : 48000,
 							payloadType  : 100,
@@ -404,7 +393,6 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					codecs :
 					[
 						{
-							name         : 'ISAC',
 							mimeType     : 'audio/ISAC',
 							clockRate    : 16000,
 							payloadType  : 111,
@@ -447,7 +435,6 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					codecs :
 					[
 						{
-							name         : 'VP8',
 							mimeType     : 'video/VP8',
 							clockRate    : 90000,
 							payloadType  : 101,
@@ -464,7 +451,6 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 							}
 						},
 						{
-							name         : 'rtx',
 							mimeType     : 'video/rtx',
 							clockRate    : 90000,
 							payloadType  : 102,

@@ -86,7 +86,8 @@ class FakeHandler extends EnhancedEventEmitter
 
 		const rtpParameters =
 			utils.clone(this._rtpParametersByKind[track.kind]);
-		const useRtx = rtpParameters.codecs.some((codec) => codec.name === 'rtx');
+		const useRtx = rtpParameters.codecs
+			.some((codec) => /.+\/rtx$/i.test(codec.mimeType));
 
 		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
