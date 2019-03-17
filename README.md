@@ -3,8 +3,6 @@
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
 [![][travis-ci-shield-mediasoup-client]][travis-ci-mediasoup-client]
 
-**NOTE:** v3 is work in progress. The current stable version is 2.X.Y.
-
 <!--
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
 -->
