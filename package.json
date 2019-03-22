@@ -31,6 +31,7 @@
     "bowser": "^2.1.2",
     "debug": "^4.1.1",
     "events": "^3.0.0",
+    "h264-profile-level-id": "github:ibc/h264-profile-level-id#master",
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
