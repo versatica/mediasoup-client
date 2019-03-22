@@ -31,11 +31,11 @@
     "bowser": "^2.1.2",
     "debug": "^4.1.1",
     "events": "^3.0.0",
-    "h264-profile-level-id": "github:ibc/h264-profile-level-id#master",
+    "h264-profile-level-id": "^1.0.0",
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "eslint": "^5.15.2",
+    "eslint": "^5.15.3",
     "eslint-plugin-jest": "^22.4.1",
     "jest": "^24.5.0",
     "jest-tobetype": "^1.2.2",
