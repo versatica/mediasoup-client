@@ -7,7 +7,7 @@
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
 -->
 
-JavaScript client side SDK for building [mediasoup](https://mediasoup.org) based applications.
+JavaScript client side library for building [mediasoup](https://mediasoup.org) based applications.
 
 
 ## Website and documentation
