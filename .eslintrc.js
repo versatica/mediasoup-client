@@ -7,6 +7,10 @@ module.exports =
 		node: true,
 		'jest/globals': true
 	},
+	globals:
+	{
+		RTCRtpTransceiver: true
+	},
 	plugins:
 	[
 		'jest'
