@@ -35,9 +35,9 @@
     "sdp-transform": "^2.7.0"
   },
   "devDependencies": {
-    "eslint": "^5.15.3",
+    "eslint": "^5.16.0",
     "eslint-plugin-jest": "^22.4.1",
-    "jest": "^24.5.0",
+    "jest": "^24.6.0",
     "jest-tobetype": "^1.2.2",
     "node-mediastreamtrack": "0.1.0",
     "opn-cli": "^4.0.0",
