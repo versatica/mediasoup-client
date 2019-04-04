@@ -8,7 +8,7 @@ const MediaStreamTrack = require('node-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
 const mediasoupInternals = require('../lib/internals.js');
-const { version, Device } = mediasoupClient;
+const { version, Device, parseScalabilityMode } = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupInternals.errors;
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
@@ -1141,4 +1141,12 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners();
+}, 500);
+
+test('parseScalabilityMode() works', () =>
+{
+	expect(parseScalabilityMode('L1T3')).toEqual({ spatialLayers: 1, temporalLayers: 3 });
+	expect(parseScalabilityMode('L3T2_KEY')).toEqual({ spatialLayers: 3, temporalLayers: 2 });
+	expect(parseScalabilityMode('foo')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
+	expect(parseScalabilityMode(null)).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 }, 500);
