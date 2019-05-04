@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "awaitqueue": "^1.0.0",
-    "bowser": "^2.3.0",
+    "bowser": "^2.4.0",
     "debug": "^4.1.1",
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
@@ -38,7 +38,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-jest": "^22.5.1",
     "jest": "^24.7.1",
-    "jest-tobetype": "^1.2.2",
+    "jest-tobetype": "^1.2.3",
     "node-mediastreamtrack": "0.1.0",
     "opn-cli": "^4.1.0",
     "uuid": "^3.3.2"
