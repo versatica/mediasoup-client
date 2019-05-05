@@ -37,7 +37,7 @@
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-plugin-jest": "^22.5.1",
-    "jest": "^24.7.1",
+    "jest": "^24.8.0",
     "jest-tobetype": "^1.2.3",
     "node-mediastreamtrack": "0.1.0",
     "opn-cli": "^4.1.0",
