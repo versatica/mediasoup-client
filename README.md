@@ -10,12 +10,12 @@
 JavaScript client side library for building [mediasoup](https://mediasoup.org) based applications.
 
 
-## Website and documentation
+## Website and Documentation
 
 * [mediasoup.org][mediasoup-website]
 
 
-## Usage example
+## Usage Example
 
 ```js
 import { Device } from 'mediasoup-client';
