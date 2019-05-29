@@ -1150,4 +1150,8 @@ test('parseScalabilityMode() works', () =>
 	expect(parseScalabilityMode('S2T3')).toEqual({ spatialLayers: 2, temporalLayers: 3 });
 	expect(parseScalabilityMode('foo')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 	expect(parseScalabilityMode(null)).toEqual({ spatialLayers: 1, temporalLayers: 1 });
+	expect(parseScalabilityMode('S0T3')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
+	expect(parseScalabilityMode('S1T0')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
+	expect(parseScalabilityMode('L20T3')).toEqual({ spatialLayers: 20, temporalLayers: 3 });
+	expect(parseScalabilityMode('S200T3')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 }, 500);
