@@ -33,7 +33,7 @@
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
     "open-cli": "^5.0.0",
-    "sdp-transform": "^2.7.0"
+    "sdp-transform": "^2.8.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
