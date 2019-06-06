@@ -15,6 +15,11 @@ JavaScript client side library for building [mediasoup][mediasoup-website] based
 * [mediasoup.org][mediasoup-website]
 
 
+## Support Forum
+
+* [mediasoup.discourse.group][mediasoup-discourse]
+
+
 ## Usage Example
 
 ```js
@@ -119,6 +124,7 @@ const webcamProducer = await sendTransport.produce({ track: webcamTrack });
 
 
 [mediasoup-website]: https://mediasoup.org
+[mediasoup-discourse]: https://mediasoup.discourse.group
 [npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg
 [npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
 [travis-ci-shield-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client.svg?branch=master
