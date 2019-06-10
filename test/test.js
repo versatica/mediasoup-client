@@ -7,9 +7,10 @@ const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
-const mediasoupInternals = require('../lib/internals.js');
+const mediasoupInternals = require('../lib/internals');
 const { version, Device, parseScalabilityMode } = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupInternals.errors;
+const utils = require('../lib/utils');
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
@@ -78,6 +79,24 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () =>
 {
 	await expect(device.load())
+		.rejects
+		.toThrow(TypeError);
+
+	expect(device.loaded).toBe(false);
+}, 500);
+
+test('device.load() with invalid routerRtpCapabilities rejects with TypeError', async () =>
+{
+	// Clonse fake router RTP capabilities to make them invalid.
+	const routerRtpCapabilities =
+		utils.clone(fakeParameters.generateRouterRtpCapabilities());
+
+	for (const codec of routerRtpCapabilities.codecs)
+	{
+		delete codec.mimeType;
+	}
+
+	await expect(device.load({ routerRtpCapabilities }))
 		.rejects
 		.toThrow(TypeError);
 
