@@ -51,6 +51,12 @@ test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () 
 		.toThrow(InvalidStateError);
 }, 500);
 
+test('device.sctpCapabilities getter throws InvalidStateError if not loaded', () =>
+{
+	expect(() => device.sctpCapabilities)
+		.toThrow(InvalidStateError);
+}, 500);
+
 test('device.canProduce() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canProduce('audio'))
@@ -127,6 +133,11 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 test('device.rtpCapabilities getter succeeds', () =>
 {
 	expect(device.rtpCapabilities).toBeType('object');
+}, 500);
+
+test('device.sctpCapabilities getter succeeds', () =>
+{
+	expect(device.sctpCapabilities).toBeType('object');
 }, 500);
 
 test('device.canProduce() with "audio"/"video" kind returns true', () =>

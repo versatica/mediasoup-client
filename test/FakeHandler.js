@@ -14,6 +14,13 @@ class FakeHandler extends EnhancedEventEmitter
 		return nativeRtpCapabilities;
 	}
 
+	static async getNativeSctpCapabilities()
+	{
+		return {
+			numSctpStreams : 4096
+		};
+	}
+
 	constructor(
 		{
 			direction, // eslint-disable-line no-unused-vars
