@@ -36,6 +36,12 @@ test('create a Device in Node without custom Handler throws UnsupportedError', (
 		.toThrow(UnsupportedError);
 }, 500);
 
+test('create a Device with an unknown Handler string throws TypeError', () =>
+{
+	expect(() => new Device({ Handler: 'FooBrowser666' }))
+		.toThrow(TypeError);
+}, 500);
+
 test('create a Device in Node with a FakeHandler succeeds', () =>
 {
 	expect(device = new Device({ Handler: FakeHandler }))
