@@ -17,7 +17,7 @@ class FakeHandler extends EnhancedEventEmitter
 	static async getNativeSctpCapabilities()
 	{
 		return {
-			numSctpStreams : 4096
+			numStreams : 4096
 		};
 	}
 
