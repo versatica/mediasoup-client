@@ -23,6 +23,8 @@ let audioProducer;
 let videoProducer;
 let audioConsumer;
 let videoConsumer;
+let dataProducer;
+let dataConsumer;
 
 test('mediasoup-client exposes a version property', () =>
 {
@@ -75,7 +77,8 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 		id,
 		iceParameters,
 		iceCandidates,
-		dtlsParameters
+		dtlsParameters,
+		sctpParameters
 	} = fakeParameters.generateTransportRemoteParameters();
 
 	expect(() => device.createSendTransport(
@@ -83,7 +86,8 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 			id,
 			iceParameters,
 			iceCandidates,
-			dtlsParameters
+			dtlsParameters,
+			sctpParameters
 		}))
 		.toThrow(InvalidStateError);
 }, 500);
@@ -165,7 +169,8 @@ test('device.createSendTransport() for sending media succeeds', () =>
 		id,
 		iceParameters,
 		iceCandidates,
-		dtlsParameters
+		dtlsParameters,
+		sctpParameters
 	} = fakeParameters.generateTransportRemoteParameters();
 
 	expect(sendTransport = device.createSendTransport(
@@ -174,6 +179,7 @@ test('device.createSendTransport() for sending media succeeds', () =>
 			iceParameters,
 			iceCandidates,
 			dtlsParameters,
+			sctpParameters,
 			appData : { baz: 'BAZ' }
 		}))
 		.toBeType('object');
@@ -193,7 +199,8 @@ test('device.createRecvTransport() for receiving media succeeds', () =>
 		id,
 		iceParameters,
 		iceCandidates,
-		dtlsParameters
+		dtlsParameters,
+		sctpParameters
 	} = fakeParameters.generateTransportRemoteParameters();
 
 	expect(recvTransport = device.createRecvTransport(
@@ -201,7 +208,8 @@ test('device.createRecvTransport() for receiving media succeeds', () =>
 			id,
 			iceParameters,
 			iceCandidates,
-			dtlsParameters
+			dtlsParameters,
+			sctpParameters
 		}))
 		.toBeType('object');
 
@@ -236,7 +244,8 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 		id,
 		iceParameters,
 		iceCandidates,
-		dtlsParameters
+		dtlsParameters,
+		sctpParameters
 	} = fakeParameters.generateTransportRemoteParameters();
 
 	expect(() => device.createRecvTransport(
@@ -245,6 +254,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			iceParameters,
 			iceCandidates,
 			dtlsParameters,
+			sctpParameters,
 			appData : 1234
 		}))
 		.toThrow(TypeError);
@@ -683,7 +693,7 @@ test('transport.consume() succeeds', async () =>
 	recvTransport.removeAllListeners();
 }, 500);
 
-test('transport.consume() without consumerRemoteParameters rejects with TypeError', async () =>
+test('transport.consume() without remote Consumer parameters rejects with TypeError', async () =>
 {
 	await expect(recvTransport.consume())
 		.rejects
@@ -765,6 +775,125 @@ test('transport.consume() with a non object appData rejects with TypeError', asy
 		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
 
 	await expect(recvTransport.consume({ consumerRemoteParameters, appData: true }))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
+test('transport.produceData() succeeds', async () =>
+{
+	let dataProducerId;
+	let produceDataEventNumTimesCalled = 0;
+
+	// eslint-disable-next-line no-unused-vars
+	sendTransport.on('produceData', ({ sctpStreamParameters, appData }, callback, errback) =>
+	{
+		produceDataEventNumTimesCalled++;
+
+		expect(sctpStreamParameters).toBeType('object');
+		expect(appData).toEqual({ foo: 'FOO' });
+
+		const id = fakeParameters.generateDataProducerRemoteParameters().id;
+
+		dataProducerId = id;
+
+		// Emulate communication with the server and success response with Producer
+		// remote parameters.
+		setTimeout(() => callback({ id }));
+	});
+
+	dataProducer = await sendTransport.produceData(
+		{ ordered: false, maxPacketLifeTime: 5555, appData: { foo: 'FOO' } });
+
+	expect(produceDataEventNumTimesCalled).toBe(1);
+	expect(dataProducer).toBeType('object');
+	expect(dataProducer.id).toBe(dataProducerId);
+	expect(dataProducer.closed).toBe(false);
+	expect(dataProducer.sctpStreamParameters).toBeType('object');
+	expect(dataProducer.sctpStreamParameters.streamId).toBeType('number');
+	expect(dataProducer.sctpStreamParameters.ordered).toBe(false);
+	expect(dataProducer.sctpStreamParameters.maxPacketLifeTime).toBe(5555);
+	expect(dataProducer.sctpStreamParameters.maxRetransmits).toBe(undefined);
+
+	sendTransport.removeAllListeners();
+}, 500);
+
+test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () =>
+{
+	await expect(recvTransport.produceData())
+		.rejects
+		.toThrow(UnsupportedError);
+}, 500);
+
+test('transport.produceData() with a non object appData rejects with TypeError', async () =>
+{
+	await expect(sendTransport.produceData({ appData: true }))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
+test('transport.consumeData() succeeds', async () =>
+{
+	const dataConsumerRemoteParameters =
+		fakeParameters.generateDataConsumerRemoteParameters();
+
+	dataConsumer = await recvTransport.consumeData(
+		{
+			id                   : dataConsumerRemoteParameters.id,
+			dataProducerId       : dataConsumerRemoteParameters.dataProducerId,
+			sctpStreamParameters : dataConsumerRemoteParameters.sctpStreamParameters,
+			appData              : { bar: 'BAR' }
+		});
+
+	expect(dataConsumer).toBeType('object');
+	expect(dataConsumer.id).toBe(dataConsumerRemoteParameters.id);
+	expect(dataConsumer.dataProducerId).toBe(dataConsumerRemoteParameters.dataProducerId);
+	expect(dataConsumer.closed).toBe(false);
+	expect(dataConsumer.sctpStreamParameters).toBeType('object');
+	expect(dataConsumer.sctpStreamParameters.streamId).toBeType('number');
+}, 500);
+
+test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () =>
+{
+	await expect(recvTransport.consumeData())
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
+test('transport.consumeData() with missing remote DataConsumer parameters rejects with TypeError', async () =>
+{
+	await expect(recvTransport.consumeData({ id: '1234' }))
+		.rejects
+		.toThrow(TypeError);
+
+	await expect(recvTransport.consumeData({ id: '1234', dataProducerId: '4444' }))
+		.rejects
+		.toThrow(TypeError);
+}, 500);
+
+test('transport.consumeData() in a sending Transport rejects with UnsupportedError', async () =>
+{
+	const {
+		id,
+		dataProducerId,
+		sctpStreamParameters
+	} = fakeParameters.generateDataConsumerRemoteParameters();
+
+	await expect(sendTransport.consumeData(
+		{
+			id,
+			dataProducerId,
+			sctpStreamParameters
+		}))
+		.rejects
+		.toThrow(UnsupportedError);
+}, 500);
+
+test('transport.consumeData() with a non object appData rejects with TypeError', async () =>
+{
+	const dataConsumerRemoteParameters =
+		fakeParameters.generateDataConsumerRemoteParameters();
+
+	await expect(recvTransport.consumeData({ dataConsumerRemoteParameters, appData: true }))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -982,6 +1111,22 @@ test('cnosumer.appData cannot be overridden', () =>
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 }, 500);
 
+test('dataProducer.appData cannot be overridden', () =>
+{
+	expect(() => (dataProducer.appData = { lalala: 'LALALA' }))
+		.toThrow(Error);
+
+	expect(dataProducer.appData).toEqual({ foo: 'FOO' });
+}, 500);
+
+test('dataConsumer.appData cannot be overridden', () =>
+{
+	expect(() => (dataConsumer.appData = { lalala: 'LALALA' }))
+		.toThrow(Error);
+
+	expect(dataConsumer.appData).toEqual({ bar: 'BAR' });
+}, 500);
+
 test('producer.close() succeed', () =>
 {
 	audioProducer.close();
@@ -1019,6 +1164,18 @@ test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 	await expect(audioConsumer.getStats())
 		.rejects
 		.toThrow(InvalidStateError);
+}, 500);
+
+test('dataProducer.close() succeed', () =>
+{
+	dataProducer.close();
+	expect(dataProducer.closed).toBe(true);
+}, 500);
+
+test('dataConsumer.close() succeed', () =>
+{
+	dataConsumer.close();
+	expect(dataConsumer.closed).toBe(true);
 }, 500);
 
 test('remotetely stopped track fires "trackended" in live Producers/Consumers', () =>
@@ -1137,6 +1294,20 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 test('transport.consume() rejects with InvalidStateError if closed', async () =>
 {
 	await expect(recvTransport.consume())
+		.rejects
+		.toThrow(InvalidStateError);
+}, 500);
+
+test('transport.produceData() rejects with InvalidStateError if closed', async () =>
+{
+	await expect(sendTransport.produceData())
+		.rejects
+		.toThrow(InvalidStateError);
+}, 500);
+
+test('transport.consumeData() rejects with InvalidStateError if closed', async () =>
+{
+	await expect(recvTransport.consumeData())
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);

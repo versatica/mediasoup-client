@@ -27,6 +27,7 @@ class FakeHandler extends EnhancedEventEmitter
 			iceParameters, // eslint-disable-line no-unused-vars
 			iceCandidates, // eslint-disable-line no-unused-vars
 			dtlsParameters, // eslint-disable-line no-unused-vars
+			sctpParameters, // eslint-disable-line no-unused-vars
 			iceServers, // eslint-disable-line no-unused-vars
 			iceTransportPolicy, // eslint-disable-line no-unused-vars
 			proprietaryConstraints, // eslint-disable-line no-unused-vars
@@ -59,6 +60,10 @@ class FakeHandler extends EnhancedEventEmitter
 		// Sending and receiving tracks indexed by localId.
 		// @type {Map<Number, MediaStreamTrack>}
 		this._tracks = new Map();
+
+		// DataChannel id value counter. It must be incremented for each new DataChannel.
+		// @type {Number}
+		this._nextSctpStreamId = 0;
 	}
 
 	close()
@@ -145,6 +150,39 @@ class FakeHandler extends EnhancedEventEmitter
 		return new Map();
 	}
 
+	async sendDataChannel(
+		{
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			priority
+		})
+	{
+		if (!this._transportReady)
+			await this._setupTransport({ localDtlsRole: 'server' });
+
+		const dataChannel =
+		{
+			id               : this._nextSctpStreamId++,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			priority,
+			addEventListener : () => {},
+			close            : () => {}
+		};
+
+		const sctpStreamParameters =
+		{
+			streamId          : this._nextSctpStreamId,
+			ordered           : ordered,
+			maxPacketLifeTime : maxPacketLifeTime,
+			maxRetransmits    : maxRetransmits
+		};
+
+		return { dataChannel, sctpStreamParameters };
+	}
+
 	// eslint-disable-next-line no-unused-vars
 	async setMaxSpatialLayer({ localId, spatialLayer })
 	{
@@ -171,6 +209,24 @@ class FakeHandler extends EnhancedEventEmitter
 	async getReceiverStats({ localId }) // eslint-disable-line no-unused-vars
 	{
 		return new Map();
+	}
+
+	async receiveDataChannel({ sctpStreamParameters })
+	{
+		if (!this._transportReady)
+			await this._setupTransport({ localDtlsRole: 'client' });
+
+		const dataChannel =
+		{
+			id                : sctpStreamParameters.id,
+			ordered           : sctpStreamParameters.ordered,
+			maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits    : sctpStreamParameters.maxRetransmits,
+			addEventListener  : () => {},
+			close             : () => {}
+		};
+
+		return { dataChannel };
 	}
 
 	async _setupTransport({ localDtlsRole } = {})
