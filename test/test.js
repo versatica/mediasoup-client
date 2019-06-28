@@ -802,7 +802,13 @@ test('transport.produceData() succeeds', async () =>
 	});
 
 	dataProducer = await sendTransport.produceData(
-		{ ordered: false, maxPacketLifeTime: 5555, appData: { foo: 'FOO' } });
+		{
+			ordered           : false,
+			maxPacketLifeTime : 5555,
+			label             : 'FOO',
+			protocol          : 'BAR',
+			appData           : { foo: 'FOO' }
+		});
 
 	expect(produceDataEventNumTimesCalled).toBe(1);
 	expect(dataProducer).toBeType('object');
@@ -813,6 +819,8 @@ test('transport.produceData() succeeds', async () =>
 	expect(dataProducer.sctpStreamParameters.ordered).toBe(false);
 	expect(dataProducer.sctpStreamParameters.maxPacketLifeTime).toBe(5555);
 	expect(dataProducer.sctpStreamParameters.maxRetransmits).toBe(undefined);
+	expect(dataProducer.label).toBe('FOO');
+	expect(dataProducer.protocol).toBe('BAR');
 
 	sendTransport.removeAllListeners();
 }, 500);
@@ -841,6 +849,8 @@ test('transport.consumeData() succeeds', async () =>
 			id                   : dataConsumerRemoteParameters.id,
 			dataProducerId       : dataConsumerRemoteParameters.dataProducerId,
 			sctpStreamParameters : dataConsumerRemoteParameters.sctpStreamParameters,
+			label                : 'FOO',
+			protocol             : 'BAR',
 			appData              : { bar: 'BAR' }
 		});
 
@@ -850,6 +860,8 @@ test('transport.consumeData() succeeds', async () =>
 	expect(dataConsumer.closed).toBe(false);
 	expect(dataConsumer.sctpStreamParameters).toBeType('object');
 	expect(dataConsumer.sctpStreamParameters.streamId).toBeType('number');
+	expect(dataConsumer.label).toBe('FOO');
+	expect(dataConsumer.protocol).toBe('BAR');
 }, 500);
 
 test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () =>

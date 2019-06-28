@@ -155,6 +155,8 @@ class FakeHandler extends EnhancedEventEmitter
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
+			label,
+			protocol,
 			priority
 		})
 	{
@@ -168,6 +170,8 @@ class FakeHandler extends EnhancedEventEmitter
 			maxPacketLifeTime,
 			maxRetransmits,
 			priority,
+			label,
+			protocol,
 			addEventListener : () => {},
 			close            : () => {}
 		};
@@ -211,7 +215,7 @@ class FakeHandler extends EnhancedEventEmitter
 		return new Map();
 	}
 
-	async receiveDataChannel({ sctpStreamParameters })
+	async receiveDataChannel({ sctpStreamParameters, label, protocol })
 	{
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'client' });
@@ -222,6 +226,8 @@ class FakeHandler extends EnhancedEventEmitter
 			ordered           : sctpStreamParameters.ordered,
 			maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
 			maxRetransmits    : sctpStreamParameters.maxRetransmits,
+			label,
+			protocol,
 			addEventListener  : () => {},
 			close             : () => {}
 		};
