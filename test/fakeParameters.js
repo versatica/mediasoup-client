@@ -261,7 +261,7 @@ exports.generateNativeRtpCapabilities = function()
 exports.generateNativeSctpCapabilities = function()
 {
 	return {
-		numStreams : 2048
+		numStreams : { OS: 2048, MIS: 2048 }
 	};
 };
 
