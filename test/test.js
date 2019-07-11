@@ -785,7 +785,7 @@ test('transport.produceData() succeeds', async () =>
 	let produceDataEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('produceData', ({ sctpStreamParameters, appData }, callback, errback) =>
+	sendTransport.on('producedata', ({ sctpStreamParameters, appData }, callback, errback) =>
 	{
 		produceDataEventNumTimesCalled++;
 
