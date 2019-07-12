@@ -48,12 +48,23 @@ const {
   id, 
   iceParameters, 
   iceCandidates, 
-  dtlsParameters
-} = await mySignaling.request('createTransport');
+  dtlsParameters,
+  sctpParameters
+} = await mySignaling.request(
+  'createTransport',
+  {
+    sctpCapabilities : device.sctpCapabilities
+  });
 
 // Create the local representation of our server-side transport.
-const sendTransport =
-  device.createSendTransport({ id, iceParameters, iceCandidates, dtlsParameters });
+const sendTransport = device.createSendTransport(
+  {
+    id, 
+    iceParameters, 
+    iceCandidates, 
+    dtlsParameters,
+    sctpParameters
+  });
 
 // Set transport "connect" event handler.
 sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) =>
@@ -79,34 +90,68 @@ sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) =>
 });
 
 // Set transport "produce" event handler.
-sendTransport.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
-{
-  // Here we must communicate our local parameters to our remote transport.
-  try
+sendTransport.on(
+  'produce',
+  async ({ kind, rtpParameters, appData }, callback, errback) =>
   {
-    const { id } = await mySignaling.request(
-      'produce',
-      { 
-        transportId : sendTransport.id,
-        kind,
-        rtpParameters,
-        appData
-      });
+    // Here we must communicate our local parameters to our remote transport.
+    try
+    {
+      const { id } = await mySignaling.request(
+        'produce',
+        { 
+          transportId : sendTransport.id,
+          kind,
+          rtpParameters,
+          appData
+        });
 
-    // Done in the server, pass the response to our transport.
-    callback({ id });
-  }
-  catch (error)
+      // Done in the server, pass the response to our transport.
+      callback({ id });
+    }
+    catch (error)
+    {
+      // Something was wrong in server side.
+      errback(error);
+    }
+  });
+
+// Set transport "producedata" event handler.
+sendTransport.on(
+  'producedata',
+  async ({ sctpStreamParameters, label, protocol, appData }, callback, errback) =>
   {
-    // Something was wrong in server side.
-    errback(error);
-  }
-});
+    // Here we must communicate our local parameters to our remote transport.
+    try
+    {
+      const { id } = await mySignaling.request(
+        'produceData',
+        { 
+          transportId : sendTransport.id,
+          sctpStreamParameters,
+          label,
+          protocol,
+          appData
+        });
+
+      // Done in the server, pass the response to our transport.
+      callback({ id });
+    }
+    catch (error)
+    {
+      // Something was wrong in server side.
+      errback(error);
+    }
+  });
 
 // Produce our webcam video.
 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 const webcamTrack = stream.getVideoTracks()[0];
 const webcamProducer = await sendTransport.produce({ track: webcamTrack });
+
+// Produce data (DataChannel).
+const dataProducer =
+  await sendTransport.produceData({ ordered: true, label: 'foo' });
 ```
 
 

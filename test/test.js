@@ -785,11 +785,13 @@ test('transport.produceData() succeeds', async () =>
 	let produceDataEventNumTimesCalled = 0;
 
 	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('producedata', ({ sctpStreamParameters, appData }, callback, errback) =>
+	sendTransport.on('producedata', ({ sctpStreamParameters, label, protocol, appData }, callback, errback) =>
 	{
 		produceDataEventNumTimesCalled++;
 
 		expect(sctpStreamParameters).toBeType('object');
+		expect(label).toBe('FOO');
+		expect(protocol).toBe('BAR');
 		expect(appData).toEqual({ foo: 'FOO' });
 
 		const id = fakeParameters.generateDataProducerRemoteParameters().id;
