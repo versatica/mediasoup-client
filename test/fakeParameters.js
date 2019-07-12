@@ -258,6 +258,13 @@ exports.generateNativeRtpCapabilities = function()
 	};
 };
 
+exports.generateNativeSctpCapabilities = function()
+{
+	return {
+		numStreams : { OS: 2048, MIS: 2048 }
+	};
+};
+
 exports.generateLocalDtlsParameters = function()
 {
 	return {
@@ -321,6 +328,12 @@ exports.generateTransportRemoteParameters = function()
 				}
 			],
 			role : 'auto'
+		},
+		sctpParameters :
+		{
+			port           : 5000,
+			numStreams     : 2048,
+			maxMessageSize : 2000000
 		}
 	};
 };
@@ -501,4 +514,26 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 			throw new TypeError(`unknown codecMimeType "${codecMimeType}"`);
 		}
 	}
+};
+
+exports.generateDataProducerRemoteParameters = function()
+{
+	return {
+		id : uuidv4()
+	};
+};
+
+exports.generateDataConsumerRemoteParameters = function({ id } = {})
+{
+	return {
+		id                   : id || uuidv4(),
+		dataProducerId       : uuidv4(),
+		sctpStreamParameters :
+		{
+			streamId          : 666,
+			ordered           : true,
+			maxPacketLifeTime : 5000,
+			maxRetransmits    : undefined
+		}
+	};
 };
