@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "mediasoup client side JavaScript library",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -33,7 +33,7 @@
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
     "open-cli": "^5.0.0",
-    "sdp-transform": "^2.11.0"
+    "sdp-transform": "^2.12.0"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
