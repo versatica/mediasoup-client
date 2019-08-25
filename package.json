@@ -41,6 +41,7 @@
     "jest": "^24.9.0",
     "jest-tobetype": "^1.2.3",
     "node-mediastreamtrack": "0.1.0",
+    "react-native-webrtc": "^1.75.0",
     "uuid": "^3.3.3"
   }
 }
