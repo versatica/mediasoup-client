@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "awaitqueue": "^1.0.0",
-    "bowser": "^2.5.3",
+    "bowser": "^2.6.1",
     "debug": "^4.1.1",
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
