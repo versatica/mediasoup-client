@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "mediasoup client side JavaScript library",
   "author": "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
   "contributors": [
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "awaitqueue": "^1.0.0",
-    "bowser": "^2.6.0",
+    "bowser": "^2.6.1",
     "debug": "^4.1.1",
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
