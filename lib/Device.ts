@@ -1,22 +1,58 @@
-const Logger = require('./Logger');
-const { UnsupportedError, InvalidStateError } = require('./errors');
-const detectDevice = require('./detectDevice');
-const ortc = require('./ortc');
-const Transport = require('./Transport');
-const Chrome74 = require('./handlers/Chrome74');
-const Chrome70 = require('./handlers/Chrome70');
-const Chrome67 = require('./handlers/Chrome67');
-const Chrome55 = require('./handlers/Chrome55');
-const Firefox60 = require('./handlers/Firefox60');
-const Safari12 = require('./handlers/Safari12');
-const Safari11 = require('./handlers/Safari11');
-const Edge11 = require('./handlers/Edge11');
-const ReactNative = require('./handlers/ReactNative');
+import Logger from './Logger';
+import { UnsupportedError, InvalidStateError } from './errors';
+import detectDevice from './detectDevice';
+import * as ortc from './ortc';
+import { Transport, TransportOptions } from './Transport';
+import Chrome74 from './handlers/Chrome74';
+import Chrome70 from './handlers/Chrome70';
+import Chrome67 from './handlers/Chrome67';
+import Chrome55 from './handlers/Chrome55';
+import Firefox60 from './handlers/Firefox60';
+import Safari12 from './handlers/Safari12';
+import Safari11 from './handlers/Safari11';
+import Edge11 from './handlers/Edge11';
+import ReactNative from './handlers/ReactNative';
+import { RtpCapabilities } from './types';
 
 const logger = new Logger('Device');
 
-class Device
+interface CanProduceByKind
 {
+	audio: boolean;
+	video: boolean;
+}
+
+interface InternalTransportOptions extends TransportOptions
+{
+	direction: 'send' | 'recv';
+}
+
+export default class Device
+{
+	// RTC handler class.
+	private _Handler: any;
+
+	// Loaded flag.
+	// @type {Boolean}
+	private _loaded: boolean;
+
+	// Extended RTP capabilities.
+	// @type {Object}
+	private _extendedRtpCapabilities: any;
+
+	// Local RTP capabilities for receiving media.
+	// @type {RTCRtpCapabilities}
+	private _recvRtpCapabilities?: RtpCapabilities;
+
+	// Whether we can produce audio/video based on computed extended RTP
+	// capabilities.
+	// @type {Object}
+	private _canProduceByKind: CanProduceByKind;
+
+	// Local SCTP capabilities.
+	// @type {Object}
+	private _sctpCapabilities: any;
+
 	/**
 	 * Create a new Device to connect to mediasoup server.
 	 *
@@ -26,7 +62,7 @@ class Device
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ Handler } = {})
+	constructor({ Handler }: { Handler: string | Record<string, any> })
 	{
 		if (typeof Handler === 'string')
 		{
@@ -64,7 +100,6 @@ class Device
 			}
 		}
 
-		// RTC handler class.
 		this._Handler = Handler || detectDevice();
 
 		if (!this._Handler)
@@ -72,29 +107,18 @@ class Device
 
 		logger.debug('constructor() [Handler:%s]', this._Handler.name);
 
-		// Loaded flag.
-		// @type {Boolean}
 		this._loaded = false;
 
-		// Extended RTP capabilities.
-		// @type {Object}
 		this._extendedRtpCapabilities = null;
 
-		// Local RTP capabilities for receiving media.
-		// @type {RTCRtpCapabilities}
-		this._recvRtpCapabilities = null;
+		this._recvRtpCapabilities = undefined;
 
-		// Whether we can produce audio/video based on computed extended RTP
-		// capabilities.
-		// @type {Object}
 		this._canProduceByKind =
 		{
 			audio : false,
 			video : false
 		};
 
-		// Local SCTP capabilities.
-		// @type {Object}
 		this._sctpCapabilities = null;
 	}
 
@@ -103,7 +127,7 @@ class Device
 	 *
 	 * @returns {String}
 	 */
-	get handlerName()
+	get handlerName(): string
 	{
 		return this._Handler.name;
 	}
@@ -113,7 +137,7 @@ class Device
 	 *
 	 * @returns {Boolean}
 	 */
-	get loaded()
+	get loaded(): boolean
 	{
 		return this._loaded;
 	}
@@ -124,7 +148,7 @@ class Device
 	 * @returns {RTCRtpCapabilities}
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get rtpCapabilities()
+	get rtpCapabilities(): RtpCapabilities | undefined
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
@@ -138,7 +162,7 @@ class Device
 	 * @returns {Object}
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get sctpCapabilities()
+	get sctpCapabilities(): any
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
@@ -155,7 +179,10 @@ class Device
 	 * @throws {TypeError} if missing/wrong arguments.
 	 * @throws {InvalidStateError} if already loaded.
 	 */
-	async load({ routerRtpCapabilities } = {})
+	async load(
+		{ routerRtpCapabilities }:
+		{ routerRtpCapabilities: RtpCapabilities }
+	): Promise<void>
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
@@ -208,7 +235,7 @@ class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	canProduce(kind)
+	canProduce(kind: 'audio' | 'video'): boolean
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
@@ -248,24 +275,24 @@ class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData = {}
-		} = {}
-	)
+		}: TransportOptions
+	): Transport
 	{
 		logger.debug('createSendTransport()');
 
 		return this._createTransport(
 			{
-				direction : 'send',
-				id,
-				iceParameters,
-				iceCandidates,
-				dtlsParameters,
-				sctpParameters,
-				iceServers,
-				iceTransportPolicy,
-				additionalSettings,
-				proprietaryConstraints,
-				appData
+				direction              : 'send',
+				id                     : id,
+				iceParameters          : iceParameters,
+				iceCandidates          : iceCandidates,
+				dtlsParameters         : dtlsParameters,
+				sctpParameters         : sctpParameters,
+				iceServers             : iceServers,
+				iceTransportPolicy     : iceTransportPolicy,
+				additionalSettings     : additionalSettings,
+				proprietaryConstraints : proprietaryConstraints,
+				appData                : appData
 			});
 	}
 
@@ -299,24 +326,24 @@ class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData = {}
-		} = {}
-	)
+		}: TransportOptions
+	): Transport
 	{
 		logger.debug('createRecvTransport()');
 
 		return this._createTransport(
 			{
-				direction : 'recv',
-				id,
-				iceParameters,
-				iceCandidates,
-				dtlsParameters,
-				sctpParameters,
-				iceServers,
-				iceTransportPolicy,
-				additionalSettings,
-				proprietaryConstraints,
-				appData
+				direction              : 'recv',
+				id                     : id,
+				iceParameters          : iceParameters,
+				iceCandidates          : iceCandidates,
+				dtlsParameters         : dtlsParameters,
+				sctpParameters         : sctpParameters,
+				iceServers             : iceServers,
+				iceTransportPolicy     : iceTransportPolicy,
+				additionalSettings     : additionalSettings,
+				proprietaryConstraints : proprietaryConstraints,
+				appData                : appData
 			});
 	}
 
@@ -336,8 +363,8 @@ class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData = {}
-		}
-	)
+		}: InternalTransportOptions
+	): Transport
 	{
 		logger.debug('createTransport()');
 
@@ -378,5 +405,3 @@ class Device
 		return transport;
 	}
 }
-
-module.exports = Device;

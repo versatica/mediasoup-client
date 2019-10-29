@@ -1,11 +1,53 @@
-const Logger = require('./Logger');
-const EnhancedEventEmitter = require('./EnhancedEventEmitter');
-const { InvalidStateError } = require('./errors');
+import Logger from './Logger';
+import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { InvalidStateError } from './errors';
+import { RtpParameters, RtpReceiveParameters } from './types';
+
+export interface ConsumerOptions
+{
+	id: string;
+	producerId: string;
+	kind: 'audio' | 'video';
+	rtpParameters: RtpReceiveParameters;
+	appData?: any;
+}
 
 const logger = new Logger('Consumer');
 
-class Consumer extends EnhancedEventEmitter
+export class Consumer extends EnhancedEventEmitter
 {
+	// Id.
+	// @type {String}
+	private _id: string;
+
+	// Local id.
+	// @type {String}
+	private _localId: string;
+
+	// Associated Producer id.
+	// @type {String}
+	private _producerId: string;
+
+	// Closed flag.
+	// @type {Boolean}
+	private _closed: boolean;
+
+	// Remote track.
+	// @type {MediaStreamTrack}
+	private _track: MediaStreamTrack;
+
+	// RTP parameters.
+	// @type {RTCRtpParameters}
+	private _rtpParameters: RtpParameters;
+
+	// Paused flag.
+	// @type {Boolean}
+	private _paused: boolean;
+
+	// App custom data.
+	// @type {Object}
+	private _appData: any;
+
 	/**
 	 * @private
 	 *
@@ -14,40 +56,41 @@ class Consumer extends EnhancedEventEmitter
 	 * @emits @getstats
 	 * @emits @close
 	 */
-	constructor({ id, localId, producerId, track, rtpParameters, appData })
+	constructor(
+		{
+			id,
+			localId,
+			producerId,
+			track,
+			rtpParameters,
+			appData
+		}:
+		{
+			id: string;
+			localId: string;
+			producerId: string;
+			track: MediaStreamTrack;
+			rtpParameters: RtpParameters;
+			appData: any;
+		}
+	)
 	{
 		super(logger);
 
-		// Id.
-		// @type {String}
 		this._id = id;
 
-		// Local id.
-		// @type {String}
 		this._localId = localId;
 
-		// Associated Producer id.
-		// @type {String}
 		this._producerId = producerId;
 
-		// Closed flag.
-		// @type {Boolean}
 		this._closed = false;
 
-		// Remote track.
-		// @type {MediaStreamTrack}
 		this._track = track;
 
-		// RTP parameters.
-		// @type {RTCRtpParameters}
 		this._rtpParameters = rtpParameters;
 
-		// Paused flag.
-		// @type {Boolean}
 		this._paused = !track.enabled;
 
-		// App custom data.
-		// @type {Object}
 		this._appData = appData;
 
 		this._onTrackEnded = this._onTrackEnded.bind(this);
@@ -60,7 +103,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get id()
+	get id(): string
 	{
 		return this._id;
 	}
@@ -71,7 +114,7 @@ class Consumer extends EnhancedEventEmitter
 	 * @private
 	 * @returns {String}
 	 */
-	get localId()
+	get localId(): string
 	{
 		return this._localId;
 	}
@@ -81,7 +124,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get producerId()
+	get producerId(): string
 	{
 		return this._producerId;
 	}
@@ -91,7 +134,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {Boolean}
 	 */
-	get closed()
+	get closed(): boolean
 	{
 		return this._closed;
 	}
@@ -101,7 +144,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get kind()
+	get kind(): string
 	{
 		return this._track.kind;
 	}
@@ -111,7 +154,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {MediaStreamTrack}
 	 */
-	get track()
+	get track(): MediaStreamTrack
 	{
 		return this._track;
 	}
@@ -121,7 +164,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {RTCRtpParameters}
 	 */
-	get rtpParameters()
+	get rtpParameters(): RtpParameters
 	{
 		return this._rtpParameters;
 	}
@@ -131,7 +174,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {Boolean}
 	 */
-	get paused()
+	get paused(): boolean
 	{
 		return this._paused;
 	}
@@ -141,7 +184,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {Object}
 	 */
-	get appData()
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -157,7 +200,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * Closes the Consumer.
 	 */
-	close()
+	close(): void
 	{
 		if (this._closed)
 			return;
@@ -176,7 +219,7 @@ class Consumer extends EnhancedEventEmitter
 	 *
 	 * @private
 	 */
-	transportClosed()
+	transportClosed(): void
 	{
 		if (this._closed)
 			return;
@@ -197,7 +240,7 @@ class Consumer extends EnhancedEventEmitter
 	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Consumer closed.
 	 */
-	async getStats()
+	async getStats(): Promise<any>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
@@ -208,7 +251,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * Pauses receiving media.
 	 */
-	pause()
+	pause(): void
 	{
 		logger.debug('pause()');
 
@@ -226,7 +269,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * Resumes receiving media.
 	 */
-	resume()
+	resume(): void
 	{
 		logger.debug('resume()');
 
@@ -244,7 +287,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_onTrackEnded()
+	_onTrackEnded(): void
 	{
 		logger.debug('track "ended" event');
 
@@ -254,7 +297,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_handleTrack()
+	_handleTrack(): void
 	{
 		this._track.addEventListener('ended', this._onTrackEnded);
 	}
@@ -262,7 +305,7 @@ class Consumer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_destroyTrack()
+	_destroyTrack(): void
 	{
 		try
 		{
@@ -273,5 +316,3 @@ class Consumer extends EnhancedEventEmitter
 		{}
 	}
 }
-
-module.exports = Consumer;

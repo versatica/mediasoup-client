@@ -1,18 +1,220 @@
-const AwaitQueue = require('awaitqueue');
-const Logger = require('./Logger');
-const EnhancedEventEmitter = require('./EnhancedEventEmitter');
-const { UnsupportedError, InvalidStateError } = require('./errors');
-const utils = require('./utils');
-const ortc = require('./ortc');
-const Producer = require('./Producer');
-const Consumer = require('./Consumer');
-const DataProducer = require('./DataProducer');
-const DataConsumer = require('./DataConsumer');
+import AwaitQueue from 'awaitqueue';
+import Logger from './Logger';
+import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { UnsupportedError, InvalidStateError } from './errors';
+import * as utils from './utils';
+import * as ortc from './ortc';
+import { Producer, ProducerOptions } from './Producer';
+import { Consumer, ConsumerOptions } from './Consumer';
+import DataProducer from './DataProducer';
+import DataConsumer from './DataConsumer';
+
+type CanProduceByKind =
+{
+	audio: boolean;
+	video: boolean;
+	[key: string]: boolean;
+}
+
+export interface TransportOptions
+{
+	id: string;
+	iceParameters: IceParameters;
+	iceCandidates: IceCandidate[];
+	dtlsParameters: DtlsParameters;
+	sctpParameters?: TransportSctpParameters;
+	iceServers?: RTCIceServer[];
+	iceTransportPolicy?: RTCIceTransportPolicy;
+	additionalSettings?: any;
+	proprietaryConstraints?: any;
+	appData?: any;
+}
+
+export interface IceParameters
+{
+	/**
+	 * ICE username fragment.
+	 * */
+	usernameFragment?: string;
+
+	/**
+	 * ICE password.
+	 */
+	password?: string;
+
+	/**
+	 * ICE Lite.
+	 */
+	iceLite: boolean;
+}
+
+export interface IceCandidate
+{
+	/**
+	 * Unique identifier that allows ICE to correlate candidates that appear on
+	 * multiple transports.
+	 */
+	foundation: string;
+
+	/**
+	 * The assigned priority of the candidate.
+	 */
+	priority: number;
+
+	/**
+	 * The IP address of the candidate.
+	 */
+	ip: string;
+
+	/**
+	 * The protocol of the candidate ('udp' / 'tcp').
+	 */
+	protocol: 'udp' | 'tcp';
+
+	/**
+	 * The port for the candidate.
+	 */
+	port: number;
+
+	/**
+	 * The type of candidate (always 'host').
+	 */
+	type: 'host';
+
+	/**
+	 * The type of TCP candidate (always 'passive').
+	 */
+	tcpType: 'passive';
+}
+
+export interface DtlsParameters
+{
+	/**
+	 * DTLS role. Default 'auto'.
+	 */
+	role?: DtlsRole;
+
+	/**
+	 * DTLS fingerprints.
+	 */
+	fingerprints: DtlsFingerprints[];
+}
+
+/**
+ * Map of DTLS algorithms (as defined in the 'Hash function Textual Names'
+ * registry initially specified in RFC 4572 Section 8) and their corresponding
+ * certificate fingerprint values (in lowercase hex string as expressed
+ * utilizing the syntax of 'fingerprint' in RFC 4572 Section 5).
+ */
+export interface DtlsFingerprints
+{
+	'sha-1'?: string;
+	'sha-224'?: string;
+	'sha-256'?: string;
+	'sha-384'?: string;
+	'sha-512'?: string;
+}
+
+export interface TransportSctpParameters
+{
+	/**
+	 * Must always equal 5000.
+	 */
+	port: number;
+
+	/**
+	 * Initially requested number of outgoing SCTP streams.
+	 */
+	OS: number;
+
+	/**
+	 * Maximum number of incoming SCTP streams.
+	 */
+	MIS: number;
+
+	/**
+	 * Maximum allowed size for SCTP messages.
+	 */
+	maxMessageSize: number;
+}
+
+export type DtlsRole = 'auto' | 'client' | 'server';
+
+type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
+
+interface InternalTransportOptions extends TransportOptions
+{
+	direction: 'send' | 'recv';
+	Handler: any;
+	extendedRtpCapabilities: any;
+	canProduceByKind: CanProduceByKind;
+}
 
 const logger = new Logger('Transport');
 
-class Transport extends EnhancedEventEmitter
+export class Transport extends EnhancedEventEmitter
 {
+	// Id.
+	// @type {String}
+	private _id: string;
+
+	// Closed flag.
+	// @type {Boolean}
+	private _closed: boolean;
+
+	// Direction.
+	// @type {String}
+	private _direction: 'send' | 'recv';
+
+	// Extended RTP capabilities.
+	// @type {Object}
+	private _extendedRtpCapabilities: any;
+
+	// Whether we can produce audio/video based on computed extended RTP
+	// capabilities.
+	// @type {Object}
+	private _canProduceByKind: CanProduceByKind;
+
+	// SCTP max message size if enabled, null otherwise.
+	// @type {Number|Null}
+	private _maxSctpMessageSize?: number | null;
+
+	// RTC handler instance.
+	// @type {Handler}
+	private _handler: Handler;
+
+	// Transport connection state. Values can be:
+	// @type {String}
+	private _connectionState: ConnectionState;
+
+	// App custom data.
+	// @type {Object}
+	private _appData: any;
+
+	// Map of Producers indexed by id.
+	// @type {Map<String, Producer>}
+	private _producers: Map<string, Producer>;
+
+	// Map of Consumers indexed by id.
+	// @type {Map<String, Consumer>}
+	private _consumers: Map<string, Consumer>;
+
+	// Map of DataProducers indexed by id.
+	// @type {Map<String, DataProducer>}
+	private _dataProducers: Map<string, DataProducer>;
+
+	// Map of DataConsumers indexed by id.
+	// @type {Map<String, DataConsumer>}
+	private _dataConsumers: Map<string, DataConsumer>;
+
+	// Whether the Consumer for RTP probation has been created.
+	// @type {Boolean}
+	private _probatorConsumerCreated: boolean;
+
+	// AwaitQueue instance to make async tasks happen sequentially.
+	// @type {AwaitQueue}
+	private _awaitQueue: AwaitQueue;
+
 	/**
 	 * @private
 	 *
@@ -37,36 +239,23 @@ class Transport extends EnhancedEventEmitter
 			Handler,
 			extendedRtpCapabilities,
 			canProduceByKind
-		}
+		}: InternalTransportOptions
 	)
 	{
 		super(logger);
 
 		logger.debug('constructor() [id:%s, direction:%s]', id, direction);
 
-		// Id.
-		// @type {String}
 		this._id = id;
 
-		// Closed flag.
-		// @type {Boolean}
 		this._closed = false;
 
-		// Direction.
-		// @type {String}
 		this._direction = direction;
 
-		// Extended RTP capabilities.
-		// @type {Object}
 		this._extendedRtpCapabilities = extendedRtpCapabilities;
 
-		// Whether we can produce audio/video based on computed extended RTP
-		// capabilities.
-		// @type {Object}
 		this._canProduceByKind = canProduceByKind;
 
-		// SCTP max message size if enabled, null otherwise.
-		// @type {Number|Null}
 		this._maxSctpMessageSize =
 			sctpParameters ? sctpParameters.maxMessageSize : null;
 
@@ -79,8 +268,6 @@ class Transport extends EnhancedEventEmitter
 		delete additionalSettings.rtcpMuxPolicy;
 		delete additionalSettings.sdpSemantics;
 
-		// RTC handler instance.
-		// @type {Handler}
 		this._handler = new Handler(
 			{
 				direction,
@@ -95,37 +282,20 @@ class Transport extends EnhancedEventEmitter
 				extendedRtpCapabilities
 			});
 
-		// Transport connection state. Values can be:
-		// 'new'/'connecting'/'connected'/'failed'/'disconnected'/'closed'
-		// @type {String}
 		this._connectionState = 'new';
 
-		// App custom data.
-		// @type {Object}
 		this._appData = appData;
 
-		// Map of Producers indexed by id.
-		// @type {Map<String, Producer>}
 		this._producers = new Map();
 
-		// Map of Consumers indexed by id.
-		// @type {Map<String, Consumer>}
 		this._consumers = new Map();
 
-		// Map of DataProducers indexed by id.
-		// @type {Map<String, DataProducer>}
 		this._dataProducers = new Map();
 
-		// Map of DataConsumers indexed by id.
-		// @type {Map<String, DataConsumer>}
 		this._dataConsumers = new Map();
 
-		// Whether the Consumer for RTP probation has been created.
-		// @type {Boolean}
 		this._probatorConsumerCreated = false;
 
-		// AwaitQueue instance to make async tasks happen sequentially.
-		// @type {AwaitQueue}
 		this._awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 		this._handleHandler();
@@ -136,7 +306,7 @@ class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get id()
+	get id(): string
 	{
 		return this._id;
 	}
@@ -146,7 +316,7 @@ class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {Boolean}
 	 */
-	get closed()
+	get closed(): boolean
 	{
 		return this._closed;
 	}
@@ -156,7 +326,7 @@ class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get direction()
+	get direction(): 'send' | 'recv'
 	{
 		return this._direction;
 	}
@@ -166,7 +336,7 @@ class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {Handler}
 	 */
-	get handler()
+	get handler(): Handler
 	{
 		return this._handler;
 	}
@@ -174,9 +344,9 @@ class Transport extends EnhancedEventEmitter
 	/**
 	 * Connection state.
 	 *
-	 * @returns {String}
+	 * @returns {ConnectionState}
 	 */
-	get connectionState()
+	get connectionState(): ConnectionState
 	{
 		return this._connectionState;
 	}
@@ -186,7 +356,7 @@ class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {Object}
 	 */
-	get appData()
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -194,7 +364,7 @@ class Transport extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData) // eslint-disable-line no-unused-vars
+	set appData(appData: any) // eslint-disable-line no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}
@@ -202,7 +372,7 @@ class Transport extends EnhancedEventEmitter
 	/**
 	 * Close the Transport.
 	 */
-	close()
+	close(): void
 	{
 		if (this._closed)
 			return;
@@ -253,7 +423,7 @@ class Transport extends EnhancedEventEmitter
 	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Transport closed.
 	 */
-	async getStats()
+	async getStats(): Promise<any>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
@@ -270,7 +440,10 @@ class Transport extends EnhancedEventEmitter
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	async restartIce({ iceParameters } = {})
+	async restartIce(
+		{ iceParameters }:
+		{ iceParameters: IceParameters }
+	): Promise<void>
 	{
 		logger.debug('restartIce()');
 
@@ -293,7 +466,10 @@ class Transport extends EnhancedEventEmitter
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	async updateIceServers({ iceServers } = {})
+	async updateIceServers(
+		{ iceServers }:
+		{ iceServers: RTCIceServer[] }
+	): Promise<void>
 	{
 		logger.debug('updateIceServers()');
 
@@ -328,8 +504,8 @@ class Transport extends EnhancedEventEmitter
 			encodings,
 			codecOptions,
 			appData = {}
-		} = {}
-	)
+		}: ProducerOptions
+	): Promise<Producer>
 	{
 		logger.debug('produce() [track:%o]', track);
 
@@ -361,9 +537,9 @@ class Transport extends EnhancedEventEmitter
 				else if (encodings)
 				{
 					normalizedEncodings = encodings
-						.map((encoding) =>
+						.map((encoding: any) =>
 						{
-							const normalizedEncoding = { active: true };
+							const normalizedEncoding: any = { active: true };
 
 							if (encoding.active === false)
 								normalizedEncoding.active = false;
@@ -417,7 +593,7 @@ class Transport extends EnhancedEventEmitter
 			})
 			// This catch is needed to stop the given track if the command above
 			// failed due to closed Transport.
-			.catch((error) =>
+			.catch((error: Error) =>
 			{
 				try { track.stop(); }
 				catch (error2) {}
@@ -448,7 +624,8 @@ class Transport extends EnhancedEventEmitter
 			kind,
 			rtpParameters,
 			appData = {}
-		} = {})
+		}: ConsumerOptions
+	): Promise<Consumer>
 	{
 		logger.debug('consume()');
 
@@ -461,7 +638,7 @@ class Transport extends EnhancedEventEmitter
 		else if (typeof producerId !== 'string')
 			throw new TypeError('missing producerId');
 		else if (kind !== 'audio' && kind !== 'video')
-			throw new TypeError(`invalid kind "${kind}"`);
+			throw new TypeError(`invalid kind '${kind}'`);
 		else if (typeof rtpParameters !== 'object')
 			throw new TypeError('missing rtpParameters');
 		else if (appData && typeof appData !== 'object')
@@ -546,8 +723,17 @@ class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		} = {}
-	)
+		}:
+		{
+			ordered: boolean;
+			maxPacketLifeTime: number;
+			maxRetransmits: number;
+			priority: string;
+			label: string;
+			protocol: string;
+			appData: any;
+		}
+	): DataProducer
 	{
 		logger.debug('produceData()');
 
@@ -626,7 +812,7 @@ class Transport extends EnhancedEventEmitter
 			protocol = '',
 			appData = {}
 		} = {}
-	)
+	): Consumer
 	{
 		logger.debug('consumeData()');
 
@@ -674,7 +860,7 @@ class Transport extends EnhancedEventEmitter
 			});
 	}
 
-	_handleHandler()
+	_handleHandler(): void
 	{
 		const handler = this._handler;
 
@@ -704,7 +890,7 @@ class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleProducer(producer)
+	_handleProducer(producer): void
 	{
 		producer.on('@close', () =>
 		{
@@ -747,7 +933,7 @@ class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleConsumer(consumer)
+	_handleConsumer(consumer): void
 	{
 		consumer.on('@close', () =>
 		{
@@ -772,7 +958,7 @@ class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleDataProducer(dataProducer)
+	_handleDataProducer(dataProducer): void
 	{
 		dataProducer.on('@close', () =>
 		{
@@ -780,7 +966,7 @@ class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleDataConsumer(dataConsumer)
+	_handleDataConsumer(dataConsumer): void
 	{
 		dataConsumer.on('@close', () =>
 		{
@@ -788,5 +974,3 @@ class Transport extends EnhancedEventEmitter
 		});
 	}
 }
-
-module.exports = Transport;

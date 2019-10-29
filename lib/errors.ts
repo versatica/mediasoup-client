@@ -1,9 +1,9 @@
 /**
  * Error indicating not support for something.
  */
-class UnsupportedError extends Error
+export class UnsupportedError extends Error
 {
-	constructor(message)
+	constructor(message: string)
 	{
 		super(message);
 
@@ -19,9 +19,9 @@ class UnsupportedError extends Error
 /**
  * Error produced when calling a method in an invalid state.
  */
-class InvalidStateError extends Error
+export class InvalidStateError extends Error
 {
-	constructor(message)
+	constructor(message: string)
 	{
 		super(message);
 
@@ -33,9 +33,3 @@ class InvalidStateError extends Error
 			this.stack = (new Error(message)).stack;
 	}
 }
-
-module.exports =
-{
-	UnsupportedError,
-	InvalidStateError
-};

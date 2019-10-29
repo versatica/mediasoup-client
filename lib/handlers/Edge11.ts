@@ -1,27 +1,36 @@
-const Logger = require('../Logger');
-const EnhancedEventEmitter = require('../EnhancedEventEmitter');
-const { UnsupportedError } = require('../errors');
-const utils = require('../utils');
-const ortc = require('../ortc');
-const edgeUtils = require('./ortc/edgeUtils');
+import Logger from '../Logger';
+import EnhancedEventEmitter from '../EnhancedEventEmitter';
+import { UnsupportedError } from '../errors';
+import * as utils from '../utils';
+import * as ortc from '../ortc';
+import * as edgeUtils from './ortc/edgeUtils';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
+import { RtpParameters } from '../types';
 
 const logger = new Logger('Edge11');
 
-class Edge11 extends EnhancedEventEmitter
+type RtpParametersByKind =
 {
-	static get name()
+	audio: RtpParameters;
+	video: RtpParameters;
+	[key: string]: RtpParameters;
+}
+
+export default class Edge11 extends EnhancedEventEmitter
+{
+	static get name(): string
 	{
 		return 'Edge11';
 	}
 
-	static async getNativeRtpCapabilities()
+	static async getNativeRtpCapabilities(): Promise<any>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
 		return edgeUtils.getCapabilities();
 	}
 
-	static async getNativeSctpCapabilities()
+	static async getNativeSctpCapabilities(): Promise<any>
 	{
 		logger.debug('getNativeSctpCapabilities()');
 
@@ -29,6 +38,52 @@ class Edge11 extends EnhancedEventEmitter
 			numStreams : 0
 		};
 	}
+
+	// Generic sending RTP parameters for audio and video.
+	// @type {Object}
+	private _sendingRtpParametersByKind: RtpParametersByKind;
+
+	// Transport remote ICE parameters.
+	// @type {RTCIceParameters}
+	private _remoteIceParameters: IceParameters;
+
+	// Transport remote ICE candidates.
+	// @type {Array<RTCIceCandidate>}
+	private _remoteIceCandidates: IceCandidate[];
+
+	// Transport remote DTLS parameters.
+	// @type {RTCDtlsParameters}
+	private _remoteDtlsParameters: DtlsParameters;
+
+	// Got transport local and remote parameters.
+	// @type {Boolean}
+	private _transportReady: boolean;
+
+	// ICE gatherer.
+	private _iceGatherer: any;
+
+	// ICE transport.
+	private _iceTransport: any;
+
+	// DTLS transport.
+	// @type {RTCDtlsTransport}
+	private _dtlsTransport: any;
+
+	// Map of RTCRtpSenders indexed by id.
+	// @type {Map<String, RTCRtpSender}
+	private _rtpSenders: Map<string, RTCRtpSender>;
+
+	// Map of RTCRtpReceivers indexed by id.
+	// @type {Map<String, RTCRtpReceiver}
+	private _rtpReceivers: Map<string, RTCRtpReceiver>;
+
+	// Latest localId for sending tracks.
+	// @type {Number}
+	private _lastSendId: number;
+
+	// Local RTCP CNAME.
+	// @type {String}
+	private _cname: string;
 
 	constructor(
 		{
@@ -38,8 +93,18 @@ class Edge11 extends EnhancedEventEmitter
 			dtlsParameters,
 			iceServers,
 			iceTransportPolicy,
-			proprietaryConstraints, // eslint-disable-line no-unused-vars
+			proprietaryConstraints, // eslint-disable-line @typescript-eslint/no-unused-vars
 			extendedRtpCapabilities
+		}:
+		{
+			direction: 'send' | 'recv';
+			iceParameters: IceParameters;
+			iceCandidates: IceCandidate[];
+			dtlsParameters: DtlsParameters;
+			iceServers: RTCIceServer[];
+			iceTransportPolicy: RTCIceTransportPolicy;
+			proprietaryConstraints: any;
+			extendedRtpCapabilities: any;
 		}
 	)
 	{
@@ -47,54 +112,32 @@ class Edge11 extends EnhancedEventEmitter
 
 		logger.debug('constructor() [direction:%s]', direction);
 
-		// Generic sending RTP parameters for audio and video.
-		// @type {Object}
 		this._sendingRtpParametersByKind =
 		{
 			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
 			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 		};
 
-		// Transport remote ICE parameters.
-		// @type {RTCIceParameters}
 		this._remoteIceParameters = iceParameters;
 
-		// Transport remote ICE candidates.
-		// @type {Array<RTCIceCandidate>}
 		this._remoteIceCandidates = iceCandidates;
 
-		// Transport remote DTLS parameters.
-		// @type {RTCDtlsParameters}
 		this._remoteDtlsParameters = dtlsParameters;
 
-		// Got transport local and remote parameters.
-		// @type {Boolean}
 		this._transportReady = false;
 
-		// ICE gatherer.
 		this._iceGatherer = null;
 
-		// ICE transport.
 		this._iceTransport = null;
 
-		// DTLS transport.
-		// @type {RTCDtlsTransport}
 		this._dtlsTransport = null;
 
-		// Map of RTCRtpSenders indexed by id.
-		// @type {Map<String, RTCRtpSender}
 		this._rtpSenders = new Map();
 
-		// Map of RTCRtpReceivers indexed by id.
-		// @type {Map<String, RTCRtpReceiver}
 		this._rtpReceivers = new Map();
 
-		// Latest localId for sending tracks.
-		// @type {Number}
 		this._lastSendId = 0;
 
-		// Local RTCP CNAME.
-		// @type {String}
 		this._cname = `CNAME-${utils.generateRandomNumber()}`;
 
 		this._setIceGatherer({ iceServers, iceTransportPolicy });
@@ -102,7 +145,7 @@ class Edge11 extends EnhancedEventEmitter
 		this._setDtlsTransport();
 	}
 
-	close()
+	close(): void
 	{
 		logger.debug('close()');
 
@@ -122,24 +165,27 @@ class Edge11 extends EnhancedEventEmitter
 		// Close RTCRtpSenders.
 		for (const rtpSender of this._rtpSenders.values())
 		{
-			try { rtpSender.stop(); }
+			try { (rtpSender as any).stop(); }
 			catch (error) {}
 		}
 
 		// Close RTCRtpReceivers.
 		for (const rtpReceiver of this._rtpReceivers.values())
 		{
-			try { rtpReceiver.stop(); }
+			try { (rtpReceiver as any).stop(); }
 			catch (error) {}
 		}
 	}
 
-	async getTransportStats()
+	async getTransportStats(): Promise<any>
 	{
 		return this._iceTransport.getStats();
 	}
 
-	async send({ track, encodings })
+	async send(
+		{ track, encodings }:
+		{ track: MediaStreamTrack; encodings: RTCRtpEncodingParameters }
+	): Promise<any>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -152,7 +198,7 @@ class Edge11 extends EnhancedEventEmitter
 		const rtpParameters =
 			utils.clone(this._sendingRtpParametersByKind[track.kind]);
 		const useRtx = rtpParameters.codecs
-			.some((codec) => /.+\/rtx$/i.test(codec.mimeType));
+			.some((codec: any) => /.+\/rtx$/i.test(codec.mimeType));
 
 		if (!encodings)
 			encodings = [ {} ];
@@ -188,12 +234,12 @@ class Edge11 extends EnhancedEventEmitter
 		this._lastSendId++;
 
 		// Store it.
-		this._rtpSenders.set(this._lastSendId, rtpSender);
+		this._rtpSenders.set(`${this._lastSendId}`, rtpSender);
 
 		return { localId: this._lastSendId, rtpParameters };
 	}
 
-	async stopSending({ localId })
+	async stopSending({ localId }: { localId: string }): Promise<void>
 	{
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -208,7 +254,7 @@ class Edge11 extends EnhancedEventEmitter
 		{
 			logger.debug('stopSending() | calling rtpSender.stop()');
 
-			rtpSender.stop();
+			(rtpSender as any).stop();
 		}
 		catch (error)
 		{
@@ -218,7 +264,10 @@ class Edge11 extends EnhancedEventEmitter
 		}
 	}
 
-	async replaceTrack({ localId, track })
+	async replaceTrack(
+		{ localId, track }:
+		{ localId: string; track: MediaStreamTrack }
+	): Promise<void>
 	{
 		logger.debug('replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
 
@@ -229,14 +278,17 @@ class Edge11 extends EnhancedEventEmitter
 
 		const oldTrack = rtpSender.track;
 
-		rtpSender.setTrack(track);
+		(rtpSender as any).setTrack(track);
 
 		// Replace key.
-		this._rtpSenders.delete(oldTrack.id);
+		this._rtpSenders.delete((oldTrack as any).id);
 		this._rtpSenders.set(track.id, rtpSender);
 	}
 
-	async setMaxSpatialLayer({ localId, spatialLayer })
+	async setMaxSpatialLayer(
+		{ localId, spatialLayer }:
+		{ localId: string; spatialLayer: number }
+	): Promise<void>
 	{
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
@@ -261,7 +313,7 @@ class Edge11 extends EnhancedEventEmitter
 		await rtpSender.setParameters(parameters);
 	}
 
-	async getSenderStats({ localId })
+	async getSenderStats({ localId }: { localId: string }): Promise<any>
 	{
 		const rtpSender = this._rtpSenders.get(localId);
 
@@ -271,12 +323,15 @@ class Edge11 extends EnhancedEventEmitter
 		return rtpSender.getStats();
 	}
 
-	async sendDataChannel()
+	async sendDataChannel(): Promise<Error>
 	{
 		throw new UnsupportedError('not implemented');
 	}
 
-	async receive({ id, kind, rtpParameters })
+	async receive(
+		{ id, kind, rtpParameters }:
+		{ id: string; kind: 'audio' | 'video'; rtpParameters: RtpParameters }
+	): Promise<any>
 	{
 		logger.debug('receive() [id:%s, kind:%s]', id, kind);
 
@@ -287,7 +342,7 @@ class Edge11 extends EnhancedEventEmitter
 
 		const rtpReceiver = new RTCRtpReceiver(this._dtlsTransport, kind);
 
-		rtpReceiver.addEventListener('error', (event) =>
+		rtpReceiver.addEventListener('error', (event: any) =>
 		{
 			logger.error('iceGatherer "error" event [event:%o]', event);
 		});
@@ -311,7 +366,7 @@ class Edge11 extends EnhancedEventEmitter
 		return { localId, track: rtpReceiver.track };
 	}
 
-	async stopReceiving({ localId })
+	async stopReceiving({ localId }: { localId: string }): Promise<void>
 	{
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
@@ -326,7 +381,7 @@ class Edge11 extends EnhancedEventEmitter
 		{
 			logger.debug('stopReceiving() | calling rtpReceiver.stop()');
 
-			rtpReceiver.stop();
+			(rtpReceiver as any).stop();
 		}
 		catch (error)
 		{
@@ -334,7 +389,7 @@ class Edge11 extends EnhancedEventEmitter
 		}
 	}
 
-	async getReceiverStats({ localId })
+	async getReceiverStats({ localId }: { localId: string }): Promise<any>
 	{
 		const rtpReceiver = this._rtpReceivers.get(localId);
 
@@ -344,12 +399,15 @@ class Edge11 extends EnhancedEventEmitter
 		return rtpReceiver.getStats();
 	}
 
-	async receiveDataChannel()
+	async receiveDataChannel(): Promise<Error>
 	{
 		throw new UnsupportedError('not implemented');
 	}
 
-	async restartIce({ iceParameters })
+	async restartIce(
+		{ iceParameters }:
+		{ iceParameters: IceParameters }
+	): Promise<void>
 	{
 		logger.debug('restartIce()');
 
@@ -371,8 +429,10 @@ class Edge11 extends EnhancedEventEmitter
 		this._iceTransport.addRemoteCandidate({});
 	}
 
-	// eslint-disable-next-line no-unused-vars
-	async updateIceServers({ iceServers })
+	async updateIceServers(
+		{ iceServers }: // eslint-disable-line @typescript-eslint/no-unused-vars
+		{ iceServers: RTCIceServer[] }
+	): Promise<Error>
 	{
 		logger.debug('updateIceServers()');
 
@@ -380,7 +440,10 @@ class Edge11 extends EnhancedEventEmitter
 		throw new UnsupportedError('not supported');
 	}
 
-	_setIceGatherer({ iceServers, iceTransportPolicy })
+	_setIceGatherer(
+		{ iceServers, iceTransportPolicy }:
+		{ iceServers: RTCIceServer[]; iceTransportPolicy: RTCIceTransportPolicy }
+	): void
 	{
 		const iceGatherer = new RTCIceGatherer(
 			{
@@ -388,7 +451,7 @@ class Edge11 extends EnhancedEventEmitter
 				gatherPolicy : iceTransportPolicy || 'all'
 			});
 
-		iceGatherer.addEventListener('error', (event) =>
+		iceGatherer.addEventListener('error', (event: any) =>
 		{
 			logger.error('iceGatherer "error" event [event:%o]', event);
 		});
@@ -407,7 +470,7 @@ class Edge11 extends EnhancedEventEmitter
 		this._iceGatherer = iceGatherer;
 	}
 
-	_setIceTransport()
+	_setIceTransport(): void
 	{
 		const iceTransport = new RTCIceTransport(this._iceGatherer);
 
@@ -459,7 +522,7 @@ class Edge11 extends EnhancedEventEmitter
 			}
 		});
 
-		iceTransport.addEventListener('candidatepairchange', (event) =>
+		iceTransport.addEventListener('candidatepairchange', (event: any) =>
 		{
 			logger.debug(
 				'iceTransport "candidatepairchange" event [pair:%o]', event.pair);
@@ -468,7 +531,7 @@ class Edge11 extends EnhancedEventEmitter
 		this._iceTransport = iceTransport;
 	}
 
-	_setDtlsTransport()
+	_setDtlsTransport(): void
 	{
 		const dtlsTransport = new RTCDtlsTransport(this._iceTransport);
 
@@ -489,7 +552,7 @@ class Edge11 extends EnhancedEventEmitter
 				this.emit('@connectionstatechange', 'closed');
 		});
 
-		dtlsTransport.addEventListener('error', (event) =>
+		dtlsTransport.addEventListener('error', (event: any) =>
 		{
 			logger.error('dtlsTransport "error" event [event:%o]', event);
 		});
@@ -497,7 +560,10 @@ class Edge11 extends EnhancedEventEmitter
 		this._dtlsTransport = dtlsTransport;
 	}
 
-	async _setupTransport({ localDtlsRole })
+	async _setupTransport(
+		{ localDtlsRole }:
+		{ localDtlsRole: DtlsRole }
+	): Promise<void>
 	{
 		logger.debug('_setupTransport()');
 
@@ -527,7 +593,7 @@ class Edge11 extends EnhancedEventEmitter
 
 		// NOTE: Edge does not like SHA less than 256.
 		this._remoteDtlsParameters.fingerprints = this._remoteDtlsParameters.fingerprints
-			.filter((fingerprint) =>
+			.filter((fingerprint: any) =>
 			{
 				return (
 					fingerprint.algorithm === 'sha-256' ||
@@ -542,5 +608,3 @@ class Edge11 extends EnhancedEventEmitter
 		this._transportReady = true;
 	}
 }
-
-module.exports = Edge11;

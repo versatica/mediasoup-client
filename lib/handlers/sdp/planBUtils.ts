@@ -6,7 +6,10 @@
  *
  * @returns {Array<RTCRtpEncodingParameters>}
  */
-exports.getRtpEncodings = function({ offerMediaObject, track })
+export function getRtpEncodings(
+	{ offerMediaObject, track }:
+	{ offerMediaObject: any; track: any }
+): any
 {
 	// First media SSRC (or the only one).
 	let firstSsrc;
@@ -70,7 +73,7 @@ exports.getRtpEncodings = function({ offerMediaObject, track })
 
 	for (const [ ssrc, rtxSsrc ] of ssrcToRtxSsrc)
 	{
-		const encoding = { ssrc };
+		const encoding: any = { ssrc };
 
 		if (rtxSsrc)
 			encoding.rtx = { ssrc: rtxSsrc };
@@ -79,7 +82,7 @@ exports.getRtpEncodings = function({ offerMediaObject, track })
 	}
 
 	return encodings;
-};
+}
 
 /**
  * Adds multi-ssrc based simulcast into the given SDP media section offer.
@@ -88,18 +91,22 @@ exports.getRtpEncodings = function({ offerMediaObject, track })
  * @param {MediaStreamTrack} track
  * @param {Number} numStreams - Number of simulcast streams.
  */
-exports.addLegacySimulcast = function({ offerMediaObject, track, numStreams })
+export function addLegacySimulcast(
+	{ offerMediaObject, track, numStreams }:
+	{ offerMediaObject: any; track: any; numStreams: number }
+): void
 {
+
 	if (numStreams <= 1)
 		throw new TypeError('numStreams must be greater than 1');
 
-	let firstSsrc;
-	let firstRtxSsrc;
-	let streamId;
+	let firstSsrc: any;
+	let firstRtxSsrc: any;
+	let streamId: any;
 
 	// Get the SSRC.
 	const ssrcMsidLine = (offerMediaObject.ssrcs || [])
-		.find((line) =>
+		.find((line: any) =>
 		{
 			if (line.attribute !== 'msid')
 				return false;
@@ -120,7 +127,7 @@ exports.addLegacySimulcast = function({ offerMediaObject, track, numStreams })
 
 	// Get the SSRC for RTX.
 	(offerMediaObject.ssrcGroups || [])
-		.some((line) =>
+		.some((line: any) =>
 		{
 			if (line.semantics !== 'FID')
 				return;
@@ -136,7 +143,7 @@ exports.addLegacySimulcast = function({ offerMediaObject, track, numStreams })
 		});
 
 	const ssrcCnameLine = offerMediaObject.ssrcs
-		.find((line) => (line.attribute === 'cname' && line.id === firstSsrc));
+		.find((line: any) => (line.attribute === 'cname' && line.id === firstSsrc));
 
 	if (!ssrcCnameLine)
 		throw new Error(`a=ssrc line with cname information not found [track.id:${track.id}]`);
@@ -206,4 +213,4 @@ exports.addLegacySimulcast = function({ offerMediaObject, track, numStreams })
 				ssrcs     : `${ssrc} ${rtxSsrc}`
 			});
 	}
-};
+}

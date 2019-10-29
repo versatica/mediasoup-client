@@ -1,0 +1,22 @@
+{
+	"compileOnSave": true,
+	"compilerOptions":
+	{
+  	"lib": [ "ES6", "dom" ],
+		"target": "ES6",
+		"module": "commonjs",
+		"declaration": true,
+		"declarationMap": true,
+		"outDir": "./build",
+		"resolveJsonModule": true,
+		"strict": true,
+		"strictNullChecks": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": false,
+		"noImplicitAny" : true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"moduleResolution": "node"
+	},
+	"include": [ "lib/**/*" ]
+}

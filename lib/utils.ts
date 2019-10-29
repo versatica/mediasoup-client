@@ -5,20 +5,20 @@
  *
  * @returns {Object|Array}
  */
-exports.clone = function(obj)
+export function clone(obj: any): any
 {
 	if (typeof obj !== 'object')
 		return {};
 
 	return JSON.parse(JSON.stringify(obj));
-};
+}
 
 /**
  * Generates a random positive integer.
  *
  * @returns {Number}
  */
-exports.generateRandomNumber = function()
+export function generateRandomNumber(): number
 {
 	return Math.round(Math.random() * 10000000);
-};
+}

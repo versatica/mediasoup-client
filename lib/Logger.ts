@@ -1,10 +1,14 @@
-const debug = require('debug');
+import * as debug from 'debug';
 
 const APP_NAME = 'mediasoup-client';
 
-class Logger
+export default class Logger
 {
-	constructor(prefix)
+	private _debug: debug.Debugger;
+	private _warn: debug.Debugger;
+	private _error: debug.Debugger;
+
+	constructor(prefix?: string)
 	{
 		if (prefix)
 		{
@@ -26,20 +30,18 @@ class Logger
 		/* eslint-enable no-console */
 	}
 
-	get debug()
+	get debug(): debug.Debugger
 	{
 		return this._debug;
 	}
 
-	get warn()
+	get warn(): debug.Debugger
 	{
 		return this._warn;
 	}
 
-	get error()
+	get error(): debug.Debugger
 	{
 		return this._error;
 	}
 }
-
-module.exports = Logger;

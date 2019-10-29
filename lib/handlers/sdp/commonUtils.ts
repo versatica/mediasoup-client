@@ -1,4 +1,4 @@
-const sdpTransform = require('sdp-transform');
+import sdpTransform from 'sdp-transform';
 
 /**
  * Extract RTP capabilities.
@@ -7,10 +7,10 @@ const sdpTransform = require('sdp-transform');
  *
  * @returns {RTCRtpCapabilities}
  */
-exports.extractRtpCapabilities = function({ sdpObject })
+export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): any
 {
 	// Map of RtpCodecParameters indexed by payload type.
-	const codecsMap = new Map();
+	const codecsMap: Map<number, any> = new Map();
 	// Array of RtpHeaderExtensions.
 	const headerExtensions = [];
 	// Whether a m=audio/video section has been already found.
@@ -127,7 +127,7 @@ exports.extractRtpCapabilities = function({ sdpObject })
 	};
 
 	return rtpCapabilities;
-};
+}
 
 /**
  * Extract DTLS parameters.
@@ -136,10 +136,12 @@ exports.extractRtpCapabilities = function({ sdpObject })
  *
  * @returns {RTCDtlsParameters}
  */
-exports.extractDtlsParameters = function({ sdpObject })
+export function extractDtlsParameters(param: { sdpObject: any }): any
 {
+	const { sdpObject } = param;
+
 	const mediaObject = (sdpObject.media || [])
-		.find((m) => m.iceUfrag && m.port !== 0);
+		.find((m: { iceUfrag: any; port: number }) => m.iceUfrag && m.port !== 0);
 
 	if (!mediaObject)
 		throw new Error('no active media section found');
@@ -173,7 +175,7 @@ exports.extractDtlsParameters = function({ sdpObject })
 	};
 
 	return dtlsParameters;
-};
+}
 
 /**
  * Get RTCP CNAME.
@@ -182,16 +184,18 @@ exports.extractDtlsParameters = function({ sdpObject })
  *
  * @returns {String}
  */
-exports.getCname = function({ offerMediaObject })
+export function getCname(param: { offerMediaObject: any }): string
 {
+	const { offerMediaObject } = param;
+
 	const ssrcCnameLine = (offerMediaObject.ssrcs || [])
-		.find((line) => line.attribute === 'cname');
+		.find((line: { attribute: string }) => line.attribute === 'cname');
 
 	if (!ssrcCnameLine)
 		return '';
 
 	return ssrcCnameLine.value;
-};
+}
 
 /**
  * Apply codec parameters in the given SDP m= section answer based on the
@@ -200,12 +204,16 @@ exports.getCname = function({ offerMediaObject })
  * @param {RTCRtpParameters} offerRtpParameters
  * @param {Object} answerMediaObject
  */
-exports.applyCodecParameters = function(
+export function applyCodecParameters(
 	{
 		offerRtpParameters,
 		answerMediaObject
+	}:
+	{
+		offerRtpParameters: any;
+		answerMediaObject: any;
 	}
-)
+): void
 {
 	for (const codec of offerRtpParameters.codecs)
 	{
@@ -216,7 +224,7 @@ exports.applyCodecParameters = function(
 			continue;
 
 		const rtp = (answerMediaObject.rtp || [])
-			.find((r) => r.payload === codec.payloadType);
+			.find((r: { payload: any }) => r.payload === codec.payloadType);
 
 		if (!rtp)
 			continue;
@@ -225,7 +233,7 @@ exports.applyCodecParameters = function(
 		answerMediaObject.fmtp = answerMediaObject.fmtp || [];
 
 		let fmtp = answerMediaObject.fmtp
-			.find((f) => f.payload === codec.payloadType);
+			.find((f: { payload: any }) => f.payload === codec.payloadType);
 
 		if (!fmtp)
 		{
@@ -259,4 +267,4 @@ exports.applyCodecParameters = function(
 			fmtp.config += `${key}=${parameters[key]}`;
 		}
 	}
-};
+}

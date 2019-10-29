@@ -1,11 +1,62 @@
-const Logger = require('./Logger');
-const EnhancedEventEmitter = require('./EnhancedEventEmitter');
-const { UnsupportedError, InvalidStateError } = require('./errors');
+import Logger from './Logger';
+import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { UnsupportedError, InvalidStateError } from './errors';
+import { RtpParameters } from './types';
+
+export interface ProducerOptions {
+	track: MediaStreamTrack;
+	encodings?: RTCRtpEncodingParameters[];
+	codecOptions?: ProducerCodecOptions;
+	appData?: any;
+}
+
+// https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
+export interface ProducerCodecOptions {
+	opusStereo?: boolean;
+	opusFec?: boolean;
+	opusDtx?: boolean;
+	opusMaxPlaybackRate?: number;
+	videoGoogleStartBitrate?: number;
+	videoGoogleMaxBitrate?: number;
+	videoGoogleMinBitrate?: number;
+}
 
 const logger = new Logger('Producer');
 
-class Producer extends EnhancedEventEmitter
+export class Producer extends EnhancedEventEmitter
 {
+	// Id.
+	// @type {String}
+	private _id: string;
+
+	// Local id.
+	// @type {String}
+	private _localId: string;
+
+	// Closed flag.
+	// @type {Boolean}
+	private _closed: boolean;
+
+	// Local track.
+	// @type {MediaStreamTrack}
+	private _track: MediaStreamTrack;
+
+	// RTP parameters.
+	// @type {RTCRtpParameters}
+	private _rtpParameters: RtpParameters;
+
+	// Paused flag.
+	// @type {Boolean}
+	private _paused: boolean;
+
+	// Video max spatial layer.
+	// @type {Number|Undefined}
+	private _maxSpatialLayer: number | undefined;
+
+	// App custom data.
+	// @type {Object}
+	private _appData: any;
+
 	/**
 	 * @private
 	 *
@@ -16,40 +67,39 @@ class Producer extends EnhancedEventEmitter
 	 * @emits @getstats
 	 * @emits @close
 	 */
-	constructor({ id, localId, track, rtpParameters, appData })
+	constructor(
+		{
+			id,
+			localId,
+			track,
+			rtpParameters,
+			appData
+		}:
+		{
+			id: string;
+			localId: string;
+			track: MediaStreamTrack;
+			rtpParameters: RtpParameters;
+			appData: any;
+		}
+	)
 	{
 		super(logger);
 
-		// Id.
-		// @type {String}
 		this._id = id;
 
-		// Local id.
-		// @type {String}
 		this._localId = localId;
 
-		// Closed flag.
-		// @type {Boolean}
 		this._closed = false;
 
-		// Local track.
-		// @type {MediaStreamTrack}
 		this._track = track;
 
-		// RTP parameters.
-		// @type {RTCRtpParameters}
 		this._rtpParameters = rtpParameters;
 
-		// Paused flag.
-		// @type {Boolean}
 		this._paused = !track.enabled;
 
-		// Video max spatial layer.
-		// @type {Number|Undefined}
 		this._maxSpatialLayer = undefined;
 
-		// App custom data.
-		// @type {Object}
 		this._appData = appData;
 
 		this._onTrackEnded = this._onTrackEnded.bind(this);
@@ -62,7 +112,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get id()
+	get id(): string
 	{
 		return this._id;
 	}
@@ -73,7 +123,7 @@ class Producer extends EnhancedEventEmitter
 	 * @private
 	 * @returns {String}
 	 */
-	get localId()
+	get localId(): string
 	{
 		return this._localId;
 	}
@@ -83,7 +133,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {Boolean}
 	 */
-	get closed()
+	get closed(): boolean
 	{
 		return this._closed;
 	}
@@ -93,7 +143,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {String}
 	 */
-	get kind()
+	get kind(): string
 	{
 		return this._track.kind;
 	}
@@ -103,7 +153,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {MediaStreamTrack}
 	 */
-	get track()
+	get track(): MediaStreamTrack
 	{
 		return this._track;
 	}
@@ -113,7 +163,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {RTCRtpParameters}
 	 */
-	get rtpParameters()
+	get rtpParameters(): RtpParameters
 	{
 		return this._rtpParameters;
 	}
@@ -123,7 +173,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {Boolean}
 	 */
-	get paused()
+	get paused(): boolean
 	{
 		return this._paused;
 	}
@@ -131,9 +181,9 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * Max spatial layer.
 	 *
-	 * @type {Number}
+	 * @type {Number | undefined}
 	 */
-	get maxSpatialLayer()
+	get maxSpatialLayer(): number | undefined
 	{
 		return this._maxSpatialLayer;
 	}
@@ -143,7 +193,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @returns {Object}
 	 */
-	get appData()
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -151,7 +201,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData) // eslint-disable-line no-unused-vars
+	set appData(appData) // eslint-disable-line @typescript-eslint/no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}
@@ -159,7 +209,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * Closes the Producer.
 	 */
-	close()
+	close(): void
 	{
 		if (this._closed)
 			return;
@@ -178,7 +228,7 @@ class Producer extends EnhancedEventEmitter
 	 *
 	 * @private
 	 */
-	transportClosed()
+	transportClosed(): void
 	{
 		if (this._closed)
 			return;
@@ -199,7 +249,7 @@ class Producer extends EnhancedEventEmitter
 	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Producer closed.
 	 */
-	async getStats()
+	async getStats(): Promise<any>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
@@ -210,7 +260,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * Pauses sending media.
 	 */
-	pause()
+	pause(): void
 	{
 		logger.debug('pause()');
 
@@ -228,7 +278,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * Resumes sending media.
 	 */
-	resume()
+	resume(): void
 	{
 		logger.debug('resume()');
 
@@ -252,7 +302,7 @@ class Producer extends EnhancedEventEmitter
 	 * @throws {InvalidStateError} if Producer closed or track ended.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	async replaceTrack({ track } = {})
+	async replaceTrack({ track }: { track: MediaStreamTrack }): Promise<void>
 	{
 		logger.debug('replaceTrack() [track:%o]', track);
 
@@ -303,7 +353,7 @@ class Producer extends EnhancedEventEmitter
 	 * @throws {UnsupportedError} if not a video Producer.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	async setMaxSpatialLayer(spatialLayer)
+	async setMaxSpatialLayer(spatialLayer: number): Promise<void>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
@@ -323,7 +373,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_onTrackEnded()
+	_onTrackEnded(): void
 	{
 		logger.debug('track "ended" event');
 
@@ -333,7 +383,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_handleTrack()
+	_handleTrack(): void
 	{
 		this._track.addEventListener('ended', this._onTrackEnded);
 	}
@@ -341,7 +391,7 @@ class Producer extends EnhancedEventEmitter
 	/**
 	 * @private
 	 */
-	_destroyTrack()
+	_destroyTrack(): void
 	{
 		try
 		{
@@ -352,5 +402,3 @@ class Producer extends EnhancedEventEmitter
 		{}
 	}
 }
-
-module.exports = Producer;

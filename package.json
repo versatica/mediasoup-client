@@ -17,7 +17,11 @@
     "node": ">=8.6.0"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.js lib test",
+    "typescript:watch": "rm -rf build; tsc --pretty --watch",
+    "typescript:build": "rm -rf build; tsc && ${NODE} replace-version.js",
+    "build": "tsc",
+    "lint": "MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts lib/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js gulpfile.js test/ replace-version.js",
+    "lint:fix": "MEDIASOUP_NODE_LANGUAGE=typescript eslint --fix -c .eslintrc.js --ext=ts lib/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint --fix -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js gulpfile.js test/ replace-version.js",
     "test": "jest",
     "coverage": "jest --coverage && open-cli coverage/lcov-report/index.html"
   },
@@ -36,12 +40,19 @@
     "sdp-transform": "^2.13.0"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/events": "^3.0.0",
+    "@types/uuid": "^3.4.5",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
     "eslint": "^6.6.0",
     "eslint-plugin-jest": "^22.20.1",
     "jest": "^24.9.0",
     "jest-tobetype": "^1.2.3",
     "node-mediastreamtrack": "0.1.0",
     "open-cli": "^5.0.0",
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.4",
     "uuid": "^3.3.3"
   }
 }

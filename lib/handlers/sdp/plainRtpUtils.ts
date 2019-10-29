@@ -6,10 +6,13 @@
  *
  * @returns {Object} with ip (String), ipVersion (4 or 6 Number) and port (Number).
  */
-exports.extractPlainRtpParameters = function({ sdpObject, kind })
+export function extractPlainRtpParameters(
+	{ sdpObject, kind }:
+	{ sdpObject: any; kind: string }
+): any
 {
 	const mediaObject = (sdpObject.media || [])
-		.find((m) => m.type === kind);
+		.find((m: any) => m.type === kind);
 
 	if (!mediaObject)
 		throw new Error(`m=${kind} section not found`);
@@ -21,7 +24,7 @@ exports.extractPlainRtpParameters = function({ sdpObject, kind })
 		ipVersion : connectionObject.version,
 		port      : mediaObject.port
 	};
-};
+}
 
 /**
  * Get RTP encodings.
@@ -31,10 +34,13 @@ exports.extractPlainRtpParameters = function({ sdpObject, kind })
  *
  * @returns {Array<RTCRtpEncodingParameters>}
  */
-exports.getRtpEncodings = function({ sdpObject, kind })
+export function getRtpEncodings(
+	{ sdpObject, kind }:
+	{ sdpObject: any; kind: string }
+): any
 {
 	const mediaObject = (sdpObject.media || [])
-		.find((m) => m.type === kind);
+		.find((m: any) => m.type === kind);
 
 	if (!mediaObject)
 		throw new Error(`m=${kind} section not found`);
@@ -46,4 +52,4 @@ exports.getRtpEncodings = function({ sdpObject, kind })
 		return [ { ssrc } ];
 	else
 		return [];
-};
+}

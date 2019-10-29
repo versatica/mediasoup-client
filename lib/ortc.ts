@@ -1,4 +1,4 @@
-const h264 = require('h264-profile-level-id');
+import * as h264 from 'h264-profile-level-id';
 
 const PROBATOR_SSRC = 1234;
 
@@ -10,7 +10,7 @@ const PROBATOR_SSRC = 1234;
  *
  * @returns {RTCExtendedRtpCapabilities}
  */
-exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
+export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
 {
 	const extendedRtpCapabilities =
 	{
@@ -36,7 +36,7 @@ exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
 			continue;
 
 		const matchingLocalCodec = (localCaps.codecs || [])
-			.find((localCodec) => (
+			.find((localCodec: any) => (
 				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true }))
 			);
 
@@ -68,13 +68,13 @@ exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
 	for (const extendedCodec of extendedRtpCapabilities.codecs || [])
 	{
 		const matchingLocalRtxCodec = (localCaps.codecs || [])
-			.find((localCodec) => (
+			.find((localCodec: any) => (
 				/.+\/rtx$/i.test(localCodec.mimeType) &&
 				localCodec.parameters.apt === extendedCodec.localPayloadType
 			));
 
 		const matchingRemoteRtxCodec = (remoteCaps.codecs || [])
-			.find((remoteCodec) => (
+			.find((remoteCodec: any) => (
 				/.+\/rtx$/i.test(remoteCodec.mimeType) &&
 				remoteCodec.parameters.apt === extendedCodec.remotePayloadType
 			));
@@ -90,7 +90,7 @@ exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
 	for (const remoteExt of remoteCaps.headerExtensions || [])
 	{
 		const matchingLocalExt = (localCaps.headerExtensions || [])
-			.find((localExt) => matchHeaderExtensions(localExt, remoteExt));
+			.find((localExt: any) => matchHeaderExtensions(localExt, remoteExt));
 
 		if (matchingLocalExt)
 		{
@@ -123,7 +123,7 @@ exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
 	}
 
 	return extendedRtpCapabilities;
-};
+}
 
 /**
  * Generate RTP capabilities for receiving media based on the given extended
@@ -133,7 +133,7 @@ exports.getExtendedRtpCapabilities = function(localCaps, remoteCaps)
  *
  * @returns {RTCRtpCapabilities}
  */
-exports.getRecvRtpCapabilities = function(extendedRtpCapabilities)
+export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
 {
 	const rtpCapabilities =
 	{
@@ -204,7 +204,7 @@ exports.getRecvRtpCapabilities = function(extendedRtpCapabilities)
 	rtpCapabilities.fecMechanisms = extendedRtpCapabilities.fecMechanisms;
 
 	return rtpCapabilities;
-};
+}
 
 /**
  * Generate RTP parameters of the given kind for sending media.
@@ -216,7 +216,7 @@ exports.getRecvRtpCapabilities = function(extendedRtpCapabilities)
  *
  * @returns {RTCRtpParameters}
  */
-exports.getSendingRtpParameters = function(kind, extendedRtpCapabilities)
+export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
 {
 	const rtpParameters =
 	{
@@ -293,7 +293,7 @@ exports.getSendingRtpParameters = function(kind, extendedRtpCapabilities)
 	}
 
 	return rtpParameters;
-};
+}
 
 /**
  * Generate RTP parameters of the given kind suitable for the remote SDP answer.
@@ -303,7 +303,7 @@ exports.getSendingRtpParameters = function(kind, extendedRtpCapabilities)
  *
  * @returns {RTCRtpParameters}
  */
-exports.getSendingRemoteRtpParameters = function(kind, extendedRtpCapabilities)
+export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
 {
 	const rtpParameters =
 	{
@@ -389,7 +389,7 @@ exports.getSendingRemoteRtpParameters = function(kind, extendedRtpCapabilities)
 		for (const codec of rtpParameters.codecs)
 		{
 			codec.rtcpFeedback = (codec.rtcpFeedback || [])
-				.filter((fb) => fb.type !== 'goog-remb');
+				.filter((fb: any) => fb.type !== 'goog-remb');
 		}
 	}
 	else if (
@@ -409,7 +409,7 @@ exports.getSendingRemoteRtpParameters = function(kind, extendedRtpCapabilities)
 		for (const codec of rtpParameters.codecs)
 		{
 			codec.rtcpFeedback = (codec.rtcpFeedback || [])
-				.filter((fb) => (
+				.filter((fb: any) => (
 					fb.type !== 'transport-cc' &&
 					fb.type !== 'goog-remb'
 				));
@@ -417,7 +417,7 @@ exports.getSendingRemoteRtpParameters = function(kind, extendedRtpCapabilities)
 	}
 
 	return rtpParameters;
-};
+}
 
 /**
  * Whether media can be sent based on the given RTP capabilities.
@@ -427,11 +427,11 @@ exports.getSendingRemoteRtpParameters = function(kind, extendedRtpCapabilities)
  *
  * @returns {Boolean}
  */
-exports.canSend = function(kind, extendedRtpCapabilities)
+export function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): boolean
 {
 	return extendedRtpCapabilities.codecs.
-		some((codec) => codec.kind === kind);
-};
+		some((codec: any) => codec.kind === kind);
+}
 
 /**
  * Whether the given RTP parameters can be received with the given RTP
@@ -442,7 +442,7 @@ exports.canSend = function(kind, extendedRtpCapabilities)
  *
  * @returns {Boolean}
  */
-exports.canReceive = function(rtpParameters, extendedRtpCapabilities)
+export function canReceive(rtpParameters: any, extendedRtpCapabilities: any): boolean
 {
 	if (rtpParameters.codecs.length === 0)
 		return false;
@@ -450,8 +450,8 @@ exports.canReceive = function(rtpParameters, extendedRtpCapabilities)
 	const firstMediaCodec = rtpParameters.codecs[0];
 
 	return extendedRtpCapabilities.codecs
-		.some((codec) => codec.remotePayloadType === firstMediaCodec.payloadType);
-};
+		.some((codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType);
+}
 
 /**
  * Create RTP parameters for a Consumer for the RTP probator.
@@ -461,7 +461,7 @@ exports.canReceive = function(rtpParameters, extendedRtpCapabilities)
  *
  * @return {RTCRtpParameters}
  */
-exports.generateProbatorRtpParameters = function(videoRtpParameters)
+export function generateProbatorRtpParameters(videoRtpParameters: any): any
 {
 	const rtpParameters =
 	{
@@ -478,7 +478,7 @@ exports.generateProbatorRtpParameters = function(videoRtpParameters)
 	rtpParameters.codecs.push(videoRtpParameters.codecs[0]);
 
 	rtpParameters.headerExtensions = videoRtpParameters.headerExtensions
-		.filter((ext) => (
+		.filter((ext: any) => (
 			ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' ||
 			ext.uri === 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
 		));
@@ -486,9 +486,9 @@ exports.generateProbatorRtpParameters = function(videoRtpParameters)
 	rtpParameters.encodings.push({ ssrc: PROBATOR_SSRC });
 
 	return rtpParameters;
-};
+}
 
-function matchCodecs(aCodec, bCodec, { strict = false, modify = false } = {})
+function matchCodecs(aCodec, bCodec, { strict = false, modify = false } = {}): boolean
 {
 	const aMimeType = aCodec.mimeType.toLowerCase();
 	const bMimeType = bCodec.mimeType.toLowerCase();
@@ -573,7 +573,7 @@ function matchCodecs(aCodec, bCodec, { strict = false, modify = false } = {})
 	return true;
 }
 
-function matchHeaderExtensions(aExt, bExt)
+function matchHeaderExtensions(aExt, bExt): boolean
 {
 	if (aExt.kind && bExt.kind && aExt.kind !== bExt.kind)
 		return false;
@@ -584,7 +584,7 @@ function matchHeaderExtensions(aExt, bExt)
 	return true;
 }
 
-function reduceRtcpFeedback(codecA, codecB)
+function reduceRtcpFeedback(codecA, codecB): any
 {
 	const reducedRtcpFeedback = [];
 

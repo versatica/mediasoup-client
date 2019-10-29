@@ -1,11 +1,52 @@
-const sdpTransform = require('sdp-transform');
-const Logger = require('../../Logger');
-const { AnswerMediaSection, OfferMediaSection } = require('./MediaSection');
-
+import sdpTransform from 'sdp-transform';
+import Logger from '../../Logger';
+import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../../Transport';
 const logger = new Logger('RemoteSdp');
 
-class RemoteSdp
+export default class RemoteSdp
 {
+	// Remote ICE parameters.
+	// @type {RTCIceParameters}
+	private _iceParameters: IceParameters;
+
+	// Remote ICE candidates.
+	// @type {Array<RTCIceCandidate>}
+	private _iceCandidates: IceCandidate[];
+
+	// Remote DTLS parameters.
+	// @type {RTCDtlsParameters}
+	private _dtlsParameters: DtlsParameters;
+
+	// Remote SCTP parameters.
+	// @type {RTCSctpParameters}
+	private _sctpParameters: TransportSctpParameters;
+
+	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
+	// @type {Object}
+	//
+	// Fields:
+	// @param {String} ip
+	// @param {Number} ipVersion - 4 or 6.
+	// @param {Number} port
+	private _plainRtpParameters: any;
+
+	// Whether this is Plan-B SDP.
+	// @type {Boolean}
+	private _planB: boolean;
+
+	// MediaSection instances indexed by MID.
+	// @type {Map<String, MediaSection>}
+	private _mediaSections: Map<string, any>;
+
+	// First MID.
+	// @type {String}
+	private _firstMid?: string;
+
+	// SDP object.
+	// @type {Object}
+	private _sdpObject: any;
+
 	constructor(
 		{
 			iceParameters = undefined,
@@ -14,35 +55,27 @@ class RemoteSdp
 			sctpParameters = undefined,
 			plainRtpParameters = undefined,
 			planB = false
-		})
+		}:
+		{
+			iceParameters?: any;
+			iceCandidates?: any;
+			dtlsParameters?: any;
+			sctpParameters?: any;
+			plainRtpParameters?: any;
+			planB?: boolean;
+		}
+	)
 	{
-		// Remote ICE parameters.
-		// @type {RTCIceParameters}
 		this._iceParameters = iceParameters;
 
-		// Remote ICE candidates.
-		// @type {Array<RTCIceCandidate>}
 		this._iceCandidates = iceCandidates;
 
-		// Remote DTLS parameters.
-		// @type {RTCDtlsParameters}
 		this._dtlsParameters = dtlsParameters;
 
-		// Remote SCTP parameters.
-		// @type {RTCSctpParameters}
 		this._sctpParameters = sctpParameters;
 
-		// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
-		// @type {Object}
-		//
-		// Fields:
-		// @param {String} ip
-		// @param {Number} ipVersion - 4 or 6.
-		// @param {Number} port
 		this._plainRtpParameters = plainRtpParameters;
 
-		// Whether this is Plan-B SDP.
-		// @type {Boolean}
 		this._planB = planB;
 
 		// MediaSection instances indexed by MID.
@@ -51,7 +84,7 @@ class RemoteSdp
 
 		// First MID.
 		// @type {String}
-		this._firstMid = null;
+		this._firstMid = undefined;
 
 		// SDP object.
 		// @type {Object}
@@ -103,7 +136,7 @@ class RemoteSdp
 		}
 	}
 
-	updateIceParameters(iceParameters)
+	updateIceParameters(iceParameters: any): void
 	{
 		logger.debug(
 			'updateIceParameters() [iceParameters:%o]',
@@ -118,7 +151,7 @@ class RemoteSdp
 		}
 	}
 
-	updateDtlsRole(role)
+	updateDtlsRole(role: DtlsRole): void
 	{
 		logger.debug('updateDtlsRole() [role:%s]', role);
 
@@ -130,7 +163,7 @@ class RemoteSdp
 		}
 	}
 
-	getNextMediaSectionIdx()
+	getNextMediaSectionIdx(): any
 	{
 		let idx = -1;
 
@@ -154,8 +187,15 @@ class RemoteSdp
 			offerRtpParameters,
 			answerRtpParameters,
 			codecOptions
+		}:
+		{
+			offerMediaObject: any;
+			reuseMid?: boolean;
+			offerRtpParameters: any;
+			answerRtpParameters: any;
+			codecOptions: any;
 		}
-	)
+	): void
 	{
 		const mediaSection = new AnswerMediaSection(
 			{
@@ -194,8 +234,15 @@ class RemoteSdp
 			offerRtpParameters,
 			streamId,
 			trackId
+		}:
+		{
+			mid: string;
+			kind: string;
+			offerRtpParameters: any;
+			streamId: string;
+			trackId: string;
 		}
-	)
+	): void
 	{
 		// Unified-Plan or different media kind.
 		if (!this._mediaSections.has(mid))
@@ -226,14 +273,14 @@ class RemoteSdp
 		}
 	}
 
-	disableMediaSection(mid)
+	disableMediaSection(mid: string): void
 	{
 		const mediaSection = this._mediaSections.get(mid);
 
 		mediaSection.disable();
 	}
 
-	closeMediaSection(mid)
+	closeMediaSection(mid: string): void
 	{
 		const mediaSection = this._mediaSections.get(mid);
 
@@ -256,7 +303,10 @@ class RemoteSdp
 		this._regenerateBundleMids();
 	}
 
-	planBStopReceiving({ mid, offerRtpParameters })
+	planBStopReceiving(
+		{ mid, offerRtpParameters }:
+		{ mid: string; offerRtpParameters: any }
+	): void
 	{
 		const mediaSection = this._mediaSections.get(mid);
 
@@ -264,7 +314,7 @@ class RemoteSdp
 		this._replaceMediaSection(mediaSection);
 	}
 
-	sendSctpAssociation({ offerMediaObject })
+	sendSctpAssociation({ offerMediaObject }: { offerMediaObject: any }): void
 	{
 		const mediaSection = new AnswerMediaSection(
 			{
@@ -279,7 +329,7 @@ class RemoteSdp
 		this._addMediaSection(mediaSection);
 	}
 
-	receiveSctpAssociation({ oldDataChannelSpec = false } = {})
+	receiveSctpAssociation({ oldDataChannelSpec = false } = {}): void
 	{
 		const mediaSection = new OfferMediaSection(
 			{
@@ -296,7 +346,7 @@ class RemoteSdp
 		this._addMediaSection(mediaSection);
 	}
 
-	getSdp()
+	getSdp(): string
 	{
 		// Increase SDP version.
 		this._sdpObject.origin.sessionVersion++;
@@ -304,7 +354,7 @@ class RemoteSdp
 		return sdpTransform.write(this._sdpObject);
 	}
 
-	_addMediaSection(newMediaSection)
+	_addMediaSection(newMediaSection: any): void
 	{
 		if (!this._firstMid)
 			this._firstMid = newMediaSection.mid;
@@ -319,7 +369,7 @@ class RemoteSdp
 		this._regenerateBundleMids();
 	}
 
-	_replaceMediaSection(newMediaSection, reuseMid)
+	_replaceMediaSection(newMediaSection: any, reuseMid?: boolean): void
 	{
 		// Store it in the map.
 		if (reuseMid)
@@ -347,19 +397,17 @@ class RemoteSdp
 
 		// Update SDP object.
 		this._sdpObject.media = Array.from(this._mediaSections.values())
-			.map((mediaSection) => mediaSection.getObject());
+			.map((mediaSection: any) => mediaSection.getObject());
 	}
 
-	_regenerateBundleMids()
+	_regenerateBundleMids(): void
 	{
 		if (!this._dtlsParameters)
 			return;
 
 		this._sdpObject.groups[0].mids = Array.from(this._mediaSections.values())
-			.filter((mediaSection) => !mediaSection.closed)
-			.map((mediaSection) => mediaSection.mid)
+			.filter((mediaSection: any) => !mediaSection.closed)
+			.map((mediaSection: any) => mediaSection.mid)
 			.join(' ');
 	}
 }
-
-module.exports = RemoteSdp;

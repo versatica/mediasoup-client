@@ -1,22 +1,32 @@
-const utils = require('../../utils');
+import * as utils from '../../utils';
 
-class MediaSection
+abstract class MediaSection
 {
+	// SDP media object.
+	// @type {Object}
+	protected _mediaObject: any;
+
+	// Whether this is Plan-B SDP.
+	// @type {Boolean}
+	protected _planB: boolean;
+
 	constructor(
 		{
 			iceParameters = undefined,
-			iceCandidates = undefined,
+			iceCandidates = [],
 			dtlsParameters = undefined,
 			planB = false
-		} = {}
+		}:
+		{
+			iceParameters: any;
+			iceCandidates: any[];
+			dtlsParameters: any;
+			planB: boolean;
+		}
 	)
 	{
-		// SDP media object.
-		// @type {Object}
 		this._mediaObject = {};
 
-		// Whether this is Plan-B SDP.
-		// @type {Boolean}
 		this._planB = planB;
 
 		if (iceParameters)
@@ -30,7 +40,7 @@ class MediaSection
 
 			for (const candidate of iceCandidates)
 			{
-				const candidateObject = {};
+				const candidateObject: any = {};
 
 				// mediasoup does mandates rtcp-mux so candidates component is always
 				// RTP (1).
@@ -57,10 +67,12 @@ class MediaSection
 		}
 	}
 
+	abstract setDtlsRole(role: 'client' | 'server' | 'auto'): void;
+
 	/**
 	 * @returns {String}
 	 */
-	get mid()
+	get mid(): string
 	{
 		return String(this._mediaObject.mid);
 	}
@@ -68,7 +80,7 @@ class MediaSection
 	/**
 	 * @returns {Boolean}
 	 */
-	get closed()
+	get closed(): boolean
 	{
 		return this._mediaObject.port === 0;
 	}
@@ -76,7 +88,7 @@ class MediaSection
 	/**
 	 * @returns {Object}
 	 */
-	getObject()
+	getObject(): object
 	{
 		return this._mediaObject;
 	}
@@ -84,13 +96,13 @@ class MediaSection
 	/**
 	 * @param {RTCIceParameters} iceParameters
 	 */
-	setIceParameters(iceParameters)
+	setIceParameters(iceParameters: any): void
 	{
 		this._mediaObject.iceUfrag = iceParameters.usernameFragment;
 		this._mediaObject.icePwd = iceParameters.password;
 	}
 
-	disable()
+	disable(): void
 	{
 		this._mediaObject.direction = 'inactive';
 
@@ -102,7 +114,7 @@ class MediaSection
 		delete this._mediaObject.rids;
 	}
 
-	close()
+	close(): void
 	{
 		this._mediaObject.direction = 'inactive';
 
@@ -119,9 +131,9 @@ class MediaSection
 	}
 }
 
-class AnswerMediaSection extends MediaSection
+export class AnswerMediaSection extends MediaSection
 {
-	constructor(data)
+	constructor(data: any)
 	{
 		super(data);
 
@@ -165,7 +177,7 @@ class AnswerMediaSection extends MediaSection
 
 				for (const codec of answerRtpParameters.codecs)
 				{
-					const rtp =
+					const rtp: any =
 					{
 						payload : codec.payloadType,
 						codec   : codec.mimeType.replace(/^.*\//, ''),
@@ -192,7 +204,7 @@ class AnswerMediaSection extends MediaSection
 						} = codecOptions;
 
 						const offerCodec = offerRtpParameters.codecs
-							.find((c) => c.payloadType === codec.payloadType);
+							.find((c: any) => c.payloadType === codec.payloadType);
 
 						switch (codec.mimeType.toLowerCase())
 						{
@@ -273,7 +285,7 @@ class AnswerMediaSection extends MediaSection
 				}
 
 				this._mediaObject.payloads = answerRtpParameters.codecs
-					.map((codec) => codec.payloadType)
+					.map((codec: any) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];
@@ -282,7 +294,7 @@ class AnswerMediaSection extends MediaSection
 				{
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext || [])
-						.some((localExt) => localExt.uri === ext.uri);
+						.some((localExt: any) => localExt.uri === ext.uri);
 
 					if (!found)
 						continue;
@@ -324,7 +336,7 @@ class AnswerMediaSection extends MediaSection
 				// Simulcast (draft version 03).
 				else if (offerMediaObject.simulcast_03)
 				{
-					// eslint-disable-next-line camelcase
+					// eslint-disable-next-line @typescript-eslint/camelcase
 					this._mediaObject.simulcast_03 =
 					{
 						value : offerMediaObject.simulcast_03.value.replace(/send/g, 'recv')
@@ -383,7 +395,7 @@ class AnswerMediaSection extends MediaSection
 	/**
 	 * @param {String} role
 	 */
-	setDtlsRole(role)
+	setDtlsRole(role: 'client' | 'server' | 'auto'): void
 	{
 		switch (role)
 		{
@@ -400,9 +412,9 @@ class AnswerMediaSection extends MediaSection
 	}
 }
 
-class OfferMediaSection extends MediaSection
+export class OfferMediaSection extends MediaSection
 {
-	constructor(data)
+	constructor(data: any)
 	{
 		super(data);
 
@@ -457,7 +469,7 @@ class OfferMediaSection extends MediaSection
 
 				for (const codec of offerRtpParameters.codecs)
 				{
-					const rtp =
+					const rtp: any =
 					{
 						payload : codec.payloadType,
 						codec   : codec.mimeType.replace(/^.*\//, ''),
@@ -504,7 +516,7 @@ class OfferMediaSection extends MediaSection
 				}
 
 				this._mediaObject.payloads = offerRtpParameters.codecs
-					.map((codec) => codec.payloadType)
+					.map((codec: any) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];
@@ -612,13 +624,22 @@ class OfferMediaSection extends MediaSection
 	/**
 	 * @param {String} role
 	 */
-	setDtlsRole(role) // eslint-disable-line no-unused-vars
+	setDtlsRole(role: 'client' | 'server' | 'auto'): void // eslint-disable-line @typescript-eslint/no-unused-vars
 	{
 		// Always 'actpass'.
 		this._mediaObject.setup = 'actpass';
 	}
 
-	planBReceive({ offerRtpParameters, streamId, trackId })
+	planBReceive(
+		{
+			offerRtpParameters,
+			streamId,
+			trackId }:
+		{
+			offerRtpParameters: any;
+			streamId: string;
+			trackId: string;
+		}): void
 	{
 		const encoding = offerRtpParameters.encodings[0];
 		const ssrc = encoding.ssrc;
@@ -671,7 +692,7 @@ class OfferMediaSection extends MediaSection
 		}
 	}
 
-	planBStopReceiving({ offerRtpParameters })
+	planBStopReceiving({ offerRtpParameters }: { offerRtpParameters: any }): void
 	{
 		const encoding = offerRtpParameters.encodings[0];
 		const ssrc = encoding.ssrc;
@@ -680,18 +701,12 @@ class OfferMediaSection extends MediaSection
 			: undefined;
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
-			.filter((s) => s.id !== ssrc && s.id !== rtxSsrc);
+			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
 
 		if (rtxSsrc)
 		{
 			this._mediaObject.ssrcGroups = this._mediaObject.ssrcGroups
-				.filter((group) => group.ssrcs !== `${ssrc} ${rtxSsrc}`);
+				.filter((group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`);
 		}
 	}
 }
-
-module.exports =
-{
-	AnswerMediaSection,
-	OfferMediaSection
-};

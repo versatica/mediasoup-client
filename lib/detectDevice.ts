@@ -1,20 +1,20 @@
 /* global RTCRtpTransceiver */
 
-const bowser = require('bowser');
-const Logger = require('./Logger');
+import * as bowser from 'bowser';
+import Logger from './Logger';
 // const Chrome74 = require('./handlers/Chrome74'); // Disabled for now.
-const Chrome70 = require('./handlers/Chrome70');
-const Chrome67 = require('./handlers/Chrome67');
-const Chrome55 = require('./handlers/Chrome55');
-const Firefox60 = require('./handlers/Firefox60');
-const Safari12 = require('./handlers/Safari12');
-const Safari11 = require('./handlers/Safari11');
-const Edge11 = require('./handlers/Edge11');
-const ReactNative = require('./handlers/ReactNative');
+import Chrome70 from './handlers/Chrome70';
+import Chrome67 from './handlers/Chrome67';
+import Chrome55 from './handlers/Chrome55';
+import Firefox60 from './handlers/Firefox60';
+import Safari12 from './handlers/Safari12';
+import Safari11 from './handlers/Safari11';
+import Edge11 from './handlers/Edge11';
+import ReactNative from './handlers/ReactNative';
 
 const logger = new Logger('detectDevice');
 
-module.exports = function()
+export default function(): any
 {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
@@ -82,7 +82,7 @@ module.exports = function()
 			return Edge11;
 		}
 		// Best effort for Chromium based browsers.
-		else if (engine.name.toLowerCase() === 'blink')
+		else if (engine.name && engine.name.toLowerCase() === 'blink')
 		{
 			logger.debug('best effort Chromium based browser detection');
 
@@ -126,4 +126,4 @@ module.exports = function()
 
 		return null;
 	}
-};
+}
