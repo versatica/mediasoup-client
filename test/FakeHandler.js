@@ -1,5 +1,5 @@
+const { EventEmitter } = require('events');
 const MediaStreamTrack = require('node-mediastreamtrack');
-const EnhancedEventEmitter = require('../lib/EnhancedEventEmitter');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');
@@ -7,8 +7,13 @@ const fakeParameters = require('./fakeParameters');
 const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
 const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
-class FakeHandler extends EnhancedEventEmitter
+class FakeHandler extends EventEmitter
 {
+	static get label()
+	{
+		return 'FakeHandler';
+	}
+
 	static async getNativeRtpCapabilities()
 	{
 		return nativeRtpCapabilities;
@@ -192,6 +197,11 @@ class FakeHandler extends EnhancedEventEmitter
 	{
 	}
 
+	// eslint-disable-next-line no-unused-vars
+	async setRtpEncodingParameters({ localId, spatialLayer })
+	{
+	}
+
 	async receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
 		if (!this._transportReady)
@@ -243,8 +253,13 @@ class FakeHandler extends EnhancedEventEmitter
 		if (localDtlsRole)
 			dtlsParameters.role = localDtlsRole;
 
+		// Assume we are connecting now.
+		this.emit('@connectionstatechange', 'connecting');
+
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise((resolve, reject) => (
+			this.emit('@connect', { dtlsParameters }, resolve, reject)
+		));
 
 		this._transportReady = true;
 	}

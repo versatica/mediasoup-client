@@ -7,9 +7,8 @@ const { toBeType } = require('jest-tobetype');
 const MediaStreamTrack = require('node-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
-const mediasoupInternals = require('../lib/internals');
-const { version, Device, parseScalabilityMode } = mediasoupClient;
-const { UnsupportedError, InvalidStateError } = mediasoupInternals.errors;
+const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
+const { UnsupportedError, InvalidStateError } = mediasoupClient.types;
 const utils = require('../lib/utils');
 const FakeHandler = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
@@ -30,6 +29,11 @@ test('mediasoup-client exposes a version property', () =>
 {
 	expect(version).toBeType('string');
 	expect(version).toBe(pkg.version);
+}, 500);
+
+test('detectDevice() returns nothing in Node', () =>
+{
+	expect(detectDevice()).toBe(undefined);
 }, 500);
 
 test('create a Device in Node without custom Handler throws UnsupportedError', () =>
@@ -94,7 +98,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () =>
 {
-	await expect(device.load())
+	await expect(device.load({}))
 		.rejects
 		.toThrow(TypeError);
 
@@ -133,7 +137,7 @@ test('device.load() succeeds', async () =>
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
 {
-	await expect(device.load())
+	await expect(device.load({}))
 		.rejects
 		.toThrow(InvalidStateError);
 
@@ -258,6 +262,15 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			appData : 1234
 		}))
 		.toThrow(TypeError);
+}, 500);
+
+test('transport.produce() without "connect" listener rejects', async () =>
+{
+	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(sendTransport.produce({ track: audioTrack }))
+		.rejects
+		.toThrow(Error);
 }, 500);
 
 test('transport.produce() succeeds', async () =>
@@ -485,12 +498,13 @@ test('transport.produce() succeeds', async () =>
 	expect(videoProducer.maxSpatialLayer).toBe(undefined);
 	expect(videoProducer.appData).toEqual({});
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connect');
+	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.produce() without track rejects with TypeError', async () =>
 {
-	await expect(sendTransport.produce())
+	await expect(sendTransport.produce({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -690,12 +704,12 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.appData).toEqual({});
 
-	recvTransport.removeAllListeners();
+	recvTransport.removeAllListeners('connect');
 }, 500);
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () =>
 {
-	await expect(recvTransport.consume())
+	await expect(recvTransport.consume({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -824,12 +838,12 @@ test('transport.produceData() succeeds', async () =>
 	expect(dataProducer.label).toBe('FOO');
 	expect(dataProducer.protocol).toBe('BAR');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () =>
 {
-	await expect(recvTransport.produceData())
+	await expect(recvTransport.produceData({}))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
@@ -868,7 +882,7 @@ test('transport.consumeData() succeeds', async () =>
 
 test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () =>
 {
-	await expect(recvTransport.consumeData())
+	await expect(recvTransport.consumeData({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -942,7 +956,7 @@ test('transport.updateIceServers() succeeds', async () =>
 
 test('transport.updateIceServers() without iceServers rejects with TypeError', async () =>
 {
-	await expect(sendTransport.updateIceServers())
+	await expect(sendTransport.updateIceServers({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -980,7 +994,7 @@ test('connection state change fires "connectionstatechange" in live Transport', 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
 	expect(sendTransport.connectionState).toBe('completed');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connectionstatechange');
 }, 500);
 
 test('producer.pause() succeeds', () =>
@@ -1030,7 +1044,7 @@ test('producer.replaceTrack() succeeds', async () =>
 
 test('producer.replaceTrack() without track rejects with TypeError', async () =>
 {
-	await expect(videoProducer.replaceTrack())
+	await expect(videoProducer.replaceTrack({}))
 		.rejects
 		.toThrow(TypeError);
 
@@ -1081,6 +1095,15 @@ test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError'
 	await expect(videoProducer.setMaxSpatialLayer())
 		.rejects
 		.toThrow(TypeError);
+}, 500);
+
+test('producer.setRtpEncodingParameters() succeeds', async () =>
+{
+	await expect(videoProducer.setRtpEncodingParameters({ foo: 'bar' }))
+		.resolves
+		.toBe(undefined);
+
+	expect(videoProducer.maxSpatialLayer).toBe(0);
 }, 500);
 
 test('producer.getStats() succeeds', async () =>
@@ -1298,30 +1321,42 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
+	// Add noop listener to avoid the method fail.
+	sendTransport.on('produce', () => {});
+
 	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
+
+	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.consume() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(recvTransport.consume())
+	await expect(recvTransport.consume({}))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	recvTransport.removeAllListeners();
 }, 500);
 
 test('transport.produceData() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(sendTransport.produceData())
+	// Add noop listener to avoid the method fail.
+	sendTransport.on('producedata', () => {});
+
+	await expect(sendTransport.produceData({}))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.consumeData() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(recvTransport.consumeData())
+	await expect(recvTransport.consumeData({}))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
@@ -1361,7 +1396,7 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
 	expect(sendTransport.connectionState).toBe('disconnected');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connectionstatechange');
 }, 500);
 
 test('parseScalabilityMode() works', () =>
