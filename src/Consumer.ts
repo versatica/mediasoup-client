@@ -5,10 +5,10 @@ import { RtpParameters } from './RtpParametersAndCapabilities';
 
 export interface ConsumerOptions
 {
-	id: string;
-	producerId: string;
-	kind: 'audio' | 'video';
-	rtpParameters: RtpParameters;
+	id?: string;
+	producerId?: string;
+	kind?: 'audio' | 'video';
+	rtpParameters?: RtpParameters;
 	appData?: object;
 }
 

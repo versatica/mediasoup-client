@@ -3,9 +3,9 @@ import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './RtpParametersAndCapabilities';
 
 export interface DataConsumerOptions {
-	id: string;
-	dataProducerId: string;
-	sctpStreamParameters: SctpStreamParameters;
+	id?: string;
+	dataProducerId?: string;
+	sctpStreamParameters?: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
 	appData?: object;

@@ -4,7 +4,7 @@ import { UnsupportedError, InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParametersAndCapabilities';
 
 export interface ProducerOptions {
-	track: MediaStreamTrack;
+	track?: MediaStreamTrack;
 	encodings?: RTCRtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	appData?: object;

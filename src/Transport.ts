@@ -1,4 +1,5 @@
-import AwaitQueue from 'awaitqueue';
+// @ts-ignore
+import * as AwaitQueue from 'awaitqueue';
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -430,7 +431,7 @@ export class Transport extends EnhancedEventEmitter
 	 */
 	async updateIceServers(
 		{ iceServers }:
-		{ iceServers: RTCIceServer[] }
+		{ iceServers?: RTCIceServer[] } = {}
 	): Promise<void>
 	{
 		logger.debug('updateIceServers()');
@@ -459,7 +460,7 @@ export class Transport extends EnhancedEventEmitter
 			encodings,
 			codecOptions,
 			appData = {}
-		}: ProducerOptions
+		}: ProducerOptions = {}
 	): Promise<Producer>
 	{
 		logger.debug('produce() [track:%o]', track);
@@ -571,7 +572,7 @@ export class Transport extends EnhancedEventEmitter
 			kind,
 			rtpParameters,
 			appData = {}
-		}: ConsumerOptions
+		}: ConsumerOptions = {}
 	): Promise<Consumer>
 	{
 		logger.debug('consume()');
@@ -660,7 +661,7 @@ export class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		}: DataProducerOptions
+		}: DataProducerOptions = {}
 	): Promise<DataProducer>
 	{
 		logger.debug('produceData()');
@@ -729,7 +730,7 @@ export class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		}: DataConsumerOptions
+		}: DataConsumerOptions = {}
 	): Promise<DataConsumer>
 	{
 		logger.debug('consumeData()');

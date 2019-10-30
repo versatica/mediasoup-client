@@ -160,7 +160,7 @@ export default class Device
 	 */
 	async load(
 		{ routerRtpCapabilities }:
-		{ routerRtpCapabilities: RtpCapabilities }
+		{ routerRtpCapabilities?: RtpCapabilities } = {}
 	): Promise<void>
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);

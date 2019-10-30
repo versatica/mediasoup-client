@@ -8,14 +8,10 @@ export const version = '__MEDIASOUP_CLIENT_VERSION__';
 
 /**
  * Expose Device class.
- *
- * @type {Class}
  */
-exports.Device = Device;
+export { Device };
 
 /**
  * Expose parseScalabilityMode function.
- *
- * @type {Function}
  */
-exports.parseScalabilityMode = parseScalabilityMode;
+export { parseScalabilityMode };
