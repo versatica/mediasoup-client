@@ -9,4 +9,4 @@ function replaceVersion(file)
 	fs.writeFileSync(file, result, { encoding: 'utf8' });
 }
 
-replaceVersion('build/index.js');
+replaceVersion('lib/index.js');
