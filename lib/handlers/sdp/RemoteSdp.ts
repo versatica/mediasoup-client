@@ -7,19 +7,15 @@ const logger = new Logger('RemoteSdp');
 export default class RemoteSdp
 {
 	// Remote ICE parameters.
-	// @type {RTCIceParameters}
 	private _iceParameters: IceParameters;
 
 	// Remote ICE candidates.
-	// @type {Array<RTCIceCandidate>}
 	private _iceCandidates: IceCandidate[];
 
 	// Remote DTLS parameters.
-	// @type {RTCDtlsParameters}
 	private _dtlsParameters: DtlsParameters;
 
 	// Remote SCTP parameters.
-	// @type {RTCSctpParameters}
 	private _sctpParameters: TransportSctpParameters;
 
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
@@ -32,19 +28,15 @@ export default class RemoteSdp
 	private _plainRtpParameters: any;
 
 	// Whether this is Plan-B SDP.
-	// @type {Boolean}
-	private _planB: boolean;
+	private _planB = false;
 
 	// MediaSection instances indexed by MID.
-	// @type {Map<String, MediaSection>}
 	private _mediaSections: Map<string, any>;
 
 	// First MID.
-	// @type {String}
-	private _firstMid?: string;
+	private _firstMid: string;
 
 	// SDP object.
-	// @type {Object}
 	private _sdpObject: any;
 
 	constructor(
@@ -78,16 +70,10 @@ export default class RemoteSdp
 
 		this._planB = planB;
 
-		// MediaSection instances indexed by MID.
-		// @type {Map<String, MediaSection>}
 		this._mediaSections = new Map();
 
-		// First MID.
-		// @type {String}
 		this._firstMid = undefined;
 
-		// SDP object.
-		// @type {Object}
 		this._sdpObject =
 		{
 			version : 0,

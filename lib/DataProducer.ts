@@ -17,10 +17,19 @@ const logger = new Logger('DataProducer');
 
 export class DataProducer extends EnhancedEventEmitter
 {
+	// Id.
 	private _id: string;
+
+	// The underlying RTCDataChannel instance.
 	private _dataChannel: any;
-	private _closed: boolean;
+
+	// Closed flag.
+	private _closed = false;
+
+	// SCTP stream parameters.
 	private _sctpStreamParameters: SctpStreamParameters;
+
+	// App custom data.
 	private _appData: object;
 
 	/**
@@ -50,19 +59,12 @@ export class DataProducer extends EnhancedEventEmitter
 	{
 		super(logger);
 
-		// Id.
 		this._id = id;
 
-		// The underlying RTCDataChannel instance.
 		this._dataChannel = dataChannel;
 
-		// Closed flag.
-		this._closed = false;
-
-		// SCTP stream parameters.
 		this._sctpStreamParameters = sctpStreamParameters;
 
-		// App custom data.
 		this._appData = appData;
 
 		this._handleDataChannel();
@@ -134,10 +136,8 @@ export class DataProducer extends EnhancedEventEmitter
 
 	/**
 	 * Set DataChannel bufferedAmountLowThreshold.
-	 *
-	 * @param {Number} bufferedAmountLowThreshold
 	 */
-	set bufferedAmountLowThreshold(bufferedAmountLowThreshold)
+	set bufferedAmountLowThreshold(bufferedAmountLowThreshold: number)
 	{
 		this._dataChannel.bufferedAmountLowThreshold = bufferedAmountLowThreshold;
 	}
@@ -153,7 +153,7 @@ export class DataProducer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData) // eslint-disable-line no-unused-vars
+	set appData(appData: object) // eslint-disable-line no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}

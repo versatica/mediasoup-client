@@ -27,24 +27,19 @@ export default class Device
 	private _Handler: any;
 
 	// Loaded flag.
-	// @type {Boolean}
-	private _loaded: boolean;
+	private _loaded = false;
 
 	// Extended RTP capabilities.
-	// @type {Object}
 	private _extendedRtpCapabilities: any;
 
 	// Local RTP capabilities for receiving media.
-	// @type {RTCRtpCapabilities}
 	private _recvRtpCapabilities?: RtpCapabilities;
 
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
-	// @type {Object}
 	private _canProduceByKind: CanProduceByKind;
 
 	// Local SCTP capabilities.
-	// @type {Object}
 	private _sctpCapabilities: any;
 
 	/**
@@ -94,14 +89,13 @@ export default class Device
 			}
 		}
 
+		// RTC handler class.
 		this._Handler = Handler || detectDevice();
 
 		if (!this._Handler)
 			throw new UnsupportedError('device not supported');
 
 		logger.debug('constructor() [Handler:%s]', this._Handler.name);
-
-		this._loaded = false;
 
 		this._extendedRtpCapabilities = null;
 
@@ -118,8 +112,6 @@ export default class Device
 
 	/**
 	 * The RTC handler class name ('Chrome70', 'Firefox65', etc).
-	 *
-	 * @returns {String}
 	 */
 	get handlerName(): string
 	{
@@ -128,8 +120,6 @@ export default class Device
 
 	/**
 	 * Whether the Device is loaded.
-	 *
-	 * @returns {Boolean}
 	 */
 	get loaded(): boolean
 	{
@@ -139,7 +129,6 @@ export default class Device
 	/**
 	 * RTP capabilities of the Device for receiving media.
 	 *
-	 * @returns {RTCRtpCapabilities}
 	 * @throws {InvalidStateError} if not loaded.
 	 */
 	get rtpCapabilities(): RtpCapabilities | undefined
@@ -153,7 +142,6 @@ export default class Device
 	/**
 	 * SCTP capabilities of the Device.
 	 *
-	 * @returns {Object}
 	 * @throws {InvalidStateError} if not loaded.
 	 */
 	get sctpCapabilities(): any
@@ -167,9 +155,6 @@ export default class Device
 	/**
 	 * Initialize the Device.
 	 *
-	 * @param {RTCRtpCapabilities} routerRtpCapabilities - Router RTP capabilities.
-	 *
-	 * @async
 	 * @throws {TypeError} if missing/wrong arguments.
 	 * @throws {InvalidStateError} if already loaded.
 	 */
@@ -223,9 +208,6 @@ export default class Device
 	/**
 	 * Whether we can produce audio/video.
 	 *
-	 * @param {String} kind - 'audio' or 'video'.
-	 *
-	 * @returns {Boolean}
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
@@ -242,18 +224,6 @@ export default class Device
 	/**
 	 * Creates a Transport for sending media.
 	 *
-	 * @param {String} - Server-side Transport id.
-	 * @param {RTCIceParameters} iceParameters - Server-side Transport ICE parameters.
-	 * @param {Array<RTCIceCandidate>} [iceCandidates] - Server-side Transport ICE candidates.
-	 * @param {RTCDtlsParameters} dtlsParameters - Server-side Transport DTLS parameters.
-	 * @param {Object} [sctpParameters] - Server-side SCTP parameters.
-	 * @param {Array<RTCIceServer>} [iceServers] - Array of ICE servers.
-	 * @param {RTCIceTransportPolicy} [iceTransportPolicy] - ICE transport policy.
-	 * @param {Object} [additionalSettings] - RTCPeerConnection additional settings.
-	 * @param {Object} [proprietaryConstraints] - RTCPeerConnection proprietary constraints.
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @returns {Transport}
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
@@ -293,18 +263,6 @@ export default class Device
 	/**
 	 * Creates a Transport for receiving media.
 	 *
-	 * @param {String} - Server-side Transport id.
-	 * @param {RTCIceParameters} iceParameters - Server-side Transport ICE parameters.
-	 * @param {Array<RTCIceCandidate>} [iceCandidates] - Server-side Transport ICE candidates.
-	 * @param {RTCDtlsParameters} dtlsParameters - Server-side Transport DTLS parameters.
-	 * @param {Object} [sctpParameters] - Server-side SCTP parameters.
-	 * @param {Array<RTCIceServer>} [iceServers] - Array of ICE servers.
-	 * @param {RTCIceTransportPolicy} [iceTransportPolicy] - ICE transport policy.
-	 * @param {Object} [additionalSettings] - RTCPeerConnection additional settings.
-	 * @param {Object} [proprietaryConstraints] - RTCPeerConnection proprietary constraints.
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @returns {Transport}
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */

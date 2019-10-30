@@ -2,9 +2,9 @@ const eslintConfig =
 {
 	env :
 	{
-		browser: true,
-		es6  : true,
-		node : true,
+		browser : true,
+		es6     : true,
+		node    : true
 		// 'jest/globals': true
 	},
 	plugins       : [],

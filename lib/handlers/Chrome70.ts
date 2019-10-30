@@ -17,27 +17,21 @@ const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 class Handler extends EnhancedEventEmitter
 {
 	// Got transport local and remote parameters.
-	// @type {Boolean}
-	protected _transportReady: boolean;
+	protected _transportReady = false;
 
 	// Remote SDP handler.
-	// @type {RemoteSdp}
 	protected _remoteSdp: RemoteSdp;
 
 	// RTCPeerConnection instance.
-	// @type {RTCPeerConnection}
 	protected _pc: any;
 
 	// Map of RTCTransceivers indexed by MID.
-	// @type {Map<String, RTCTransceiver>}
 	protected _mapMidTransceiver: Map<string, any>;
 
 	// Whether a DataChannel m=application section has been created.
-	// @type {Boolean}
 	protected _hasDataChannelMediaSection = false;
 
 	// DataChannel id value counter. It must be incremented for each new DataChannel.
-	// @type {Number}
 	protected _nextSctpStreamId = 0;
 
 	constructor(
@@ -65,8 +59,6 @@ class Handler extends EnhancedEventEmitter
 	{
 		super(logger);
 
-		this._transportReady = false;
-
 		this._remoteSdp = new RemoteSdp(
 			{
 				iceParameters,
@@ -87,10 +79,6 @@ class Handler extends EnhancedEventEmitter
 			proprietaryConstraints);
 
 		this._mapMidTransceiver = new Map();
-
-		this._hasDataChannelMediaSection = false;
-
-		this._nextSctpStreamId = 0;
 
 		// Handle RTCPeerConnection connection status.
 		this._pc.addEventListener('iceconnectionstatechange', () =>
@@ -174,16 +162,13 @@ class Handler extends EnhancedEventEmitter
 class SendHandler extends Handler
 {
 	// Generic sending RTP parameters for audio and video.
-	// @type {RTCRtpParameters}
 	private _sendingRtpParametersByKind: any;
 
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	// @type {RTCRtpParameters}
 	private _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	// @type {MediaStream}
 	private _stream: MediaStream;
 
 	constructor(data: any)
@@ -527,14 +512,11 @@ class RecvHandler extends Handler
 {
 	// MID value counter. It must be converted to string and incremented for
 	// each new m= section.
-	// @type {Number}
-	private _nextMid: number;
+	private _nextMid = 0;
 
 	constructor(data: any)
 	{
 		super(data);
-
-		this._nextMid = 0;
 	}
 
 	async receive(

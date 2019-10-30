@@ -26,7 +26,7 @@ export class Consumer extends EnhancedEventEmitter
 	private _producerId: string;
 
 	// Closed flag.
-	private _closed: boolean;
+	private _closed = false;
 
 	// Remote track.
 	private _track: MediaStreamTrack;
@@ -75,8 +75,6 @@ export class Consumer extends EnhancedEventEmitter
 
 		this._producerId = producerId;
 
-		this._closed = false;
-
 		this._track = track;
 
 		this._rtpParameters = rtpParameters;
@@ -92,8 +90,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Consumer id.
-	 *
-	 * @returns {String}
 	 */
 	get id(): string
 	{
@@ -104,7 +100,6 @@ export class Consumer extends EnhancedEventEmitter
 	 * Local id.
 	 *
 	 * @private
-	 * @returns {String}
 	 */
 	get localId(): string
 	{
@@ -113,8 +108,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Associated Producer id.
-	 *
-	 * @returns {String}
 	 */
 	get producerId(): string
 	{
@@ -123,8 +116,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Whether the Consumer is closed.
-	 *
-	 * @returns {Boolean}
 	 */
 	get closed(): boolean
 	{
@@ -133,8 +124,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Media kind.
-	 *
-	 * @returns {String}
 	 */
 	get kind(): string
 	{
@@ -143,8 +132,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * The associated track.
-	 *
-	 * @returns {MediaStreamTrack}
 	 */
 	get track(): MediaStreamTrack
 	{
@@ -153,8 +140,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * RTP parameters.
-	 *
-	 * @returns {RTCRtpParameters}
 	 */
 	get rtpParameters(): RtpParameters
 	{
@@ -163,8 +148,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Whether the Consumer is paused.
-	 *
-	 * @returns {Boolean}
 	 */
 	get paused(): boolean
 	{
@@ -173,8 +156,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * App custom data.
-	 *
-	 * @returns {Object}
 	 */
 	get appData(): object
 	{
@@ -228,8 +209,6 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * Get associated RTCRtpReceiver stats.
 	 *
-	 * @async
-	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Consumer closed.
 	 */
 	async getStats(): Promise<any>

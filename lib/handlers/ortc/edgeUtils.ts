@@ -50,9 +50,6 @@ export function getCapabilities(): RtpCapabilities
 
 /**
  * Generate RTCRtpParameters as Edge like them.
- *
- * @param  {RTCRtpParameters} rtpParameters
- * @returns {RTCRtpParameters}
  */
 export function mangleRtpParameters(rtpParameters: RtpParameters): RtpParameters
 {

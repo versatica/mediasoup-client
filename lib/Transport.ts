@@ -155,64 +155,49 @@ const logger = new Logger('Transport');
 export class Transport extends EnhancedEventEmitter
 {
 	// Id.
-	// @type {String}
 	private _id: string;
 
 	// Closed flag.
-	// @type {Boolean}
-	private _closed: boolean;
+	private _closed = false;
 
 	// Direction.
-	// @type {String}
 	private _direction: 'send' | 'recv';
 
 	// Extended RTP capabilities.
-	// @type {Object}
 	private _extendedRtpCapabilities: any;
 
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
-	// @type {Object}
 	private _canProduceByKind: CanProduceByKind;
 
 	// SCTP max message size if enabled, null otherwise.
-	// @type {Number|Null}
 	private _maxSctpMessageSize?: number | null;
 
 	// RTC handler instance.
-	// @type {Handler}
 	private _handler: any;
 
 	// Transport connection state. Values can be:
-	// @type {String}
 	private _connectionState: ConnectionState;
 
 	// App custom data.
-	// @type {Object}
 	private _appData: object;
 
 	// Map of Producers indexed by id.
-	// @type {Map<String, Producer>}
 	private _producers: Map<string, Producer>;
 
 	// Map of Consumers indexed by id.
-	// @type {Map<String, Consumer>}
 	private _consumers: Map<string, Consumer>;
 
 	// Map of DataProducers indexed by id.
-	// @type {Map<String, DataProducer>}
 	private _dataProducers: Map<string, DataProducer>;
 
 	// Map of DataConsumers indexed by id.
-	// @type {Map<String, DataConsumer>}
 	private _dataConsumers: Map<string, DataConsumer>;
 
 	// Whether the Consumer for RTP probation has been created.
-	// @type {Boolean}
-	private _probatorConsumerCreated: boolean;
+	private _probatorConsumerCreated = false;
 
 	// AwaitQueue instance to make async tasks happen sequentially.
-	// @type {AwaitQueue}
 	private _awaitQueue: AwaitQueue;
 
 	/**
@@ -247,8 +232,6 @@ export class Transport extends EnhancedEventEmitter
 		logger.debug('constructor() [id:%s, direction:%s]', id, direction);
 
 		this._id = id;
-
-		this._closed = false;
 
 		this._direction = direction;
 
@@ -294,8 +277,6 @@ export class Transport extends EnhancedEventEmitter
 
 		this._dataConsumers = new Map();
 
-		this._probatorConsumerCreated = false;
-
 		this._awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 		this._handleHandler();
@@ -303,8 +284,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Transport id.
-	 *
-	 * @returns {String}
 	 */
 	get id(): string
 	{
@@ -313,8 +292,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Whether the Transport is closed.
-	 *
-	 * @returns {Boolean}
 	 */
 	get closed(): boolean
 	{
@@ -323,8 +300,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Transport direction.
-	 *
-	 * @returns {String}
 	 */
 	get direction(): 'send' | 'recv'
 	{
@@ -333,8 +308,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * RTC handler instance.
-	 *
-	 * @returns {Handler}
 	 */
 	get handler(): any
 	{
@@ -343,8 +316,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Connection state.
-	 *
-	 * @returns {ConnectionState}
 	 */
 	get connectionState(): ConnectionState
 	{
@@ -353,8 +324,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * App custom data.
-	 *
-	 * @returns {Object}
 	 */
 	get appData(): object
 	{
@@ -419,7 +388,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Get associated Transport (RTCPeerConnection) stats.
 	 *
-	 * @async
 	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Transport closed.
 	 */
@@ -434,9 +402,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Restart ICE connection.
 	 *
-	 * @param {RTCIceParameters} iceParameters - New Server-side Transport ICE parameters.
-	 *
-	 * @async
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 */
@@ -460,9 +425,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Update ICE servers.
 	 *
-	 * @param {Array<RTCIceServer>} [iceServers] - Array of ICE servers.
-	 *
-	 * @async
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 */
@@ -486,13 +448,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Create a Producer.
 	 *
-	 * @param {MediaStreamTrack} track - Track to sent.
-	 * @param {Array<RTCRtpCodingParameters>} [encodings] - Encodings.
-	 * @param {Object} [codecOptions] - Codec options.
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @async
-	 * @returns {Producer}
 	 * @throws {InvalidStateError} if Transport closed or track ended.
 	 * @throws {TypeError} if wrong arguments.
 	 * @throws {UnsupportedError} if Transport direction is incompatible or
@@ -605,14 +560,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Create a Consumer to consume a remote Producer.
 	 *
-	 * @param {String} id - Server-side Consumer id.
-	 * @param {String} producerId - Server-side Producer id.
-	 * @param {String} kind - 'audio' or 'video'.
-	 * @param {RTCRtpParameters} rtpParameters - Server-side Consumer RTP parameters.
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @async
-	 * @returns {Consumer}
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 * @throws {UnsupportedError} if Transport direction is incompatible.
@@ -699,16 +646,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Create a DataProducer
 	 *
-	 * @param {Boolean} [ordered=true]
-	 * @param {Number} [maxPacketLifeTime]
-	 * @param {Number} [maxRetransmits]
-	 * @param {String} [priority='low'] // 'very-low' / 'low' / 'medium' / 'high'
-	 * @param {String} [label='']
-	 * @param {String} [protocol='']
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @async
-	 * @returns {DataProducer}
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 * @throws {UnsupportedError} if Transport direction is incompatible or remote
@@ -779,16 +716,6 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Create a DataConsumer
 	 *
-	 * @param {String} id - Server-side DataConsumer id.
-	 * @param {String} dataProducerId - Server-side DataProducer id.
-	 * @param {RTCSctpStreamParameters} sctpStreamParameters - Server-side DataConsumer
-	 *   SCTP parameters.
-	 * @param {String} [label='']
-	 * @param {String} [protocol='']
-	 * @param {Object} [appData={}] - Custom app data.
-	 *
-	 * @async
-	 * @returns {DataConsumer}
 	 * @throws {InvalidStateError} if Transport closed.
 	 * @throws {TypeError} if wrong arguments.
 	 * @throws {UnsupportedError} if Transport direction is incompatible or remote

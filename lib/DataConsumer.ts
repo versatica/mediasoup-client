@@ -15,11 +15,22 @@ const logger = new Logger('DataConsumer');
 
 export class DataConsumer extends EnhancedEventEmitter
 {
+	// Id.
 	private _id: string;
+
+	// Associated DataProducer Id.
 	private _dataProducerId: string;
+
+	// The underlying RTCDataChannel instance.
 	private _dataChannel: any;
-	private _closed: boolean;
+
+	// Closed flag.
+	private _closed = false;
+
+	// SCTP stream parameters.
 	private _sctpStreamParameters: any;
+
+	// App custom data.
 	private _appData: object;
 
 	/**
@@ -51,22 +62,14 @@ export class DataConsumer extends EnhancedEventEmitter
 	{
 		super(logger);
 
-		// Id.
 		this._id = id;
 
-		// Associated DataProducer Id.
 		this._dataProducerId = dataProducerId;
 
-		// The underlying RTCDataChannel instance.
 		this._dataChannel = dataChannel;
 
-		// Closed flag.
-		this._closed = false;
-
-		// SCTP stream parameters.
 		this._sctpStreamParameters = sctpStreamParameters;
 
-		// App custom data.
 		this._appData = appData;
 
 		this._handleDataChannel();

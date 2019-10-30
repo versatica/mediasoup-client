@@ -26,35 +26,27 @@ const logger = new Logger('Producer');
 export class Producer extends EnhancedEventEmitter
 {
 	// Id.
-	// @type {String}
 	private _id: string;
 
 	// Local id.
-	// @type {String}
 	private _localId: string;
 
 	// Closed flag.
-	// @type {Boolean}
-	private _closed: boolean;
+	private _closed = false;
 
 	// Local track.
-	// @type {MediaStreamTrack}
 	private _track: MediaStreamTrack;
 
 	// RTP parameters.
-	// @type {RTCRtpParameters}
 	private _rtpParameters: RtpParameters;
 
 	// Paused flag.
-	// @type {Boolean}
 	private _paused: boolean;
 
 	// Video max spatial layer.
-	// @type {Number|Undefined}
 	private _maxSpatialLayer: number | undefined;
 
 	// App custom data.
-	// @type {Object}
 	private _appData: object;
 
 	/**
@@ -90,8 +82,6 @@ export class Producer extends EnhancedEventEmitter
 
 		this._localId = localId;
 
-		this._closed = false;
-
 		this._track = track;
 
 		this._rtpParameters = rtpParameters;
@@ -109,8 +99,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * Producer id.
-	 *
-	 * @returns {String}
 	 */
 	get id(): string
 	{
@@ -121,7 +109,6 @@ export class Producer extends EnhancedEventEmitter
 	 * Local id.
 	 *
 	 * @private
-	 * @returns {String}
 	 */
 	get localId(): string
 	{
@@ -130,8 +117,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * Whether the Producer is closed.
-	 *
-	 * @returns {Boolean}
 	 */
 	get closed(): boolean
 	{
@@ -140,8 +125,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * Media kind.
-	 *
-	 * @returns {String}
 	 */
 	get kind(): string
 	{
@@ -150,8 +133,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * The associated track.
-	 *
-	 * @returns {MediaStreamTrack}
 	 */
 	get track(): MediaStreamTrack
 	{
@@ -160,8 +141,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * RTP parameters.
-	 *
-	 * @returns {RTCRtpParameters}
 	 */
 	get rtpParameters(): RtpParameters
 	{
@@ -170,8 +149,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * Whether the Producer is paused.
-	 *
-	 * @returns {Boolean}
 	 */
 	get paused(): boolean
 	{
@@ -190,8 +167,6 @@ export class Producer extends EnhancedEventEmitter
 
 	/**
 	 * App custom data.
-	 *
-	 * @returns {Object}
 	 */
 	get appData(): object
 	{
@@ -245,8 +220,6 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Get associated RTCRtpSender stats.
 	 *
-	 * @promise
-	 * @returns {RTCStatsReport}
 	 * @throws {InvalidStateError} if Producer closed.
 	 */
 	async getStats(): Promise<any>
@@ -296,9 +269,6 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Replaces the current track with a new one.
 	 *
-	 * @param {MediaStreamTrack} track - New track.
-	 *
-	 * @async
 	 * @throws {InvalidStateError} if Producer closed or track ended.
 	 * @throws {TypeError} if wrong arguments.
 	 */
@@ -346,9 +316,6 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Sets the video max spatial layer to be sent.
 	 *
-	 * @param {Number} spatialLayer
-	 *
-	 * @async
 	 * @throws {InvalidStateError} if Producer closed.
 	 * @throws {UnsupportedError} if not a video Producer.
 	 * @throws {TypeError} if wrong arguments.

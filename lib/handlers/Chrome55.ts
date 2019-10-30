@@ -17,24 +17,19 @@ const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 class Handler extends EnhancedEventEmitter
 {
 	// Got transport local and remote parameters.
-	// @type {Boolean}
-	protected _transportReady: boolean;
+	protected _transportReady = false;
 
 	// Remote SDP handler.
-	// @type {RemoteSdp}
 	protected _remoteSdp: RemoteSdp;
 
 	// RTCPeerConnection instance.
-	// @type {RTCPeerConnection}
 	protected _pc: any;
 
 	// Whether a DataChannel m=application section has been created.
-	// @type {Boolean}
-	protected _hasDataChannelMediaSection: boolean;
+	protected _hasDataChannelMediaSection = false;
 
 	// DataChannel id value counter. It must be incremented for each new DataChannel.
-	// @type {Number}
-	protected _nextSctpStreamId: number;
+	protected _nextSctpStreamId = 0;
 
 	constructor(
 		{
@@ -61,12 +56,6 @@ class Handler extends EnhancedEventEmitter
 	{
 		super(logger);
 
-		// Got transport local and remote parameters.
-		// @type {Boolean}
-		this._transportReady = false;
-
-		// Remote SDP handler.
-		// @type {RemoteSdp}
 		this._remoteSdp = new RemoteSdp(
 			{
 				iceParameters,
@@ -76,8 +65,6 @@ class Handler extends EnhancedEventEmitter
 				planB : true
 			});
 
-		// RTCPeerConnection instance.
-		// @type {RTCPeerConnection}
 		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
@@ -88,14 +75,6 @@ class Handler extends EnhancedEventEmitter
 				...additionalSettings
 			},
 			proprietaryConstraints);
-
-		// Whether a DataChannel m=application section has been created.
-		// @type {Boolean}
-		this._hasDataChannelMediaSection = false;
-
-		// DataChannel id value counter. It must be incremented for each new DataChannel.
-		// @type {Number}
-		this._nextSctpStreamId = 0;
 
 		// Handle RTCPeerConnection connection status.
 		this._pc.addEventListener('iceconnectionstatechange', () =>
@@ -179,25 +158,20 @@ class Handler extends EnhancedEventEmitter
 export class SendHandler extends Handler
 {
 	// Generic sending RTP parameters for audio and video.
-	// @type {RTCRtpParameters}
 	private _sendingRtpParametersByKind: any;
 
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	// @type {RTCRtpParameters}
 	private _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	// @type {MediaStream}
 	private _stream: MediaStream;
 
 	// Map of MediaStreamTracks indexed by localId.
-	// @type {Map<String, MediaStreamTracks>}
 	private _mapIdTrack: Map<string, any>;
 
 	// Latest localId.
-	// @type {Number}
-	private _lastId: number;
+	private _lastId = 0;
 
 	constructor(data: any)
 	{
@@ -210,8 +184,6 @@ export class SendHandler extends Handler
 		this._stream = new MediaStream();
 
 		this._mapIdTrack = new Map();
-
-		this._lastId = 0;
 	}
 
 	async send(
@@ -500,16 +472,12 @@ class RecvHandler extends Handler
 {
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
 	// Value is an Object with mid and rtpParameters.
-	// @type {Map<String, Object>}
 	private _mapIdRtpParameters: Map<string, any>;
 
 	constructor(data: any)
 	{
 		super(data);
 
-		// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
-		// Value is an Object with mid and rtpParameters.
-		// @type {Map<String, Object>}
 		this._mapIdRtpParameters = new Map();
 	}
 

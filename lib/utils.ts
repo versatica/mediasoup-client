@@ -15,8 +15,6 @@ export function clone(obj: any): any
 
 /**
  * Generates a random positive integer.
- *
- * @returns {Number}
  */
 export function generateRandomNumber(): number
 {

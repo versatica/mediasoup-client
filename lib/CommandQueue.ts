@@ -25,8 +25,6 @@ export default class CommandQueue
 
 	/**
 	 * @param {Function} command - Function that returns a promise.
-	 *
-	 * @async
 	 */
 	async push(command: any): Promise<any>
 	{

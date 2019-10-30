@@ -1,17 +1,17 @@
 import * as h264 from 'h264-profile-level-id';
-import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './types'
+import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './types';
 
 const PROBATOR_SSRC = 1234;
 
 /**
  * Generate extended RTP capabilities for sending and receiving.
  *
- * @param {RTCRtpCapabilities} localCaps - Local capabilities.
- * @param {RTCRtpCapabilities} remoteCaps - Remote capabilities.
- *
  * @returns {RTCExtendedRtpCapabilities}
  */
-export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
+export function getExtendedRtpCapabilities(
+	localCaps: RtpCapabilities,
+	remoteCaps: RtpCapabilities
+): any
 {
 	const extendedRtpCapabilities: any =
 	{
@@ -131,10 +131,8 @@ export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
  * RTP capabilities.
  *
  * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
- *
- * @returns {RTCRtpCapabilities}
  */
-export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
+export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabilities
 {
 	const rtpCapabilities: RtpCapabilities =
 	{
@@ -214,10 +212,8 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
  *
  * @param {kind} kind
  * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
- *
- * @returns {RTCRtpParameters}
  */
-export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
+export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters
 {
 	const rtpParameters: RtpParameters =
 	{
@@ -301,10 +297,8 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
  *
  * @param {kind} kind
  * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
- *
- * @returns {RTCRtpParameters}
  */
-export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
+export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters
 {
 	const rtpParameters: RtpParameters =
 	{
@@ -425,8 +419,6 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
  *
  * @param {String} kind
  * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
- *
- * @returns {Boolean}
  */
 export function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): boolean
 {
@@ -440,10 +432,10 @@ export function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): 
  *
  * @param {RTCRtpParameters} rtpParameters
  * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
- *
- * @returns {Boolean}
  */
-export function canReceive(rtpParameters: any, extendedRtpCapabilities: any): boolean
+export function canReceive(
+	rtpParameters: RtpParameters, extendedRtpCapabilities: any
+): boolean
 {
 	if (rtpParameters.codecs.length === 0)
 		return false;
@@ -456,13 +448,10 @@ export function canReceive(rtpParameters: any, extendedRtpCapabilities: any): bo
 
 /**
  * Create RTP parameters for a Consumer for the RTP probator.
- *
- * @param {RTCRtpParameters} videoRtpParameters - RTP parameters of any regular video
- *   Consumer.
- *
- * @return {RTCRtpParameters}
  */
-export function generateProbatorRtpParameters(videoRtpParameters: any): any
+export function generateProbatorRtpParameters(
+	videoRtpParameters: RtpParameters
+): RtpParameters
 {
 	const rtpParameters: RtpParameters =
 	{
@@ -489,7 +478,9 @@ export function generateProbatorRtpParameters(videoRtpParameters: any): any
 	return rtpParameters;
 }
 
-function matchCodecs(aCodec: any, bCodec: any, { strict = false, modify = false } = {}): boolean
+function matchCodecs(
+	aCodec: any, bCodec: any, { strict = false, modify = false } = {}
+): boolean
 {
 	const aMimeType = aCodec.mimeType.toLowerCase();
 	const bMimeType = bCodec.mimeType.toLowerCase();

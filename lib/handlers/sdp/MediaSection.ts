@@ -3,12 +3,10 @@ import * as utils from '../../utils';
 abstract class MediaSection
 {
 	// SDP media object.
-	// @type {Object}
 	protected _mediaObject: any;
 
 	// Whether this is Plan-B SDP.
-	// @type {Boolean}
-	protected _planB: boolean;
+	protected _planB = false;
 
 	constructor(
 		{
@@ -69,25 +67,16 @@ abstract class MediaSection
 
 	abstract setDtlsRole(role: 'client' | 'server' | 'auto'): void;
 
-	/**
-	 * @returns {String}
-	 */
 	get mid(): string
 	{
 		return String(this._mediaObject.mid);
 	}
 
-	/**
-	 * @returns {Boolean}
-	 */
 	get closed(): boolean
 	{
 		return this._mediaObject.port === 0;
 	}
 
-	/**
-	 * @returns {Object}
-	 */
 	getObject(): object
 	{
 		return this._mediaObject;
@@ -336,7 +325,7 @@ export class AnswerMediaSection extends MediaSection
 				// Simulcast (draft version 03).
 				else if (offerMediaObject.simulcast_03)
 				{
-					// eslint-disable-next-line @typescript-eslint/camelcase
+					// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 					this._mediaObject.simulcast_03 =
 					{
 						value : offerMediaObject.simulcast_03.value.replace(/send/g, 'recv')

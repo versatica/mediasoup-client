@@ -40,24 +40,19 @@ export default class Edge11 extends EnhancedEventEmitter
 	}
 
 	// Generic sending RTP parameters for audio and video.
-	// @type {Object}
 	private _sendingRtpParametersByKind: RtpParametersByKind;
 
 	// Transport remote ICE parameters.
-	// @type {RTCIceParameters}
 	private _remoteIceParameters: IceParameters;
 
 	// Transport remote ICE candidates.
-	// @type {Array<RTCIceCandidate>}
 	private _remoteIceCandidates: IceCandidate[];
 
 	// Transport remote DTLS parameters.
-	// @type {RTCDtlsParameters}
 	private _remoteDtlsParameters: DtlsParameters;
 
 	// Got transport local and remote parameters.
-	// @type {Boolean}
-	private _transportReady: boolean;
+	private _transportReady = false;
 
 	// ICE gatherer.
 	private _iceGatherer: any;
@@ -66,23 +61,18 @@ export default class Edge11 extends EnhancedEventEmitter
 	private _iceTransport: any;
 
 	// DTLS transport.
-	// @type {RTCDtlsTransport}
 	private _dtlsTransport: any;
 
 	// Map of RTCRtpSenders indexed by id.
-	// @type {Map<String, RTCRtpSender}
 	private _rtpSenders: Map<string, RTCRtpSender>;
 
 	// Map of RTCRtpReceivers indexed by id.
-	// @type {Map<String, RTCRtpReceiver}
 	private _rtpReceivers: Map<string, RTCRtpReceiver>;
 
 	// Latest localId for sending tracks.
-	// @type {Number}
-	private _lastSendId: number;
+	private _lastSendId = 0;
 
 	// Local RTCP CNAME.
-	// @type {String}
 	private _cname: string;
 
 	constructor(
@@ -124,8 +114,6 @@ export default class Edge11 extends EnhancedEventEmitter
 
 		this._remoteDtlsParameters = dtlsParameters;
 
-		this._transportReady = false;
-
 		this._iceGatherer = null;
 
 		this._iceTransport = null;
@@ -135,8 +123,6 @@ export default class Edge11 extends EnhancedEventEmitter
 		this._rtpSenders = new Map();
 
 		this._rtpReceivers = new Map();
-
-		this._lastSendId = 0;
 
 		this._cname = `CNAME-${utils.generateRandomNumber()}`;
 
