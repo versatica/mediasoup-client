@@ -36,7 +36,6 @@
     "debug": "^4.1.1",
     "events": "^3.0.0",
     "h264-profile-level-id": "^1.0.0",
-    "npm-check-updates": "^3.1.25",
     "sdp-transform": "^2.13.0"
   },
   "devDependencies": {
