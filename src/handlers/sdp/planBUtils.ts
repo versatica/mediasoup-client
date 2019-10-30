@@ -1,4 +1,4 @@
-import { RtpEncodingParameters } from '../../types';
+import { RtpEncodingParameters } from '../../RtpParametersAndCapabilities';
 
 /**
  * Get RTP encodings.

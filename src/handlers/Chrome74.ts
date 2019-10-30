@@ -8,7 +8,7 @@ import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import RemoteSdp from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters } from './../Transport';
-import { RtpParameters } from '../types';
+import { RtpParameters } from '../RtpParametersAndCapabilities';
 
 const logger = new Logger('Chrome74');
 

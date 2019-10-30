@@ -1,6 +1,6 @@
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { SctpStreamParameters } from './types';
+import { SctpStreamParameters } from './RtpParametersAndCapabilities';
 
 export interface DataConsumerOptions {
 	id: string;

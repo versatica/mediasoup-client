@@ -8,7 +8,7 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpPlanBUtils from './sdp/planBUtils';
 import RemoteSdp from './sdp/RemoteSdp';
 import { IceParameters } from './../Transport';
-import { RtpParameters } from '../types';
+import { RtpParameters } from '../RtpParametersAndCapabilities';
 
 const logger = new Logger('Chrome55');
 

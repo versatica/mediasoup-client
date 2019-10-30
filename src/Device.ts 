@@ -12,7 +12,7 @@ import Safari12 from './handlers/Safari12';
 import Safari11 from './handlers/Safari11';
 import Edge11 from './handlers/Edge11';
 import ReactNative from './handlers/ReactNative';
-import { RtpCapabilities } from './RtpParametersAndCapabilities';
+import { RtpCapabilities } from './types';
 
 const logger = new Logger('Device');
 

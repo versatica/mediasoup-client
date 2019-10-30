@@ -5,7 +5,7 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as edgeUtils from './ortc/edgeUtils';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
-import { RtpParameters, RtpEncodingParameters } from '../RtpParametersAndCapabilities';
+import { RtpParameters, RtpEncodingParameters } from '../types';
 
 const logger = new Logger('Edge11');
 

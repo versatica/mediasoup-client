@@ -1,5 +1,5 @@
 import * as h264 from 'h264-profile-level-id';
-import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './RtpParametersAndCapabilities';
+import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './types';
 
 const PROBATOR_SSRC = 1234;
 

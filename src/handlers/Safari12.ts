@@ -8,7 +8,7 @@ import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import RemoteSdp from './sdp/RemoteSdp';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
-import { RtpParameters } from '../types';
+import { RtpParameters } from '../RtpParametersAndCapabilities';
 
 const logger = new Logger('Safari12');
 
