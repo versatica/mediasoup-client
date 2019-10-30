@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../../Logger';
 import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../../Transport';

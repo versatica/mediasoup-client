@@ -2,7 +2,7 @@ import Logger from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import detectDevice from './detectDevice';
 import * as ortc from './ortc';
-import { Transport, TransportOptions } from './Transport';
+import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import Chrome74 from './handlers/Chrome74';
 import Chrome70 from './handlers/Chrome70';
 import Chrome67 from './handlers/Chrome67';
@@ -15,12 +15,6 @@ import ReactNative from './handlers/ReactNative';
 import { RtpCapabilities } from './types';
 
 const logger = new Logger('Device');
-
-interface CanProduceByKind
-{
-	audio: boolean;
-	video: boolean;
-}
 
 interface InternalTransportOptions extends TransportOptions
 {

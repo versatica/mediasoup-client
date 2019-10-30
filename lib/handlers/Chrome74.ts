@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import * as utils from '../utils';
@@ -75,7 +75,7 @@ class Handler extends EnhancedEventEmitter
 				sctpParameters
 			});
 
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -734,7 +734,7 @@ class RecvHandler extends Handler
 
 export default class Chrome74
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'Chrome74';
 	}
@@ -743,7 +743,7 @@ export default class Chrome74
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const pc = new RTCPeerConnection(
+		const pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : [],
 				iceTransportPolicy : 'all',

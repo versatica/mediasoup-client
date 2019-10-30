@@ -5,7 +5,7 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as edgeUtils from './ortc/edgeUtils';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
-import { RtpParameters } from '../types';
+import { RtpParameters, RtpEncodingParameters } from '../types';
 
 const logger = new Logger('Edge11');
 
@@ -18,7 +18,7 @@ type RtpParametersByKind =
 
 export default class Edge11 extends EnhancedEventEmitter
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'Edge11';
 	}
@@ -184,7 +184,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	async send(
 		{ track, encodings }:
-		{ track: MediaStreamTrack; encodings: RTCRtpEncodingParameters }
+		{ track: MediaStreamTrack; encodings: RtpEncodingParameters[] }
 	): Promise<any>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -194,7 +194,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 		logger.debug('send() | calling new RTCRtpSender()');
 
-		const rtpSender = new RTCRtpSender(track, this._dtlsTransport);
+		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters =
 			utils.clone(this._sendingRtpParametersByKind[track.kind]);
 		const useRtx = rtpParameters.codecs
@@ -340,7 +340,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 		logger.debug('receive() | calling new RTCRtpReceiver()');
 
-		const rtpReceiver = new RTCRtpReceiver(this._dtlsTransport, kind);
+		const rtpReceiver = new (RTCRtpReceiver as any)(this._dtlsTransport, kind);
 
 		rtpReceiver.addEventListener('error', (event: any) =>
 		{
@@ -445,7 +445,7 @@ export default class Edge11 extends EnhancedEventEmitter
 		{ iceServers: RTCIceServer[]; iceTransportPolicy: RTCIceTransportPolicy }
 	): void
 	{
-		const iceGatherer = new RTCIceGatherer(
+		const iceGatherer = new (RTCIceGatherer as any)(
 			{
 				iceServers   : iceServers || [],
 				gatherPolicy : iceTransportPolicy || 'all'
@@ -472,7 +472,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	_setIceTransport(): void
 	{
-		const iceTransport = new RTCIceTransport(this._iceGatherer);
+		const iceTransport = new (RTCIceTransport as any)(this._iceGatherer);
 
 		// NOTE: Not yet implemented by Edge.
 		iceTransport.addEventListener('statechange', () =>
@@ -533,7 +533,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	_setDtlsTransport(): void
 	{
-		const dtlsTransport = new RTCDtlsTransport(this._iceTransport);
+		const dtlsTransport = new (RTCDtlsTransport as any)(this._iceTransport);
 
 		// NOTE: Not yet implemented by Edge.
 		dtlsTransport.addEventListener('statechange', () =>

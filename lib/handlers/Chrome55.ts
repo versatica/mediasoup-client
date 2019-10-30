@@ -78,7 +78,7 @@ class Handler extends EnhancedEventEmitter
 
 		// RTCPeerConnection instance.
 		// @type {RTCPeerConnection}
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -704,7 +704,7 @@ class RecvHandler extends Handler
 
 export default class Chrome55
 {
-	static get name(): name
+	static get label(): string
 	{
 		return 'Chrome55';
 	}
@@ -713,7 +713,7 @@ export default class Chrome55
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const pc = new RTCPeerConnection(
+		const pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : [],
 				iceTransportPolicy : 'all',

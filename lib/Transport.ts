@@ -6,10 +6,10 @@ import * as utils from './utils';
 import * as ortc from './ortc';
 import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
-import DataProducer from './DataProducer';
-import DataConsumer from './DataConsumer';
+import { DataProducer, DataProducerOptions } from './DataProducer';
+import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 
-type CanProduceByKind =
+export interface CanProduceByKind
 {
 	audio: boolean;
 	video: boolean;
@@ -27,7 +27,7 @@ export interface TransportOptions
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
-	appData?: any;
+	appData?: object;
 }
 
 export interface IceParameters
@@ -181,7 +181,7 @@ export class Transport extends EnhancedEventEmitter
 
 	// RTC handler instance.
 	// @type {Handler}
-	private _handler: Handler;
+	private _handler: any;
 
 	// Transport connection state. Values can be:
 	// @type {String}
@@ -189,7 +189,7 @@ export class Transport extends EnhancedEventEmitter
 
 	// App custom data.
 	// @type {Object}
-	private _appData: any;
+	private _appData: object;
 
 	// Map of Producers indexed by id.
 	// @type {Map<String, Producer>}
@@ -336,7 +336,7 @@ export class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {Handler}
 	 */
-	get handler(): Handler
+	get handler(): any
 	{
 		return this._handler;
 	}
@@ -356,7 +356,7 @@ export class Transport extends EnhancedEventEmitter
 	 *
 	 * @returns {Object}
 	 */
-	get appData(): any
+	get appData(): object
 	{
 		return this._appData;
 	}
@@ -364,7 +364,7 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: any) // eslint-disable-line no-unused-vars
+	set appData(appData: object) // eslint-disable-line no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}
@@ -723,17 +723,8 @@ export class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		}:
-		{
-			ordered: boolean;
-			maxPacketLifeTime: number;
-			maxRetransmits: number;
-			priority: string;
-			label: string;
-			protocol: string;
-			appData: any;
-		}
-	): DataProducer
+		}: DataProducerOptions
+	): Promise<DataProducer>
 	{
 		logger.debug('produceData()');
 
@@ -811,8 +802,8 @@ export class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		} = {}
-	): Consumer
+		}: DataConsumerOptions
+	): Promise<DataConsumer>
 	{
 		logger.debug('consumeData()');
 
@@ -864,7 +855,11 @@ export class Transport extends EnhancedEventEmitter
 	{
 		const handler = this._handler;
 
-		handler.on('@connect', ({ dtlsParameters }, callback, errback) =>
+		handler.on('@connect', (
+			{ dtlsParameters }: { dtlsParameters: DtlsParameters },
+			callback: Function,
+			errback: Function
+		) =>
 		{
 			if (this._closed)
 			{
@@ -876,7 +871,7 @@ export class Transport extends EnhancedEventEmitter
 			this.safeEmit('connect', { dtlsParameters }, callback, errback);
 		});
 
-		handler.on('@connectionstatechange', (connectionState) =>
+		handler.on('@connectionstatechange', (connectionState: ConnectionState) =>
 		{
 			if (connectionState === this._connectionState)
 				return;
@@ -890,7 +885,7 @@ export class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleProducer(producer): void
+	_handleProducer(producer: Producer): void
 	{
 		producer.on('@close', () =>
 		{
@@ -901,7 +896,7 @@ export class Transport extends EnhancedEventEmitter
 
 			this._awaitQueue.push(
 				async () => this._handler.stopSending({ localId: producer.localId }))
-				.catch((error) => logger.warn('producer.close() failed:%o', error));
+				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
 
 		producer.on('@replacetrack', (track, callback, errback) =>
@@ -933,7 +928,7 @@ export class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleConsumer(consumer): void
+	_handleConsumer(consumer: Consumer): void
 	{
 		consumer.on('@close', () =>
 		{
@@ -958,7 +953,7 @@ export class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleDataProducer(dataProducer): void
+	_handleDataProducer(dataProducer: DataProducer): void
 	{
 		dataProducer.on('@close', () =>
 		{
@@ -966,7 +961,7 @@ export class Transport extends EnhancedEventEmitter
 		});
 	}
 
-	_handleDataConsumer(dataConsumer): void
+	_handleDataConsumer(dataConsumer: DataConsumer): void
 	{
 		dataConsumer.on('@close', () =>
 		{

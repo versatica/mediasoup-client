@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import { UnsupportedError } from '../errors';
@@ -76,7 +76,7 @@ class Handler extends EnhancedEventEmitter
 				sctpParameters
 			});
 
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -727,7 +727,7 @@ class RecvHandler extends Handler
 
 export default class Firefox60
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'Firefox60';
 	}
@@ -750,7 +750,7 @@ export default class Firefox60
 		// NOTE: Otherwise Firefox fails in next line.
 		canvas.getContext('2d');
 
-		const fakeStream = canvas.captureStream();
+		const fakeStream = (canvas as any).captureStream();
 		const fakeVideoTrack = fakeStream.getVideoTracks()[0];
 
 		try

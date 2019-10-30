@@ -1,23 +1,24 @@
-const Logger = require('./Logger');
-const { InvalidStateError } = require('./errors');
+import Logger from './Logger';
+import { InvalidStateError } from './errors';
 
 const logger = new Logger('CommandQueue');
 
-class CommandQueue
+export default class CommandQueue
 {
+	private _closed: boolean;
+	private _commands: Function[];
+
 	constructor()
 	{
 		// Closed flag.
-		// @type {Boolean}
 		this._closed = false;
 
 		// Queue of pending commands. Each command is a function that returns a
 		// promise.
-		// @type {Array<Function>}
 		this._commands = [];
 	}
 
-	close()
+	close(): void
 	{
 		this._closed = true;
 	}
@@ -27,7 +28,7 @@ class CommandQueue
 	 *
 	 * @async
 	 */
-	async push(command)
+	async push(command: any): Promise<any>
 	{
 		if (typeof command !== 'function')
 		{
@@ -50,7 +51,7 @@ class CommandQueue
 		});
 	}
 
-	async _next()
+	async _next(): Promise<any>
 	{
 		// Take the first command.
 		const command = this._commands[0];
@@ -68,7 +69,7 @@ class CommandQueue
 		this._next();
 	}
 
-	async _handleCommand(command)
+	async _handleCommand(command: any): Promise<void>
 	{
 		if (this._closed)
 		{
@@ -100,5 +101,3 @@ class CommandQueue
 		}
 	}
 }
-
-module.exports = CommandQueue;

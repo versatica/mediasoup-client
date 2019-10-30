@@ -1,15 +1,15 @@
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
-import { RtpParameters, RtpReceiveParameters } from './types';
+import { RtpParameters } from './types';
 
 export interface ConsumerOptions
 {
 	id: string;
 	producerId: string;
 	kind: 'audio' | 'video';
-	rtpParameters: RtpReceiveParameters;
-	appData?: any;
+	rtpParameters: RtpParameters;
+	appData?: object;
 }
 
 const logger = new Logger('Consumer');
@@ -17,36 +17,28 @@ const logger = new Logger('Consumer');
 export class Consumer extends EnhancedEventEmitter
 {
 	// Id.
-	// @type {String}
 	private _id: string;
 
 	// Local id.
-	// @type {String}
 	private _localId: string;
 
 	// Associated Producer id.
-	// @type {String}
 	private _producerId: string;
 
 	// Closed flag.
-	// @type {Boolean}
 	private _closed: boolean;
 
 	// Remote track.
-	// @type {MediaStreamTrack}
 	private _track: MediaStreamTrack;
 
 	// RTP parameters.
-	// @type {RTCRtpParameters}
 	private _rtpParameters: RtpParameters;
 
 	// Paused flag.
-	// @type {Boolean}
 	private _paused: boolean;
 
 	// App custom data.
-	// @type {Object}
-	private _appData: any;
+	private _appData: object;
 
 	/**
 	 * @private
@@ -71,7 +63,7 @@ export class Consumer extends EnhancedEventEmitter
 			producerId: string;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
-			appData: any;
+			appData: object;
 		}
 	)
 	{
@@ -184,7 +176,7 @@ export class Consumer extends EnhancedEventEmitter
 	 *
 	 * @returns {Object}
 	 */
-	get appData(): any
+	get appData(): object
 	{
 		return this._appData;
 	}

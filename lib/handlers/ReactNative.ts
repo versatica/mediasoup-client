@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import { UnsupportedError } from '../errors';
@@ -73,7 +73,7 @@ class Handler extends EnhancedEventEmitter
 				planB : true
 			});
 
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -749,7 +749,7 @@ class RecvHandler extends Handler
 
 export default class ReactNative
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'ReactNative';
 	}
@@ -758,7 +758,7 @@ export default class ReactNative
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const pc = new RTCPeerConnection(
+		const pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : [],
 				iceTransportPolicy : 'all',

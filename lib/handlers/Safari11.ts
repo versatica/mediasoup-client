@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import { UnsupportedError } from '../errors';
@@ -79,7 +79,7 @@ class Handler extends EnhancedEventEmitter
 
 		// RTCPeerConnection instance.
 		// @type {RTCPeerConnection}
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -736,7 +736,7 @@ class RecvHandler extends Handler
 
 export default class Safari11
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'Safari11';
 	}

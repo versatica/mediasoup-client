@@ -1,4 +1,5 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
+import { RtpCapabilities, RtpCodecCapability } from '../../types';
 
 /**
  * Extract RTP capabilities.
@@ -50,7 +51,7 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): any
 		// Get codecs.
 		for (const rtp of m.rtp)
 		{
-			const codec =
+			const codec: RtpCodecCapability =
 			{
 				mimeType             : `${kind}/${rtp.codec}`,
 				kind                 : kind,
@@ -119,7 +120,7 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): any
 		}
 	}
 
-	const rtpCapabilities =
+	const rtpCapabilities: RtpCapabilities =
 	{
 		codecs           : Array.from(codecsMap.values()),
 		headerExtensions : headerExtensions,

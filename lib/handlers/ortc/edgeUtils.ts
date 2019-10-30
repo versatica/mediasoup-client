@@ -1,14 +1,13 @@
-const utils = require('../../utils');
+import * as utils from '../../utils';
+import { RtpCapabilities, RtpParameters } from '../../types';
 
 /**
  * Normalize Edge's RTCRtpReceiver.getCapabilities() to produce a full
  * compliant ORTC RTCRtpCapabilities.
- *
- * @returns {RTCRtpCapabilities}
  */
-exports.getCapabilities = function()
+export function getCapabilities(): RtpCapabilities
 {
-	const nativeCaps = RTCRtpReceiver.getCapabilities();
+	const nativeCaps = (RTCRtpReceiver as any).getCapabilities();
 	const caps = utils.clone(nativeCaps);
 
 	for (const codec of caps.codecs)
@@ -47,7 +46,7 @@ exports.getCapabilities = function()
 	}
 
 	return caps;
-};
+}
 
 /**
  * Generate RTCRtpParameters as Edge like them.
@@ -55,7 +54,7 @@ exports.getCapabilities = function()
  * @param  {RTCRtpParameters} rtpParameters
  * @returns {RTCRtpParameters}
  */
-exports.mangleRtpParameters = function(rtpParameters)
+export function mangleRtpParameters(rtpParameters: RtpParameters): RtpParameters
 {
 	const params = utils.clone(rtpParameters);
 
@@ -84,4 +83,4 @@ exports.mangleRtpParameters = function(rtpParameters)
 	}
 
 	return params;
-};
+}

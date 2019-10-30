@@ -1,4 +1,4 @@
-import sdpTransform from 'sdp-transform';
+import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import * as utils from '../utils';
@@ -81,7 +81,7 @@ class Handler extends EnhancedEventEmitter
 
 		// RTCPeerConnection instance.
 		// @type {RTCPeerConnection}
-		this._pc = new RTCPeerConnection(
+		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
 				iceTransportPolicy : iceTransportPolicy || 'all',
@@ -717,12 +717,12 @@ class RecvHandler extends Handler
 
 export default class Safari12
 {
-	static get name(): string
+	static get label(): string
 	{
 		return 'Safari12';
 	}
 
-	static async getNativeRtpCapabilities(): any
+	static async getNativeRtpCapabilities(): Promise<any>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
@@ -759,7 +759,7 @@ export default class Safari12
 		}
 	}
 
-	static async getNativeSctpCapabilities(): any
+	static async getNativeSctpCapabilities(): Promise<any>
 	{
 		logger.debug('getNativeSctpCapabilities()');
 

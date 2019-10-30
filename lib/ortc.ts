@@ -1,4 +1,5 @@
 import * as h264 from 'h264-profile-level-id';
+import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './types'
 
 const PROBATOR_SSRC = 1234;
 
@@ -12,7 +13,7 @@ const PROBATOR_SSRC = 1234;
  */
 export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
 {
-	const extendedRtpCapabilities =
+	const extendedRtpCapabilities: any =
 	{
 		codecs           : [],
 		headerExtensions : [],
@@ -42,7 +43,7 @@ export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
 
 		if (matchingLocalCodec)
 		{
-			const extendedCodec =
+			const extendedCodec: any =
 			{
 				mimeType             : matchingLocalCodec.mimeType,
 				kind                 : matchingLocalCodec.kind,
@@ -135,7 +136,7 @@ export function getExtendedRtpCapabilities(localCaps: any, remoteCaps: any): any
  */
 export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
 {
-	const rtpCapabilities =
+	const rtpCapabilities: RtpCapabilities =
 	{
 		codecs           : [],
 		headerExtensions : [],
@@ -163,7 +164,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
 		// Add RTX codec.
 		if (extendedCodec.remoteRtxPayloadType)
 		{
-			const extendedRtxCodec =
+			const extendedRtxCodec: any =
 			{
 				mimeType             : `${extendedCodec.kind}/rtx`,
 				kind                 : extendedCodec.kind,
@@ -218,7 +219,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): any
  */
 export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
 {
-	const rtpParameters =
+	const rtpParameters: RtpParameters =
 	{
 		mid              : null,
 		codecs           : [],
@@ -250,7 +251,7 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 		// Add RTX codec.
 		if (extendedCodec.localRtxPayloadType)
 		{
-			const rtxCodec =
+			const rtxCodec: RtpCodecParameters =
 			{
 				mimeType     : `${extendedCodec.kind}/rtx`,
 				clockRate    : extendedCodec.clockRate,
@@ -305,7 +306,7 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
  */
 export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): any
 {
-	const rtpParameters =
+	const rtpParameters: RtpParameters =
 	{
 		mid              : null,
 		codecs           : [],
@@ -337,7 +338,7 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 		// Add RTX codec.
 		if (extendedCodec.localRtxPayloadType)
 		{
-			const rtxCodec =
+			const rtxCodec: RtpCodecParameters =
 			{
 				mimeType     : `${extendedCodec.kind}/rtx`,
 				clockRate    : extendedCodec.clockRate,
@@ -463,7 +464,7 @@ export function canReceive(rtpParameters: any, extendedRtpCapabilities: any): bo
  */
 export function generateProbatorRtpParameters(videoRtpParameters: any): any
 {
-	const rtpParameters =
+	const rtpParameters: RtpParameters =
 	{
 		mid              : null,
 		codecs           : [],
@@ -488,7 +489,7 @@ export function generateProbatorRtpParameters(videoRtpParameters: any): any
 	return rtpParameters;
 }
 
-function matchCodecs(aCodec, bCodec, { strict = false, modify = false } = {}): boolean
+function matchCodecs(aCodec: any, bCodec: any, { strict = false, modify = false } = {}): boolean
 {
 	const aMimeType = aCodec.mimeType.toLowerCase();
 	const bMimeType = bCodec.mimeType.toLowerCase();
@@ -573,7 +574,7 @@ function matchCodecs(aCodec, bCodec, { strict = false, modify = false } = {}): b
 	return true;
 }
 
-function matchHeaderExtensions(aExt, bExt): boolean
+function matchHeaderExtensions(aExt: any, bExt: any): boolean
 {
 	if (aExt.kind && bExt.kind && aExt.kind !== bExt.kind)
 		return false;
@@ -584,14 +585,14 @@ function matchHeaderExtensions(aExt, bExt): boolean
 	return true;
 }
 
-function reduceRtcpFeedback(codecA, codecB): any
+function reduceRtcpFeedback(codecA: any, codecB: any): any
 {
 	const reducedRtcpFeedback = [];
 
 	for (const aFb of codecA.rtcpFeedback || [])
 	{
 		const matchingBFb = (codecB.rtcpFeedback || [])
-			.find((bFb) => (
+			.find((bFb: any) => (
 				bFb.type === aFb.type &&
 				(bFb.parameter === aFb.parameter || (!bFb.parameter && !aFb.parameter))
 			));

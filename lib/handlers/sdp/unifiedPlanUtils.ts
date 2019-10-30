@@ -97,7 +97,7 @@ export function addLegacySimulcast(
 		.some((line: any) =>
 		{
 			if (line.semantics !== 'FID')
-				return;
+				return false;
 
 			const ssrcs = line.ssrcs.split(/\s+/);
 
@@ -106,6 +106,10 @@ export function addLegacySimulcast(
 				firstRtxSsrc = Number(ssrcs[1]);
 
 				return true;
+			}
+			else
+			{
+				return false;
 			}
 		});
 
