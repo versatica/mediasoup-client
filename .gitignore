@@ -1,2 +1,12 @@
 /node_modules/
 /coverage/
+
+# Vim temporal files.
+*.swp
+*.swo
+
+# Mac Stuff.
+.DS_Store
+
+# Vistual Studio Code stuff.
+/.vscode/
