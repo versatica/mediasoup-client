@@ -7,7 +7,7 @@
 		"module": "commonjs",
 		"declaration": true,
 		"declarationMap": true,
-		"outDir": "./build",
+		"outDir": "./lib",
 		"resolveJsonModule": true,
 		"strict": true,
 		"strictNullChecks": false,
@@ -18,5 +18,5 @@
 		"noFallthroughCasesInSwitch": true,
 		"moduleResolution": "node"
 	},
-	"include": [ "lib/**/*" ]
+	"include": [ "src/**/*" ]
 }

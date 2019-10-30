@@ -20,8 +20,8 @@
     "typescript:watch": "rm -rf build; tsc --pretty --watch",
     "typescript:build": "rm -rf build; tsc && ${NODE} replace-version.js",
     "build": "tsc",
-    "lint": "MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts lib/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
-    "lint:fix": "MEDIASOUP_NODE_LANGUAGE=typescript eslint --fix -c .eslintrc.js --ext=ts lib/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint --fix -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
+    "lint": "MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
+    "lint:fix": "MEDIASOUP_NODE_LANGUAGE=typescript eslint --fix -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint --fix -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
     "test": "jest",
     "coverage": "jest --coverage && open-cli coverage/lcov-report/index.html"
   },
