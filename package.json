@@ -18,12 +18,11 @@
     "node": ">=8.6.0"
   },
   "scripts": {
-    "typescript:watch": "rm -rf lib; tsc --pretty --watch",
-    "typescript:build": "rm -rf lib; tsc && ${NODE} replace-version.js",
-    "lint": "MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
-    "lint:fix": "MEDIASOUP_NODE_LANGUAGE=typescript eslint --fix -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint --fix -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
-    "test": "jest",
-    "coverage": "jest --coverage && open-cli coverage/lcov-report/index.html"
+    "typescript:build": "node npm-scripts.js typescript:build",
+    "typescript:watch": "node npm-scripts.js typescript:watch",
+    "lint": "node npm-scripts.js lint",
+    "test": "node npm-scripts.js test",
+    "coverage": "node npm-scripts.js coverage"
   },
   "jest": {
     "verbose": true,
@@ -50,6 +49,7 @@
     "jest-tobetype": "^1.2.3",
     "node-mediastreamtrack": "0.1.0",
     "open-cli": "^5.0.0",
+    "tsc-watch": "^4.0.0",
     "tslint": "^5.20.0",
     "typescript": "^3.6.4",
     "uuid": "^3.3.3"
