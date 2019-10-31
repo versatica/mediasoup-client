@@ -94,7 +94,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () =>
 {
-	await expect(device.load())
+	await expect(device.load({}))
 		.rejects
 		.toThrow(TypeError);
 
@@ -133,7 +133,7 @@ test('device.load() succeeds', async () =>
 
 test('device.load() rejects with InvalidStateError if already loaded', async () =>
 {
-	await expect(device.load())
+	await expect(device.load({}))
 		.rejects
 		.toThrow(InvalidStateError);
 
@@ -490,7 +490,7 @@ test('transport.produce() succeeds', async () =>
 
 test('transport.produce() without track rejects with TypeError', async () =>
 {
-	await expect(sendTransport.produce())
+	await expect(sendTransport.produce({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -695,7 +695,7 @@ test('transport.consume() succeeds', async () =>
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () =>
 {
-	await expect(recvTransport.consume())
+	await expect(recvTransport.consume({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -829,7 +829,7 @@ test('transport.produceData() succeeds', async () =>
 
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () =>
 {
-	await expect(recvTransport.produceData())
+	await expect(recvTransport.produceData({}))
 		.rejects
 		.toThrow(UnsupportedError);
 }, 500);
@@ -868,7 +868,7 @@ test('transport.consumeData() succeeds', async () =>
 
 test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () =>
 {
-	await expect(recvTransport.consumeData())
+	await expect(recvTransport.consumeData({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -942,7 +942,7 @@ test('transport.updateIceServers() succeeds', async () =>
 
 test('transport.updateIceServers() without iceServers rejects with TypeError', async () =>
 {
-	await expect(sendTransport.updateIceServers())
+	await expect(sendTransport.updateIceServers({}))
 		.rejects
 		.toThrow(TypeError);
 }, 500);
@@ -1030,7 +1030,7 @@ test('producer.replaceTrack() succeeds', async () =>
 
 test('producer.replaceTrack() without track rejects with TypeError', async () =>
 {
-	await expect(videoProducer.replaceTrack())
+	await expect(videoProducer.replaceTrack({}))
 		.rejects
 		.toThrow(TypeError);
 
@@ -1307,21 +1307,21 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 
 test('transport.consume() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(recvTransport.consume())
+	await expect(recvTransport.consume({}))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
 
 test('transport.produceData() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(sendTransport.produceData())
+	await expect(sendTransport.produceData({}))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
 
 test('transport.consumeData() rejects with InvalidStateError if closed', async () =>
 {
-	await expect(recvTransport.consumeData())
+	await expect(recvTransport.consumeData({}))
 		.rejects
 		.toThrow(InvalidStateError);
 }, 500);
