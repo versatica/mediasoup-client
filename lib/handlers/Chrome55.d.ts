@@ -1,6 +1,7 @@
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import RemoteSdp from './sdp/RemoteSdp';
 import { IceParameters } from './../Transport';
+import { SctpStreamParameters } from '../SctpParameters';
 declare class Handler extends EnhancedEventEmitter {
     protected _transportReady: boolean;
     protected _remoteSdp: RemoteSdp;
@@ -53,14 +54,7 @@ export declare class SendHandler extends Handler {
     getSenderStats({ localId }: {
         localId: string;
     }): Promise<any>;
-    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: {
-        ordered: boolean;
-        maxPacketLifeTime: number;
-        maxRetransmits: number;
-        label: string;
-        protocol: string;
-        priority: number;
-    }): Promise<any>;
+    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: SctpStreamParameters): Promise<any>;
     restartIce({ iceParameters }: {
         iceParameters: IceParameters;
     }): Promise<void>;

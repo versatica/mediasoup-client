@@ -10,6 +10,7 @@ import RemoteSdp from './sdp/RemoteSdp';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
 import { RtpParameters } from '../RtpParametersAndCapabilities';
+import { SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('ReactNative');
 
@@ -397,15 +398,7 @@ export class SendHandler extends Handler
 			label,
 			protocol,
 			priority
-		}:
-		{
-			ordered: boolean;
-			maxPacketLifeTime: number;
-			maxRetransmits: number;
-			priority: string;
-			label: string;
-			protocol: string;
-		}
+		}: SctpStreamParameters
 	): Promise<any>
 	{
 		logger.debug('sendDataChannel()');

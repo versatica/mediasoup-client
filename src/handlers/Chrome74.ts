@@ -9,6 +9,7 @@ import RemoteSdp from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters } from './../Transport';
 import { RtpParameters } from '../RtpParametersAndCapabilities';
+import { SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome74');
 
@@ -413,15 +414,7 @@ class SendHandler extends Handler
 			label,
 			protocol,
 			priority
-		}:
-		{
-			ordered: boolean;
-			maxPacketLifeTime: number;
-			maxRetransmits: number;
-			label: string;
-			protocol: string;
-			priority: number;
-		}
+		}: SctpStreamParameters
 	): Promise<any>
 	{
 		logger.debug('sendDataChannel()');

@@ -10,6 +10,7 @@ import RemoteSdp from './sdp/RemoteSdp';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
 import { RtpParameters } from '../RtpParametersAndCapabilities';
+import { SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Firefox60');
 
@@ -407,15 +408,7 @@ class SendHandler extends Handler
 			priority = 'low',
 			label = '',
 			protocol = ''
-		}:
-		{
-			ordered: boolean;
-			maxPacketLifeTime: number;
-			maxRetransmits: number;
-			priority: string;
-			label: string;
-			protocol: string;
-		}
+		}: SctpStreamParameters
 	): Promise<any>
 	{
 		logger.debug('sendDataChannel()');
