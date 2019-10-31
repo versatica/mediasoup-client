@@ -17,7 +17,7 @@ export default class Device {
      * @throws {UnsupportedError} if device is not supported.
      */
     constructor({ Handler }?: {
-        Handler?: string | Record<string, any>;
+        Handler?: string | any;
     });
     /**
      * The RTC handler class name ('Chrome70', 'Firefox65', etc).

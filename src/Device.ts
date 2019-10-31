@@ -51,7 +51,7 @@ export default class Device
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ Handler }: { Handler?: string | Record<string, any> } = {})
+	constructor({ Handler }: { Handler?: string | any } = {})
 	{
 		if (typeof Handler === 'string')
 		{
