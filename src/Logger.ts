@@ -1,4 +1,4 @@
-import * as debug from 'debug';
+import debug from 'debug';
 
 const APP_NAME = 'mediasoup-client';
 

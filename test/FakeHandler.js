@@ -1,5 +1,5 @@
+const { EventEmitter } = require('events');
 const MediaStreamTrack = require('node-mediastreamtrack');
-const EnhancedEventEmitter = require('../lib/EnhancedEventEmitter');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');
@@ -7,7 +7,7 @@ const fakeParameters = require('./fakeParameters');
 const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
 const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
-class FakeHandler extends EnhancedEventEmitter
+class FakeHandler extends EventEmitter
 {
 	static async getNativeRtpCapabilities()
 	{
@@ -244,7 +244,11 @@ class FakeHandler extends EnhancedEventEmitter
 			dtlsParameters.role = localDtlsRole;
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		// await this.safeEmitAsPromise('@connect', { dtlsParameters });
+
+		await new Promise((resolve, reject) => (
+			this.emit('@connect', { dtlsParameters }, resolve, reject)
+		));
 
 		this._transportReady = true;
 	}
