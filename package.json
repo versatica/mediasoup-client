@@ -18,8 +18,8 @@
     "node": ">=8.6.0"
   },
   "scripts": {
-    "typescript:watch": "rm -rf build; tsc --pretty --watch",
-    "typescript:build": "rm -rf build; tsc && ${NODE} replace-version.js",
+    "typescript:watch": "rm -rf lib; tsc --pretty --watch",
+    "typescript:build": "rm -rf lib; tsc && ${NODE} replace-version.js",
     "lint": "MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
     "lint:fix": "MEDIASOUP_NODE_LANGUAGE=typescript eslint --fix -c .eslintrc.js --ext=ts src/ && MEDIASOUP_NODE_LANGUAGE=javascript eslint --fix -c .eslintrc.js --ext=js --ignore-pattern '!.eslintrc.js' .eslintrc.js test/ replace-version.js",
     "test": "jest",
