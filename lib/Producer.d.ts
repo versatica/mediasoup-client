@@ -4,7 +4,7 @@ export interface ProducerOptions {
     track?: MediaStreamTrack;
     encodings?: RTCRtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
-    appData?: object;
+    appData?: any;
 }
 export interface ProducerCodecOptions {
     opusStereo?: boolean;
@@ -37,7 +37,7 @@ export declare class Producer extends EnhancedEventEmitter {
         localId: string;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
-        appData: object;
+        appData: any;
     });
     /**
      * Producer id.
@@ -79,7 +79,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
     * Invalid setter.
     */
-    appData: object;
+    appData: any;
     /**
      * Closes the Producer.
      */

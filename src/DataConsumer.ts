@@ -8,7 +8,7 @@ export interface DataConsumerOptions {
 	sctpStreamParameters?: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
-	appData?: object;
+	appData?: any;
 }
 
 const logger = new Logger('DataConsumer');
@@ -31,7 +31,7 @@ export class DataConsumer extends EnhancedEventEmitter
 	private _sctpStreamParameters: any;
 
 	// App custom data.
-	private _appData: object;
+	private _appData: any;
 
 	/**
 	 * @emits transportclose
@@ -54,7 +54,7 @@ export class DataConsumer extends EnhancedEventEmitter
 			dataProducerId: string;
 			dataChannel: any;
 			sctpStreamParameters: SctpStreamParameters;
-			appData: object;
+			appData: any;
 		}
 	)
 	{
@@ -148,7 +148,7 @@ export class DataConsumer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): object
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -156,7 +156,7 @@ export class DataConsumer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: object) // eslint-disable-line @typescript-eslint/no-unused-vars
+	set appData(appData: any) // eslint-disable-line @typescript-eslint/no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}

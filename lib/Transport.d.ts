@@ -18,7 +18,7 @@ export interface TransportOptions {
     iceTransportPolicy?: RTCIceTransportPolicy;
     additionalSettings?: any;
     proprietaryConstraints?: any;
-    appData?: object;
+    appData?: any;
 }
 export interface IceParameters {
     /**
@@ -163,7 +163,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
     * Invalid setter.
     */
-    appData: object;
+    appData: any;
     /**
      * Close the Transport.
      */

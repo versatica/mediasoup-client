@@ -10,7 +10,7 @@ export interface DataProducerOptions {
 	priority?: RTCPriorityType;
 	label?: string;
 	protocol?: string;
-	appData?: object;
+	appData?: any;
 }
 
 const logger = new Logger('DataProducer');
@@ -30,7 +30,7 @@ export class DataProducer extends EnhancedEventEmitter
 	private _sctpStreamParameters: SctpStreamParameters;
 
 	// App custom data.
-	private _appData: object;
+	private _appData: any;
 
 	/**
 	 * @emits transportclose
@@ -51,7 +51,7 @@ export class DataProducer extends EnhancedEventEmitter
 			id: string;
 			dataChannel: any;
 			sctpStreamParameters: SctpStreamParameters;
-			appData: object;
+			appData: any;
 		}
 	)
 	{
@@ -143,7 +143,7 @@ export class DataProducer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): object
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -151,7 +151,7 @@ export class DataProducer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: object) // eslint-disable-line no-unused-vars
+	set appData(appData: any) // eslint-disable-line no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}

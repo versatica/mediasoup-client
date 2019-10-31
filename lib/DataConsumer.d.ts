@@ -6,7 +6,7 @@ export interface DataConsumerOptions {
     sctpStreamParameters?: SctpStreamParameters;
     label?: string;
     protocol?: string;
-    appData?: object;
+    appData?: any;
 }
 export declare class DataConsumer extends EnhancedEventEmitter {
     private _id;
@@ -28,7 +28,7 @@ export declare class DataConsumer extends EnhancedEventEmitter {
         dataProducerId: string;
         dataChannel: any;
         sctpStreamParameters: SctpStreamParameters;
-        appData: object;
+        appData: any;
     });
     /**
      * DataConsumer id.
@@ -71,7 +71,7 @@ export declare class DataConsumer extends EnhancedEventEmitter {
     /**
     * Invalid setter.
     */
-    appData: object;
+    appData: any;
     /**
      * Closes the DataConsumer.
      */

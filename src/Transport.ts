@@ -28,7 +28,7 @@ export interface TransportOptions
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
-	appData?: object;
+	appData?: any;
 }
 
 export interface IceParameters
@@ -181,7 +181,7 @@ export class Transport extends EnhancedEventEmitter
 	private _connectionState: ConnectionState;
 
 	// App custom data.
-	private _appData: object;
+	private _appData: any;
 
 	// Map of Producers indexed by id.
 	private _producers: Map<string, Producer>;
@@ -324,7 +324,7 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): object
+	get appData(): any
 	{
 		return this._appData;
 	}
@@ -332,7 +332,7 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: object) // eslint-disable-line no-unused-vars
+	set appData(appData: any) // eslint-disable-line no-unused-vars
 	{
 		throw new Error('cannot override appData object');
 	}

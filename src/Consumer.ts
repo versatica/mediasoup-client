@@ -9,7 +9,7 @@ export interface ConsumerOptions
 	producerId?: string;
 	kind?: 'audio' | 'video';
 	rtpParameters?: RtpParameters;
-	appData?: object;
+	appData?: any;
 }
 
 const logger = new Logger('Consumer');
@@ -38,7 +38,7 @@ export class Consumer extends EnhancedEventEmitter
 	private _paused: boolean;
 
 	// App custom data.
-	private _appData: object;
+	private _appData: any;
 
 	/**
 	 * @emits transportclose
@@ -61,7 +61,7 @@ export class Consumer extends EnhancedEventEmitter
 			producerId: string;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
-			appData: object;
+			appData: any;
 		}
 	)
 	{
@@ -153,7 +153,7 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): object
+	get appData(): any
 	{
 		return this._appData;
 	}

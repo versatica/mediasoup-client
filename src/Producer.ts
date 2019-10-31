@@ -7,7 +7,7 @@ export interface ProducerOptions {
 	track?: MediaStreamTrack;
 	encodings?: RTCRtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
-	appData?: object;
+	appData?: any;
 }
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
@@ -47,7 +47,7 @@ export class Producer extends EnhancedEventEmitter
 	private _maxSpatialLayer: number | undefined;
 
 	// App custom data.
-	private _appData: object;
+	private _appData: any;
 
 	/**
 	 * @emits transportclose
@@ -70,7 +70,7 @@ export class Producer extends EnhancedEventEmitter
 			localId: string;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
-			appData: object;
+			appData: any;
 		}
 	)
 	{
@@ -164,7 +164,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): object
+	get appData(): any
 	{
 		return this._appData;
 	}

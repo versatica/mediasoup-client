@@ -5,7 +5,7 @@ export interface ConsumerOptions {
     producerId?: string;
     kind?: 'audio' | 'video';
     rtpParameters?: RtpParameters;
-    appData?: object;
+    appData?: any;
 }
 export declare class Consumer extends EnhancedEventEmitter {
     private _id;
@@ -28,7 +28,7 @@ export declare class Consumer extends EnhancedEventEmitter {
         producerId: string;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
-        appData: object;
+        appData: any;
     });
     /**
      * Consumer id.
@@ -68,7 +68,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     /**
     * Invalid setter.
     */
-    appData: object;
+    appData: any;
     /**
      * Closes the Consumer.
      */

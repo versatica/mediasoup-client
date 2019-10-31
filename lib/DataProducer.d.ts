@@ -7,7 +7,7 @@ export interface DataProducerOptions {
     priority?: RTCPriorityType;
     label?: string;
     protocol?: string;
-    appData?: object;
+    appData?: any;
 }
 export declare class DataProducer extends EnhancedEventEmitter {
     private _id;
@@ -27,7 +27,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
         id: string;
         dataChannel: any;
         sctpStreamParameters: SctpStreamParameters;
-        appData: object;
+        appData: any;
     });
     /**
      * DataProducer id.
@@ -70,7 +70,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
     /**
     * Invalid setter.
     */
-    appData: object;
+    appData: any;
     /**
      * Closes the DataProducer.
      */
