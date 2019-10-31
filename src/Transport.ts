@@ -1,5 +1,5 @@
 // @ts-ignore
-import * as AwaitQueue from 'awaitqueue';
+import AwaitQueue from 'awaitqueue';
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
