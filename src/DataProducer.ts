@@ -33,8 +33,6 @@ export class DataProducer extends EnhancedEventEmitter
 	private _appData: object;
 
 	/**
-	 * @private
-	 *
 	 * @emits transportclose
 	 * @emits open
 	 * @emits {Object} error
@@ -177,8 +175,6 @@ export class DataProducer extends EnhancedEventEmitter
 
 	/**
 	 * Transport was closed.
-	 *
-	 * @private
 	 */
 	transportClosed(): void
 	{
@@ -198,9 +194,6 @@ export class DataProducer extends EnhancedEventEmitter
 	 * Send a message.
 	 *
 	 * @param {String|Blob|ArrayBuffer|ArrayBufferView} data.
-	 *
-	 * @throws {InvalidStateError} if DataProducer closed.
-	 * @throws {TypeError} if wrong arguments.
 	 */
 	send(data: any): void
 	{
@@ -212,10 +205,7 @@ export class DataProducer extends EnhancedEventEmitter
 		this._dataChannel.send(data);
 	}
 
-	/**
-	 * @private
-	 */
-	_handleDataChannel(): void
+	private _handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{

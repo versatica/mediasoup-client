@@ -17,8 +17,6 @@ export declare class Consumer extends EnhancedEventEmitter {
     private _paused;
     private _appData;
     /**
-     * @private
-     *
      * @emits transportclose
      * @emits trackended
      * @emits @getstats
@@ -38,8 +36,6 @@ export declare class Consumer extends EnhancedEventEmitter {
     readonly id: string;
     /**
      * Local id.
-     *
-     * @private
      */
     readonly localId: string;
     /**
@@ -79,14 +75,10 @@ export declare class Consumer extends EnhancedEventEmitter {
     close(): void;
     /**
      * Transport was closed.
-     *
-     * @private
      */
     transportClosed(): void;
     /**
      * Get associated RTCRtpReceiver stats.
-     *
-     * @throws {InvalidStateError} if Consumer closed.
      */
     getStats(): Promise<any>;
     /**
@@ -97,17 +89,8 @@ export declare class Consumer extends EnhancedEventEmitter {
      * Resumes receiving media.
      */
     resume(): void;
-    /**
-     * @private
-     */
-    _onTrackEnded(): void;
-    /**
-     * @private
-     */
-    _handleTrack(): void;
-    /**
-     * @private
-     */
-    _destroyTrack(): void;
+    private _onTrackEnded;
+    private _handleTrack;
+    private _destroyTrack;
 }
 //# sourceMappingURL=Consumer.d.ts.map

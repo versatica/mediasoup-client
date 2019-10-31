@@ -25,8 +25,6 @@ export declare class Producer extends EnhancedEventEmitter {
     private _maxSpatialLayer;
     private _appData;
     /**
-     * @private
-     *
      * @emits transportclose
      * @emits trackended
      * @emits {track: MediaStreamTrack} @replacetrack
@@ -47,8 +45,6 @@ export declare class Producer extends EnhancedEventEmitter {
     readonly id: string;
     /**
      * Local id.
-     *
-     * @private
      */
     readonly localId: string;
     /**
@@ -90,14 +86,10 @@ export declare class Producer extends EnhancedEventEmitter {
     close(): void;
     /**
      * Transport was closed.
-     *
-     * @private
      */
     transportClosed(): void;
     /**
      * Get associated RTCRtpSender stats.
-     *
-     * @throws {InvalidStateError} if Producer closed.
      */
     getStats(): Promise<any>;
     /**
@@ -110,32 +102,16 @@ export declare class Producer extends EnhancedEventEmitter {
     resume(): void;
     /**
      * Replaces the current track with a new one.
-     *
-     * @throws {InvalidStateError} if Producer closed or track ended.
-     * @throws {TypeError} if wrong arguments.
      */
     replaceTrack({ track }: {
         track: MediaStreamTrack;
     }): Promise<void>;
     /**
      * Sets the video max spatial layer to be sent.
-     *
-     * @throws {InvalidStateError} if Producer closed.
-     * @throws {UnsupportedError} if not a video Producer.
-     * @throws {TypeError} if wrong arguments.
      */
     setMaxSpatialLayer(spatialLayer: number): Promise<void>;
-    /**
-     * @private
-     */
-    _onTrackEnded(): void;
-    /**
-     * @private
-     */
-    _handleTrack(): void;
-    /**
-     * @private
-     */
-    _destroyTrack(): void;
+    private _onTrackEnded;
+    private _handleTrack;
+    private _destroyTrack;
 }
 //# sourceMappingURL=Producer.d.ts.map

@@ -1,8 +1,5 @@
 import { Transport, TransportOptions } from './Transport';
 import { RtpCapabilities } from './RtpParametersAndCapabilities';
-interface InternalTransportOptions extends TransportOptions {
-    direction: 'send' | 'recv';
-}
 export default class Device {
     private _Handler;
     private _loaded;
@@ -44,9 +41,6 @@ export default class Device {
     readonly sctpCapabilities: any;
     /**
      * Initialize the Device.
-     *
-     * @throws {TypeError} if missing/wrong arguments.
-     * @throws {InvalidStateError} if already loaded.
      */
     load({ routerRtpCapabilities }?: {
         routerRtpCapabilities?: RtpCapabilities;
@@ -72,10 +66,6 @@ export default class Device {
      * @throws {TypeError} if wrong arguments.
      */
     createRecvTransport({ id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData }: TransportOptions): Transport;
-    /**
-     * @private
-     */
-    _createTransport({ direction, id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData }: InternalTransportOptions): Transport;
+    private _createTransport;
 }
-export {};
 //# sourceMappingURL=Device.d.ts.map

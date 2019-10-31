@@ -131,8 +131,6 @@ export declare class Transport extends EnhancedEventEmitter {
     private _probatorConsumerCreated;
     private _awaitQueue;
     /**
-     * @private
-     *
      * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
      * @emits {connectionState: String} connectionstatechange
      * @emits {producerLocalParameters: Object, callback: Function, errback: Function} produce
@@ -174,60 +172,34 @@ export declare class Transport extends EnhancedEventEmitter {
      * Get associated Transport (RTCPeerConnection) stats.
      *
      * @returns {RTCStatsReport}
-     * @throws {InvalidStateError} if Transport closed.
      */
     getStats(): Promise<any>;
     /**
      * Restart ICE connection.
-     *
-     * @throws {InvalidStateError} if Transport closed.
-     * @throws {TypeError} if wrong arguments.
      */
     restartIce({ iceParameters }: {
         iceParameters: IceParameters;
     }): Promise<void>;
     /**
      * Update ICE servers.
-     *
-     * @throws {InvalidStateError} if Transport closed.
-     * @throws {TypeError} if wrong arguments.
      */
     updateIceServers({ iceServers }?: {
         iceServers?: RTCIceServer[];
     }): Promise<void>;
     /**
      * Create a Producer.
-     *
-     * @throws {InvalidStateError} if Transport closed or track ended.
-     * @throws {TypeError} if wrong arguments.
-     * @throws {UnsupportedError} if Transport direction is incompatible or
-     *   cannot produce the given media kind.
      */
     produce({ track, encodings, codecOptions, appData }?: ProducerOptions): Promise<Producer>;
     /**
      * Create a Consumer to consume a remote Producer.
-     *
-     * @throws {InvalidStateError} if Transport closed.
-     * @throws {TypeError} if wrong arguments.
-     * @throws {UnsupportedError} if Transport direction is incompatible.
      */
     consume({ id, producerId, kind, rtpParameters, appData }?: ConsumerOptions): Promise<Consumer>;
     /**
      * Create a DataProducer
-     *
-     * @throws {InvalidStateError} if Transport closed.
-     * @throws {TypeError} if wrong arguments.
-     * @throws {UnsupportedError} if Transport direction is incompatible or remote
-     *   transport does not enable SCTP.
      */
     produceData({ ordered, maxPacketLifeTime, maxRetransmits, priority, label, protocol, appData }?: DataProducerOptions): Promise<DataProducer>;
     /**
      * Create a DataConsumer
-     *
-     * @throws {InvalidStateError} if Transport closed.
-     * @throws {TypeError} if wrong arguments.
-     * @throws {UnsupportedError} if Transport direction is incompatible or remote
-     *   transport does not enable SCTP.
      */
     consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData }?: DataConsumerOptions): Promise<DataConsumer>;
     _handleHandler(): void;

@@ -41,8 +41,6 @@ export class Consumer extends EnhancedEventEmitter
 	private _appData: object;
 
 	/**
-	 * @private
-	 *
 	 * @emits transportclose
 	 * @emits trackended
 	 * @emits @getstats
@@ -98,8 +96,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Local id.
-	 *
-	 * @private
 	 */
 	get localId(): string
 	{
@@ -189,8 +185,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Transport was closed.
-	 *
-	 * @private
 	 */
 	transportClosed(): void
 	{
@@ -208,8 +202,6 @@ export class Consumer extends EnhancedEventEmitter
 
 	/**
 	 * Get associated RTCRtpReceiver stats.
-	 *
-	 * @throws {InvalidStateError} if Consumer closed.
 	 */
 	async getStats(): Promise<any>
 	{
@@ -255,28 +247,19 @@ export class Consumer extends EnhancedEventEmitter
 		this._track.enabled = true;
 	}
 
-	/**
-	 * @private
-	 */
-	_onTrackEnded(): void
+	private _onTrackEnded(): void
 	{
 		logger.debug('track "ended" event');
 
 		this.safeEmit('trackended');
 	}
 
-	/**
-	 * @private
-	 */
-	_handleTrack(): void
+	private _handleTrack(): void
 	{
 		this._track.addEventListener('ended', this._onTrackEnded);
 	}
 
-	/**
-	 * @private
-	 */
-	_destroyTrack(): void
+	private _destroyTrack(): void
 	{
 		try
 		{

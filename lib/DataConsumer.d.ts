@@ -16,8 +16,6 @@ export declare class DataConsumer extends EnhancedEventEmitter {
     private _sctpStreamParameters;
     private _appData;
     /**
-     * @private
-     *
      * @emits transportclose
      * @emits open
      * @emits {Object} error
@@ -80,13 +78,8 @@ export declare class DataConsumer extends EnhancedEventEmitter {
     close(): void;
     /**
      * Transport was closed.
-     *
-     * @private
      */
     transportClosed(): void;
-    /**
-     * @private
-     */
-    _handleDataChannel(): void;
+    private _handleDataChannel;
 }
 //# sourceMappingURL=DataConsumer.d.ts.map

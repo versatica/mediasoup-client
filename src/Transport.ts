@@ -202,8 +202,6 @@ export class Transport extends EnhancedEventEmitter
 	private _awaitQueue: AwaitQueue;
 
 	/**
-	 * @private
-	 *
 	 * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
 	 * @emits {connectionState: String} connectionstatechange
 	 * @emits {producerLocalParameters: Object, callback: Function, errback: Function} produce
@@ -390,7 +388,6 @@ export class Transport extends EnhancedEventEmitter
 	 * Get associated Transport (RTCPeerConnection) stats.
 	 *
 	 * @returns {RTCStatsReport}
-	 * @throws {InvalidStateError} if Transport closed.
 	 */
 	async getStats(): Promise<any>
 	{
@@ -402,9 +399,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Restart ICE connection.
-	 *
-	 * @throws {InvalidStateError} if Transport closed.
-	 * @throws {TypeError} if wrong arguments.
 	 */
 	async restartIce(
 		{ iceParameters }:
@@ -425,9 +419,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Update ICE servers.
-	 *
-	 * @throws {InvalidStateError} if Transport closed.
-	 * @throws {TypeError} if wrong arguments.
 	 */
 	async updateIceServers(
 		{ iceServers }:
@@ -448,11 +439,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Create a Producer.
-	 *
-	 * @throws {InvalidStateError} if Transport closed or track ended.
-	 * @throws {TypeError} if wrong arguments.
-	 * @throws {UnsupportedError} if Transport direction is incompatible or
-	 *   cannot produce the given media kind.
 	 */
 	async produce(
 		{
@@ -560,10 +546,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Create a Consumer to consume a remote Producer.
-	 *
-	 * @throws {InvalidStateError} if Transport closed.
-	 * @throws {TypeError} if wrong arguments.
-	 * @throws {UnsupportedError} if Transport direction is incompatible.
 	 */
 	async consume(
 		{
@@ -646,11 +628,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Create a DataProducer
-	 *
-	 * @throws {InvalidStateError} if Transport closed.
-	 * @throws {TypeError} if wrong arguments.
-	 * @throws {UnsupportedError} if Transport direction is incompatible or remote
-	 *   transport does not enable SCTP.
 	 */
 	async produceData(
 		{
@@ -716,11 +693,6 @@ export class Transport extends EnhancedEventEmitter
 
 	/**
 	 * Create a DataConsumer
-	 *
-	 * @throws {InvalidStateError} if Transport closed.
-	 * @throws {TypeError} if wrong arguments.
-	 * @throws {UnsupportedError} if Transport direction is incompatible or remote
-	 *   transport does not enable SCTP.
 	 */
 	async consumeData(
 		{

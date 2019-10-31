@@ -16,8 +16,6 @@ export declare class DataProducer extends EnhancedEventEmitter {
     private _sctpStreamParameters;
     private _appData;
     /**
-     * @private
-     *
      * @emits transportclose
      * @emits open
      * @emits {Object} error
@@ -79,22 +77,14 @@ export declare class DataProducer extends EnhancedEventEmitter {
     close(): void;
     /**
      * Transport was closed.
-     *
-     * @private
      */
     transportClosed(): void;
     /**
      * Send a message.
      *
      * @param {String|Blob|ArrayBuffer|ArrayBufferView} data.
-     *
-     * @throws {InvalidStateError} if DataProducer closed.
-     * @throws {TypeError} if wrong arguments.
      */
     send(data: any): void;
-    /**
-     * @private
-     */
-    _handleDataChannel(): void;
+    private _handleDataChannel;
 }
 //# sourceMappingURL=DataProducer.d.ts.map

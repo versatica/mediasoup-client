@@ -34,8 +34,6 @@ export class DataConsumer extends EnhancedEventEmitter
 	private _appData: object;
 
 	/**
-	 * @private
-	 *
 	 * @emits transportclose
 	 * @emits open
 	 * @emits {Object} error
@@ -182,8 +180,6 @@ export class DataConsumer extends EnhancedEventEmitter
 
 	/**
 	 * Transport was closed.
-	 *
-	 * @private
 	 */
 	transportClosed(): void
 	{
@@ -199,10 +195,7 @@ export class DataConsumer extends EnhancedEventEmitter
 		this.safeEmit('transportclose');
 	}
 
-	/**
-	 * @private
-	 */
-	_handleDataChannel(): void
+	private _handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{

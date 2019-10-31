@@ -154,9 +154,6 @@ export default class Device
 
 	/**
 	 * Initialize the Device.
-	 *
-	 * @throws {TypeError} if missing/wrong arguments.
-	 * @throws {InvalidStateError} if already loaded.
 	 */
 	async load(
 		{ routerRtpCapabilities }:
@@ -299,10 +296,7 @@ export default class Device
 			});
 	}
 
-	/**
-	 * @private
-	 */
-	_createTransport(
+	private _createTransport(
 		{
 			direction,
 			id,
