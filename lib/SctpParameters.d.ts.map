@@ -1,0 +1,1 @@
+{"version":3,"file":"SctpParameters.d.ts","sourceRoot":"","sources":["../src/SctpParameters.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,MAAM,WAAW,oBAAoB;IAEpC;;OAEG;IACH,QAAQ,EAAE,MAAM,CAAC;IACjB;;;OAGG;IACH,OAAO,CAAC,EAAE,OAAO,CAAC;IAElB;;;OAGG;IACH,iBAAiB,CAAC,EAAE,MAAM,CAAC;IAE3B;;;OAGG;IACH,cAAc,CAAC,EAAE,MAAM,CAAC;CACxB"}
