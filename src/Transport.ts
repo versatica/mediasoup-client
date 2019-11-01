@@ -136,6 +136,19 @@ export interface TransportSctpParameters
 	maxMessageSize: number;
 }
 
+export interface TransportNumSctpStreams
+{
+	/**
+	 * Initially requested number of outgoing SCTP streams.
+	 */
+	OS: number;
+
+	/**
+	 * Maximum number of incoming SCTP streams.
+	 */
+	MIS: number;
+}
+
 export type DtlsRole = 'auto' | 'client' | 'server';
 
 export type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
@@ -153,50 +166,50 @@ const logger = new Logger('Transport');
 export default class Transport extends EnhancedEventEmitter
 {
 	// Id.
-	private _id: string;
+	private readonly _id: string;
 
 	// Closed flag.
 	private _closed = false;
 
 	// Direction.
-	private _direction: 'send' | 'recv';
+	private readonly _direction: 'send' | 'recv';
 
 	// Extended RTP capabilities.
-	private _extendedRtpCapabilities: any;
+	private readonly _extendedRtpCapabilities: any;
 
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
-	private _canProduceByKind: CanProduceByKind;
+	private readonly _canProduceByKind: CanProduceByKind;
 
 	// SCTP max message size if enabled, null otherwise.
-	private _maxSctpMessageSize?: number | null;
+	private readonly _maxSctpMessageSize?: number | null;
 
 	// RTC handler instance.
-	private _handler: any;
+	private readonly _handler: any;
 
 	// Transport connection state.
 	private _connectionState: ConnectionState = 'new';
 
 	// App custom data.
-	private _appData: any;
+	private readonly _appData: any;
 
 	// Map of Producers indexed by id.
-	private _producers: Map<string, Producer> = new Map();
+	private readonly _producers: Map<string, Producer> = new Map();
 
 	// Map of Consumers indexed by id.
-	private _consumers: Map<string, Consumer> = new Map();
+	private readonly _consumers: Map<string, Consumer> = new Map();
 
 	// Map of DataProducers indexed by id.
-	private _dataProducers: Map<string, DataProducer> = new Map();
+	private readonly _dataProducers: Map<string, DataProducer> = new Map();
 
 	// Map of DataConsumers indexed by id.
-	private _dataConsumers: Map<string, DataConsumer> = new Map();
+	private readonly _dataConsumers: Map<string, DataConsumer> = new Map();
 
 	// Whether the Consumer for RTP probation has been created.
 	private _probatorConsumerCreated = false;
 
 	// AwaitQueue instance to make async tasks happen sequentially.
-	private _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
+	private readonly _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 	/**
 	 * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect

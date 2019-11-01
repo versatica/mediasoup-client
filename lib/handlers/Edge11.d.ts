@@ -5,18 +5,18 @@ export default class Edge11 extends EnhancedEventEmitter {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<any>;
     static getNativeSctpCapabilities(): Promise<any>;
-    private _sendingRtpParametersByKind;
+    private readonly _sendingRtpParametersByKind;
     private _remoteIceParameters;
-    private _remoteIceCandidates;
-    private _remoteDtlsParameters;
+    private readonly _remoteIceCandidates;
+    private readonly _remoteDtlsParameters;
     private _transportReady;
     private _iceGatherer;
     private _iceTransport;
     private _dtlsTransport;
-    private _rtpSenders;
-    private _rtpReceivers;
+    private readonly _rtpSenders;
+    private readonly _rtpReceivers;
     private _lastSendId;
-    private _cname;
+    private readonly _cname;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, iceServers, iceTransportPolicy, proprietaryConstraints, // eslint-disable-line @typescript-eslint/no-unused-vars
     extendedRtpCapabilities }: {
         direction: 'send' | 'recv';

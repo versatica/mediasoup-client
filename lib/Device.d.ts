@@ -1,7 +1,10 @@
-import Transport, { TransportOptions } from './Transport';
+import Transport, { TransportOptions, TransportNumSctpStreams } from './Transport';
 import { RtpCapabilities } from './RtpParametersAndCapabilities';
+export interface SctpCapabilities {
+    numStreams: TransportNumSctpStreams;
+}
 export default class Device {
-    private _Handler;
+    private readonly _Handler;
     private _loaded;
     private _extendedRtpCapabilities;
     private _recvRtpCapabilities?;

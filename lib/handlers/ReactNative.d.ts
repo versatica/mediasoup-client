@@ -5,8 +5,8 @@ import { ProducerCodecOptions } from '../Producer';
 import { SctpStreamParameters } from '../SctpParameters';
 declare class Handler extends EnhancedEventEmitter {
     protected _transportReady: boolean;
-    protected _remoteSdp: RemoteSdp;
-    protected _pc: any;
+    protected readonly _remoteSdp: RemoteSdp;
+    protected readonly _pc: any;
     protected _hasDataChannelMediaSection: boolean;
     protected _nextSctpStreamId: number;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints }: {
@@ -30,10 +30,10 @@ declare class Handler extends EnhancedEventEmitter {
     }): Promise<void>;
 }
 export declare class SendHandler extends Handler {
-    private _sendingRtpParametersByKind;
-    private _sendingRemoteRtpParametersByKind;
-    private _stream;
-    private _mapIdTrack;
+    private readonly _sendingRtpParametersByKind;
+    private readonly _sendingRemoteRtpParametersByKind;
+    private readonly _stream;
+    private readonly _mapIdTrack;
     private _lastId;
     constructor(data: any);
     send({ track, encodings, codecOptions }: {

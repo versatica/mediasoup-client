@@ -2,7 +2,7 @@ import Logger from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import detectDevice from './detectDevice';
 import * as ortc from './ortc';
-import Transport, { TransportOptions, CanProduceByKind } from './Transport';
+import Transport, { TransportOptions, TransportNumSctpStreams, CanProduceByKind } from './Transport';
 import Chrome74 from './handlers/Chrome74';
 import Chrome70 from './handlers/Chrome70';
 import Chrome67 from './handlers/Chrome67';
@@ -21,10 +21,15 @@ interface InternalTransportOptions extends TransportOptions
 	direction: 'send' | 'recv';
 }
 
+export interface SctpCapabilities
+{
+  numStreams: TransportNumSctpStreams
+}
+
 export default class Device
 {
 	// RTC handler class.
-	private _Handler: any;
+	private readonly _Handler: any;
 
 	// Loaded flag.
 	private _loaded = false;
@@ -40,7 +45,7 @@ export default class Device
 	private _canProduceByKind: CanProduceByKind;
 
 	// Local SCTP capabilities.
-	private _sctpCapabilities: any;
+	private _sctpCapabilities: SctpCapabilities;
 
 	/**
 	 * Create a new Device to connect to mediasoup server.

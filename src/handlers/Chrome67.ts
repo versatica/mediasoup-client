@@ -21,10 +21,10 @@ class Handler extends EnhancedEventEmitter
 	protected _transportReady = false;
 
 	// Remote SDP handler.
-	protected _remoteSdp: RemoteSdp;
+	protected readonly _remoteSdp: RemoteSdp;
 
 	// RTCPeerConnection instance.
-	protected _pc: any;
+	protected readonly _pc: any;
 
 	// Whether a DataChannel m=application section has been created.
 	protected _hasDataChannelMediaSection = false;
@@ -159,17 +159,17 @@ class Handler extends EnhancedEventEmitter
 class SendHandler extends Handler
 {
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: any;
+	private readonly _sendingRtpParametersByKind: any;
 
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private _sendingRemoteRtpParametersByKind: any;
+	private readonly _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	private _stream: MediaStream;
+	private readonly _stream: MediaStream;
 
 	// Map of MediaStreamTracks indexed by localId.
-	private _mapIdTrack: Map<string, any>;
+	private readonly _mapIdTrack: Map<string, any>;
 
 	// Latest localId.
 	private _lastId = 0;
@@ -489,7 +489,7 @@ class RecvHandler extends Handler
 {
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
 	// Value is an Object with mid, rtpParameters and rtpReceiver.
-	private _mapIdRtpParameters: Map<string, any>;
+	private readonly _mapIdRtpParameters: Map<string, any>;
 
 	constructor(data: any)
 	{

@@ -40,16 +40,16 @@ export default class Edge11 extends EnhancedEventEmitter
 	}
 
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRtpParametersByKind: RtpParametersByKind;
 
 	// Transport remote ICE parameters.
 	private _remoteIceParameters: IceParameters;
 
 	// Transport remote ICE candidates.
-	private _remoteIceCandidates: IceCandidate[];
+	private readonly _remoteIceCandidates: IceCandidate[];
 
 	// Transport remote DTLS parameters.
-	private _remoteDtlsParameters: DtlsParameters;
+	private readonly _remoteDtlsParameters: DtlsParameters;
 
 	// Got transport local and remote parameters.
 	private _transportReady = false;
@@ -64,16 +64,16 @@ export default class Edge11 extends EnhancedEventEmitter
 	private _dtlsTransport: any;
 
 	// Map of RTCRtpSenders indexed by id.
-	private _rtpSenders: Map<string, RTCRtpSender>;
+	private readonly _rtpSenders: Map<string, RTCRtpSender>;
 
 	// Map of RTCRtpReceivers indexed by id.
-	private _rtpReceivers: Map<string, RTCRtpReceiver>;
+	private readonly _rtpReceivers: Map<string, RTCRtpReceiver>;
 
 	// Latest localId for sending tracks.
 	private _lastSendId = 0;
 
 	// Local RTCP CNAME.
-	private _cname: string;
+	private readonly _cname: string;
 
 	constructor(
 		{

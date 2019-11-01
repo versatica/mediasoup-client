@@ -8,14 +8,14 @@ export interface ConsumerOptions {
     appData?: any;
 }
 export default class Consumer extends EnhancedEventEmitter {
-    private _id;
-    private _localId;
-    private _producerId;
+    private readonly _id;
+    private readonly _localId;
+    private readonly _producerId;
     private _closed;
-    private _track;
-    private _rtpParameters;
+    private readonly _track;
+    private readonly _rtpParameters;
     private _paused;
-    private _appData;
+    private readonly _appData;
     /**
      * @emits transportclose
      * @emits trackended

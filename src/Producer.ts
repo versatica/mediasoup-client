@@ -26,10 +26,10 @@ const logger = new Logger('Producer');
 export default class Producer extends EnhancedEventEmitter
 {
 	// Id.
-	private _id: string;
+	private readonly _id: string;
 
 	// Local id.
-	private _localId: string;
+	private readonly _localId: string;
 
 	// Closed flag.
 	private _closed = false;
@@ -38,7 +38,7 @@ export default class Producer extends EnhancedEventEmitter
 	private _track: MediaStreamTrack;
 
 	// RTP parameters.
-	private _rtpParameters: RtpParameters;
+	private readonly _rtpParameters: RtpParameters;
 
 	// Paused flag.
 	private _paused: boolean;
@@ -47,7 +47,7 @@ export default class Producer extends EnhancedEventEmitter
 	private _maxSpatialLayer: number | undefined;
 
 	// App custom data.
-	private _appData: any;
+	private readonly _appData: any;
 
 	/**
 	 * @emits transportclose

@@ -103,6 +103,16 @@ export interface TransportSctpParameters {
      */
     maxMessageSize: number;
 }
+export interface TransportNumSctpStreams {
+    /**
+     * Initially requested number of outgoing SCTP streams.
+     */
+    OS: number;
+    /**
+     * Maximum number of incoming SCTP streams.
+     */
+    MIS: number;
+}
 export declare type DtlsRole = 'auto' | 'client' | 'server';
 export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
 interface InternalTransportOptions extends TransportOptions {
@@ -112,21 +122,21 @@ interface InternalTransportOptions extends TransportOptions {
     canProduceByKind: CanProduceByKind;
 }
 export default class Transport extends EnhancedEventEmitter {
-    private _id;
+    private readonly _id;
     private _closed;
-    private _direction;
-    private _extendedRtpCapabilities;
-    private _canProduceByKind;
-    private _maxSctpMessageSize?;
-    private _handler;
+    private readonly _direction;
+    private readonly _extendedRtpCapabilities;
+    private readonly _canProduceByKind;
+    private readonly _maxSctpMessageSize?;
+    private readonly _handler;
     private _connectionState;
-    private _appData;
-    private _producers;
-    private _consumers;
-    private _dataProducers;
-    private _dataConsumers;
+    private readonly _appData;
+    private readonly _producers;
+    private readonly _consumers;
+    private readonly _dataProducers;
+    private readonly _dataConsumers;
     private _probatorConsumerCreated;
-    private _awaitQueue;
+    private readonly _awaitQueue;
     /**
      * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
      * @emits {connectionState: ConnectionState} connectionstatechange

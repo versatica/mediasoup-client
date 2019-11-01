@@ -3,10 +3,10 @@ import * as utils from '../../utils';
 abstract class MediaSection
 {
 	// SDP media object.
-	protected _mediaObject: any;
+	protected readonly _mediaObject: any;
 
 	// Whether this is Plan-B SDP.
-	protected _planB = false;
+	protected readonly _planB: boolean;
 
 	constructor(
 		{

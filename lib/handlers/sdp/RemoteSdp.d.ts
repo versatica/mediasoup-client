@@ -1,14 +1,14 @@
 import { DtlsRole } from '../../Transport';
 export default class RemoteSdp {
     private _iceParameters;
-    private _iceCandidates;
-    private _dtlsParameters;
-    private _sctpParameters;
-    private _plainRtpParameters;
-    private _planB;
+    private readonly _iceCandidates;
+    private readonly _dtlsParameters;
+    private readonly _sctpParameters;
+    private readonly _plainRtpParameters;
+    private readonly _planB;
     private _mediaSections;
     private _firstMid;
-    private _sdpObject;
+    private readonly _sdpObject;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB }: {
         iceParameters?: any;
         iceCandidates?: any;

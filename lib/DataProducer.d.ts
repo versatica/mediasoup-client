@@ -10,11 +10,11 @@ export interface DataProducerOptions {
     appData?: any;
 }
 export default class DataProducer extends EnhancedEventEmitter {
-    private _id;
-    private _dataChannel;
+    private readonly _id;
+    private readonly _dataChannel;
     private _closed;
-    private _sctpStreamParameters;
-    private _appData;
+    private readonly _sctpStreamParameters;
+    private readonly _appData;
     /**
      * @emits transportclose
      * @emits open

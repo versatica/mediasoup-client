@@ -10,13 +10,13 @@ export default class RemoteSdp
 	private _iceParameters: IceParameters;
 
 	// Remote ICE candidates.
-	private _iceCandidates: IceCandidate[];
+	private readonly _iceCandidates: IceCandidate[];
 
 	// Remote DTLS parameters.
-	private _dtlsParameters: DtlsParameters;
+	private readonly _dtlsParameters: DtlsParameters;
 
 	// Remote SCTP parameters.
-	private _sctpParameters: TransportSctpParameters;
+	private readonly _sctpParameters: TransportSctpParameters;
 
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
 	// @type {Object}
@@ -25,10 +25,10 @@ export default class RemoteSdp
 	// @param {String} ip
 	// @param {Number} ipVersion - 4 or 6.
 	// @param {Number} port
-	private _plainRtpParameters: any;
+	private readonly _plainRtpParameters: any;
 
 	// Whether this is Plan-B SDP.
-	private _planB = false;
+	private readonly _planB: boolean;
 
 	// MediaSection instances indexed by MID.
 	private _mediaSections: Map<string, any>;
@@ -37,7 +37,7 @@ export default class RemoteSdp
 	private _firstMid: string;
 
 	// SDP object.
-	private _sdpObject: any;
+	private readonly _sdpObject: any;
 
 	constructor(
 		{

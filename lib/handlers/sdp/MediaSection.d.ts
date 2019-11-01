@@ -1,6 +1,6 @@
 declare abstract class MediaSection {
-    protected _mediaObject: any;
-    protected _planB: boolean;
+    protected readonly _mediaObject: any;
+    protected readonly _planB: boolean;
     constructor({ iceParameters, iceCandidates, dtlsParameters, planB }: {
         iceParameters: any;
         iceCandidates: any[];

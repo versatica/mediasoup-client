@@ -17,22 +17,22 @@ const logger = new Logger('DataConsumer');
 export default class DataConsumer extends EnhancedEventEmitter
 {
 	// Id.
-	private _id: string;
+	private readonly _id: string;
 
 	// Associated DataProducer Id.
-	private _dataProducerId: string;
+	private readonly _dataProducerId: string;
 
 	// The underlying RTCDataChannel instance.
-	private _dataChannel: any;
+	private readonly _dataChannel: any;
 
 	// Closed flag.
 	private _closed = false;
 
 	// SCTP stream parameters.
-	private _sctpStreamParameters: any;
+	private readonly _sctpStreamParameters: SctpStreamParameters;
 
 	// App custom data.
-	private _appData: any;
+	private readonly _appData: any;
 
 	/**
 	 * @emits transportclose

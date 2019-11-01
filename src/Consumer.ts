@@ -17,28 +17,28 @@ const logger = new Logger('Consumer');
 export default class Consumer extends EnhancedEventEmitter
 {
 	// Id.
-	private _id: string;
+	private readonly _id: string;
 
 	// Local id.
-	private _localId: string;
+	private readonly _localId: string;
 
 	// Associated Producer id.
-	private _producerId: string;
+	private readonly _producerId: string;
 
 	// Closed flag.
 	private _closed = false;
 
 	// Remote track.
-	private _track: MediaStreamTrack;
+	private readonly _track: MediaStreamTrack;
 
 	// RTP parameters.
-	private _rtpParameters: RtpParameters;
+	private readonly _rtpParameters: RtpParameters;
 
 	// Paused flag.
 	private _paused: boolean;
 
 	// App custom data.
-	private _appData: any;
+	private readonly _appData: any;
 
 	/**
 	 * @emits transportclose

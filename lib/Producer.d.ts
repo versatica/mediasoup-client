@@ -16,14 +16,14 @@ export interface ProducerCodecOptions {
     videoGoogleMinBitrate?: number;
 }
 export default class Producer extends EnhancedEventEmitter {
-    private _id;
-    private _localId;
+    private readonly _id;
+    private readonly _localId;
     private _closed;
     private _track;
-    private _rtpParameters;
+    private readonly _rtpParameters;
     private _paused;
     private _maxSpatialLayer;
-    private _appData;
+    private readonly _appData;
     /**
      * @emits transportclose
      * @emits trackended
