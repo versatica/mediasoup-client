@@ -72,7 +72,7 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 		// Get codec parameters.
 		for (const fmtp of m.fmtp || [])
 		{
-			const parameters = sdpTransform.parseFmtpConfig(fmtp.config);
+			const parameters = sdpTransform.parseParams(fmtp.config);
 			const codec = codecsMap.get(fmtp.payload);
 
 			if (!codec)
