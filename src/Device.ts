@@ -23,7 +23,7 @@ interface InternalTransportOptions extends TransportOptions
 
 export interface SctpCapabilities
 {
-  numStreams: TransportNumSctpStreams
+  numStreams: TransportNumSctpStreams;
 }
 
 export default class Device
