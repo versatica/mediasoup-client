@@ -1,6 +1,6 @@
 export default class CommandQueue {
     private _closed;
-    private _commands;
+    private readonly _commands;
     constructor();
     close(): void;
     /**

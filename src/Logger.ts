@@ -4,9 +4,9 @@ const APP_NAME = 'mediasoup-client';
 
 export default class Logger
 {
-	private _debug: debug.Debugger;
-	private _warn: debug.Debugger;
-	private _error: debug.Debugger;
+	private readonly _debug: debug.Debugger;
+	private readonly _warn: debug.Debugger;
+	private readonly _error: debug.Debugger;
 
 	constructor(prefix?: string)
 	{

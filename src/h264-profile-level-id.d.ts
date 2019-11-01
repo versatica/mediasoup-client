@@ -8,40 +8,26 @@ declare module 'h264-profile-level-id'
 
 	// All values are equal to ten times the level number, except level 1b which is
 	// special.
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
+
+	/* eslint-disable camelcase, @typescript-eslint/camelcase */
 	export const Level1_b: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level1_1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level1_2: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level1_3: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level2: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level2_1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level2_2: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level3: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level3_1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level3_2: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level4: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level4_1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level4_2: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level5: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level5_1: number;
-	// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 	export const Level5_2: number;
+	/* eslint-enable camelcase, @typescript-eslint/camelcase */
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-interface
 	export interface ProfileLevelId {}

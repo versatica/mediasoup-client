@@ -42,7 +42,7 @@ export default class Device
 
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
-	private _canProduceByKind: CanProduceByKind;
+	private readonly _canProduceByKind: CanProduceByKind;
 
 	// Local SCTP capabilities.
 	private _sctpCapabilities: SctpCapabilities;

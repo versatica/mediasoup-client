@@ -8,7 +8,7 @@ export default class Device {
     private _loaded;
     private _extendedRtpCapabilities;
     private _recvRtpCapabilities?;
-    private _canProduceByKind;
+    private readonly _canProduceByKind;
     private _sctpCapabilities;
     /**
      * Create a new Device to connect to mediasoup server.

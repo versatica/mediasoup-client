@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events';
 import Logger from './Logger';
 export default class EnhancedEventEmitter extends EventEmitter {
-    protected _logger: Logger;
+    protected readonly _logger: Logger;
     constructor(logger?: Logger);
     safeEmit(event: string, ...args: any[]): boolean;
     safeEmitAsPromise(event: string, ...args: any[]): Promise<any>;

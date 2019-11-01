@@ -6,7 +6,7 @@ const logger = new Logger('CommandQueue');
 export default class CommandQueue
 {
 	private _closed: boolean;
-	private _commands: Function[];
+	private readonly _commands: Function[];
 
 	constructor()
 	{
