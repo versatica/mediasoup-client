@@ -1,8 +1,8 @@
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { Producer, ProducerOptions } from './Producer';
-import { Consumer, ConsumerOptions } from './Consumer';
-import { DataProducer, DataProducerOptions } from './DataProducer';
-import { DataConsumer, DataConsumerOptions } from './DataConsumer';
+import Producer, { ProducerOptions } from './Producer';
+import Consumer, { ConsumerOptions } from './Consumer';
+import DataProducer, { DataProducerOptions } from './DataProducer';
+import DataConsumer, { DataConsumerOptions } from './DataConsumer';
 export interface CanProduceByKind {
     audio: boolean;
     video: boolean;
@@ -24,15 +24,15 @@ export interface IceParameters {
     /**
      * ICE username fragment.
      * */
-    usernameFragment?: string;
+    usernameFragment: string;
     /**
      * ICE password.
      */
-    password?: string;
+    password: string;
     /**
      * ICE Lite.
      */
-    iceLite: boolean;
+    iceLite?: boolean;
 }
 export interface IceCandidate {
     /**
@@ -49,7 +49,7 @@ export interface IceCandidate {
      */
     ip: string;
     /**
-     * The protocol of the candidate ('udp' / 'tcp').
+     * The protocol of the candidate.
      */
     protocol: 'udp' | 'tcp';
     /**
@@ -57,13 +57,13 @@ export interface IceCandidate {
      */
     port: number;
     /**
-     * The type of candidate (always 'host').
+     * The type of candidate..
      */
-    type: 'host';
+    type: 'host' | 'srflx' | 'prflx' | 'relay';
     /**
-     * The type of TCP candidate (always 'passive').
+     * The type of TCP candidate.
      */
-    tcpType: 'passive';
+    tcpType: 'active' | 'passive' | 'so';
 }
 export interface DtlsParameters {
     /**
@@ -73,20 +73,17 @@ export interface DtlsParameters {
     /**
      * DTLS fingerprints.
      */
-    fingerprints: DtlsFingerprints[];
+    fingerprints: DtlsFingerprint[];
 }
 /**
- * Map of DTLS algorithms (as defined in the 'Hash function Textual Names'
- * registry initially specified in RFC 4572 Section 8) and their corresponding
- * certificate fingerprint values (in lowercase hex string as expressed
- * utilizing the syntax of 'fingerprint' in RFC 4572 Section 5).
+ * The hash function algorithm (as defined in the "Hash function Textual Names"
+ * registry initially specified in RFC 4572 Section 8) and its corresponding
+ * certificate fingerprint value (in lowercase hex string as expressed utilizing
+ * the syntax of "fingerprint" in RFC 4572 Section 5).
  */
-export interface DtlsFingerprints {
-    'sha-1'?: string;
-    'sha-224'?: string;
-    'sha-256'?: string;
-    'sha-384'?: string;
-    'sha-512'?: string;
+export interface DtlsFingerprint {
+    algorithm: string;
+    value: string;
 }
 export interface TransportSctpParameters {
     /**
@@ -107,14 +104,14 @@ export interface TransportSctpParameters {
     maxMessageSize: number;
 }
 export declare type DtlsRole = 'auto' | 'client' | 'server';
-declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
+export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
 interface InternalTransportOptions extends TransportOptions {
     direction: 'send' | 'recv';
     Handler: any;
     extendedRtpCapabilities: any;
     canProduceByKind: CanProduceByKind;
 }
-export declare class Transport extends EnhancedEventEmitter {
+export default class Transport extends EnhancedEventEmitter {
     private _id;
     private _closed;
     private _direction;
@@ -132,7 +129,7 @@ export declare class Transport extends EnhancedEventEmitter {
     private _awaitQueue;
     /**
      * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
-     * @emits {connectionState: String} connectionstatechange
+     * @emits {connectionState: ConnectionState} connectionstatechange
      * @emits {producerLocalParameters: Object, callback: Function, errback: Function} produce
      * @emits {dataProducerLocalParameters: Object, callback: Function, errback: Function} producedata
      */
@@ -201,7 +198,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Create a DataConsumer
      */
-    consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData }?: DataConsumerOptions): Promise<DataConsumer>;
+    consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData }: DataConsumerOptions): Promise<DataConsumer>;
     _handleHandler(): void;
     _handleProducer(producer: Producer): void;
     _handleConsumer(consumer: Consumer): void;

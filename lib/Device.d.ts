@@ -1,4 +1,4 @@
-import { Transport, TransportOptions } from './Transport';
+import Transport, { TransportOptions } from './Transport';
 import { RtpCapabilities } from './RtpParametersAndCapabilities';
 export default class Device {
     private _Handler;

@@ -15,7 +15,7 @@ export interface ProducerCodecOptions {
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
 }
-export declare class Producer extends EnhancedEventEmitter {
+export default class Producer extends EnhancedEventEmitter {
     private _id;
     private _localId;
     private _closed;

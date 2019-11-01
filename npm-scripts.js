@@ -1,6 +1,6 @@
 const process = require('process');
-const { execSync } = require('child_process');
 const fs = require('fs');
+const { execSync } = require('child_process');
 const TscWatchClient = require('tsc-watch/client');
 const { version } = require('./package.json');
 
@@ -66,7 +66,6 @@ switch (task)
 function taskReplaceVersion()
 {
 	const file = 'lib/index.js';
-
 	const text = fs.readFileSync(file, { encoding: 'utf8' });
 	const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, version);
 

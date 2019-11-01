@@ -2,7 +2,7 @@ import Logger from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import detectDevice from './detectDevice';
 import * as ortc from './ortc';
-import { Transport, TransportOptions, CanProduceByKind } from './Transport';
+import Transport, { TransportOptions, CanProduceByKind } from './Transport';
 import Chrome74 from './handlers/Chrome74';
 import Chrome70 from './handlers/Chrome70';
 import Chrome67 from './handlers/Chrome67';
@@ -98,7 +98,6 @@ export default class Device
 		logger.debug('constructor() [Handler:%s]', this._Handler.name);
 
 		this._extendedRtpCapabilities = null;
-
 		this._recvRtpCapabilities = undefined;
 
 		this._canProduceByKind =

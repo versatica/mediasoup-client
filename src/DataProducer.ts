@@ -1,9 +1,10 @@
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
-import { SctpStreamParameters } from './RtpParametersAndCapabilities';
+import { SctpStreamParameters } from './SctpParameters';
 
-export interface DataProducerOptions {
+export interface DataProducerOptions
+{
 	ordered?: boolean;
 	maxPacketLifeTime?: number;
 	maxRetransmits?: number;
@@ -15,7 +16,7 @@ export interface DataProducerOptions {
 
 const logger = new Logger('DataProducer');
 
-export class DataProducer extends EnhancedEventEmitter
+export default class DataProducer extends EnhancedEventEmitter
 {
 	// Id.
 	private _id: string;
@@ -58,11 +59,8 @@ export class DataProducer extends EnhancedEventEmitter
 		super(logger);
 
 		this._id = id;
-
 		this._dataChannel = dataChannel;
-
 		this._sctpStreamParameters = sctpStreamParameters;
-
 		this._appData = appData;
 
 		this._handleDataChannel();

@@ -17,6 +17,10 @@ export interface RtpCapabilities {
     fecMechanisms?: string[];
 }
 /**
+ * Media kind ('audio' or 'video').
+ */
+export declare type MediaKind = 'audio' | 'video';
+/**
  * Provides information on the capabilities of a codec within the RTP
  * capabilities. The list of media codecs supported by mediasoup and their
  * settings is defined in the supportedRtpCapabilities.ts file.
@@ -35,9 +39,9 @@ export interface RtpCapabilities {
  */
 export interface RtpCodecCapability {
     /**
-     * Media kind ('audio' or 'video').
+     * Media kind.
      */
-    kind: 'audio' | 'video';
+    kind: MediaKind;
     /**
      * The codec MIME media type/subtype (e.g. 'audio/opus', 'video/VP8').
      */
@@ -67,6 +71,10 @@ export interface RtpCodecCapability {
     rtcpFeedback?: RtcpFeedback[];
 }
 /**
+ * Direction of RTP header extension.
+ */
+export declare type RtpHeaderExtensionDirection = 'sendrecv' | 'sendonly' | 'recvonly' | 'inactive';
+/**
  * Provides information relating to supported header extensions. The list of
  * RTP header extensions supported by mediasoup is defined in the
  * supportedRtpCapabilities.ts file.
@@ -78,10 +86,10 @@ export interface RtpCodecCapability {
  */
 export interface RtpHeaderExtension {
     /**
-     * Media kind ('audio' or 'video'). If unset, it's valid for all kinds.
+     * Media kind. If unset, it's valid for all kinds.
      * Default any media kind.
      */
-    kind?: 'audio' | 'video';
+    kind?: MediaKind;
     uri: string;
     /**
      * The preferred numeric identifier that goes in the RTP packet. Must be
@@ -98,7 +106,7 @@ export interface RtpHeaderExtension {
      * 'sendonly' means that mediasoup can send (but not receive) it. 'recvonly'
      * means that mediasoup can receive (but not send) it.
      */
-    direction?: 'sendrecv' | 'sendonly' | 'recvonly' | 'inactive';
+    direction?: RtpHeaderExtensionDirection;
 }
 /**
  * The RTP send parameters describe a media stream received by mediasoup from
@@ -288,33 +296,5 @@ export interface RtcpParameters {
      * Whether RTCP-mux is used. Default true.
      */
     mux?: boolean;
-}
-/**
- * SCTP stream parameters describe the reliability of a certain SCTP stream.
- * If ordered is true then maxPacketLifeTime and maxRetransmits must be
- * false.
- * If ordered if false, only one of maxPacketLifeTime or maxRetransmits
- * can be true.
- */
-export interface SctpStreamParameters {
-    /**
-     * SCTP stream id.
-     */
-    streamId: number;
-    /**
-     * Whether data messages must be received in order. if true the messages will
-     * be sent reliably. Default true.
-     */
-    ordered?: boolean;
-    /**
-     * When ordered is false indicates the time (in milliseconds) after which a
-     * SCTP packet will stop being retransmitted.
-     */
-    maxPacketLifeTime?: number;
-    /**
-     * When ordered is false indicates the maximum number of times a packet will
-     * be retransmitted.
-     */
-    maxRetransmits?: number;
 }
 //# sourceMappingURL=RtpParametersAndCapabilities.d.ts.map

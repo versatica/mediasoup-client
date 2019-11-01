@@ -23,7 +23,7 @@ export interface ProducerCodecOptions {
 
 const logger = new Logger('Producer');
 
-export class Producer extends EnhancedEventEmitter
+export default class Producer extends EnhancedEventEmitter
 {
 	// Id.
 	private _id: string;
@@ -77,19 +77,12 @@ export class Producer extends EnhancedEventEmitter
 		super(logger);
 
 		this._id = id;
-
 		this._localId = localId;
-
 		this._track = track;
-
 		this._rtpParameters = rtpParameters;
-
 		this._paused = !track.enabled;
-
 		this._maxSpatialLayer = undefined;
-
 		this._appData = appData;
-
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
 		this._handleTrack();

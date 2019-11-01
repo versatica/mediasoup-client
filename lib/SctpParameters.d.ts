@@ -7,6 +7,10 @@
  */
 export interface SctpStreamParameters {
     /**
+     * SCTP stream id.
+     */
+    streamId: number;
+    /**
      * Whether data messages must be received in order. if true the messages will
      * be sent reliably. Default true.
      */
@@ -24,14 +28,14 @@ export interface SctpStreamParameters {
     /**
      * DataChannel priority.
      */
-    priority: RTCPriorityType;
+    priority?: RTCPriorityType;
     /**
      * A label which can be used to distinguish this DataChannel from others.
      */
-    label: string;
+    label?: string;
     /**
      * Name of the sub-protocol used by this DataChannel.
      */
-    protocol: string;
+    protocol?: string;
 }
 //# sourceMappingURL=SctpParameters.d.ts.map

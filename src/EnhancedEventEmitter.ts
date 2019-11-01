@@ -33,9 +33,8 @@ export default class EnhancedEventEmitter extends EventEmitter
 
 	async safeEmitAsPromise(event: string, ...args: any[]): Promise<any>
 	{
-		return new Promise((resolve, reject) =>
-		{
-			return this.safeEmit(event, ...args, resolve, reject);
-		});
+		return new Promise((resolve, reject) => (
+			this.safeEmit(event, ...args, resolve, reject)
+		));
 	}
 }

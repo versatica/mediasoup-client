@@ -5,10 +5,10 @@ import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
-import { Producer, ProducerOptions } from './Producer';
-import { Consumer, ConsumerOptions } from './Consumer';
-import { DataProducer, DataProducerOptions } from './DataProducer';
-import { DataConsumer, DataConsumerOptions } from './DataConsumer';
+import Producer, { ProducerOptions } from './Producer';
+import Consumer, { ConsumerOptions } from './Consumer';
+import DataProducer, { DataProducerOptions } from './DataProducer';
+import DataConsumer, { DataConsumerOptions } from './DataConsumer';
 
 export interface CanProduceByKind
 {
@@ -36,17 +36,17 @@ export interface IceParameters
 	/**
 	 * ICE username fragment.
 	 * */
-	usernameFragment?: string;
+	usernameFragment: string;
 
 	/**
 	 * ICE password.
 	 */
-	password?: string;
+	password: string;
 
 	/**
 	 * ICE Lite.
 	 */
-	iceLite: boolean;
+	iceLite?: boolean;
 }
 
 export interface IceCandidate
@@ -68,7 +68,7 @@ export interface IceCandidate
 	ip: string;
 
 	/**
-	 * The protocol of the candidate ('udp' / 'tcp').
+	 * The protocol of the candidate.
 	 */
 	protocol: 'udp' | 'tcp';
 
@@ -78,14 +78,14 @@ export interface IceCandidate
 	port: number;
 
 	/**
-	 * The type of candidate (always 'host').
+	 * The type of candidate..
 	 */
-	type: 'host';
+	type: 'host' | 'srflx' | 'prflx' | 'relay';
 
 	/**
-	 * The type of TCP candidate (always 'passive').
+	 * The type of TCP candidate.
 	 */
-	tcpType: 'passive';
+	tcpType: 'active' | 'passive' | 'so';
 }
 
 export interface DtlsParameters
@@ -98,22 +98,19 @@ export interface DtlsParameters
 	/**
 	 * DTLS fingerprints.
 	 */
-	fingerprints: DtlsFingerprints[];
+	fingerprints: DtlsFingerprint[];
 }
 
 /**
- * Map of DTLS algorithms (as defined in the 'Hash function Textual Names'
- * registry initially specified in RFC 4572 Section 8) and their corresponding
- * certificate fingerprint values (in lowercase hex string as expressed
- * utilizing the syntax of 'fingerprint' in RFC 4572 Section 5).
+ * The hash function algorithm (as defined in the "Hash function Textual Names"
+ * registry initially specified in RFC 4572 Section 8) and its corresponding
+ * certificate fingerprint value (in lowercase hex string as expressed utilizing
+ * the syntax of "fingerprint" in RFC 4572 Section 5).
  */
-export interface DtlsFingerprints
+export interface DtlsFingerprint
 {
-	'sha-1'?: string;
-	'sha-224'?: string;
-	'sha-256'?: string;
-	'sha-384'?: string;
-	'sha-512'?: string;
+	algorithm: string;
+	value: string;
 }
 
 export interface TransportSctpParameters
@@ -141,7 +138,7 @@ export interface TransportSctpParameters
 
 export type DtlsRole = 'auto' | 'client' | 'server';
 
-type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
+export type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
 
 interface InternalTransportOptions extends TransportOptions
 {
@@ -153,7 +150,7 @@ interface InternalTransportOptions extends TransportOptions
 
 const logger = new Logger('Transport');
 
-export class Transport extends EnhancedEventEmitter
+export default class Transport extends EnhancedEventEmitter
 {
 	// Id.
 	private _id: string;
@@ -177,33 +174,33 @@ export class Transport extends EnhancedEventEmitter
 	// RTC handler instance.
 	private _handler: any;
 
-	// Transport connection state. Values can be:
-	private _connectionState: ConnectionState;
+	// Transport connection state.
+	private _connectionState: ConnectionState = 'new';
 
 	// App custom data.
 	private _appData: any;
 
 	// Map of Producers indexed by id.
-	private _producers: Map<string, Producer>;
+	private _producers: Map<string, Producer> = new Map();
 
 	// Map of Consumers indexed by id.
-	private _consumers: Map<string, Consumer>;
+	private _consumers: Map<string, Consumer> = new Map();
 
 	// Map of DataProducers indexed by id.
-	private _dataProducers: Map<string, DataProducer>;
+	private _dataProducers: Map<string, DataProducer> = new Map();
 
 	// Map of DataConsumers indexed by id.
-	private _dataConsumers: Map<string, DataConsumer>;
+	private _dataConsumers: Map<string, DataConsumer> = new Map();
 
 	// Whether the Consumer for RTP probation has been created.
 	private _probatorConsumerCreated = false;
 
 	// AwaitQueue instance to make async tasks happen sequentially.
-	private _awaitQueue: AwaitQueue;
+	private _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 	/**
 	 * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
-	 * @emits {connectionState: String} connectionstatechange
+	 * @emits {connectionState: ConnectionState} connectionstatechange
 	 * @emits {producerLocalParameters: Object, callback: Function, errback: Function} produce
 	 * @emits {dataProducerLocalParameters: Object, callback: Function, errback: Function} producedata
 	 */
@@ -231,13 +228,9 @@ export class Transport extends EnhancedEventEmitter
 		logger.debug('constructor() [id:%s, direction:%s]', id, direction);
 
 		this._id = id;
-
 		this._direction = direction;
-
 		this._extendedRtpCapabilities = extendedRtpCapabilities;
-
 		this._canProduceByKind = canProduceByKind;
-
 		this._maxSctpMessageSize =
 			sctpParameters ? sctpParameters.maxMessageSize : null;
 
@@ -264,19 +257,7 @@ export class Transport extends EnhancedEventEmitter
 				extendedRtpCapabilities
 			});
 
-		this._connectionState = 'new';
-
 		this._appData = appData;
-
-		this._producers = new Map();
-
-		this._consumers = new Map();
-
-		this._dataProducers = new Map();
-
-		this._dataConsumers = new Map();
-
-		this._awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 		this._handleHandler();
 	}
@@ -702,7 +683,7 @@ export class Transport extends EnhancedEventEmitter
 			label = '',
 			protocol = '',
 			appData = {}
-		}: DataConsumerOptions = {}
+		}: DataConsumerOptions
 	): Promise<DataConsumer>
 	{
 		logger.debug('consumeData()');

@@ -1,5 +1,5 @@
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { SctpStreamParameters } from './RtpParametersAndCapabilities';
+import { SctpStreamParameters } from './SctpParameters';
 export interface DataProducerOptions {
     ordered?: boolean;
     maxPacketLifeTime?: number;
@@ -9,7 +9,7 @@ export interface DataProducerOptions {
     protocol?: string;
     appData?: any;
 }
-export declare class DataProducer extends EnhancedEventEmitter {
+export default class DataProducer extends EnhancedEventEmitter {
     private _id;
     private _dataChannel;
     private _closed;

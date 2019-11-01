@@ -14,7 +14,7 @@ export interface ConsumerOptions
 
 const logger = new Logger('Consumer');
 
-export class Consumer extends EnhancedEventEmitter
+export default class Consumer extends EnhancedEventEmitter
 {
 	// Id.
 	private _id: string;
@@ -68,19 +68,12 @@ export class Consumer extends EnhancedEventEmitter
 		super(logger);
 
 		this._id = id;
-
 		this._localId = localId;
-
 		this._producerId = producerId;
-
 		this._track = track;
-
 		this._rtpParameters = rtpParameters;
-
 		this._paused = !track.enabled;
-
 		this._appData = appData;
-
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
 		this._handleTrack();

@@ -1,7 +1,11 @@
 import Device from './Device';
-import { parse as parseScalabilityMode } from './scalabilityModes';
+import * as types from './types';
 /**
- * Expose mediasoup version.
+ * Expose all types.
+ */
+export { types };
+/**
+ * Expose mediasoup-client version.
  */
 export declare const version = "__MEDIASOUP_CLIENT_VERSION__";
 /**
@@ -9,7 +13,7 @@ export declare const version = "__MEDIASOUP_CLIENT_VERSION__";
  */
 export { Device };
 /**
- * Expose parseScalabilityMode function.
+ * Expose parseScalabilityMode() function.
  */
-export { parseScalabilityMode };
+export { parse as parseScalabilityMode } from './scalabilityModes';
 //# sourceMappingURL=index.d.ts.map

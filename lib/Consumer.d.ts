@@ -7,7 +7,7 @@ export interface ConsumerOptions {
     rtpParameters?: RtpParameters;
     appData?: any;
 }
-export declare class Consumer extends EnhancedEventEmitter {
+export default class Consumer extends EnhancedEventEmitter {
     private _id;
     private _localId;
     private _producerId;

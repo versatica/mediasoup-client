@@ -1,11 +1,12 @@
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { SctpStreamParameters } from './RtpParametersAndCapabilities';
+import { SctpStreamParameters } from './SctpParameters';
 
-export interface DataConsumerOptions {
+export interface DataConsumerOptions
+{
 	id?: string;
 	dataProducerId?: string;
-	sctpStreamParameters?: SctpStreamParameters;
+	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
 	appData?: any;
@@ -13,7 +14,7 @@ export interface DataConsumerOptions {
 
 const logger = new Logger('DataConsumer');
 
-export class DataConsumer extends EnhancedEventEmitter
+export default class DataConsumer extends EnhancedEventEmitter
 {
 	// Id.
 	private _id: string;
@@ -61,13 +62,9 @@ export class DataConsumer extends EnhancedEventEmitter
 		super(logger);
 
 		this._id = id;
-
 		this._dataProducerId = dataProducerId;
-
 		this._dataChannel = dataChannel;
-
 		this._sctpStreamParameters = sctpStreamParameters;
-
 		this._appData = appData;
 
 		this._handleDataChannel();

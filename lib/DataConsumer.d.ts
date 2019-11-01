@@ -1,14 +1,14 @@
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { SctpStreamParameters } from './RtpParametersAndCapabilities';
+import { SctpStreamParameters } from './SctpParameters';
 export interface DataConsumerOptions {
     id?: string;
     dataProducerId?: string;
-    sctpStreamParameters?: SctpStreamParameters;
+    sctpStreamParameters: SctpStreamParameters;
     label?: string;
     protocol?: string;
     appData?: any;
 }
-export declare class DataConsumer extends EnhancedEventEmitter {
+export default class DataConsumer extends EnhancedEventEmitter {
     private _id;
     private _dataProducerId;
     private _dataChannel;
