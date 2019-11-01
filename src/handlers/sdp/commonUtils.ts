@@ -78,9 +78,13 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 			if (!codec)
 				continue;
 
-			// Special case to convert parameter value to string.
+			// Specials case to convert parameter value to string.
 			if (parameters && parameters['profile-level-id'])
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
+
+			// Specials case to convert parameter value to string.
+			if (parameters && parameters['profile-id'])
+				parameters['profile-id'] = String(parameters['profile-id']);
 
 			codec.parameters = parameters;
 		}
