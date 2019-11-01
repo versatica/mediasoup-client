@@ -123,7 +123,7 @@ class Handler extends EnhancedEventEmitter
 	async updateIceServers(
 		{ iceServers }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ iceServers: RTCIceServer[] }
-	): Promise<Error>
+	): Promise<never>
 	{
 		logger.debug('updateIceServers()');
 

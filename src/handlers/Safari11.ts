@@ -379,7 +379,7 @@ class SendHandler extends Handler
 	async setMaxSpatialLayer(
 		{ localId, spatialLayer }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ localId: string; spatialLayer: number }
-	): Promise<void>
+	): Promise<never>
 	{
 		throw new UnsupportedError('not supported');
 	}

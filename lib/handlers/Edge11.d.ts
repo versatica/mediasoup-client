@@ -48,7 +48,7 @@ export default class Edge11 extends EnhancedEventEmitter {
     getSenderStats({ localId }: {
         localId: string;
     }): Promise<any>;
-    sendDataChannel(): Promise<Error>;
+    sendDataChannel(): Promise<never>;
     receive({ id, kind, rtpParameters }: {
         id: string;
         kind: 'audio' | 'video';
@@ -60,13 +60,13 @@ export default class Edge11 extends EnhancedEventEmitter {
     getReceiverStats({ localId }: {
         localId: string;
     }): Promise<any>;
-    receiveDataChannel(): Promise<Error>;
+    receiveDataChannel(): Promise<never>;
     restartIce({ iceParameters }: {
         iceParameters: IceParameters;
     }): Promise<void>;
     updateIceServers({ iceServers }: {
         iceServers: RTCIceServer[];
-    }): Promise<Error>;
+    }): Promise<never>;
     _setIceGatherer({ iceServers, iceTransportPolicy }: {
         iceServers: RTCIceServer[];
         iceTransportPolicy: RTCIceTransportPolicy;

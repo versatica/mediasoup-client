@@ -47,14 +47,14 @@ export declare class SendHandler extends Handler {
     replaceTrack({ localId, track }: {
         localId: string;
         track: MediaStreamTrack;
-    }): Promise<Error>;
+    }): Promise<never>;
     setMaxSpatialLayer({ localId, spatialLayer }: {
         localId: string;
         spatialLayer: number;
-    }): Promise<Error>;
+    }): Promise<never>;
     getSenderStats({ localId }: {
         localId: string;
-    }): Promise<Error>;
+    }): Promise<never>;
     sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: SctpStreamParameters): Promise<any>;
     restartIce({ iceParameters }: {
         iceParameters: IceParameters;

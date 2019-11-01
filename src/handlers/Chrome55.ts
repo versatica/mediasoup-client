@@ -340,7 +340,7 @@ export class SendHandler extends Handler
 	async replaceTrack(
 		{ localId, track }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ localId: string; track: MediaStreamTrack }
-	): Promise<Error>
+	): Promise<never>
 	{
 		throw new UnsupportedError('not implemented');
 	}
@@ -348,7 +348,7 @@ export class SendHandler extends Handler
 	async setMaxSpatialLayer(
 		{ local, spatialLayer }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ local: true; spatialLayer: number }
-	): Promise<void>
+	): Promise<never>
 	{
 		throw new UnsupportedError('not supported');
 	}
@@ -356,7 +356,7 @@ export class SendHandler extends Handler
 	async getSenderStats(
 		{ localId }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ localId: string }
-	): Promise<any>
+	): Promise<never>
 	{
 		throw new UnsupportedError('not implemented');
 	}
@@ -568,7 +568,7 @@ class RecvHandler extends Handler
 	async getReceiverStats(
 		{ localId }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ localId: string }
-	): Promise<any>
+	): Promise<never>
 	{
 		throw new UnsupportedError('not implemented');
 	}

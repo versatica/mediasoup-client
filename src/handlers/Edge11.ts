@@ -309,7 +309,7 @@ export default class Edge11 extends EnhancedEventEmitter
 		return rtpSender.getStats();
 	}
 
-	async sendDataChannel(): Promise<Error>
+	async sendDataChannel(): Promise<never>
 	{
 		throw new UnsupportedError('not implemented');
 	}
@@ -385,7 +385,7 @@ export default class Edge11 extends EnhancedEventEmitter
 		return rtpReceiver.getStats();
 	}
 
-	async receiveDataChannel(): Promise<Error>
+	async receiveDataChannel(): Promise<never>
 	{
 		throw new UnsupportedError('not implemented');
 	}
@@ -418,7 +418,7 @@ export default class Edge11 extends EnhancedEventEmitter
 	async updateIceServers(
 		{ iceServers }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ iceServers: RTCIceServer[] }
-	): Promise<Error>
+	): Promise<never>
 	{
 		logger.debug('updateIceServers()');
 
