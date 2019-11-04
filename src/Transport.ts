@@ -780,6 +780,16 @@ export default class Transport extends EnhancedEventEmitter
 				.catch(errback);
 		});
 
+		producer.on('@setrtpencodingparameters', (params, callback, errback) =>
+		{
+			this._awaitQueue.push(
+				async () => (
+					this._handler.setRtpEncodingParameters({ localId: producer.localId, params })
+				))
+				.then(callback)
+				.catch(errback);
+		});
+
 		producer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)

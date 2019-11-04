@@ -192,6 +192,11 @@ class FakeHandler extends EventEmitter
 	{
 	}
 
+	// eslint-disable-next-line no-unused-vars
+	async setRtpEncodingParameters({ localId, spatialLayer })
+	{
+	}
+
 	async receive({ id, kind, rtpParameters }) // eslint-disable-line no-unused-vars
 	{
 		if (!this._transportReady)

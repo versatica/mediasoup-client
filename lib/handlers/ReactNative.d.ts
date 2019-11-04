@@ -52,7 +52,11 @@ export declare class SendHandler extends Handler {
     setMaxSpatialLayer({ localId, spatialLayer }: {
         localId: string;
         spatialLayer: number;
-    }): Promise<never>;
+    }): Promise<void>;
+    setRtpEncodingParameters({ localId, params }: {
+        localId: string;
+        params: any;
+    }): Promise<void>;
     getSenderStats({ localId }: {
         localId: string;
     }): Promise<never>;

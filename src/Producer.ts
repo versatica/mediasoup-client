@@ -54,6 +54,7 @@ export default class Producer extends EnhancedEventEmitter
 	 * @emits trackended
 	 * @emits {track: MediaStreamTrack} @replacetrack
 	 * @emits {spatialLayer: String} @setmaxspatiallayer
+	 * @emits {Object} @setrtpencodingparameters
 	 * @emits @getstats
 	 * @emits @close
 	 */
@@ -313,6 +314,19 @@ export default class Producer extends EnhancedEventEmitter
 		await this.safeEmitAsPromise('@setmaxspatiallayer', spatialLayer);
 
 		this._maxSpatialLayer = spatialLayer;
+	}
+
+	/**
+	 * Sets the DSCP value.
+	 */
+	async setRtpEncodingParameters(params: any): Promise<void>
+	{
+		if (this._closed)
+			throw new InvalidStateError('closed');
+		else if (typeof params !== 'object')
+			throw new TypeError('invalid params');
+
+		await this.safeEmitAsPromise('@setrtpencodingparameters', params);
 	}
 
 	private _onTrackEnded(): void

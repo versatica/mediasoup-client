@@ -403,6 +403,30 @@ class SendHandler extends Handler
 		await transceiver.sender.setParameters(parameters);
 	}
 
+	async setRtpEncodingParameters(
+		{ localId, params }:
+		{ localId: string; params: any }
+	): Promise<void>
+	{
+		logger.debug(
+			'setRtpEncodingParameters() [localId:%s, params:%o]',
+			localId, params);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		const parameters = transceiver.sender.getParameters();
+
+		parameters.encodings.forEach((encoding: any, idx: number) =>
+		{
+			parameters.encodings[idx] = { ...encoding, ...params };
+		});
+
+		await transceiver.sender.setParameters(parameters);
+	}
+
 	async getSenderStats({ localId }: { localId: string }): Promise<any>
 	{
 		const transceiver = this._mapMidTransceiver.get(localId);

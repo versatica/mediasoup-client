@@ -53,6 +53,10 @@ export declare class SendHandler extends Handler {
         local: true;
         spatialLayer: number;
     }): Promise<never>;
+    setRtpEncodingParameters({ local, params }: {
+        local: true;
+        params: any;
+    }): Promise<never>;
     getSenderStats({ localId }: {
         localId: string;
     }): Promise<never>;

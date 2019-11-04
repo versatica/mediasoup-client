@@ -47,6 +47,10 @@ export default class Edge11 extends EnhancedEventEmitter {
         localId: string;
         spatialLayer: number;
     }): Promise<void>;
+    setRtpEncodingParameters({ localId, params }: {
+        localId: string;
+        params: any;
+    }): Promise<void>;
     getSenderStats({ localId }: {
         localId: string;
     }): Promise<any>;

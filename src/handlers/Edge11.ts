@@ -204,7 +204,7 @@ export default class Edge11 extends EnhancedEventEmitter
 		// Store it.
 		this._rtpSenders.set(`${this._lastSendId}`, rtpSender);
 
-		return { localId: this._lastSendId, rtpParameters };
+		return { localId: `${this._lastSendId}`, rtpParameters };
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -277,6 +277,30 @@ export default class Edge11 extends EnhancedEventEmitter
 				else
 					encoding.active = false;
 			});
+
+		await rtpSender.setParameters(parameters);
+	}
+
+	async setRtpEncodingParameters(
+		{ localId, params }:
+		{ localId: string; params: any }
+	): Promise<void>
+	{
+		logger.debug(
+			'setRtpEncodingParameters() [localId:%s, params:%o]',
+			localId, params);
+
+		const rtpSender = this._rtpSenders.get(localId);
+
+		if (!rtpSender)
+			throw new Error('RTCRtpSender not found');
+
+		const parameters = rtpSender.getParameters();
+
+		parameters.encodings.forEach((encoding: any, idx: number) =>
+		{
+			parameters.encodings[idx] = { ...encoding, ...params };
+		});
 
 		await rtpSender.setParameters(parameters);
 	}

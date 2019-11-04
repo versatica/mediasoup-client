@@ -1082,6 +1082,15 @@ test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError'
 		.toThrow(TypeError);
 }, 500);
 
+test('producer.setRtpEncodingParameters() succeeds', async () =>
+{
+	await expect(videoProducer.setRtpEncodingParameters({ foo: 'bar' }))
+		.resolves
+		.toBe(undefined);
+
+	expect(videoProducer.maxSpatialLayer).toBe(0);
+}, 500);
+
 test('producer.getStats() succeeds', async () =>
 {
 	await expect(videoProducer.getStats())

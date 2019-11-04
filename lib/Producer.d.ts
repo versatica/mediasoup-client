@@ -29,6 +29,7 @@ export default class Producer extends EnhancedEventEmitter {
      * @emits trackended
      * @emits {track: MediaStreamTrack} @replacetrack
      * @emits {spatialLayer: String} @setmaxspatiallayer
+     * @emits {Object} @setrtpencodingparameters
      * @emits @getstats
      * @emits @close
      */
@@ -110,6 +111,10 @@ export default class Producer extends EnhancedEventEmitter {
      * Sets the video max spatial layer to be sent.
      */
     setMaxSpatialLayer(spatialLayer: number): Promise<void>;
+    /**
+     * Sets the DSCP value.
+     */
+    setRtpEncodingParameters(params: any): Promise<void>;
     private _onTrackEnded;
     private _handleTrack;
     private _destroyTrack;

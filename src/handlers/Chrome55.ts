@@ -298,7 +298,7 @@ export class SendHandler extends Handler
 		// Insert into the map.
 		this._mapIdTrack.set(`${this._lastId}`, track);
 
-		return { localId: this._lastId, rtpParameters: sendingRtpParameters };
+		return { localId: `${this._lastId}`, rtpParameters: sendingRtpParameters };
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -361,6 +361,14 @@ export class SendHandler extends Handler
 	async setMaxSpatialLayer(
 		{ local, spatialLayer }: // eslint-disable-line @typescript-eslint/no-unused-vars
 		{ local: true; spatialLayer: number }
+	): Promise<never>
+	{
+		throw new UnsupportedError('not supported');
+	}
+
+	async setRtpEncodingParameters(
+		{ local, params }: // eslint-disable-line @typescript-eslint/no-unused-vars
+		{ local: true; params: any }
 	): Promise<never>
 	{
 		throw new UnsupportedError('not supported');

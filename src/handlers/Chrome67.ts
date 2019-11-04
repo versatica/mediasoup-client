@@ -1,7 +1,6 @@
 import * as sdpTransform from 'sdp-transform';
 import Logger from '../Logger';
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
-import { UnsupportedError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
@@ -297,7 +296,7 @@ class SendHandler extends Handler
 		// Insert into the map.
 		this._mapIdTrack.set(`${this._lastId}`, track);
 
-		return { localId: this._lastId, rtpParameters: sendingRtpParameters };
+		return { localId: `${this._lastId}`, rtpParameters: sendingRtpParameters };
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -378,11 +377,58 @@ class SendHandler extends Handler
 	}
 
 	async setMaxSpatialLayer(
-		{ localId, spatialLayer }: // eslint-disable-line @typescript-eslint/no-unused-vars
+		{ localId, spatialLayer }:
 		{ localId: string; spatialLayer: number }
-	): Promise<never>
+	): Promise<void>
 	{
-		throw new UnsupportedError('not supported');
+		logger.debug(
+			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
+			localId, spatialLayer);
+
+		const track = this._mapIdTrack.get(localId);
+		const rtpSender = this._pc.getSenders()
+			.find((s: any) => s.track === track);
+
+		if (!rtpSender)
+			throw new Error('associated RTCRtpSender not found');
+
+		const parameters = rtpSender.getParameters();
+
+		parameters.encodings.forEach((encoding: any, idx: number) =>
+		{
+			if (idx <= spatialLayer)
+				encoding.active = true;
+			else
+				encoding.active = false;
+		});
+
+		await rtpSender.setParameters(parameters);
+	}
+
+	async setRtpEncodingParameters(
+		{ localId, params }:
+		{ localId: string; params: any }
+	): Promise<void>
+	{
+		logger.debug(
+			'setRtpEncodingParameters() [localId:%s, params:%o]',
+			localId, params);
+
+		const track = this._mapIdTrack.get(localId);
+		const rtpSender = this._pc.getSenders()
+			.find((s: any) => s.track === track);
+
+		if (!rtpSender)
+			throw new Error('associated RTCRtpSender not found');
+
+		const parameters = rtpSender.getParameters();
+
+		parameters.encodings.forEach((encoding: any, idx: number) =>
+		{
+			parameters.encodings[idx] = { ...encoding, ...params };
+		});
+
+		await rtpSender.setParameters(parameters);
 	}
 
 	async getSenderStats({ localId }: { localId: string }): Promise<any>
