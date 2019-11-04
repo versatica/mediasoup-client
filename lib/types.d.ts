@@ -1,3 +1,6 @@
+export * from './Device';
+import Device from './Device';
+export { Device };
 export * from './Transport';
 import Transport from './Transport';
 export { Transport };
