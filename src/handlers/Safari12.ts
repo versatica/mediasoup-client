@@ -6,9 +6,23 @@ import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import RemoteSdp from './sdp/RemoteSdp';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
-import { RtpParameters } from '../RtpParametersAndCapabilities';
+import {
+	IceParameters,
+	IceCandidate,
+	DtlsParameters,
+	DtlsRole
+} from './../Transport';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
+import {
+	SctpCapabilities,
+	SctpParameters,
+	SctpStreamParameters
+} from '../SctpParameters';
 
 const logger = new Logger('Safari12');
 
@@ -26,7 +40,7 @@ class Handler extends EnhancedEventEmitter
 	protected readonly _pc: any;
 
 	// Map of RTCTransceivers indexed by MID.
-	protected readonly _mapMidTransceiver: Map<string, any>;
+	protected readonly _mapMidTransceiver: Map<string, any> = new Map();
 
 	// Whether a DataChannel m=application section has been created.
 	protected _hasDataChannelMediaSection = false;
@@ -49,11 +63,11 @@ class Handler extends EnhancedEventEmitter
 			iceParameters: IceParameters;
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
-			sctpParameters: TransportSctpParameters;
-			iceServers: RTCIceServer[];
-			iceTransportPolicy: RTCIceTransportPolicy;
-			additionalSettings: any;
-			proprietaryConstraints: any;
+			sctpParameters?: SctpParameters;
+			iceServers?: RTCIceServer[];
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any;
 		}
 	)
 	{
@@ -76,8 +90,6 @@ class Handler extends EnhancedEventEmitter
 				...additionalSettings
 			},
 			proprietaryConstraints);
-
-		this._mapMidTransceiver = new Map();
 
 		// Handle RTCPeerConnection connection status.
 		this._pc.addEventListener('iceconnectionstatechange', () =>
@@ -158,42 +170,32 @@ class Handler extends EnhancedEventEmitter
 	}
 }
 
-type RtpParametersByKind =
-{
-	audio: RtpParameters;
-	video: RtpParameters;
-	[key: string]: RtpParameters;
-}
-
 class SendHandler extends Handler
 {
 	// Generic sending RTP parameters for audio and video.
-	private readonly _sendingRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRtpParametersByKind: any;
 
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private readonly _sendingRemoteRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	private readonly _stream: MediaStream;
+	private readonly _stream = new MediaStream();
 
 	constructor(data: any)
 	{
 		super(data);
 
 		this._sendingRtpParametersByKind = data.sendingRtpParametersByKind;
-
 		this._sendingRemoteRtpParametersByKind = data.sendingRemoteRtpParametersByKind;
-
-		this._stream = new MediaStream();
 	}
 
 	async send(
 		{ track, encodings, codecOptions }:
 		{
 			track: MediaStreamTrack;
-			encodings: RTCRtpEncodingParameters[];
-			codecOptions: ProducerCodecOptions;
+			encodings?: RtpEncodingParameters[];
+			codecOptions?: ProducerCodecOptions;
 		}
 	): Promise<any>
 	{
@@ -385,15 +387,7 @@ class SendHandler extends Handler
 			label,
 			protocol,
 			priority
-		}:
-		{
-			ordered: boolean;
-			maxPacketLifeTime: number;
-			maxRetransmits: number;
-			priority: string;
-			label: string;
-			protocol: string;
-		}
+		}: SctpStreamParameters
 	): Promise<any>
 	{
 		logger.debug('sendDataChannel()');
@@ -587,7 +581,7 @@ class RecvHandler extends Handler
 
 	async receiveDataChannel(
 		{ sctpStreamParameters, label, protocol }:
-		{ sctpStreamParameters: any; label: string; protocol: string }
+		{ sctpStreamParameters: SctpStreamParameters; label?: string; protocol?: string }
 	): Promise<any>
 	{
 		logger.debug('receiveDataChannel()');
@@ -692,7 +686,7 @@ export default class Safari12
 		return 'Safari12';
 	}
 
-	static async getNativeRtpCapabilities(): Promise<any>
+	static async getNativeRtpCapabilities(): Promise<RtpCapabilities>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
@@ -729,7 +723,7 @@ export default class Safari12
 		}
 	}
 
-	static async getNativeSctpCapabilities(): Promise<any>
+	static async getNativeSctpCapabilities(): Promise<SctpCapabilities>
 	{
 		logger.debug('getNativeSctpCapabilities()');
 
@@ -756,11 +750,11 @@ export default class Safari12
 			iceParameters: IceParameters;
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
-			sctpParameters: TransportSctpParameters;
+			sctpParameters?: SctpParameters;
 			iceServers: RTCIceServer[];
-			iceTransportPolicy: RTCIceTransportPolicy;
-			additionalSettings: any;
-			proprietaryConstraints: any; // eslint-disable-line no-unused-vars
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any;
 			extendedRtpCapabilities: any;
 		}
 	)

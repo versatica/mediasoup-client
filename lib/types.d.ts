@@ -16,7 +16,7 @@ export { DataProducer };
 export * from './DataConsumer';
 import DataConsumer from './DataConsumer';
 export { DataConsumer };
-export * from './RtpParametersAndCapabilities';
+export * from './RtpParameters';
 export * from './SctpParameters';
 export * from './errors';
 export { ScalabilityMode } from './scalabilityModes';

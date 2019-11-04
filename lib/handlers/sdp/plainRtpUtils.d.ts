@@ -1,4 +1,4 @@
-import { RtpEncodingParameters } from '../../RtpParametersAndCapabilities';
+import { RtpEncodingParameters } from '../../RtpParameters';
 /**
  * Extract plain RTP parameters from a SDP.
  *

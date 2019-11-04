@@ -1,5 +1,5 @@
 import EnhancedEventEmitter from './EnhancedEventEmitter';
-import { RtpParameters } from './RtpParametersAndCapabilities';
+import { RtpParameters } from './RtpParameters';
 export interface ConsumerOptions {
     id?: string;
     producerId?: string;

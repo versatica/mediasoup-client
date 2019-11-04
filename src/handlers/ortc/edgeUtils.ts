@@ -1,5 +1,5 @@
 import * as utils from '../../utils';
-import { RtpCapabilities, RtpParameters } from '../../RtpParametersAndCapabilities';
+import { RtpCapabilities, RtpParameters } from '../../RtpParameters';
 
 /**
  * Normalize Edge's RTCRtpReceiver.getCapabilities() to produce a full

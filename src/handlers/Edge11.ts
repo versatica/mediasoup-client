@@ -5,16 +5,10 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as edgeUtils from './ortc/edgeUtils';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
-import { RtpParameters, RtpEncodingParameters } from '../RtpParametersAndCapabilities';
+import { RtpParameters, RtpEncodingParameters } from '../RtpParameters';
+import { SctpParameters } from '../SctpParameters';
 
 const logger = new Logger('Edge11');
-
-type RtpParametersByKind =
-{
-	audio: RtpParameters;
-	video: RtpParameters;
-	[key: string]: RtpParameters;
-}
 
 export default class Edge11 extends EnhancedEventEmitter
 {
@@ -40,7 +34,7 @@ export default class Edge11 extends EnhancedEventEmitter
 	}
 
 	// Generic sending RTP parameters for audio and video.
-	private readonly _sendingRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRtpParametersByKind: any;
 
 	// Transport remote ICE parameters.
 	private _remoteIceParameters: IceParameters;
@@ -55,19 +49,19 @@ export default class Edge11 extends EnhancedEventEmitter
 	private _transportReady = false;
 
 	// ICE gatherer.
-	private _iceGatherer: any;
+	private _iceGatherer: any = null;
 
 	// ICE transport.
-	private _iceTransport: any;
+	private _iceTransport: any = null;
 
 	// DTLS transport.
-	private _dtlsTransport: any;
+	private _dtlsTransport: any = null;
 
 	// Map of RTCRtpSenders indexed by id.
-	private readonly _rtpSenders: Map<string, RTCRtpSender>;
+	private readonly _rtpSenders: Map<string, RTCRtpSender> = new Map();
 
 	// Map of RTCRtpReceivers indexed by id.
-	private readonly _rtpReceivers: Map<string, RTCRtpReceiver>;
+	private readonly _rtpReceivers: Map<string, RTCRtpReceiver> = new Map();
 
 	// Latest localId for sending tracks.
 	private _lastSendId = 0;
@@ -91,7 +85,8 @@ export default class Edge11 extends EnhancedEventEmitter
 			iceParameters: IceParameters;
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
-			iceServers: RTCIceServer[];
+			sctpParameters: SctpParameters;
+			iceServers: any[];
 			iceTransportPolicy: RTCIceTransportPolicy;
 			proprietaryConstraints: any;
 			extendedRtpCapabilities: any;
@@ -109,21 +104,8 @@ export default class Edge11 extends EnhancedEventEmitter
 		};
 
 		this._remoteIceParameters = iceParameters;
-
 		this._remoteIceCandidates = iceCandidates;
-
 		this._remoteDtlsParameters = dtlsParameters;
-
-		this._iceGatherer = null;
-
-		this._iceTransport = null;
-
-		this._dtlsTransport = null;
-
-		this._rtpSenders = new Map();
-
-		this._rtpReceivers = new Map();
-
 		this._cname = `CNAME-${utils.generateRandomNumber()}`;
 
 		this._setIceGatherer({ iceServers, iceTransportPolicy });
@@ -170,7 +152,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	async send(
 		{ track, encodings }:
-		{ track: MediaStreamTrack; encodings: RtpEncodingParameters[] }
+		{ track: MediaStreamTrack; encodings?: RtpEncodingParameters[] }
 	): Promise<any>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -417,7 +399,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	async updateIceServers(
 		{ iceServers }: // eslint-disable-line @typescript-eslint/no-unused-vars
-		{ iceServers: RTCIceServer[] }
+		{ iceServers: any[] }
 	): Promise<never>
 	{
 		logger.debug('updateIceServers()');
@@ -428,7 +410,7 @@ export default class Edge11 extends EnhancedEventEmitter
 
 	_setIceGatherer(
 		{ iceServers, iceTransportPolicy }:
-		{ iceServers: RTCIceServer[]; iceTransportPolicy: RTCIceTransportPolicy }
+		{ iceServers: any[]; iceTransportPolicy: RTCIceTransportPolicy }
 	): void
 	{
 		const iceGatherer = new (RTCIceGatherer as any)(

@@ -1,7 +1,9 @@
 import * as sdpTransform from 'sdp-transform';
 import Logger from '../../Logger';
 import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
+import { SctpParameters } from '../../SctpParameters';
+
 const logger = new Logger('RemoteSdp');
 
 export default class RemoteSdp
@@ -16,7 +18,7 @@ export default class RemoteSdp
 	private readonly _dtlsParameters: DtlsParameters;
 
 	// Remote SCTP parameters.
-	private readonly _sctpParameters: TransportSctpParameters;
+	private readonly _sctpParameters: SctpParameters;
 
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
 	// @type {Object}

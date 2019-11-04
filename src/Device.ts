@@ -2,7 +2,7 @@ import Logger from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import detectDevice from './detectDevice';
 import * as ortc from './ortc';
-import Transport, { TransportOptions, TransportNumSctpStreams, CanProduceByKind } from './Transport';
+import Transport, { TransportOptions, CanProduceByKind } from './Transport';
 import Chrome74 from './handlers/Chrome74';
 import Chrome70 from './handlers/Chrome70';
 import Chrome67 from './handlers/Chrome67';
@@ -12,18 +12,14 @@ import Safari12 from './handlers/Safari12';
 import Safari11 from './handlers/Safari11';
 import Edge11 from './handlers/Edge11';
 import ReactNative from './handlers/ReactNative';
-import { RtpCapabilities } from './RtpParametersAndCapabilities';
+import { RtpCapabilities } from './RtpParameters';
+import { SctpCapabilities } from './SctpParameters';
 
 const logger = new Logger('Device');
 
 interface InternalTransportOptions extends TransportOptions
 {
 	direction: 'send' | 'recv';
-}
-
-export interface SctpCapabilities
-{
-  numStreams: TransportNumSctpStreams;
 }
 
 export default class Device

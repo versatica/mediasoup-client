@@ -297,4 +297,4 @@ export interface RtcpParameters {
      */
     mux?: boolean;
 }
-//# sourceMappingURL=RtpParametersAndCapabilities.d.ts.map
+//# sourceMappingURL=RtpParameters.d.ts.map

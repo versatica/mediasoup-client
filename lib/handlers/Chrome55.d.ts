@@ -1,7 +1,9 @@
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import RemoteSdp from './sdp/RemoteSdp';
-import { IceParameters } from './../Transport';
-import { SctpStreamParameters } from '../SctpParameters';
+import { ProducerCodecOptions } from '../Producer';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from './../Transport';
+import { RtpCapabilities, RtpEncodingParameters } from '../RtpParameters';
+import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 declare class Handler extends EnhancedEventEmitter {
     protected _transportReady: boolean;
     protected readonly _remoteSdp: RemoteSdp;
@@ -9,14 +11,14 @@ declare class Handler extends EnhancedEventEmitter {
     protected _hasDataChannelMediaSection: boolean;
     protected _nextSctpStreamId: number;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints }: {
-        iceParameters: any;
-        iceCandidates: any;
-        dtlsParameters: any;
-        sctpParameters: any;
-        iceServers: any[];
-        iceTransportPolicy: string;
-        additionalSettings: any;
-        proprietaryConstraints: any;
+        iceParameters: IceParameters;
+        iceCandidates: IceCandidate[];
+        dtlsParameters: DtlsParameters;
+        sctpParameters?: SctpParameters;
+        iceServers?: RTCIceServer[];
+        iceTransportPolicy?: RTCIceTransportPolicy;
+        additionalSettings?: any;
+        proprietaryConstraints?: any;
     });
     close(): void;
     getTransportStats(): Promise<any>;
@@ -24,7 +26,7 @@ declare class Handler extends EnhancedEventEmitter {
         iceServers: RTCIceServer[];
     }): Promise<void>;
     _setupTransport({ localDtlsRole, localSdpObject }: {
-        localDtlsRole: 'client' | 'server';
+        localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
 }
@@ -36,9 +38,9 @@ export declare class SendHandler extends Handler {
     private _lastId;
     constructor(data: any);
     send({ track, encodings, codecOptions }: {
-        track: any;
-        encodings: any;
-        codecOptions: any;
+        track: MediaStreamTrack;
+        encodings?: RtpEncodingParameters[];
+        codecOptions?: ProducerCodecOptions;
     }): Promise<any>;
     stopSending({ localId }: {
         localId: string;
@@ -61,18 +63,18 @@ export declare class SendHandler extends Handler {
 }
 export default class Chrome55 {
     static readonly label: string;
-    static getNativeRtpCapabilities(): Promise<any>;
-    static getNativeSctpCapabilities(): Promise<any>;
+    static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+    static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {
-        direction: string;
-        iceParameters: any;
-        iceCandidates: any[];
-        dtlsParameters: any;
-        sctpParameters: any;
-        iceServers: any[];
-        iceTransportPolicy: string;
-        additionalSettings: any;
-        proprietaryConstraints: any;
+        direction: 'send' | 'recv';
+        iceParameters: IceParameters;
+        iceCandidates: IceCandidate[];
+        dtlsParameters: DtlsParameters;
+        sctpParameters?: SctpParameters;
+        iceServers: RTCIceServer[];
+        iceTransportPolicy?: RTCIceTransportPolicy;
+        additionalSettings?: any;
+        proprietaryConstraints?: any;
         extendedRtpCapabilities: any;
     });
 }

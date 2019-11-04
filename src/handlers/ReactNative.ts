@@ -7,10 +7,23 @@ import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpPlanBUtils from './sdp/planBUtils';
 import RemoteSdp from './sdp/RemoteSdp';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
-import { RtpParameters } from '../RtpParametersAndCapabilities';
-import { SctpStreamParameters } from '../SctpParameters';
+import {
+	IceParameters,
+	IceCandidate,
+	DtlsParameters,
+	DtlsRole
+} from './../Transport';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
+import {
+	SctpCapabilities,
+	SctpParameters,
+	SctpStreamParameters
+} from '../SctpParameters';
 
 const logger = new Logger('ReactNative');
 
@@ -48,11 +61,11 @@ class Handler extends EnhancedEventEmitter
 			iceParameters: IceParameters;
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
-			sctpParameters: TransportSctpParameters;
-			iceServers: RTCIceServer[];
-			iceTransportPolicy: RTCIceTransportPolicy;
-			additionalSettings: any;
-			proprietaryConstraints: any; // eslint-disable-line no-unused-vars
+			sctpParameters?: SctpParameters;
+			iceServers?: RTCIceServer[];
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any; // eslint-disable-line no-unused-vars
 		}
 	)
 	{
@@ -157,27 +170,20 @@ class Handler extends EnhancedEventEmitter
 	}
 }
 
-type RtpParametersByKind =
-{
-	audio: RtpParameters;
-	video: RtpParameters;
-	[key: string]: RtpParameters;
-}
-
 export class SendHandler extends Handler
 {
 	// Generic sending RTP parameters for audio and video.
-	private readonly _sendingRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRtpParametersByKind: any;
 
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private readonly _sendingRemoteRtpParametersByKind: RtpParametersByKind;
+	private readonly _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	private readonly _stream: MediaStream;
+	private readonly _stream = new MediaStream();
 
 	// Map of MediaStreamTracks indexed by localId.
-	private readonly _mapIdTrack: Map<number, MediaStreamTrack>;
+	private readonly _mapIdTrack: Map<string, MediaStreamTrack> = new Map();
 
 	// Latest localId.
 	private _lastId = 0;
@@ -187,20 +193,15 @@ export class SendHandler extends Handler
 		super(data);
 
 		this._sendingRtpParametersByKind = data.sendingRtpParametersByKind;
-
 		this._sendingRemoteRtpParametersByKind = data.sendingRemoteRtpParametersByKind;
-
-		this._stream = new MediaStream();
-
-		this._mapIdTrack = new Map();
 	}
 
 	async send(
 		{ track, encodings, codecOptions }:
 		{
 			track: MediaStreamTrack;
-			encodings: RTCRtpEncodingParameters[];
-			codecOptions: ProducerCodecOptions;
+			encodings?: RtpEncodingParameters[];
+			codecOptions?: ProducerCodecOptions;
 		}
 	): Promise<any>
 	{
@@ -305,12 +306,12 @@ export class SendHandler extends Handler
 		this._lastId++;
 
 		// Insert into the map.
-		this._mapIdTrack.set(this._lastId, track);
+		this._mapIdTrack.set(`${this._lastId}`, track);
 
 		return { localId: this._lastId, rtpParameters: sendingRtpParameters };
 	}
 
-	async stopSending({ localId }: { localId: number }): Promise<void>
+	async stopSending({ localId }: { localId: string }): Promise<void>
 	{
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -506,13 +507,11 @@ class RecvHandler extends Handler
 {
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
 	// Value is an Object with mid and rtpParameters.
-	private readonly _mapIdRtpParameters: Map<string, any>;
+	private readonly _mapIdRtpParameters: Map<string, any> = new Map();
 
 	constructor(data: any)
 	{
 		super(data);
-
-		this._mapIdRtpParameters = new Map();
 	}
 
 	async receive(
@@ -630,7 +629,7 @@ class RecvHandler extends Handler
 
 	async receiveDataChannel(
 		{ sctpStreamParameters, label, protocol }:
-		{ sctpStreamParameters: any; label: string; protocol: string }
+		{ sctpStreamParameters: SctpStreamParameters; label?: string; protocol?: string }
 	): Promise<any>
 	{
 		logger.debug('receiveDataChannel()');
@@ -728,7 +727,7 @@ export default class ReactNative
 		return 'ReactNative';
 	}
 
-	static async getNativeRtpCapabilities(): Promise<any>
+	static async getNativeRtpCapabilities(): Promise<RtpCapabilities>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
@@ -767,7 +766,7 @@ export default class ReactNative
 		}
 	}
 
-	static async getNativeSctpCapabilities(): Promise<any>
+	static async getNativeSctpCapabilities(): Promise<SctpCapabilities>
 	{
 		logger.debug('getNativeSctpCapabilities()');
 
@@ -794,11 +793,11 @@ export default class ReactNative
 			iceParameters: IceParameters;
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
-			sctpParameters: TransportSctpParameters;
+			sctpParameters?: SctpParameters;
 			iceServers: RTCIceServer[];
-			iceTransportPolicy: RTCIceTransportPolicy;
-			additionalSettings: any;
-			proprietaryConstraints: any;
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any;
 			extendedRtpCapabilities: any;
 		}
 	)
