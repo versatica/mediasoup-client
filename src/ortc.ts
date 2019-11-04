@@ -1,12 +1,10 @@
 import * as h264 from 'h264-profile-level-id';
-import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './RtpParametersAndCapabilities';
+import { RtpParameters, RtpCodecParameters, RtpCapabilities } from './RtpParameters';
 
 const PROBATOR_SSRC = 1234;
 
 /**
  * Generate extended RTP capabilities for sending and receiving.
- *
- * @returns {RTCExtendedRtpCapabilities}
  */
 export function getExtendedRtpCapabilities(
 	localCaps: RtpCapabilities,
@@ -129,8 +127,6 @@ export function getExtendedRtpCapabilities(
 /**
  * Generate RTP capabilities for receiving media based on the given extended
  * RTP capabilities.
- *
- * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
  */
 export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabilities
 {
@@ -209,9 +205,6 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
  * Generate RTP parameters of the given kind for sending media.
  * Just the first media codec per kind is considered.
  * NOTE: mid, encodings and rtcp fields are left empty.
- *
- * @param {kind} kind
- * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
  */
 export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters
 {
@@ -294,9 +287,6 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 
 /**
  * Generate RTP parameters of the given kind suitable for the remote SDP answer.
- *
- * @param {kind} kind
- * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
  */
 export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters
 {
@@ -416,9 +406,6 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 
 /**
  * Whether media can be sent based on the given RTP capabilities.
- *
- * @param {String} kind
- * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
  */
 export function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): boolean
 {
@@ -429,9 +416,6 @@ export function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): 
 /**
  * Whether the given RTP parameters can be received with the given RTP
  * capabilities.
- *
- * @param {RTCRtpParameters} rtpParameters
- * @param {RTCExtendedRtpCapabilities} extendedRtpCapabilities
  */
 export function canReceive(
 	rtpParameters: RtpParameters, extendedRtpCapabilities: any

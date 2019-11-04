@@ -7,9 +7,23 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import RemoteSdp from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
-import { IceParameters } from './../Transport';
-import { RtpParameters } from '../RtpParametersAndCapabilities';
-import { SctpStreamParameters } from '../SctpParameters';
+import { ProducerCodecOptions } from '../Producer';
+import {
+	IceParameters,
+	IceCandidate,
+	DtlsParameters,
+	DtlsRole
+} from './../Transport';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
+import {
+	SctpCapabilities,
+	SctpParameters,
+	SctpStreamParameters
+} from '../SctpParameters';
 
 const logger = new Logger('Chrome70');
 
@@ -27,7 +41,7 @@ class Handler extends EnhancedEventEmitter
 	protected readonly _pc: any;
 
 	// Map of RTCTransceivers indexed by MID.
-	protected readonly _mapMidTransceiver: Map<string, any>;
+	protected readonly _mapMidTransceiver: Map<string, any> = new Map();
 
 	// Whether a DataChannel m=application section has been created.
 	protected _hasDataChannelMediaSection = false;
@@ -47,14 +61,14 @@ class Handler extends EnhancedEventEmitter
 			proprietaryConstraints
 		}:
 		{
-			iceParameters: any;
-			iceCandidates: any[];
-			dtlsParameters: any;
-			sctpParameters: any;
-			iceServers: any[];
-			iceTransportPolicy: string;
-			additionalSettings: any;
-			proprietaryConstraints: any;
+			iceParameters: IceParameters;
+			iceCandidates: IceCandidate[];
+			dtlsParameters: DtlsParameters;
+			sctpParameters?: SctpParameters;
+			iceServers?: RTCIceServer[];
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any;
 		}
 	)
 	{
@@ -78,8 +92,6 @@ class Handler extends EnhancedEventEmitter
 				...additionalSettings
 			},
 			proprietaryConstraints);
-
-		this._mapMidTransceiver = new Map();
 
 		// Handle RTCPeerConnection connection status.
 		this._pc.addEventListener('iceconnectionstatechange', () =>
@@ -136,7 +148,7 @@ class Handler extends EnhancedEventEmitter
 
 	async _setupTransport(
 		{ localDtlsRole, localSdpObject = null }:
-		{ localDtlsRole: 'client' | 'server'; localSdpObject?: any }
+		{ localDtlsRole: DtlsRole; localSdpObject?: any }
 	): Promise<void>
 	{
 		if (!localSdpObject)
@@ -170,22 +182,23 @@ class SendHandler extends Handler
 	private readonly _sendingRemoteRtpParametersByKind: any;
 
 	// Local stream.
-	private readonly _stream: MediaStream;
+	private readonly _stream = new MediaStream();
 
 	constructor(data: any)
 	{
 		super(data);
 
 		this._sendingRtpParametersByKind = data.sendingRtpParametersByKind;
-
 		this._sendingRemoteRtpParametersByKind = data.sendingRemoteRtpParametersByKind;
-
-		this._stream = new MediaStream();
 	}
 
 	async send(
 		{ track, encodings, codecOptions }:
-		{ track: any; encodings: any; codecOptions: any }
+		{
+			track: MediaStreamTrack;
+			encodings?: RtpEncodingParameters[];
+			codecOptions?: ProducerCodecOptions;
+		}
 	): Promise<any>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -613,7 +626,7 @@ class RecvHandler extends Handler
 
 	async receiveDataChannel(
 		{ sctpStreamParameters, label, protocol }:
-		{ sctpStreamParameters: any; label: string; protocol: string }
+		{ sctpStreamParameters: SctpStreamParameters; label?: string; protocol?: string }
 	): Promise<any>
 	{
 		logger.debug('receiveDataChannel()');
@@ -709,7 +722,7 @@ export default class Chrome70
 		return 'Chrome70';
 	}
 
-	static async getNativeRtpCapabilities(): Promise<any>
+	static async getNativeRtpCapabilities(): Promise<RtpCapabilities>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
@@ -747,7 +760,7 @@ export default class Chrome70
 		}
 	}
 
-	static async getNativeSctpCapabilities(): Promise<any>
+	static async getNativeSctpCapabilities(): Promise<SctpCapabilities>
 	{
 		logger.debug('getNativeSctpCapabilities()');
 
@@ -771,14 +784,14 @@ export default class Chrome70
 		}:
 		{
 			direction: 'send' | 'recv';
-			iceParameters: any;
-			iceCandidates: any[];
-			dtlsParameters: any;
-			sctpParameters: any;
-			iceServers: any[];
-			iceTransportPolicy: string;
-			additionalSettings: any;
-			proprietaryConstraints: any;
+			iceParameters: IceParameters;
+			iceCandidates: IceCandidate[];
+			dtlsParameters: DtlsParameters;
+			sctpParameters?: SctpParameters;
+			iceServers: RTCIceServer[];
+			iceTransportPolicy?: RTCIceTransportPolicy;
+			additionalSettings?: any;
+			proprietaryConstraints?: any;
 			extendedRtpCapabilities: any;
 		}
 	)

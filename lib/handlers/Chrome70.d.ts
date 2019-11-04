@@ -1,17 +1,20 @@
+import { IceParameters, IceCandidate, DtlsParameters } from './../Transport';
+import { RtpCapabilities } from '../RtpParameters';
+import { SctpCapabilities, SctpParameters } from '../SctpParameters';
 export default class Chrome70 {
     static readonly label: string;
-    static getNativeRtpCapabilities(): Promise<any>;
-    static getNativeSctpCapabilities(): Promise<any>;
+    static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+    static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {
         direction: 'send' | 'recv';
-        iceParameters: any;
-        iceCandidates: any[];
-        dtlsParameters: any;
-        sctpParameters: any;
-        iceServers: any[];
-        iceTransportPolicy: string;
-        additionalSettings: any;
-        proprietaryConstraints: any;
+        iceParameters: IceParameters;
+        iceCandidates: IceCandidate[];
+        dtlsParameters: DtlsParameters;
+        sctpParameters?: SctpParameters;
+        iceServers: RTCIceServer[];
+        iceTransportPolicy?: RTCIceTransportPolicy;
+        additionalSettings?: any;
+        proprietaryConstraints?: any;
         extendedRtpCapabilities: any;
     });
 }

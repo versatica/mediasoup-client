@@ -9,12 +9,14 @@ import Producer, { ProducerOptions } from './Producer';
 import Consumer, { ConsumerOptions } from './Consumer';
 import DataProducer, { DataProducerOptions } from './DataProducer';
 import DataConsumer, { DataConsumerOptions } from './DataConsumer';
+import { SctpParameters } from './SctpParameters';
 
-export interface CanProduceByKind
+interface InternalTransportOptions extends TransportOptions
 {
-	audio: boolean;
-	video: boolean;
-	[key: string]: boolean;
+	direction: 'send' | 'recv';
+	Handler: any;
+	extendedRtpCapabilities: any;
+	canProduceByKind: CanProduceByKind;
 }
 
 export interface TransportOptions
@@ -23,12 +25,19 @@ export interface TransportOptions
 	iceParameters: IceParameters;
 	iceCandidates: IceCandidate[];
 	dtlsParameters: DtlsParameters;
-	sctpParameters?: TransportSctpParameters;
-	iceServers?: RTCIceServer[];
+	sctpParameters?: SctpParameters;
+	iceServers: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
 	appData?: any;
+}
+
+export interface CanProduceByKind
+{
+	audio: boolean;
+	video: boolean;
+	[key: string]: boolean;
 }
 
 export interface IceParameters
@@ -113,53 +122,9 @@ export interface DtlsFingerprint
 	value: string;
 }
 
-export interface TransportSctpParameters
-{
-	/**
-	 * Must always equal 5000.
-	 */
-	port: number;
-
-	/**
-	 * Initially requested number of outgoing SCTP streams.
-	 */
-	OS: number;
-
-	/**
-	 * Maximum number of incoming SCTP streams.
-	 */
-	MIS: number;
-
-	/**
-	 * Maximum allowed size for SCTP messages.
-	 */
-	maxMessageSize: number;
-}
-
-export interface TransportNumSctpStreams
-{
-	/**
-	 * Initially requested number of outgoing SCTP streams.
-	 */
-	OS: number;
-
-	/**
-	 * Maximum number of incoming SCTP streams.
-	 */
-	MIS: number;
-}
-
 export type DtlsRole = 'auto' | 'client' | 'server';
 
 export type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
-
-interface InternalTransportOptions extends TransportOptions
-{
-	direction: 'send' | 'recv';
-	Handler: any;
-	extendedRtpCapabilities: any;
-	canProduceByKind: CanProduceByKind;
-}
 
 const logger = new Logger('Transport');
 

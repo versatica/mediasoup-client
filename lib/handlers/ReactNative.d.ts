@@ -1,8 +1,9 @@
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import RemoteSdp from './sdp/RemoteSdp';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, TransportSctpParameters } from '../Transport';
 import { ProducerCodecOptions } from '../Producer';
-import { SctpStreamParameters } from '../SctpParameters';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from './../Transport';
+import { RtpCapabilities, RtpEncodingParameters } from '../RtpParameters';
+import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 declare class Handler extends EnhancedEventEmitter {
     protected _transportReady: boolean;
     protected readonly _remoteSdp: RemoteSdp;
@@ -13,11 +14,11 @@ declare class Handler extends EnhancedEventEmitter {
         iceParameters: IceParameters;
         iceCandidates: IceCandidate[];
         dtlsParameters: DtlsParameters;
-        sctpParameters: TransportSctpParameters;
-        iceServers: RTCIceServer[];
-        iceTransportPolicy: RTCIceTransportPolicy;
-        additionalSettings: any;
-        proprietaryConstraints: any;
+        sctpParameters?: SctpParameters;
+        iceServers?: RTCIceServer[];
+        iceTransportPolicy?: RTCIceTransportPolicy;
+        additionalSettings?: any;
+        proprietaryConstraints?: any;
     });
     close(): void;
     getTransportStats(): Promise<any>;
@@ -38,11 +39,11 @@ export declare class SendHandler extends Handler {
     constructor(data: any);
     send({ track, encodings, codecOptions }: {
         track: MediaStreamTrack;
-        encodings: RTCRtpEncodingParameters[];
-        codecOptions: ProducerCodecOptions;
+        encodings?: RtpEncodingParameters[];
+        codecOptions?: ProducerCodecOptions;
     }): Promise<any>;
     stopSending({ localId }: {
-        localId: number;
+        localId: string;
     }): Promise<void>;
     replaceTrack({ localId, track }: {
         localId: string;
@@ -62,18 +63,18 @@ export declare class SendHandler extends Handler {
 }
 export default class ReactNative {
     static readonly label: string;
-    static getNativeRtpCapabilities(): Promise<any>;
-    static getNativeSctpCapabilities(): Promise<any>;
+    static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+    static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {
         direction: 'send' | 'recv';
         iceParameters: IceParameters;
         iceCandidates: IceCandidate[];
         dtlsParameters: DtlsParameters;
-        sctpParameters: TransportSctpParameters;
+        sctpParameters?: SctpParameters;
         iceServers: RTCIceServer[];
-        iceTransportPolicy: RTCIceTransportPolicy;
-        additionalSettings: any;
-        proprietaryConstraints: any;
+        iceTransportPolicy?: RTCIceTransportPolicy;
+        additionalSettings?: any;
+        proprietaryConstraints?: any;
         extendedRtpCapabilities: any;
     });
 }

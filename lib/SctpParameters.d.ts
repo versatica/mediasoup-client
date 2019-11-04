@@ -1,3 +1,34 @@
+export interface SctpCapabilities {
+    numStreams: NumSctpStreams;
+}
+export interface NumSctpStreams {
+    /**
+     * Initially requested number of outgoing SCTP streams.
+     */
+    OS: number;
+    /**
+     * Maximum number of incoming SCTP streams.
+     */
+    MIS: number;
+}
+export interface SctpParameters {
+    /**
+     * Must always equal 5000.
+     */
+    port: number;
+    /**
+     * Initially requested number of outgoing SCTP streams.
+     */
+    OS: number;
+    /**
+     * Maximum number of incoming SCTP streams.
+     */
+    MIS: number;
+    /**
+     * Maximum allowed size for SCTP messages.
+     */
+    maxMessageSize: number;
+}
 /**
  * SCTP stream parameters describe the reliability of a certain SCTP stream.
  * If ordered is true then maxPacketLifeTime and maxRetransmits must be

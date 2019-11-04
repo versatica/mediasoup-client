@@ -1,4 +1,4 @@
-import { RtpCapabilities, RtpParameters } from '../../RtpParametersAndCapabilities';
+import { RtpCapabilities, RtpParameters } from '../../RtpParameters';
 /**
  * Normalize Edge's RTCRtpReceiver.getCapabilities() to produce a full
  * compliant ORTC RTCRtpCapabilities.

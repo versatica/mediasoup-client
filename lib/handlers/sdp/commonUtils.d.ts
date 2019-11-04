@@ -1,4 +1,4 @@
-import { RtpCapabilities } from '../../RtpParametersAndCapabilities';
+import { RtpCapabilities } from '../../RtpParameters';
 /**
  * Extract RTP capabilities.
  *

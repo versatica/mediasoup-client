@@ -1,7 +1,7 @@
 import Logger from './Logger';
 import EnhancedEventEmitter from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
-import { RtpParameters } from './RtpParametersAndCapabilities';
+import { RtpParameters } from './RtpParameters';
 
 export interface ConsumerOptions
 {

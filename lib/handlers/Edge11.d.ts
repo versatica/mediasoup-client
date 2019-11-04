@@ -1,6 +1,7 @@
 import EnhancedEventEmitter from '../EnhancedEventEmitter';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
-import { RtpParameters, RtpEncodingParameters } from '../RtpParametersAndCapabilities';
+import { RtpParameters, RtpEncodingParameters } from '../RtpParameters';
+import { SctpParameters } from '../SctpParameters';
 export default class Edge11 extends EnhancedEventEmitter {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<any>;
@@ -23,7 +24,8 @@ export default class Edge11 extends EnhancedEventEmitter {
         iceParameters: IceParameters;
         iceCandidates: IceCandidate[];
         dtlsParameters: DtlsParameters;
-        iceServers: RTCIceServer[];
+        sctpParameters: SctpParameters;
+        iceServers: any[];
         iceTransportPolicy: RTCIceTransportPolicy;
         proprietaryConstraints: any;
         extendedRtpCapabilities: any;
@@ -32,7 +34,7 @@ export default class Edge11 extends EnhancedEventEmitter {
     getTransportStats(): Promise<any>;
     send({ track, encodings }: {
         track: MediaStreamTrack;
-        encodings: RtpEncodingParameters[];
+        encodings?: RtpEncodingParameters[];
     }): Promise<any>;
     stopSending({ localId }: {
         localId: string;
@@ -65,10 +67,10 @@ export default class Edge11 extends EnhancedEventEmitter {
         iceParameters: IceParameters;
     }): Promise<void>;
     updateIceServers({ iceServers }: {
-        iceServers: RTCIceServer[];
+        iceServers: any[];
     }): Promise<never>;
     _setIceGatherer({ iceServers, iceTransportPolicy }: {
-        iceServers: RTCIceServer[];
+        iceServers: any[];
         iceTransportPolicy: RTCIceTransportPolicy;
     }): void;
     _setIceTransport(): void;

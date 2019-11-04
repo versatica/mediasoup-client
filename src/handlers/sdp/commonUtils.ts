@@ -1,5 +1,5 @@
 import * as sdpTransform from 'sdp-transform';
-import { RtpCapabilities, RtpCodecCapability } from '../../RtpParametersAndCapabilities';
+import { RtpCapabilities, RtpCodecCapability } from '../../RtpParameters';
 import { DtlsRole } from '../../Transport';
 
 /**
