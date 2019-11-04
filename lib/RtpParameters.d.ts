@@ -246,6 +246,8 @@ export interface RtpEncodingParameters {
      * See webrtc-svc.
      */
     scalabilityMode?: string;
+    priority?: 'very-low' | 'low' | 'medium' | 'high';
+    networkPriority?: 'very-low' | 'low' | 'medium' | 'high';
 }
 /**
  * Defines a RTP header extension within the RTP parameters. The list of RTP

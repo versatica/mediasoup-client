@@ -454,6 +454,10 @@ export default class Transport extends EnhancedEventEmitter
 								normalizedEncoding.dtx = encoding.dtx;
 							if (typeof encoding.scalabilityMode === 'string')
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
+							if (typeof encoding.priority === 'string')
+								normalizedEncoding.priority = encoding.priority;
+							if (typeof encoding.networkPriority === 'string')
+								normalizedEncoding.networkPriority = encoding.networkPriority;
 
 							return normalizedEncoding;
 						});
