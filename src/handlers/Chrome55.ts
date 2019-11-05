@@ -755,7 +755,7 @@ export default class Chrome55
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
 			sctpParameters?: SctpParameters;
-			iceServers: RTCIceServer[];
+			iceServers?: RTCIceServer[];
 			iceTransportPolicy?: RTCIceTransportPolicy;
 			additionalSettings?: any;
 			proprietaryConstraints?: any;

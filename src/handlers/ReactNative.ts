@@ -840,7 +840,7 @@ export default class ReactNative
 			iceCandidates: IceCandidate[];
 			dtlsParameters: DtlsParameters;
 			sctpParameters?: SctpParameters;
-			iceServers: RTCIceServer[];
+			iceServers?: RTCIceServer[];
 			iceTransportPolicy?: RTCIceTransportPolicy;
 			additionalSettings?: any;
 			proprietaryConstraints?: any;
