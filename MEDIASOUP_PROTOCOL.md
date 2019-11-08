@@ -60,7 +60,7 @@ Response:
 
 ### leave
 
-Close the server-side `Room`.
+Close the server-side `Peer`.
 Other peers will be notified with a `peerClosed` notification.
 
 Notification:
