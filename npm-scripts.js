@@ -1,7 +1,6 @@
 const process = require('process');
 const fs = require('fs');
 const { execSync } = require('child_process');
-const TscWatchClient = require('tsc-watch/client');
 const { version } = require('./package.json');
 
 const task = process.argv.slice(2).join(' ');
@@ -22,6 +21,8 @@ switch (task)
 
 	case 'typescript:watch':
 	{
+		const TscWatchClient = require('tsc-watch/client');
+
 		execute('rm -rf lib');
 
 		const watch = new TscWatchClient();
