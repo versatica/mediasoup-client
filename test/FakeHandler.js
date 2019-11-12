@@ -9,6 +9,11 @@ const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
 class FakeHandler extends EventEmitter
 {
+	static get label()
+	{
+		return 'FakeHandler';
+	}
+
 	static async getNativeRtpCapabilities()
 	{
 		return nativeRtpCapabilities;

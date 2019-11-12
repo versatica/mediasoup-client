@@ -115,7 +115,7 @@ export default class Device
 	 */
 	get handlerName(): string
 	{
-		return this._Handler.name;
+		return this._Handler.label;
 	}
 
 	/**
