@@ -47,12 +47,11 @@ export function detectDevice(): any | undefined
 		const engine = browser.getEngine();
 
 		// Chrome and Chromium.
-		// NOTE: Disable Chrome74 handler for now.
-		// if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
-		// {
-		// 	return Chrome74;
-		// }
-		if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
+		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
+		{
+			return Chrome74;
+		}
+		else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
 		{
 			return Chrome70;
 		}
@@ -102,10 +101,9 @@ export function detectDevice(): any | undefined
 			{
 				const version = Number(match[1]);
 
-				// NOTE: Disable Chrome74 handler for now.
-				// if (version >= 74)
-				// 	return Chrome74;
-				if (version >= 70)
+				if (version >= 74)
+					return Chrome74;
+				else if (version >= 70)
 					return Chrome70;
 				else if (version >= 67)
 					return Chrome67;
@@ -114,9 +112,7 @@ export function detectDevice(): any | undefined
 			}
 			else
 			{
-				// NOTE: Disable Chrome74 handler for now.
-				// return Chrome74;
-				return Chrome70;
+				return Chrome74;
 			}
 		}
 		// Unsupported browser.
