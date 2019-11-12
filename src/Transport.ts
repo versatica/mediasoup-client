@@ -418,6 +418,10 @@ export default class Transport extends EnhancedEventEmitter
 			throw new UnsupportedError(`cannot produce ${track.kind}`);
 		else if (track.readyState === 'ended')
 			throw new InvalidStateError('track ended');
+		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+			throw new TypeError('no "connect" listener set into this transport');
+		else if (this.listenerCount('produce') === 0)
+			throw new TypeError('no "produce" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 
@@ -534,6 +538,8 @@ export default class Transport extends EnhancedEventEmitter
 			throw new TypeError(`invalid kind '${kind}'`);
 		else if (typeof rtpParameters !== 'object')
 			throw new TypeError('missing rtpParameters');
+		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+			throw new TypeError('no "connect" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 
@@ -612,6 +618,10 @@ export default class Transport extends EnhancedEventEmitter
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
 		else if (![ 'very-low', 'low', 'medium', 'high' ].includes(priority))
 			throw new TypeError('wrong priority');
+		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+			throw new TypeError('no "connect" listener set into this transport');
+		else if (this.listenerCount('producedata') === 0)
+			throw new TypeError('no "producedata" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 
@@ -682,6 +692,8 @@ export default class Transport extends EnhancedEventEmitter
 			throw new TypeError('missing dataProducerId');
 		else if (typeof sctpStreamParameters !== 'object')
 			throw new TypeError('missing sctpStreamParameters');
+		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+			throw new TypeError('no "connect" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 

@@ -253,6 +253,9 @@ class FakeHandler extends EventEmitter
 		if (localDtlsRole)
 			dtlsParameters.role = localDtlsRole;
 
+		// Assume we are connecting now.
+		this.emit('@connectionstatechange', 'connecting');
+
 		// Need to tell the remote transport about our parameters.
 		await new Promise((resolve, reject) => (
 			this.emit('@connect', { dtlsParameters }, resolve, reject)

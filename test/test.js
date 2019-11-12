@@ -264,6 +264,15 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 		.toThrow(TypeError);
 }, 500);
 
+test('transport.produce() without "connect" listener rejects', async () =>
+{
+	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
+
+	await expect(sendTransport.produce({ track: audioTrack }))
+		.rejects
+		.toThrow(Error);
+}, 500);
+
 test('transport.produce() succeeds', async () =>
 {
 	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
@@ -489,7 +498,8 @@ test('transport.produce() succeeds', async () =>
 	expect(videoProducer.maxSpatialLayer).toBe(undefined);
 	expect(videoProducer.appData).toEqual({});
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connect');
+	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.produce() without track rejects with TypeError', async () =>
@@ -694,7 +704,7 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.appData).toEqual({});
 
-	recvTransport.removeAllListeners();
+	recvTransport.removeAllListeners('connect');
 }, 500);
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () =>
@@ -828,7 +838,7 @@ test('transport.produceData() succeeds', async () =>
 	expect(dataProducer.label).toBe('FOO');
 	expect(dataProducer.protocol).toBe('BAR');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () =>
@@ -984,7 +994,7 @@ test('connection state change fires "connectionstatechange" in live Transport', 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
 	expect(sendTransport.connectionState).toBe('completed');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connectionstatechange');
 }, 500);
 
 test('producer.pause() succeeds', () =>
@@ -1311,11 +1321,16 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
 	const track = new MediaStreamTrack({ kind: 'audio' });
 
+	// Add noop listener to avoid the method fail.
+	sendTransport.on('produce', () => {});
+
 	await expect(sendTransport.produce({ track }))
 		.rejects
 		.toThrow(InvalidStateError);
 
 	expect(track.readyState).toBe('ended');
+
+	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.consume() rejects with InvalidStateError if closed', async () =>
@@ -1323,13 +1338,20 @@ test('transport.consume() rejects with InvalidStateError if closed', async () =>
 	await expect(recvTransport.consume({}))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	recvTransport.removeAllListeners();
 }, 500);
 
 test('transport.produceData() rejects with InvalidStateError if closed', async () =>
 {
+	// Add noop listener to avoid the method fail.
+	sendTransport.on('producedata', () => {});
+
 	await expect(sendTransport.produceData({}))
 		.rejects
 		.toThrow(InvalidStateError);
+
+	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.consumeData() rejects with InvalidStateError if closed', async () =>
@@ -1374,7 +1396,7 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
 	expect(sendTransport.connectionState).toBe('disconnected');
 
-	sendTransport.removeAllListeners();
+	sendTransport.removeAllListeners('connectionstatechange');
 }, 500);
 
 test('parseScalabilityMode() works', () =>
