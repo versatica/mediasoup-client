@@ -2,7 +2,7 @@ import { IceParameters, IceCandidate, DtlsParameters } from './../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters } from '../SctpParameters';
 export default class Firefox60 {
-    static readonly label: string;
+    static get label(): string;
     static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {

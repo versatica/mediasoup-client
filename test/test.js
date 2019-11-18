@@ -1022,6 +1022,7 @@ test('producer.replaceTrack() succeeds', async () =>
 		.toBe(undefined);
 
 	expect(audioProducerPreviousTrack.readyState).toBe('ended');
+	expect(audioProducer.track.readyState).toBe('live');
 	expect(audioProducer.track).not.toBe(audioProducerPreviousTrack);
 	expect(audioProducer.track).toBe(newAudioTrack);
 	// Producer was already paused.
@@ -1063,6 +1064,15 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 
 	expect(track.readyState).toBe('ended');
 	expect(videoProducer.track.readyState).toBe('live');
+}, 500);
+
+test('producer.replaceTrack() with the same track succeeds', async () =>
+{
+	await expect(audioProducer.replaceTrack({ track: audioProducer.track }))
+		.resolves
+		.toBe(undefined);
+
+	expect(audioProducer.track.readyState).toBe('live');
 }, 500);
 
 test('producer.setMaxSpatialLayer() succeeds', async () =>

@@ -277,6 +277,14 @@ export default class Producer extends EnhancedEventEmitter
 			throw new InvalidStateError('track ended');
 		}
 
+		// Do nothing if this is the same track as the current handled one.
+		if (track === this._track)
+		{
+			logger.debug('replaceTrack() | same track, ignored');
+
+			return;
+		}
+
 		await this.safeEmitAsPromise('@replacetrack', track);
 
 		// Destroy the previous track.
