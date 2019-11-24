@@ -29,7 +29,7 @@ export default class Edge11 extends EnhancedEventEmitter
 		logger.debug('getNativeSctpCapabilities()');
 
 		return {
-			numStreams : 0
+			numStreams: 0
 		};
 	}
 
@@ -99,8 +99,8 @@ export default class Edge11 extends EnhancedEventEmitter
 
 		this._sendingRtpParametersByKind =
 		{
-			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 		};
 
 		this._remoteIceParameters = iceParameters;
@@ -184,9 +184,9 @@ export default class Edge11 extends EnhancedEventEmitter
 		// Fill RTCRtpParameters.rtcp.
 		rtpParameters.rtcp =
 		{
-			cname       : this._cname,
-			reducedSize : true,
-			mux         : true
+			cname      : this._cname,
+			reducedSize: true,
+			mux        : true
 		};
 
 		// NOTE: Convert our standard RTCRtpParameters into those that Edge
@@ -439,8 +439,8 @@ export default class Edge11 extends EnhancedEventEmitter
 	{
 		const iceGatherer = new (RTCIceGatherer as any)(
 			{
-				iceServers   : iceServers || [],
-				gatherPolicy : iceTransportPolicy || 'all'
+				iceServers  : iceServers || [],
+				gatherPolicy: iceTransportPolicy || 'all'
 			});
 
 		iceGatherer.addEventListener('error', (event: any) =>

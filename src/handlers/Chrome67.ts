@@ -76,16 +76,16 @@ class Handler extends EnhancedEventEmitter
 				iceCandidates,
 				dtlsParameters,
 				sctpParameters,
-				planB : true
+				planB: true
 			});
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers         : iceServers || [],
-				iceTransportPolicy : iceTransportPolicy || 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'plan-b',
+				iceServers        : iceServers || [],
+				iceTransportPolicy: iceTransportPolicy || 'all',
+				bundlePolicy      : 'max-bundle',
+				rtcpMuxPolicy     : 'require',
+				sdpSemantics      : 'plan-b',
 				...additionalSettings
 			},
 			proprietaryConstraints);
@@ -230,7 +230,7 @@ class SendHandler extends Handler
 				{
 					offerMediaObject,
 					track,
-					numStreams : encodings.length
+					numStreams: encodings.length
 				});
 
 			offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
@@ -279,8 +279,8 @@ class SendHandler extends Handler
 		this._remoteSdp.send(
 			{
 				offerMediaObject,
-				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
+				offerRtpParameters : sendingRtpParameters,
+				answerRtpParameters: this._sendingRemoteRtpParametersByKind[track.kind],
 				codecOptions
 			});
 
@@ -458,11 +458,11 @@ class SendHandler extends Handler
 
 		const options =
 		{
-			negotiated        : true,
-			id                : this._nextSctpStreamId,
+			negotiated       : true,
+			id               : this._nextSctpStreamId,
 			ordered,
 			maxPacketLifeTime,
-			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
+			maxRetransmitTime: maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
 			protocol,
 			priority
@@ -506,10 +506,10 @@ class SendHandler extends Handler
 
 		const sctpStreamParameters =
 		{
-			streamId          : options.id,
-			ordered           : options.ordered,
-			maxPacketLifeTime : options.maxPacketLifeTime,
-			maxRetransmits    : options.maxRetransmits
+			streamId         : options.id,
+			ordered          : options.ordered,
+			maxPacketLifeTime: options.maxPacketLifeTime,
+			maxRetransmits   : options.maxRetransmits
 		};
 
 		return { dataChannel, sctpStreamParameters };
@@ -569,9 +569,9 @@ class RecvHandler extends Handler
 			{
 				mid,
 				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp.cname,
-				trackId            : localId
+				offerRtpParameters: rtpParameters,
+				streamId          : rtpParameters.rtcp.cname,
+				trackId           : localId
 			});
 
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
@@ -590,7 +590,7 @@ class RecvHandler extends Handler
 		// parameters in the offer.
 		sdpCommonUtils.applyCodecParameters(
 			{
-				offerRtpParameters : rtpParameters,
+				offerRtpParameters: rtpParameters,
 				answerMediaObject
 			});
 
@@ -669,11 +669,11 @@ class RecvHandler extends Handler
 
 		const options =
 		{
-			negotiated        : true,
-			id                : streamId,
+			negotiated       : true,
+			id               : streamId,
 			ordered,
 			maxPacketLifeTime,
-			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
+			maxRetransmitTime: maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
 			protocol
 		};
@@ -757,19 +757,19 @@ export default class Chrome67
 
 		const pc = new (RTCPeerConnection as any)(
 			{
-				iceServers         : [],
-				iceTransportPolicy : 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'plan-b'
+				iceServers        : [],
+				iceTransportPolicy: 'all',
+				bundlePolicy      : 'max-bundle',
+				rtcpMuxPolicy     : 'require',
+				sdpSemantics      : 'plan-b'
 			});
 
 		try
 		{
 			const offer = await pc.createOffer(
 				{
-					offerToReceiveAudio : true,
-					offerToReceiveVideo : true
+					offerToReceiveAudio: true,
+					offerToReceiveVideo: true
 				});
 
 			try { pc.close(); }
@@ -795,7 +795,7 @@ export default class Chrome67
 		logger.debug('getNativeSctpCapabilities()');
 
 		return {
-			numStreams : SCTP_NUM_STREAMS
+			numStreams: SCTP_NUM_STREAMS
 		};
 	}
 
@@ -834,14 +834,14 @@ export default class Chrome67
 			{
 				const sendingRtpParametersByKind =
 				{
-					audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-					video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+					audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+					video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 				};
 
 				const sendingRemoteRtpParametersByKind =
 				{
-					audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
-					video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
+					audio: ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
+					video: ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 				};
 
 				return new SendHandler(

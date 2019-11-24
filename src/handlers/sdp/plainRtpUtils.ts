@@ -22,9 +22,9 @@ export function extractPlainRtpParameters(
 	const connectionObject = mediaObject.connection || sdpObject.connection;
 
 	return {
-		ip        : connectionObject.ip,
-		ipVersion : connectionObject.version,
-		port      : mediaObject.port
+		ip       : connectionObject.ip,
+		ipVersion: connectionObject.version,
+		port     : mediaObject.port
 	};
 }
 
