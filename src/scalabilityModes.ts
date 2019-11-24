@@ -13,15 +13,15 @@ export function parse(scalabilityMode: string): ScalabilityMode
 	if (match)
 	{
 		return {
-			spatialLayers : Number(match[1]),
-			temporalLayers: Number(match[2])
+			spatialLayers  : Number(match[1]),
+			temporalLayers : Number(match[2])
 		};
 	}
 	else
 	{
 		return {
-			spatialLayers : 1,
-			temporalLayers: 1
+			spatialLayers  : 1,
+			temporalLayers : 1
 		};
 	}
 }

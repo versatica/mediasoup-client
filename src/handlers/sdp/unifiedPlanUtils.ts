@@ -139,8 +139,8 @@ export function addLegacySimulcast(
 
 	offerMediaObject.ssrcGroups.push(
 		{
-			semantics: 'SIM',
-			ssrcs    : ssrcs.join(' ')
+			semantics : 'SIM',
+			ssrcs     : ssrcs.join(' ')
 		});
 
 	for (let i = 0; i < ssrcs.length; ++i)
@@ -149,16 +149,16 @@ export function addLegacySimulcast(
 
 		offerMediaObject.ssrcs.push(
 			{
-				id       : ssrc,
-				attribute: 'cname',
-				value    : cname
+				id        : ssrc,
+				attribute : 'cname',
+				value     : cname
 			});
 
 		offerMediaObject.ssrcs.push(
 			{
-				id       : ssrc,
-				attribute: 'msid',
-				value    : `${streamId} ${trackId}`
+				id        : ssrc,
+				attribute : 'msid',
+				value     : `${streamId} ${trackId}`
 			});
 	}
 
@@ -169,22 +169,22 @@ export function addLegacySimulcast(
 
 		offerMediaObject.ssrcs.push(
 			{
-				id       : rtxSsrc,
-				attribute: 'cname',
-				value    : cname
+				id        : rtxSsrc,
+				attribute : 'cname',
+				value     : cname
 			});
 
 		offerMediaObject.ssrcs.push(
 			{
-				id       : rtxSsrc,
-				attribute: 'msid',
-				value    : `${streamId} ${trackId}`
+				id        : rtxSsrc,
+				attribute : 'msid',
+				value     : `${streamId} ${trackId}`
 			});
 
 		offerMediaObject.ssrcGroups.push(
 			{
-				semantics: 'FID',
-				ssrcs    : `${ssrc} ${rtxSsrc}`
+				semantics : 'FID',
+				ssrcs     : `${ssrc} ${rtxSsrc}`
 			});
 	}
 }

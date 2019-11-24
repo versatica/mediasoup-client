@@ -22,7 +22,7 @@ class FakeHandler extends EventEmitter
 	static async getNativeSctpCapabilities()
 	{
 		return {
-			numStreams: 4096
+			numStreams : 4096
 		};
 	}
 
@@ -46,8 +46,8 @@ class FakeHandler extends EventEmitter
 		// @type {Object}
 		this._rtpParametersByKind =
 		{
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 		};
 
 		// Local RTCP CNAME.
@@ -124,9 +124,9 @@ class FakeHandler extends EventEmitter
 		// Fill RTCRtpParameters.rtcp.
 		rtpParameters.rtcp =
 		{
-			cname      : this._cname,
-			reducedSize: true,
-			mux        : true
+			cname       : this._cname,
+			reducedSize : true,
+			mux         : true
 		};
 
 		const localId = this._nextLocalId++;
@@ -170,23 +170,23 @@ class FakeHandler extends EventEmitter
 
 		const dataChannel =
 		{
-			id              : this._nextSctpStreamId++,
+			id               : this._nextSctpStreamId++,
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
 			priority,
 			label,
 			protocol,
-			addEventListener: () => {},
-			close           : () => {}
+			addEventListener : () => {},
+			close            : () => {}
 		};
 
 		const sctpStreamParameters =
 		{
-			streamId         : this._nextSctpStreamId,
-			ordered          : ordered,
-			maxPacketLifeTime: maxPacketLifeTime,
-			maxRetransmits   : maxRetransmits
+			streamId          : this._nextSctpStreamId,
+			ordered           : ordered,
+			maxPacketLifeTime : maxPacketLifeTime,
+			maxRetransmits    : maxRetransmits
 		};
 
 		return { dataChannel, sctpStreamParameters };
@@ -232,14 +232,14 @@ class FakeHandler extends EventEmitter
 
 		const dataChannel =
 		{
-			id               : sctpStreamParameters.id,
-			ordered          : sctpStreamParameters.ordered,
-			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
-			maxRetransmits   : sctpStreamParameters.maxRetransmits,
+			id                : sctpStreamParameters.id,
+			ordered           : sctpStreamParameters.ordered,
+			maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits    : sctpStreamParameters.maxRetransmits,
 			label,
 			protocol,
-			addEventListener : () => {},
-			close            : () => {}
+			addEventListener  : () => {},
+			close             : () => {}
 		};
 
 		return { dataChannel };

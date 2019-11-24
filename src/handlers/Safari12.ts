@@ -83,10 +83,10 @@ class Handler extends EnhancedEventEmitter
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers        : iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
-				bundlePolicy      : 'max-bundle',
-				rtcpMuxPolicy     : 'require',
+				iceServers         : iceServers || [],
+				iceTransportPolicy : iceTransportPolicy || 'all',
+				bundlePolicy       : 'max-bundle',
+				rtcpMuxPolicy      : 'require',
 				...additionalSettings
 			},
 			proprietaryConstraints);
@@ -223,7 +223,7 @@ class SendHandler extends Handler
 			sdpUnifiedPlanUtils.addLegacySimulcast(
 				{
 					offerMediaObject,
-					numStreams: encodings.length
+					numStreams : encodings.length
 				});
 
 			offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
@@ -280,9 +280,9 @@ class SendHandler extends Handler
 		this._remoteSdp.send(
 			{
 				offerMediaObject,
-				reuseMid           : mediaSectionIdx.reuseMid,
-				offerRtpParameters : sendingRtpParameters,
-				answerRtpParameters: this._sendingRemoteRtpParametersByKind[track.kind],
+				reuseMid            : mediaSectionIdx.reuseMid,
+				offerRtpParameters  : sendingRtpParameters,
+				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
 				codecOptions
 			});
 
@@ -418,8 +418,8 @@ class SendHandler extends Handler
 
 		const options =
 		{
-			negotiated: true,
-			id        : this._nextSctpStreamId,
+			negotiated : true,
+			id         : this._nextSctpStreamId,
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
@@ -465,10 +465,10 @@ class SendHandler extends Handler
 
 		const sctpStreamParameters =
 		{
-			streamId         : options.id,
-			ordered          : options.ordered,
-			maxPacketLifeTime: options.maxPacketLifeTime,
-			maxRetransmits   : options.maxRetransmits
+			streamId          : options.id,
+			ordered           : options.ordered,
+			maxPacketLifeTime : options.maxPacketLifeTime,
+			maxRetransmits    : options.maxRetransmits
 		};
 
 		return { dataChannel, sctpStreamParameters };
@@ -525,11 +525,11 @@ class RecvHandler extends Handler
 
 		this._remoteSdp.receive(
 			{
-				mid               : localId,
+				mid                : localId,
 				kind,
-				offerRtpParameters: rtpParameters,
-				streamId          : rtpParameters.rtcp.cname,
-				trackId           : id
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : id
 			});
 
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
@@ -548,7 +548,7 @@ class RecvHandler extends Handler
 		// parameters in the offer.
 		sdpCommonUtils.applyCodecParameters(
 			{
-				offerRtpParameters: rtpParameters,
+				offerRtpParameters : rtpParameters,
 				answerMediaObject
 			});
 
@@ -619,8 +619,8 @@ class RecvHandler extends Handler
 
 		const options =
 		{
-			negotiated: true,
-			id        : streamId,
+			negotiated : true,
+			id         : streamId,
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
@@ -716,10 +716,10 @@ export default class Safari12
 
 		const pc = new RTCPeerConnection(
 			{
-				iceServers        : [],
-				iceTransportPolicy: 'all',
-				bundlePolicy      : 'max-bundle',
-				rtcpMuxPolicy     : 'require'
+				iceServers         : [],
+				iceTransportPolicy : 'all',
+				bundlePolicy       : 'max-bundle',
+				rtcpMuxPolicy      : 'require'
 			});
 
 		try
@@ -752,7 +752,7 @@ export default class Safari12
 		logger.debug('getNativeSctpCapabilities()');
 
 		return {
-			numStreams: SCTP_NUM_STREAMS
+			numStreams : SCTP_NUM_STREAMS
 		};
 	}
 
@@ -791,14 +791,14 @@ export default class Safari12
 			{
 				const sendingRtpParametersByKind =
 				{
-					audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-					video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+					audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+					video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 				};
 
 				const sendingRemoteRtpParametersByKind =
 				{
-					audio: ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
-					video: ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
+					audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
+					video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 				};
 
 				return new SendHandler(

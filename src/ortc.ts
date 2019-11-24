@@ -13,9 +13,9 @@ export function getExtendedRtpCapabilities(
 {
 	const extendedRtpCapabilities: any =
 	{
-		codecs          : [],
-		headerExtensions: [],
-		fecMechanisms   : []
+		codecs           : [],
+		headerExtensions : [],
+		fecMechanisms    : []
 	};
 
 	// Match media codecs and keep the order preferred by remoteCaps.
@@ -43,17 +43,17 @@ export function getExtendedRtpCapabilities(
 		{
 			const extendedCodec: any =
 			{
-				mimeType            : matchingLocalCodec.mimeType,
-				kind                : matchingLocalCodec.kind,
-				clockRate           : matchingLocalCodec.clockRate,
-				localPayloadType    : matchingLocalCodec.preferredPayloadType,
-				localRtxPayloadType : null,
-				remotePayloadType   : remoteCodec.preferredPayloadType,
-				remoteRtxPayloadType: null,
-				channels            : matchingLocalCodec.channels,
-				rtcpFeedback        : reduceRtcpFeedback(matchingLocalCodec, remoteCodec),
-				localParameters     : matchingLocalCodec.parameters || {},
-				remoteParameters    : remoteCodec.parameters || {}
+				mimeType             : matchingLocalCodec.mimeType,
+				kind                 : matchingLocalCodec.kind,
+				clockRate            : matchingLocalCodec.clockRate,
+				localPayloadType     : matchingLocalCodec.preferredPayloadType,
+				localRtxPayloadType  : null,
+				remotePayloadType    : remoteCodec.preferredPayloadType,
+				remoteRtxPayloadType : null,
+				channels             : matchingLocalCodec.channels,
+				rtcpFeedback         : reduceRtcpFeedback(matchingLocalCodec, remoteCodec),
+				localParameters      : matchingLocalCodec.parameters || {},
+				remoteParameters     : remoteCodec.parameters || {}
 			};
 
 			if (!extendedCodec.channels)
@@ -95,11 +95,11 @@ export function getExtendedRtpCapabilities(
 		{
 			const extendedExt =
 			{
-				kind     : remoteExt.kind,
-				uri      : remoteExt.uri,
-				sendId   : matchingLocalExt.preferredId,
-				recvId   : remoteExt.preferredId,
-				direction: 'sendrecv'
+				kind      : remoteExt.kind,
+				uri       : remoteExt.uri,
+				sendId    : matchingLocalExt.preferredId,
+				recvId    : remoteExt.preferredId,
+				direction : 'sendrecv'
 			};
 
 			switch (remoteExt.direction)
@@ -132,22 +132,22 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 {
 	const rtpCapabilities: RtpCapabilities =
 	{
-		codecs          : [],
-		headerExtensions: [],
-		fecMechanisms   : []
+		codecs           : [],
+		headerExtensions : [],
+		fecMechanisms    : []
 	};
 
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
 	{
 		const codec =
 		{
-			mimeType            : extendedCodec.mimeType,
-			kind                : extendedCodec.kind,
-			clockRate           : extendedCodec.clockRate,
-			preferredPayloadType: extendedCodec.remotePayloadType,
-			channels            : extendedCodec.channels,
-			rtcpFeedback        : extendedCodec.rtcpFeedback,
-			parameters          : extendedCodec.localParameters
+			mimeType             : extendedCodec.mimeType,
+			kind                 : extendedCodec.kind,
+			clockRate            : extendedCodec.clockRate,
+			preferredPayloadType : extendedCodec.remotePayloadType,
+			channels             : extendedCodec.channels,
+			rtcpFeedback         : extendedCodec.rtcpFeedback,
+			parameters           : extendedCodec.localParameters
 		};
 
 		if (!codec.channels)
@@ -160,14 +160,14 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 		{
 			const extendedRtxCodec: any =
 			{
-				mimeType            : `${extendedCodec.kind}/rtx`,
-				kind                : extendedCodec.kind,
-				clockRate           : extendedCodec.clockRate,
-				preferredPayloadType: extendedCodec.remoteRtxPayloadType,
-				rtcpFeedback        : [],
-				parameters          :
+				mimeType             : `${extendedCodec.kind}/rtx`,
+				kind                 : extendedCodec.kind,
+				clockRate            : extendedCodec.clockRate,
+				preferredPayloadType : extendedCodec.remoteRtxPayloadType,
+				rtcpFeedback         : [],
+				parameters           :
 				{
-					apt: extendedCodec.remotePayloadType
+					apt : extendedCodec.remotePayloadType
 				}
 			};
 
@@ -188,9 +188,9 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 
 		const ext =
 		{
-			kind       : extendedExtension.kind,
-			uri        : extendedExtension.uri,
-			preferredId: extendedExtension.recvId
+			kind        : extendedExtension.kind,
+			uri         : extendedExtension.uri,
+			preferredId : extendedExtension.recvId
 		};
 
 		rtpCapabilities.headerExtensions.push(ext);
@@ -210,11 +210,11 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 {
 	const rtpParameters: RtpParameters =
 	{
-		mid             : null,
-		codecs          : [],
-		headerExtensions: [],
-		encodings       : [],
-		rtcp            : {}
+		mid              : null,
+		codecs           : [],
+		headerExtensions : [],
+		encodings        : [],
+		rtcp             : {}
 	};
 
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
@@ -224,12 +224,12 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 
 		const codec =
 		{
-			mimeType    : extendedCodec.mimeType,
-			clockRate   : extendedCodec.clockRate,
-			payloadType : extendedCodec.localPayloadType,
-			channels    : extendedCodec.channels,
-			rtcpFeedback: extendedCodec.rtcpFeedback,
-			parameters  : extendedCodec.localParameters
+			mimeType     : extendedCodec.mimeType,
+			clockRate    : extendedCodec.clockRate,
+			payloadType  : extendedCodec.localPayloadType,
+			channels     : extendedCodec.channels,
+			rtcpFeedback : extendedCodec.rtcpFeedback,
+			parameters   : extendedCodec.localParameters
 		};
 
 		if (!codec.channels)
@@ -242,13 +242,13 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 		{
 			const rtxCodec: RtpCodecParameters =
 			{
-				mimeType    : `${extendedCodec.kind}/rtx`,
-				clockRate   : extendedCodec.clockRate,
-				payloadType : extendedCodec.localRtxPayloadType,
-				rtcpFeedback: [],
-				parameters  :
+				mimeType     : `${extendedCodec.kind}/rtx`,
+				clockRate    : extendedCodec.clockRate,
+				payloadType  : extendedCodec.localRtxPayloadType,
+				rtcpFeedback : [],
+				parameters   :
 				{
-					apt: extendedCodec.localPayloadType
+					apt : extendedCodec.localPayloadType
 				}
 			};
 
@@ -275,8 +275,8 @@ export function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapa
 
 		const ext =
 		{
-			uri: extendedExtension.uri,
-			id : extendedExtension.sendId
+			uri : extendedExtension.uri,
+			id  : extendedExtension.sendId
 		};
 
 		rtpParameters.headerExtensions.push(ext);
@@ -292,11 +292,11 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 {
 	const rtpParameters: RtpParameters =
 	{
-		mid             : null,
-		codecs          : [],
-		headerExtensions: [],
-		encodings       : [],
-		rtcp            : {}
+		mid              : null,
+		codecs           : [],
+		headerExtensions : [],
+		encodings        : [],
+		rtcp             : {}
 	};
 
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
@@ -306,12 +306,12 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 
 		const codec =
 		{
-			mimeType    : extendedCodec.mimeType,
-			clockRate   : extendedCodec.clockRate,
-			payloadType : extendedCodec.localPayloadType,
-			channels    : extendedCodec.channels,
-			rtcpFeedback: extendedCodec.rtcpFeedback,
-			parameters  : extendedCodec.remoteParameters
+			mimeType     : extendedCodec.mimeType,
+			clockRate    : extendedCodec.clockRate,
+			payloadType  : extendedCodec.localPayloadType,
+			channels     : extendedCodec.channels,
+			rtcpFeedback : extendedCodec.rtcpFeedback,
+			parameters   : extendedCodec.remoteParameters
 		};
 
 		if (!codec.channels)
@@ -324,13 +324,13 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 		{
 			const rtxCodec: RtpCodecParameters =
 			{
-				mimeType    : `${extendedCodec.kind}/rtx`,
-				clockRate   : extendedCodec.clockRate,
-				payloadType : extendedCodec.localRtxPayloadType,
-				rtcpFeedback: [],
-				parameters  :
+				mimeType     : `${extendedCodec.kind}/rtx`,
+				clockRate    : extendedCodec.clockRate,
+				payloadType  : extendedCodec.localRtxPayloadType,
+				rtcpFeedback : [],
+				parameters   :
 				{
-					apt: extendedCodec.localPayloadType
+					apt : extendedCodec.localPayloadType
 				}
 			};
 
@@ -357,8 +357,8 @@ export function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedR
 
 		const ext =
 		{
-			uri: extendedExtension.uri,
-			id : extendedExtension.sendId
+			uri : extendedExtension.uri,
+			id  : extendedExtension.sendId
 		};
 
 		rtpParameters.headerExtensions.push(ext);
@@ -439,13 +439,13 @@ export function generateProbatorRtpParameters(
 {
 	const rtpParameters: RtpParameters =
 	{
-		mid             : null,
-		codecs          : [],
-		headerExtensions: [],
-		encodings       : [],
-		rtcp            :
+		mid              : null,
+		codecs           : [],
+		headerExtensions : [],
+		encodings        : [],
+		rtcp             :
 		{
-			cname: 'probator'
+			cname : 'probator'
 		}
 	};
 

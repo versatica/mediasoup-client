@@ -215,8 +215,8 @@ export default class Device
 
 		this._canProduceByKind =
 		{
-			audio: false,
-			video: false
+			audio : false,
+			video : false
 		};
 
 		this._sctpCapabilities = null;
@@ -355,17 +355,17 @@ export default class Device
 
 		return this._createTransport(
 			{
-				direction             : 'send',
-				id                    : id,
-				iceParameters         : iceParameters,
-				iceCandidates         : iceCandidates,
-				dtlsParameters        : dtlsParameters,
-				sctpParameters        : sctpParameters,
-				iceServers            : iceServers,
-				iceTransportPolicy    : iceTransportPolicy,
-				additionalSettings    : additionalSettings,
-				proprietaryConstraints: proprietaryConstraints,
-				appData               : appData
+				direction              : 'send',
+				id                     : id,
+				iceParameters          : iceParameters,
+				iceCandidates          : iceCandidates,
+				dtlsParameters         : dtlsParameters,
+				sctpParameters         : sctpParameters,
+				iceServers             : iceServers,
+				iceTransportPolicy     : iceTransportPolicy,
+				additionalSettings     : additionalSettings,
+				proprietaryConstraints : proprietaryConstraints,
+				appData                : appData
 			});
 	}
 
@@ -394,17 +394,17 @@ export default class Device
 
 		return this._createTransport(
 			{
-				direction             : 'recv',
-				id                    : id,
-				iceParameters         : iceParameters,
-				iceCandidates         : iceCandidates,
-				dtlsParameters        : dtlsParameters,
-				sctpParameters        : sctpParameters,
-				iceServers            : iceServers,
-				iceTransportPolicy    : iceTransportPolicy,
-				additionalSettings    : additionalSettings,
-				proprietaryConstraints: proprietaryConstraints,
-				appData               : appData
+				direction              : 'recv',
+				id                     : id,
+				iceParameters          : iceParameters,
+				iceCandidates          : iceCandidates,
+				dtlsParameters         : dtlsParameters,
+				sctpParameters         : sctpParameters,
+				iceServers             : iceServers,
+				iceTransportPolicy     : iceTransportPolicy,
+				additionalSettings     : additionalSettings,
+				proprietaryConstraints : proprietaryConstraints,
+				appData                : appData
 			});
 	}
 
@@ -455,9 +455,9 @@ export default class Device
 				additionalSettings,
 				proprietaryConstraints,
 				appData,
-				Handler                : this._Handler,
-				extendedRtpCapabilities: this._extendedRtpCapabilities,
-				canProduceByKind       : this._canProduceByKind
+				Handler                 : this._Handler,
+				extendedRtpCapabilities : this._extendedRtpCapabilities,
+				canProduceByKind        : this._canProduceByKind
 			});
 
 		return transport;

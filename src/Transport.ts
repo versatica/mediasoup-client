@@ -470,7 +470,7 @@ export default class Transport extends EnhancedEventEmitter
 				const { localId, rtpParameters } = await this._handler.send(
 					{
 						track,
-						encodings: normalizedEncodings,
+						encodings : normalizedEncodings,
 						codecOptions
 					});
 
@@ -479,7 +479,7 @@ export default class Transport extends EnhancedEventEmitter
 					const { id } = await this.safeEmitAsPromise(
 						'produce',
 						{
-							kind: track.kind,
+							kind : track.kind,
 							rtpParameters,
 							appData
 						});
@@ -574,9 +574,9 @@ export default class Transport extends EnhancedEventEmitter
 
 						await this._handler.receive(
 							{
-								id           : 'probator',
-								kind         : 'video',
-								rtpParameters: probatorRtpParameters
+								id            : 'probator',
+								kind          : 'video',
+								rtpParameters : probatorRtpParameters
 							});
 
 						logger.debug('consume() | Consumer for RTP probation created');

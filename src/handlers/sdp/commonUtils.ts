@@ -52,13 +52,13 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 		{
 			const codec: RtpCodecCapability =
 			{
-				mimeType            : `${kind}/${rtp.codec}`,
-				kind                : kind,
-				clockRate           : rtp.rate,
-				preferredPayloadType: rtp.payload,
-				channels            : rtp.encoding,
-				rtcpFeedback        : [],
-				parameters          : {}
+				mimeType             : `${kind}/${rtp.codec}`,
+				kind                 : kind,
+				clockRate            : rtp.rate,
+				preferredPayloadType : rtp.payload,
+				channels             : rtp.encoding,
+				rtcpFeedback         : [],
+				parameters           : {}
 			};
 
 			if (codec.kind !== 'audio')
@@ -99,8 +99,8 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 
 			const feedback =
 			{
-				type     : fb.type,
-				parameter: fb.subtype
+				type      : fb.type,
+				parameter : fb.subtype
 			};
 
 			if (!feedback.parameter)
@@ -114,9 +114,9 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 		{
 			const headerExtension =
 			{
-				kind       : kind,
-				uri        : ext.uri,
-				preferredId: ext.value
+				kind        : kind,
+				uri         : ext.uri,
+				preferredId : ext.value
 			};
 
 			headerExtensions.push(headerExtension);
@@ -125,9 +125,9 @@ export function extractRtpCapabilities({ sdpObject }: { sdpObject: any }): RtpCa
 
 	const rtpCapabilities: RtpCapabilities =
 	{
-		codecs          : Array.from(codecsMap.values()),
-		headerExtensions: headerExtensions,
-		fecMechanisms   : []
+		codecs           : Array.from(codecsMap.values()),
+		headerExtensions : headerExtensions,
+		fecMechanisms    : []
 	};
 
 	return rtpCapabilities;
@@ -169,11 +169,11 @@ export function extractDtlsParameters(param: { sdpObject: any }): any
 	const dtlsParameters =
 	{
 		role,
-		fingerprints:
+		fingerprints :
 		[
 			{
-				algorithm: fingerprint.type,
-				value    : fingerprint.hash
+				algorithm : fingerprint.type,
+				value     : fingerprint.hash
 			}
 		]
 	};

@@ -148,8 +148,8 @@ export class AnswerMediaSection extends MediaSection
 		{
 			this._mediaObject.connection =
 			{
-				ip     : plainRtpParameters.ip,
-				version: plainRtpParameters.ipVersion
+				ip      : plainRtpParameters.ip,
+				version : plainRtpParameters.ipVersion
 			};
 			this._mediaObject.port = plainRtpParameters.port;
 		}
@@ -168,9 +168,9 @@ export class AnswerMediaSection extends MediaSection
 				{
 					const rtp: any =
 					{
-						payload: codec.payloadType,
-						codec  : codec.mimeType.replace(/^.*\//, ''),
-						rate   : codec.clockRate
+						payload : codec.payloadType,
+						codec   : codec.mimeType.replace(/^.*\//, ''),
+						rate    : codec.clockRate
 					};
 
 					if (codec.channels > 1)
@@ -244,8 +244,8 @@ export class AnswerMediaSection extends MediaSection
 
 					const fmtp =
 					{
-						payload: codec.payloadType,
-						config : ''
+						payload : codec.payloadType,
+						config  : ''
 					};
 
 					for (const key of Object.keys(codecParameters))
@@ -265,9 +265,9 @@ export class AnswerMediaSection extends MediaSection
 						{
 							this._mediaObject.rtcpFb.push(
 								{
-									payload: codec.payloadType,
-									type   : fb.type,
-									subtype: fb.parameter || ''
+									payload : codec.payloadType,
+									type    : fb.type,
+									subtype : fb.parameter || ''
 								});
 						}
 					}
@@ -290,8 +290,8 @@ export class AnswerMediaSection extends MediaSection
 
 					this._mediaObject.ext.push(
 						{
-							uri  : ext.uri,
-							value: ext.id
+							uri   : ext.uri,
+							value : ext.id
 						});
 				}
 
@@ -304,8 +304,8 @@ export class AnswerMediaSection extends MediaSection
 				{
 					this._mediaObject.simulcast =
 					{
-						dir1 : 'recv',
-						list1: offerMediaObject.simulcast.list1
+						dir1  : 'recv',
+						list1 : offerMediaObject.simulcast.list1
 					};
 
 					this._mediaObject.rids = [];
@@ -317,8 +317,8 @@ export class AnswerMediaSection extends MediaSection
 
 						this._mediaObject.rids.push(
 							{
-								id       : rid.id,
-								direction: 'recv'
+								id        : rid.id,
+								direction : 'recv'
 							});
 					}
 				}
@@ -328,7 +328,7 @@ export class AnswerMediaSection extends MediaSection
 					// eslint-disable-next-line camelcase, @typescript-eslint/camelcase
 					this._mediaObject.simulcast_03 =
 					{
-						value: offerMediaObject.simulcast_03.value.replace(/send/g, 'recv')
+						value : offerMediaObject.simulcast_03.value.replace(/send/g, 'recv')
 					};
 
 					this._mediaObject.rids = [];
@@ -340,8 +340,8 @@ export class AnswerMediaSection extends MediaSection
 
 						this._mediaObject.rids.push(
 							{
-								id       : rid.id,
-								direction: 'recv'
+								id        : rid.id,
+								direction : 'recv'
 							});
 					}
 				}
@@ -370,9 +370,9 @@ export class AnswerMediaSection extends MediaSection
 					this._mediaObject.payloads = sctpParameters.port;
 					this._mediaObject.sctpmap =
 					{
-						app           : 'webrtc-datachannel',
-						sctpmapNumber : sctpParameters.port,
-						maxMessageSize: sctpParameters.maxMessageSize
+						app            : 'webrtc-datachannel',
+						sctpmapNumber  : sctpParameters.port,
+						maxMessageSize : sctpParameters.maxMessageSize
 					};
 				}
 
@@ -436,8 +436,8 @@ export class OfferMediaSection extends MediaSection
 		{
 			this._mediaObject.connection =
 			{
-				ip     : plainRtpParameters.ip,
-				version: plainRtpParameters.ipVersion
+				ip      : plainRtpParameters.ip,
+				version : plainRtpParameters.ipVersion
 			};
 			this._mediaObject.protocol = 'RTP/AVP';
 			this._mediaObject.port = plainRtpParameters.port;
@@ -460,9 +460,9 @@ export class OfferMediaSection extends MediaSection
 				{
 					const rtp: any =
 					{
-						payload: codec.payloadType,
-						codec  : codec.mimeType.replace(/^.*\//, ''),
-						rate   : codec.clockRate
+						payload : codec.payloadType,
+						codec   : codec.mimeType.replace(/^.*\//, ''),
+						rate    : codec.clockRate
 					};
 
 					if (codec.channels > 1)
@@ -474,8 +474,8 @@ export class OfferMediaSection extends MediaSection
 					{
 						const fmtp =
 						{
-							payload: codec.payloadType,
-							config : ''
+							payload : codec.payloadType,
+							config  : ''
 						};
 
 						for (const key of Object.keys(codec.parameters))
@@ -496,9 +496,9 @@ export class OfferMediaSection extends MediaSection
 						{
 							this._mediaObject.rtcpFb.push(
 								{
-									payload: codec.payloadType,
-									type   : fb.type,
-									subtype: fb.parameter || ''
+									payload : codec.payloadType,
+									type    : fb.type,
+									subtype : fb.parameter || ''
 								});
 						}
 					}
@@ -514,8 +514,8 @@ export class OfferMediaSection extends MediaSection
 				{
 					this._mediaObject.ext.push(
 						{
-							uri  : ext.uri,
-							value: ext.id
+							uri   : ext.uri,
+							value : ext.id
 						});
 				}
 
@@ -535,9 +535,9 @@ export class OfferMediaSection extends MediaSection
 				{
 					this._mediaObject.ssrcs.push(
 						{
-							id       : ssrc,
-							attribute: 'cname',
-							value    : offerRtpParameters.rtcp.cname
+							id        : ssrc,
+							attribute : 'cname',
+							value     : offerRtpParameters.rtcp.cname
 						});
 				}
 
@@ -545,9 +545,9 @@ export class OfferMediaSection extends MediaSection
 				{
 					this._mediaObject.ssrcs.push(
 						{
-							id       : ssrc,
-							attribute: 'msid',
-							value    : `${streamId || '-'} ${trackId}`
+							id        : ssrc,
+							attribute : 'msid',
+							value     : `${streamId || '-'} ${trackId}`
 						});
 				}
 
@@ -557,9 +557,9 @@ export class OfferMediaSection extends MediaSection
 					{
 						this._mediaObject.ssrcs.push(
 							{
-								id       : rtxSsrc,
-								attribute: 'cname',
-								value    : offerRtpParameters.rtcp.cname
+								id        : rtxSsrc,
+								attribute : 'cname',
+								value     : offerRtpParameters.rtcp.cname
 							});
 					}
 
@@ -567,17 +567,17 @@ export class OfferMediaSection extends MediaSection
 					{
 						this._mediaObject.ssrcs.push(
 							{
-								id       : rtxSsrc,
-								attribute: 'msid',
-								value    : `${streamId || '-'} ${trackId}`
+								id        : rtxSsrc,
+								attribute : 'msid',
+								value     : `${streamId || '-'} ${trackId}`
 							});
 					}
 
 					// Associate original and retransmission SSRCs.
 					this._mediaObject.ssrcGroups.push(
 						{
-							semantics: 'FID',
-							ssrcs    : `${ssrc} ${rtxSsrc}`
+							semantics : 'FID',
+							ssrcs     : `${ssrc} ${rtxSsrc}`
 						});
 				}
 
@@ -599,9 +599,9 @@ export class OfferMediaSection extends MediaSection
 					this._mediaObject.payloads = sctpParameters.port;
 					this._mediaObject.sctpmap =
 					{
-						app           : 'webrtc-datachannel',
-						sctpmapNumber : sctpParameters.port,
-						maxMessageSize: sctpParameters.maxMessageSize
+						app            : 'webrtc-datachannel',
+						sctpmapNumber  : sctpParameters.port,
+						maxMessageSize : sctpParameters.maxMessageSize
 					};
 				}
 
@@ -640,17 +640,17 @@ export class OfferMediaSection extends MediaSection
 		{
 			this._mediaObject.ssrcs.push(
 				{
-					id       : ssrc,
-					attribute: 'cname',
-					value    : offerRtpParameters.rtcp.cname
+					id        : ssrc,
+					attribute : 'cname',
+					value     : offerRtpParameters.rtcp.cname
 				});
 		}
 
 		this._mediaObject.ssrcs.push(
 			{
-				id       : ssrc,
-				attribute: 'msid',
-				value    : `${streamId || '-'} ${trackId}`
+				id        : ssrc,
+				attribute : 'msid',
+				value     : `${streamId || '-'} ${trackId}`
 			});
 
 		if (rtxSsrc)
@@ -659,24 +659,24 @@ export class OfferMediaSection extends MediaSection
 			{
 				this._mediaObject.ssrcs.push(
 					{
-						id       : rtxSsrc,
-						attribute: 'cname',
-						value    : offerRtpParameters.rtcp.cname
+						id        : rtxSsrc,
+						attribute : 'cname',
+						value     : offerRtpParameters.rtcp.cname
 					});
 			}
 
 			this._mediaObject.ssrcs.push(
 				{
-					id       : rtxSsrc,
-					attribute: 'msid',
-					value    : `${streamId || '-'} ${trackId}`
+					id        : rtxSsrc,
+					attribute : 'msid',
+					value     : `${streamId || '-'} ${trackId}`
 				});
 
 			// Associate original and retransmission SSRCs.
 			this._mediaObject.ssrcGroups.push(
 				{
-					semantics: 'FID',
-					ssrcs    : `${ssrc} ${rtxSsrc}`
+					semantics : 'FID',
+					ssrcs     : `${ssrc} ${rtxSsrc}`
 				});
 		}
 	}

@@ -184,7 +184,7 @@ test('device.createSendTransport() for sending media succeeds', () =>
 			iceCandidates,
 			dtlsParameters,
 			sctpParameters,
-			appData: { baz: 'BAZ' }
+			appData : { baz: 'BAZ' }
 		}))
 		.toBeType('object');
 
@@ -235,9 +235,9 @@ test('device.createSendTransport() with missing remote Transport parameters thro
 
 	expect(() => device.createSendTransport(
 		{
-			id           : '1234',
-			iceParameters: {},
-			iceCandidates: []
+			id            : '1234',
+			iceParameters : {},
+			iceCandidates : []
 		}))
 		.toThrow(TypeError);
 }, 500);
@@ -259,7 +259,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			iceCandidates,
 			dtlsParameters,
 			sctpParameters,
-			appData: 1234
+			appData : 1234
 		}))
 		.toThrow(TypeError);
 }, 500);
@@ -362,15 +362,15 @@ test('transport.produce() succeeds', async () =>
 	codecs = audioProducer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			mimeType    : 'audio/opus',
-			clockRate   : 48000,
-			payloadType : 111,
-			channels    : 2,
-			rtcpFeedback: [],
-			parameters  :
+			mimeType     : 'audio/opus',
+			clockRate    : 48000,
+			payloadType  : 111,
+			channels     : 2,
+			rtcpFeedback : [],
+			parameters   :
 			{
-				minptime    : 10,
-				useinbandfec: 1
+				minptime     : 10,
+				useinbandfec : 1
 			}
 		});
 
@@ -378,12 +378,12 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id : 10
+				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id  : 10
 			},
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id : 9
+				uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id  : 9
 			}
 		]);
 
@@ -428,30 +428,30 @@ test('transport.produce() succeeds', async () =>
 	codecs = videoProducer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			mimeType    : 'video/VP8',
-			clockRate   : 90000,
-			payloadType : 96,
-			rtcpFeedback:
+			mimeType     : 'video/VP8',
+			clockRate    : 90000,
+			payloadType  : 96,
+			rtcpFeedback :
 			[
 				{ type: 'goog-remb' },
 				{ type: 'ccm', parameter: 'fir' },
 				{ type: 'nack' },
 				{ type: 'nack', parameter: 'pli' }
 			],
-			parameters:
+			parameters :
 			{
-				baz: '1234abcd'
+				baz : '1234abcd'
 			}
 		});
 	expect(codecs[1]).toEqual(
 		{
-			mimeType    : 'video/rtx',
-			clockRate   : 90000,
-			payloadType : 97,
-			rtcpFeedback: [],
-			parameters  :
+			mimeType     : 'video/rtx',
+			clockRate    : 90000,
+			payloadType  : 97,
+			rtcpFeedback : [],
+			parameters   :
 			{
-				apt: 96
+				apt : 96
 			}
 		});
 
@@ -459,20 +459,20 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:toffset',
-				id : 2
+				uri : 'urn:ietf:params:rtp-hdrext:toffset',
+				id  : 2
 			},
 			{
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-				id : 3
+				uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				id  : 3
 			},
 			{
-				uri: 'urn:3gpp:video-orientation',
-				id : 4
+				uri : 'urn:3gpp:video-orientation',
+				id  : 4
 			},
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id : 9
+				uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id  : 9
 			}
 		]);
 
@@ -565,11 +565,11 @@ test('transport.consume() succeeds', async () =>
 
 	audioConsumer = await recvTransport.consume(
 		{
-			id           : audioConsumerRemoteParameters.id,
-			producerId   : audioConsumerRemoteParameters.producerId,
-			kind         : audioConsumerRemoteParameters.kind,
-			rtpParameters: audioConsumerRemoteParameters.rtpParameters,
-			appData      : { bar: 'BAR' }
+			id            : audioConsumerRemoteParameters.id,
+			producerId    : audioConsumerRemoteParameters.producerId,
+			kind          : audioConsumerRemoteParameters.kind,
+			rtpParameters : audioConsumerRemoteParameters.rtpParameters,
+			appData       : { bar: 'BAR' }
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -586,15 +586,15 @@ test('transport.consume() succeeds', async () =>
 	codecs = audioConsumer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			mimeType    : 'audio/opus',
-			clockRate   : 48000,
-			payloadType : 100,
-			channels    : 2,
-			rtcpFeedback: [],
-			parameters  :
+			mimeType     : 'audio/opus',
+			clockRate    : 48000,
+			payloadType  : 100,
+			channels     : 2,
+			rtcpFeedback : [],
+			parameters   :
 			{
-				useinbandfec: 1,
-				foo         : 'bar'
+				useinbandfec : 1,
+				foo          : 'bar'
 			}
 		});
 
@@ -602,8 +602,8 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id : 1
+				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id  : 1
 			}
 		]);
 
@@ -623,10 +623,10 @@ test('transport.consume() succeeds', async () =>
 
 	videoConsumer = await recvTransport.consume(
 		{
-			id           : videoConsumerRemoteParameters.id,
-			producerId   : videoConsumerRemoteParameters.producerId,
-			kind         : videoConsumerRemoteParameters.kind,
-			rtpParameters: videoConsumerRemoteParameters.rtpParameters
+			id            : videoConsumerRemoteParameters.id,
+			producerId    : videoConsumerRemoteParameters.producerId,
+			kind          : videoConsumerRemoteParameters.kind,
+			rtpParameters : videoConsumerRemoteParameters.rtpParameters
 		});
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -643,30 +643,30 @@ test('transport.consume() succeeds', async () =>
 	codecs = videoConsumer.rtpParameters.codecs;
 	expect(codecs[0]).toEqual(
 		{
-			mimeType    : 'video/VP8',
-			clockRate   : 90000,
-			payloadType : 101,
-			rtcpFeedback:
+			mimeType     : 'video/VP8',
+			clockRate    : 90000,
+			payloadType  : 101,
+			rtcpFeedback :
 			[
 				{ type: 'nack' },
 				{ type: 'nack', parameter: 'pli' },
 				{ type: 'ccm', parameter: 'fir' },
 				{ type: 'goog-remb' }
 			],
-			parameters:
+			parameters :
 			{
-				'x-google-start-bitrate': 1500
+				'x-google-start-bitrate' : 1500
 			}
 		});
 	expect(codecs[1]).toEqual(
 		{
-			mimeType    : 'video/rtx',
-			clockRate   : 90000,
-			payloadType : 102,
-			rtcpFeedback: [],
-			parameters  :
+			mimeType     : 'video/rtx',
+			clockRate    : 90000,
+			payloadType  : 102,
+			rtcpFeedback : [],
+			parameters   :
 			{
-				apt: 101
+				apt : 101
 			}
 		});
 
@@ -674,16 +674,16 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri: 'urn:ietf:params:rtp-hdrext:toffset',
-				id : 2
+				uri : 'urn:ietf:params:rtp-hdrext:toffset',
+				id  : 2
 			},
 			{
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-				id : 3
+				uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				id  : 3
 			},
 			{
-				uri: 'urn:3gpp:video-orientation',
-				id : 4
+				uri : 'urn:3gpp:video-orientation',
+				id  : 4
 			}
 		]);
 
@@ -726,18 +726,18 @@ test('transport.consume() with missing remote Consumer parameters rejects with T
 
 	await expect(recvTransport.consume(
 		{
-			id        : '1234',
-			producerId: '4444',
-			kind      : 'audio'
+			id         : '1234',
+			producerId : '4444',
+			kind       : 'audio'
 		}))
 		.rejects
 		.toThrow(TypeError);
 
 	await expect(recvTransport.consume(
 		{
-			id        : '1234',
-			producerId: '4444',
-			kind      : 'audio'
+			id         : '1234',
+			producerId : '4444',
+			kind       : 'audio'
 		}))
 		.rejects
 		.toThrow(TypeError);
@@ -819,11 +819,11 @@ test('transport.produceData() succeeds', async () =>
 
 	dataProducer = await sendTransport.produceData(
 		{
-			ordered          : false,
-			maxPacketLifeTime: 5555,
-			label            : 'FOO',
-			protocol         : 'BAR',
-			appData          : { foo: 'FOO' }
+			ordered           : false,
+			maxPacketLifeTime : 5555,
+			label             : 'FOO',
+			protocol          : 'BAR',
+			appData           : { foo: 'FOO' }
 		});
 
 	expect(produceDataEventNumTimesCalled).toBe(1);
@@ -862,12 +862,12 @@ test('transport.consumeData() succeeds', async () =>
 
 	dataConsumer = await recvTransport.consumeData(
 		{
-			id                  : dataConsumerRemoteParameters.id,
-			dataProducerId      : dataConsumerRemoteParameters.dataProducerId,
-			sctpStreamParameters: dataConsumerRemoteParameters.sctpStreamParameters,
-			label               : 'FOO',
-			protocol            : 'BAR',
-			appData             : { bar: 'BAR' }
+			id                   : dataConsumerRemoteParameters.id,
+			dataProducerId       : dataConsumerRemoteParameters.dataProducerId,
+			sctpStreamParameters : dataConsumerRemoteParameters.sctpStreamParameters,
+			label                : 'FOO',
+			protocol             : 'BAR',
+			appData              : { bar: 'BAR' }
 		});
 
 	expect(dataConsumer).toBeType('object');

@@ -78,19 +78,19 @@ export default class RemoteSdp
 
 		this._sdpObject =
 		{
-			version: 0,
-			origin :
+			version : 0,
+			origin  :
 			{
-				address       : '0.0.0.0',
-				ipVer         : 4,
-				netType       : 'IN',
-				sessionId     : 10000,
-				sessionVersion: 0,
-				username      : 'mediasoup-client'
+				address        : '0.0.0.0',
+				ipVer          : 4,
+				netType        : 'IN',
+				sessionId      : 10000,
+				sessionVersion : 0,
+				username       : 'mediasoup-client'
 			},
-			name  : '-',
-			timing: { start: 0, stop: 0 },
-			media : []
+			name   : '-',
+			timing : { start: 0, stop: 0 },
+			media  : []
 		};
 
 		// If ICE parameters are given, add ICE-Lite indicator.
@@ -109,8 +109,8 @@ export default class RemoteSdp
 
 			this._sdpObject.fingerprint =
 			{
-				type: dtlsParameters.fingerprints[numFingerprints - 1].algorithm,
-				hash: dtlsParameters.fingerprints[numFingerprints - 1].value
+				type : dtlsParameters.fingerprints[numFingerprints - 1].algorithm,
+				hash : dtlsParameters.fingerprints[numFingerprints - 1].value
 			};
 
 			this._sdpObject.groups = [ { type: 'BUNDLE', mids: '' } ];
@@ -187,11 +187,11 @@ export default class RemoteSdp
 	{
 		const mediaSection = new AnswerMediaSection(
 			{
-				iceParameters     : this._iceParameters,
-				iceCandidates     : this._iceCandidates,
-				dtlsParameters    : this._dtlsParameters,
-				plainRtpParameters: this._plainRtpParameters,
-				planB             : this._planB,
+				iceParameters      : this._iceParameters,
+				iceCandidates      : this._iceCandidates,
+				dtlsParameters     : this._dtlsParameters,
+				plainRtpParameters : this._plainRtpParameters,
+				planB              : this._planB,
 				offerMediaObject,
 				offerRtpParameters,
 				answerRtpParameters,
@@ -237,11 +237,11 @@ export default class RemoteSdp
 		{
 			const mediaSection = new OfferMediaSection(
 				{
-					iceParameters     : this._iceParameters,
-					iceCandidates     : this._iceCandidates,
-					dtlsParameters    : this._dtlsParameters,
-					plainRtpParameters: this._plainRtpParameters,
-					planB             : this._planB,
+					iceParameters      : this._iceParameters,
+					iceCandidates      : this._iceCandidates,
+					dtlsParameters     : this._dtlsParameters,
+					plainRtpParameters : this._plainRtpParameters,
+					planB              : this._planB,
 					mid,
 					kind,
 					offerRtpParameters,
@@ -306,11 +306,11 @@ export default class RemoteSdp
 	{
 		const mediaSection = new AnswerMediaSection(
 			{
-				iceParameters     : this._iceParameters,
-				iceCandidates     : this._iceCandidates,
-				dtlsParameters    : this._dtlsParameters,
-				sctpParameters    : this._sctpParameters,
-				plainRtpParameters: this._plainRtpParameters,
+				iceParameters      : this._iceParameters,
+				iceCandidates      : this._iceCandidates,
+				dtlsParameters     : this._dtlsParameters,
+				sctpParameters     : this._sctpParameters,
+				plainRtpParameters : this._plainRtpParameters,
 				offerMediaObject
 			});
 
@@ -321,13 +321,13 @@ export default class RemoteSdp
 	{
 		const mediaSection = new OfferMediaSection(
 			{
-				iceParameters     : this._iceParameters,
-				iceCandidates     : this._iceCandidates,
-				dtlsParameters    : this._dtlsParameters,
-				sctpParameters    : this._sctpParameters,
-				plainRtpParameters: this._plainRtpParameters,
-				mid               : 'datachannel',
-				kind              : 'application',
+				iceParameters      : this._iceParameters,
+				iceCandidates      : this._iceCandidates,
+				dtlsParameters     : this._dtlsParameters,
+				sctpParameters     : this._sctpParameters,
+				plainRtpParameters : this._plainRtpParameters,
+				mid                : 'datachannel',
+				kind               : 'application',
 				oldDataChannelSpec
 			});
 
