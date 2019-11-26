@@ -19,6 +19,7 @@ export default class Producer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _localId;
     private _closed;
+    private readonly _rtpSender?;
     private _track;
     private readonly _rtpParameters;
     private _paused;
@@ -33,9 +34,10 @@ export default class Producer extends EnhancedEventEmitter {
      * @emits @getstats
      * @emits @close
      */
-    constructor({ id, localId, track, rtpParameters, appData }: {
+    constructor({ id, localId, rtpSender, track, rtpParameters, appData }: {
         id: string;
         localId: string;
+        rtpSender?: RTCRtpSender;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
         appData: any;
@@ -56,6 +58,10 @@ export default class Producer extends EnhancedEventEmitter {
      * Media kind.
      */
     get kind(): string;
+    /**
+     * Associated RTCRtpSender.
+     */
+    get rtpSender(): RTCRtpSender | undefined;
     /**
      * The associated track.
      */

@@ -204,7 +204,11 @@ export default class Edge11 extends EnhancedEventEmitter
 		// Store it.
 		this._rtpSenders.set(`${this._lastSendId}`, rtpSender);
 
-		return { localId: `${this._lastSendId}`, rtpParameters };
+		return {
+			localId : `${this._lastSendId}`,
+			rtpSender,
+			rtpParameters
+		};
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -355,7 +359,11 @@ export default class Edge11 extends EnhancedEventEmitter
 		// Store it.
 		this._rtpReceivers.set(localId, rtpReceiver);
 
-		return { localId, track: rtpReceiver.track };
+		return {
+			localId,
+			rtpReceiver,
+			track : rtpReceiver.track
+		};
 	}
 
 	async stopReceiving({ localId }: { localId: string }): Promise<void>

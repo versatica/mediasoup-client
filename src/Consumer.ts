@@ -28,6 +28,9 @@ export default class Consumer extends EnhancedEventEmitter
 	// Closed flag.
 	private _closed = false;
 
+	// Associated RTCRtpReceiver.
+	private readonly _rtpReceiver?: RTCRtpReceiver;
+
 	// Remote track.
 	private readonly _track: MediaStreamTrack;
 
@@ -51,6 +54,7 @@ export default class Consumer extends EnhancedEventEmitter
 			id,
 			localId,
 			producerId,
+			rtpReceiver,
 			track,
 			rtpParameters,
 			appData
@@ -59,6 +63,7 @@ export default class Consumer extends EnhancedEventEmitter
 			id: string;
 			localId: string;
 			producerId: string;
+			rtpReceiver?: RTCRtpReceiver;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
 			appData: any;
@@ -70,6 +75,7 @@ export default class Consumer extends EnhancedEventEmitter
 		this._id = id;
 		this._localId = localId;
 		this._producerId = producerId;
+		this._rtpReceiver = rtpReceiver;
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
@@ -117,6 +123,14 @@ export default class Consumer extends EnhancedEventEmitter
 	get kind(): string
 	{
 		return this._track.kind;
+	}
+
+	/**
+	 * Associated RTCRtpReceiver.
+	 */
+	get rtpReceiver(): RTCRtpReceiver | undefined
+	{
+		return this._rtpReceiver;
 	}
 
 	/**

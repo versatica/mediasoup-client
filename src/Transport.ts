@@ -467,7 +467,7 @@ export default class Transport extends EnhancedEventEmitter
 						});
 				}
 
-				const { localId, rtpParameters } = await this._handler.send(
+				const { localId, rtpSender, rtpParameters } = await this._handler.send(
 					{
 						track,
 						encodings : normalizedEncodings,
@@ -484,8 +484,8 @@ export default class Transport extends EnhancedEventEmitter
 							appData
 						});
 
-					const producer =
-						new Producer({ id, localId, track, rtpParameters, appData });
+					const producer = new Producer(
+						{ id, localId, rtpSender, track, rtpParameters, appData });
 
 					this._producers.set(producer.id, producer);
 					this._handleProducer(producer);
@@ -554,11 +554,11 @@ export default class Transport extends EnhancedEventEmitter
 				if (!canConsume)
 					throw new UnsupportedError('cannot consume this Producer');
 
-				const { localId, track } =
+				const { localId, rtpReceiver, track } =
 					await this._handler.receive({ id, kind, rtpParameters });
 
-				const consumer =
-					new Consumer({ id, localId, producerId, track, rtpParameters, appData });
+				const consumer = new Consumer(
+					{ id, localId, producerId, rtpReceiver, track, rtpParameters, appData });
 
 				this._consumers.set(consumer.id, consumer);
 				this._handleConsumer(consumer);

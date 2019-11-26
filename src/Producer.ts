@@ -34,6 +34,9 @@ export default class Producer extends EnhancedEventEmitter
 	// Closed flag.
 	private _closed = false;
 
+	// Associated RTCRtpSender.
+	private readonly _rtpSender?: RTCRtpSender;
+
 	// Local track.
 	private _track: MediaStreamTrack;
 
@@ -62,6 +65,7 @@ export default class Producer extends EnhancedEventEmitter
 		{
 			id,
 			localId,
+			rtpSender,
 			track,
 			rtpParameters,
 			appData
@@ -69,6 +73,7 @@ export default class Producer extends EnhancedEventEmitter
 		{
 			id: string;
 			localId: string;
+			rtpSender?: RTCRtpSender;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
 			appData: any;
@@ -79,6 +84,7 @@ export default class Producer extends EnhancedEventEmitter
 
 		this._id = id;
 		this._localId = localId;
+		this._rtpSender = rtpSender;
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
@@ -119,6 +125,14 @@ export default class Producer extends EnhancedEventEmitter
 	get kind(): string
 	{
 		return this._track.kind;
+	}
+
+	/**
+	 * Associated RTCRtpSender.
+	 */
+	get rtpSender(): RTCRtpSender | undefined
+	{
+		return this._rtpSender;
 	}
 
 	/**

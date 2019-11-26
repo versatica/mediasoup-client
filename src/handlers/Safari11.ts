@@ -298,7 +298,14 @@ class SendHandler extends Handler
 		// Insert into the map.
 		this._mapIdTrack.set(`${this._lastId}`, track);
 
-		return { localId: `${this._lastId}`, rtpParameters: sendingRtpParameters };
+		const rtpSender = this._pc.getSenders()
+			.find((s: any) => s.track === track);
+
+		return {
+			localId       : `${this._lastId}`,
+			rtpSender,
+			rtpParameters : sendingRtpParameters
+		};
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -614,7 +621,11 @@ class RecvHandler extends Handler
 		// Insert into the map.
 		this._mapIdRtpParameters.set(localId, { mid, rtpParameters, rtpReceiver });
 
-		return { localId, track: rtpReceiver.track };
+		return {
+			localId,
+			rtpReceiver,
+			track : rtpReceiver.track
+		};
 	}
 
 	async stopReceiving({ localId }: { localId: string }): Promise<void>

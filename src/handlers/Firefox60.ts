@@ -314,7 +314,12 @@ class SendHandler extends Handler
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
 
-		return { localId, rtpParameters: sendingRtpParameters };
+		return {
+			localId,
+			rtpSender     : transceiver.sender,
+			rtpParameters : sendingRtpParameters
+		};
+
 	}
 
 	async stopSending({ localId }: { localId: string }): Promise<void>
@@ -596,7 +601,11 @@ class RecvHandler extends Handler
 		// Increase next MID.
 		this._nextMid++;
 
-		return { localId, track: transceiver.receiver.track };
+		return {
+			localId,
+			rtpReceiver : transceiver.receiver,
+			track       : transceiver.receiver.track
+		};
 	}
 
 	async stopReceiving({ localId }: { localId: string }): Promise<void>
