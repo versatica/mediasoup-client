@@ -23,23 +23,23 @@ export default class Device {
     /**
      * The RTC handler class name ('Chrome70', 'Firefox65', etc).
      */
-    get handlerName(): string;
+    readonly handlerName: string;
     /**
      * Whether the Device is loaded.
      */
-    get loaded(): boolean;
+    readonly loaded: boolean;
     /**
      * RTP capabilities of the Device for receiving media.
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    get rtpCapabilities(): RtpCapabilities | undefined;
+    readonly rtpCapabilities: RtpCapabilities | undefined;
     /**
      * SCTP capabilities of the Device.
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    get sctpCapabilities(): any;
+    readonly sctpCapabilities: any;
     /**
      * Initialize the Device.
      */
