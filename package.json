@@ -55,7 +55,6 @@
     "node-mediastreamtrack": "0.1.0",
     "open-cli": "^5.0.0",
     "tsc-watch": "^4.0.0",
-    "tslint": "^5.20.1",
     "typescript": "^3.6.4",
     "uuid": "^3.3.3"
   }
