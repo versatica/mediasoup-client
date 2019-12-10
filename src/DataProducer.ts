@@ -36,7 +36,7 @@ export default class DataProducer extends EnhancedEventEmitter
 	/**
 	 * @emits transportclose
 	 * @emits open
-	 * @emits {Object} error
+	 * @emits error - (error: Error)
 	 * @emits close
 	 * @emits bufferedamountlow
 	 * @emits @close

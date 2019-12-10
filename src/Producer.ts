@@ -55,9 +55,9 @@ export default class Producer extends EnhancedEventEmitter
 	/**
 	 * @emits transportclose
 	 * @emits trackended
-	 * @emits {track: MediaStreamTrack} @replacetrack
-	 * @emits {spatialLayer: String} @setmaxspatiallayer
-	 * @emits {Object} @setrtpencodingparameters
+	 * @emits @replacetrack - (track: MediaStreamTrack)
+	 * @emits @setmaxspatiallayer - (spatialLayer: string)
+	 * @emits @setrtpencodingparameters - (params: any)
 	 * @emits @getstats
 	 * @emits @close
 	 */

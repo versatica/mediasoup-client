@@ -176,10 +176,10 @@ export default class Transport extends EnhancedEventEmitter
 	private readonly _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
 
 	/**
-	 * @emits {transportLocalParameters: Object, callback: Function, errback: Function} connect
-	 * @emits {connectionState: ConnectionState} connectionstatechange
-	 * @emits {producerLocalParameters: Object, callback: Function, errback: Function} produce
-	 * @emits {dataProducerLocalParameters: Object, callback: Function, errback: Function} producedata
+	 * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
+	 * @emits connectionstatechange - (connectionState: ConnectionState)
+	 * @emits produce - (producerLocalParameters: any, callback: Function, errback: Function)
+	 * @emits producedata - (dataProducerLocalParameters: any, callback: Function, errback: Function)
 	 */
 	constructor(
 		{

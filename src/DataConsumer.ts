@@ -37,9 +37,9 @@ export default class DataConsumer extends EnhancedEventEmitter
 	/**
 	 * @emits transportclose
 	 * @emits open
-	 * @emits {Object} error
+	 * @emits error - (error: Error)
 	 * @emits close
-	 * @emits {Any} message
+	 * @emits message - (message: any)
 	 * @emits @close
 	 */
 	constructor(
