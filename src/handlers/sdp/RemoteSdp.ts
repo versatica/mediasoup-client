@@ -174,7 +174,8 @@ export default class RemoteSdp
 			reuseMid,
 			offerRtpParameters,
 			answerRtpParameters,
-			codecOptions
+			codecOptions,
+			extmapAllowMixed
 		}:
 		{
 			offerMediaObject: any;
@@ -182,6 +183,7 @@ export default class RemoteSdp
 			offerRtpParameters: any;
 			answerRtpParameters: any;
 			codecOptions: any;
+			extmapAllowMixed? : boolean;
 		}
 	): void
 	{
@@ -195,7 +197,8 @@ export default class RemoteSdp
 				offerMediaObject,
 				offerRtpParameters,
 				answerRtpParameters,
-				codecOptions
+				codecOptions,
+				extmapAllowMixed
 			});
 
 		// Unified-Plan with closed media section replacement.

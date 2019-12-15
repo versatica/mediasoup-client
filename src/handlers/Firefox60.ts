@@ -301,7 +301,8 @@ class SendHandler extends Handler
 				reuseMid            : mediaSectionIdx.reuseMid,
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
-				codecOptions
+				codecOptions,
+				extmapAllowMixed    : true
 			});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };

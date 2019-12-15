@@ -132,7 +132,8 @@ export class AnswerMediaSection extends MediaSection
 			offerRtpParameters,
 			answerRtpParameters,
 			plainRtpParameters,
-			codecOptions
+			codecOptions,
+			extmapAllowMixed
 		} = data;
 
 		this._mediaObject.mid = String(offerMediaObject.mid);
@@ -296,8 +297,13 @@ export class AnswerMediaSection extends MediaSection
 				}
 
 				// Allow both 1 byte and 2 bytes length header extensions.
-				if (offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed')
+				if (
+					extmapAllowMixed &&
+					offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed'
+				)
+				{
 					this._mediaObject.extmapAllowMixed = 'extmap-allow-mixed';
+				}
 
 				// Simulcast.
 				if (offerMediaObject.simulcast)

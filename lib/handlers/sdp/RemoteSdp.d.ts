@@ -20,12 +20,13 @@ export default class RemoteSdp {
     updateIceParameters(iceParameters: any): void;
     updateDtlsRole(role: DtlsRole): void;
     getNextMediaSectionIdx(): any;
-    send({ offerMediaObject, reuseMid, offerRtpParameters, answerRtpParameters, codecOptions }: {
+    send({ offerMediaObject, reuseMid, offerRtpParameters, answerRtpParameters, codecOptions, extmapAllowMixed }: {
         offerMediaObject: any;
         reuseMid?: boolean;
         offerRtpParameters: any;
         answerRtpParameters: any;
         codecOptions: any;
+        extmapAllowMixed?: boolean;
     }): void;
     receive({ mid, kind, offerRtpParameters, streamId, trackId }: {
         mid: string;
