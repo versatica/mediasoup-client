@@ -210,11 +210,7 @@ export class SendHandler extends Handler
 		this._stream.addTrack(track);
 		this._pc.addStream(this._stream);
 
-		let offer = await this._pc.createOffer(
-			{
-				offerToReceiveAudio : false,
-				offerToReceiveVideo : false
-			});
+		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
 		const sendingRtpParameters =
@@ -324,11 +320,7 @@ export class SendHandler extends Handler
 		this._stream.removeTrack(track);
 		this._pc.addStream(this._stream);
 
-		const offer = await this._pc.createOffer(
-			{
-				offerToReceiveAudio : false,
-				offerToReceiveVideo : false
-			});
+		const offer = await this._pc.createOffer();
 
 		logger.debug(
 			'stopSending() | calling pc.setLocalDescription() [offer:%o]', offer);
@@ -473,11 +465,7 @@ export class SendHandler extends Handler
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			const offer = await this._pc.createOffer(
-				{
-					offerToReceiveAudio : false,
-					offerToReceiveVideo : false
-				});
+			const offer = await this._pc.createOffer();
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media
 				.find((m: any) => m.type === 'application');
@@ -526,12 +514,7 @@ export class SendHandler extends Handler
 		if (!this._transportReady)
 			return;
 
-		const offer = await this._pc.createOffer(
-			{
-				iceRestart          : true,
-				offerToReceiveAudio : false,
-				offerToReceiveVideo : false
-			});
+		const offer = await this._pc.createOffer({ iceRestart: true });
 
 		logger.debug(
 			'restartIce() | calling pc.setLocalDescription() [offer:%o]', offer);
