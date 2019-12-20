@@ -68,9 +68,9 @@ export function detectDevice(): any | undefined
 		{
 			return Firefox60;
 		}
-		// Safari with Unified-Plan support.
+		// Safari with Unified-Plan support enabled.
 		else if (
-			browser.satisfies({ safari: '>=12.1' }) &&
+			browser.satisfies({ safari: '>=12.0' }) &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
 		)
