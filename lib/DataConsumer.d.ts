@@ -33,47 +33,45 @@ export default class DataConsumer extends EnhancedEventEmitter {
     /**
      * DataConsumer id.
      */
-    get id(): string;
+    readonly id: string;
     /**
      * Associated DataProducer id.
      */
-    get dataProducerId(): string;
+    readonly dataProducerId: string;
     /**
      * Whether the DataConsumer is closed.
      */
-    get closed(): boolean;
+    readonly closed: boolean;
     /**
      * SCTP stream parameters.
      */
-    get sctpStreamParameters(): SctpStreamParameters;
+    readonly sctpStreamParameters: SctpStreamParameters;
     /**
      * DataChannel readyState.
      */
-    get readyState(): RTCDataChannelState;
+    readonly readyState: RTCDataChannelState;
     /**
      * DataChannel label.
      */
-    get label(): string;
+    readonly label: string;
     /**
      * DataChannel protocol.
      */
-    get protocol(): string;
+    readonly protocol: string;
     /**
      * DataChannel binaryType.
      */
-    get binaryType(): string;
     /**
-     * Set DataChannel binaryType.
-     */
-    set binaryType(binaryType: string);
+    * Set DataChannel binaryType.
+    */
+    binaryType: string;
     /**
      * App custom data.
      */
-    get appData(): any;
     /**
-     * Invalid setter.
-     */
-    set appData(appData: any);
+    * Invalid setter.
+    */
+    appData: any;
     /**
      * Closes the DataConsumer.
      */

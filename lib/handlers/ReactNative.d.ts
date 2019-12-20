@@ -66,7 +66,7 @@ export declare class SendHandler extends Handler {
     }): Promise<void>;
 }
 export default class ReactNative {
-    static get label(): string;
+    static readonly label: string;
     static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {

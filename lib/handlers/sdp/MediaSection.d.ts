@@ -8,8 +8,8 @@ declare abstract class MediaSection {
         planB: boolean;
     });
     abstract setDtlsRole(role: 'client' | 'server' | 'auto'): void;
-    get mid(): string;
-    get closed(): boolean;
+    readonly mid: string;
+    readonly closed: boolean;
     getObject(): object;
     /**
      * @param {RTCIceParameters} iceParameters

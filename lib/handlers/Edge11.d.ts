@@ -3,7 +3,7 @@ import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transp
 import { RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpParameters } from '../SctpParameters';
 export default class Edge11 extends EnhancedEventEmitter {
-    static get label(): string;
+    static readonly label: string;
     static getNativeRtpCapabilities(): Promise<any>;
     static getNativeSctpCapabilities(): Promise<any>;
     private readonly _sendingRtpParametersByKind;
