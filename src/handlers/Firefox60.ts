@@ -213,7 +213,11 @@ class SendHandler extends Handler
 			reverseEncodings = utils.clone(encodings).reverse();
 		}
 
-		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
+		// NOTE: Firefox fails sometimes to properly anticipate the closed media
+		// section that it should use, so don't reuse closed media sections.
+		//   https://github.com/versatica/mediasoup-client/issues/104
+		//
+		// const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
 			track, { direction: 'sendonly', streams: [ this._stream ] });
 
@@ -250,7 +254,7 @@ class SendHandler extends Handler
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 
-		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+		const offerMediaObject = localSdpObject.media[localSdpObject.media.length - 1];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp.cname =
@@ -298,7 +302,6 @@ class SendHandler extends Handler
 		this._remoteSdp.send(
 			{
 				offerMediaObject,
-				reuseMid            : mediaSectionIdx.reuseMid,
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
 				codecOptions,
@@ -334,7 +337,10 @@ class SendHandler extends Handler
 
 		transceiver.sender.replaceTrack(null);
 		this._pc.removeTrack(transceiver.sender);
-		this._remoteSdp.closeMediaSection(transceiver.mid);
+		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
+		// method.
+		// this._remoteSdp.closeMediaSection(transceiver.mid);
+		this._remoteSdp.disableMediaSection(transceiver.mid);
 
 		const offer = await this._pc.createOffer();
 
