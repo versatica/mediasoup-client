@@ -11,11 +11,17 @@ import {
 	RtpHeaderExtensionParameters,
 	RtcpParameters
 } from './RtpParameters';
+import {
+	SctpCapabilities,
+	NumSctpStreams,
+	SctpParameters,
+	SctpStreamParameters
+} from './SctpParameters';
 
 const PROBATOR_SSRC = 1234;
 
 /**
- * Validates RTCRtpCapabilities. It may modify given data by adding missing
+ * Validates RtpCapabilities. It may modify given data by adding missing
  * fields with default values.
  * It throws if invalid.
  */
@@ -382,6 +388,128 @@ export function validateRtcpParameters(rtcp: RtcpParameters): void
 	// reducedSize is optional. If unset set it to true.
 	if (!rtcp.reducedSize || typeof rtcp.reducedSize !== 'boolean')
 		rtcp.reducedSize = true;
+}
+
+/**
+ * Validates SctpCapabilities. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export function validateSctpCapabilities(caps: SctpCapabilities): void
+{
+	if (typeof caps !== 'object')
+		throw new TypeError('caps is not an object');
+
+	// numStreams is mandatory.
+	if (!caps.numStreams || typeof caps.numStreams !== 'object')
+		throw new TypeError('missing caps.numStreams');
+
+	validateNumSctpStreams(caps.numStreams);
+}
+
+/**
+ * Validates NumSctpStreams. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export function validateNumSctpStreams(numStreams: NumSctpStreams): void
+{
+	if (typeof numStreams !== 'object')
+		throw new TypeError('numStreams is not an object');
+
+	// OS is mandatory.
+	if (!numStreams.OS || typeof numStreams.OS !== 'number')
+		throw new TypeError('missing numStreams.OS');
+
+	// MIS is mandatory.
+	if (!numStreams.MIS || typeof numStreams.MIS !== 'number')
+		throw new TypeError('missing numStreams.MIS');
+}
+
+/**
+ * Validates SctpParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export function validateSctpParameters(params: SctpParameters): void
+{
+	if (typeof params !== 'object')
+		throw new TypeError('params is not an object');
+
+	// port is mandatory.
+	if (!params.port || typeof params.port !== 'number')
+		throw new TypeError('missing params.port');
+
+	// OS is mandatory.
+	if (!params.OS || typeof params.OS !== 'number')
+		throw new TypeError('missing params.OS');
+
+	// MIS is mandatory.
+	if (!params.MIS || typeof params.MIS !== 'number')
+		throw new TypeError('missing params.MIS');
+
+	// maxMessageSize is mandatory.
+	if (!params.maxMessageSize || typeof params.maxMessageSize !== 'number')
+		throw new TypeError('missing params.maxMessageSize');
+}
+
+/**
+ * Validates SctpStreamParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export function validateSctpStreamParameters(params: SctpStreamParameters): void
+{
+	if (typeof params !== 'object')
+		throw new TypeError('params is not an object');
+
+	// streamId is mandatory.
+	if (!params.streamId || typeof params.streamId !== 'number')
+		throw new TypeError('missing params.streamId');
+
+	// ordered is optional.
+	let orderedGiven = false;
+
+	if (typeof params.ordered === 'boolean')
+		orderedGiven = true;
+	else
+		params.ordered = true;
+
+	// maxPacketLifeTime is optional.
+	if (params.maxPacketLifeTime && typeof params.maxPacketLifeTime !== 'number')
+		throw new TypeError('invalid params.maxPacketLifeTime');
+
+	// maxRetransmits is optional.
+	if (params.maxRetransmits && typeof params.maxRetransmits !== 'number')
+		throw new TypeError('invalid params.maxRetransmits');
+
+	if (params.maxPacketLifeTime && params.maxRetransmits)
+		throw new TypeError('cannot provide both maxPacketLifeTime and maxRetransmits');
+
+	if (
+		orderedGiven &&
+		params.ordered &&
+		(params.maxPacketLifeTime || params.maxRetransmits)
+	)
+	{
+		throw new TypeError('cannot be ordered with maxPacketLifeTime or maxRetransmits');
+	}
+	else if (!orderedGiven && (params.maxPacketLifeTime || params.maxRetransmits))
+	{
+		params.ordered = false;
+	}
+
+	// priority is optional.
+	if (params.priority && typeof params.priority !== 'string')
+		throw new TypeError('invalid params.priority');
+
+	// label is optional.
+	if (params.label && typeof params.label !== 'string')
+		throw new TypeError('invalid params.label');
+
+	// protocol is optional.
+	if (params.protocol && typeof params.protocol !== 'string')
+		throw new TypeError('invalid params.protocol');
 }
 
 /**

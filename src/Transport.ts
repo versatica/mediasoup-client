@@ -538,8 +538,6 @@ export default class Transport extends EnhancedEventEmitter
 			throw new TypeError('missing producerId');
 		else if (kind !== 'audio' && kind !== 'video')
 			throw new TypeError(`invalid kind '${kind}'`);
-		else if (typeof rtpParameters !== 'object')
-			throw new TypeError('missing rtpParameters');
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
 			throw new TypeError('no "connect" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
@@ -647,6 +645,9 @@ export default class Transport extends EnhancedEventEmitter
 						protocol
 					});
 
+				// This will fill sctpStreamParameters's missing fields with default values.
+				ortc.validateSctpStreamParameters(sctpStreamParameters);
+
 				const { id } = await this.safeEmitAsPromise(
 					'producedata',
 					{
@@ -692,12 +693,13 @@ export default class Transport extends EnhancedEventEmitter
 			throw new TypeError('missing id');
 		else if (typeof dataProducerId !== 'string')
 			throw new TypeError('missing dataProducerId');
-		else if (typeof sctpStreamParameters !== 'object')
-			throw new TypeError('missing sctpStreamParameters');
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
 			throw new TypeError('no "connect" listener set into this transport');
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
+
+		// This may throw.
+		ortc.validateSctpStreamParameters(sctpStreamParameters);
 
 		// Enqueue command.
 		return this._awaitQueue.push(
