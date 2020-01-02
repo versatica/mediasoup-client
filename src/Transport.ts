@@ -585,7 +585,7 @@ export default class Transport extends EnhancedEventEmitter
 					}
 					catch (error)
 					{
-						logger.warn(
+						logger.error(
 							'consume() | failed to create Consumer for RTP probation:%o',
 							error);
 					}
