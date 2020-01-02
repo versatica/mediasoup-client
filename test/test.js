@@ -363,8 +363,8 @@ test('transport.produce() succeeds', async () =>
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'audio/opus',
-			clockRate    : 48000,
 			payloadType  : 111,
+			clockRate    : 48000,
 			channels     : 2,
 			rtcpFeedback : [],
 			parameters   :
@@ -378,12 +378,16 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id  : 10
+				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id         : 10,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id  : 9
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id         : 9,
+				encrypt    : false,
+				parameters : {}
 			}
 		]);
 
@@ -391,7 +395,7 @@ test('transport.produce() succeeds', async () =>
 	expect(encodings).toBeType('array');
 	expect(encodings.length).toBe(1);
 	expect(encodings[0]).toBeType('object');
-	expect(Object.keys(encodings[0])).toEqual([ 'ssrc' ]);
+	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'dtx' ]);
 	expect(encodings[0].ssrc).toBeType('number');
 
 	rtcp = audioProducer.rtpParameters.rtcp;
@@ -429,13 +433,14 @@ test('transport.produce() succeeds', async () =>
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'video/VP8',
-			clockRate    : 90000,
 			payloadType  : 96,
+			clockRate    : 90000,
+			channels     : 1,
 			rtcpFeedback :
 			[
-				{ type: 'goog-remb' },
+				{ type: 'goog-remb', parameter: '' },
 				{ type: 'ccm', parameter: 'fir' },
-				{ type: 'nack' },
+				{ type: 'nack', parameter: '' },
 				{ type: 'nack', parameter: 'pli' }
 			],
 			parameters :
@@ -446,8 +451,9 @@ test('transport.produce() succeeds', async () =>
 	expect(codecs[1]).toEqual(
 		{
 			mimeType     : 'video/rtx',
-			clockRate    : 90000,
 			payloadType  : 97,
+			clockRate    : 90000,
+			channels     : 1,
 			rtcpFeedback : [],
 			parameters   :
 			{
@@ -459,20 +465,28 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:toffset',
-				id  : 2
+				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
+				id         : 2,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-				id  : 3
+				uri        : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				id         : 3,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'urn:3gpp:video-orientation',
-				id  : 4
+				uri        : 'urn:3gpp:video-orientation',
+				id         : 4,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id  : 9
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id         : 9,
+				encrypt    : false,
+				parameters : {}
 			}
 		]);
 
@@ -587,8 +601,8 @@ test('transport.consume() succeeds', async () =>
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'audio/opus',
-			clockRate    : 48000,
 			payloadType  : 100,
+			clockRate    : 48000,
 			channels     : 2,
 			rtcpFeedback : [],
 			parameters   :
@@ -602,8 +616,10 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id  : 1
+				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id         : 1,
+				encrypt    : false,
+				parameters : {}
 			}
 		]);
 
@@ -611,7 +627,7 @@ test('transport.consume() succeeds', async () =>
 	expect(encodings).toBeType('array');
 	expect(encodings.length).toBe(1);
 	expect(encodings[0]).toBeType('object');
-	expect(Object.keys(encodings[0])).toEqual([ 'ssrc' ]);
+	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'dtx' ]);
 	expect(encodings[0].ssrc).toBeType('number');
 
 	rtcp = audioProducer.rtpParameters.rtcp;
@@ -644,14 +660,15 @@ test('transport.consume() succeeds', async () =>
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'video/VP8',
-			clockRate    : 90000,
 			payloadType  : 101,
+			clockRate    : 90000,
+			channels     : 1,
 			rtcpFeedback :
 			[
-				{ type: 'nack' },
+				{ type: 'nack', parameter: '' },
 				{ type: 'nack', parameter: 'pli' },
 				{ type: 'ccm', parameter: 'fir' },
-				{ type: 'goog-remb' }
+				{ type: 'goog-remb', parameter: '' }
 			],
 			parameters :
 			{
@@ -661,8 +678,9 @@ test('transport.consume() succeeds', async () =>
 	expect(codecs[1]).toEqual(
 		{
 			mimeType     : 'video/rtx',
-			clockRate    : 90000,
 			payloadType  : 102,
+			clockRate    : 90000,
+			channels     : 1,
 			rtcpFeedback : [],
 			parameters   :
 			{
@@ -674,16 +692,22 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri : 'urn:ietf:params:rtp-hdrext:toffset',
-				id  : 2
+				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
+				id         : 2,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-				id  : 3
+				uri        : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				id         : 3,
+				encrypt    : false,
+				parameters : {}
 			},
 			{
-				uri : 'urn:3gpp:video-orientation',
-				id  : 4
+				uri        : 'urn:3gpp:video-orientation',
+				id         : 4,
+				encrypt    : false,
+				parameters : {}
 			}
 		]);
 
@@ -691,7 +715,7 @@ test('transport.consume() succeeds', async () =>
 	expect(encodings).toBeType('array');
 	expect(encodings.length).toBe(1);
 	expect(encodings[0]).toBeType('object');
-	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'rtx' ]);
+	expect(Object.keys(encodings[0])).toEqual([ 'ssrc', 'rtx', 'dtx' ]);
 	expect(encodings[0].ssrc).toBeType('number');
 	expect(encodings[0].rtx).toBeType('object');
 	expect(Object.keys(encodings[0].rtx)).toEqual([ 'ssrc' ]);

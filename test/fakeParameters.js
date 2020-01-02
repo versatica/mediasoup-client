@@ -8,8 +8,8 @@ exports.generateRouterRtpCapabilities = function()
 			{
 				mimeType             : 'audio/opus',
 				kind                 : 'audio',
-				clockRate            : 48000,
 				preferredPayloadType : 100,
+				clockRate            : 48000,
 				channels             : 2,
 				rtcpFeedback         : [],
 				parameters           :
@@ -21,8 +21,8 @@ exports.generateRouterRtpCapabilities = function()
 			{
 				mimeType             : 'video/VP8',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 101,
+				clockRate            : 90000,
 				rtcpFeedback         :
 				[
 					{ type: 'nack' },
@@ -38,8 +38,8 @@ exports.generateRouterRtpCapabilities = function()
 			{
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 102,
+				clockRate            : 90000,
 				rtcpFeedback         : [],
 				parameters           :
 				{
@@ -49,8 +49,8 @@ exports.generateRouterRtpCapabilities = function()
 			{
 				mimeType             : 'video/H264',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 103,
+				clockRate            : 90000,
 				rtcpFeedback         :
 				[
 					{ type: 'nack' },
@@ -68,8 +68,8 @@ exports.generateRouterRtpCapabilities = function()
 			{
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 104,
+				clockRate            : 90000,
 				rtcpFeedback         : [],
 				parameters           :
 				{
@@ -140,8 +140,8 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				mimeType             : 'audio/opus',
 				kind                 : 'audio',
-				clockRate            : 48000,
 				preferredPayloadType : 111,
+				clockRate            : 48000,
 				channels             : 2,
 				rtcpFeedback         :
 				[
@@ -156,8 +156,8 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				mimeType             : 'audio/ISAC',
 				kind                 : 'audio',
-				clockRate            : 16000,
 				preferredPayloadType : 103,
+				clockRate            : 16000,
 				channels             : 1,
 				rtcpFeedback         : [],
 				parameters           : {}
@@ -165,8 +165,8 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				mimeType             : 'audio/CN',
 				kind                 : 'audio',
-				clockRate            : 32000,
 				preferredPayloadType : 106,
+				clockRate            : 32000,
 				channels             : 1,
 				rtcpFeedback         : [],
 				parameters           : {}
@@ -174,8 +174,8 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				mimeType             : 'video/VP8',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 96,
+				clockRate            : 90000,
 				rtcpFeedback         :
 				[
 					{ type: 'goog-remb' },
@@ -192,8 +192,8 @@ exports.generateNativeRtpCapabilities = function()
 			{
 				mimeType             : 'video/rtx',
 				kind                 : 'video',
-				clockRate            : 90000,
 				preferredPayloadType : 97,
+				clockRate            : 90000,
 				rtcpFeedback         : [],
 				parameters           :
 				{
@@ -361,8 +361,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					[
 						{
 							mimeType     : 'audio/opus',
-							clockRate    : 48000,
 							payloadType  : 100,
+							clockRate    : 48000,
 							channels     : 2,
 							rtcpFeedback : [],
 							parameters   :
@@ -407,8 +407,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					[
 						{
 							mimeType     : 'audio/ISAC',
-							clockRate    : 16000,
 							payloadType  : 111,
+							clockRate    : 16000,
 							channels     : 1,
 							rtcpFeedback : [],
 							parameters   : {}
@@ -449,8 +449,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 					[
 						{
 							mimeType     : 'video/VP8',
-							clockRate    : 90000,
 							payloadType  : 101,
+							clockRate    : 90000,
 							rtcpFeedback :
 							[
 								{ type: 'nack' },
@@ -465,8 +465,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 						},
 						{
 							mimeType     : 'video/rtx',
-							clockRate    : 90000,
 							payloadType  : 102,
+							clockRate    : 90000,
 							rtcpFeedback : [],
 							parameters   :
 							{

@@ -1,4 +1,58 @@
-import { RtpParameters, RtpCapabilities } from './RtpParameters';
+import { RtpCapabilities, MediaKind, RtpCodecCapability, RtpHeaderExtension, RtpParameters, RtpCodecParameters, RtcpFeedback, RtpEncodingParameters, RtpHeaderExtensionParameters, RtcpParameters } from './RtpParameters';
+/**
+ * Validates RTCRtpCapabilities. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpCapabilities(caps: RtpCapabilities): void;
+/**
+ * Validates RtpCodecCapability. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpCodecCapability(codec: RtpCodecCapability): void;
+/**
+ * Validates RtcpFeedback. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtcpFeedback(fb: RtcpFeedback): void;
+/**
+ * Validates RtpHeaderExtension. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpHeaderExtension(ext: RtpHeaderExtension): void;
+/**
+ * Validates RtpParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpParameters(params: RtpParameters): void;
+/**
+ * Validates RtpCodecParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpCodecParameters(codec: RtpCodecParameters): void;
+/**
+ * Validates RtpHeaderExtensionParameteters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpHeaderExtensionParameters(ext: RtpHeaderExtensionParameters): void;
+/**
+ * Validates RtpEncodingParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtpEncodingParameters(encoding: RtpEncodingParameters): void;
+/**
+ * Validates RtcpParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateRtcpParameters(rtcp: RtcpParameters): void;
 /**
  * Generate extended RTP capabilities for sending and receiving.
  */
@@ -13,22 +67,22 @@ export declare function getRecvRtpCapabilities(extendedRtpCapabilities: any): Rt
  * Just the first media codec per kind is considered.
  * NOTE: mid, encodings and rtcp fields are left empty.
  */
-export declare function getSendingRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters;
+export declare function getSendingRtpParameters(kind: MediaKind, extendedRtpCapabilities: any): RtpParameters;
 /**
  * Generate RTP parameters of the given kind suitable for the remote SDP answer.
  */
-export declare function getSendingRemoteRtpParameters(kind: 'audio' | 'video', extendedRtpCapabilities: any): RtpParameters;
+export declare function getSendingRemoteRtpParameters(kind: MediaKind, extendedRtpCapabilities: any): RtpParameters;
+/**
+ * Create RTP parameters for a Consumer for the RTP probator.
+ */
+export declare function generateProbatorRtpParameters(videoRtpParameters: RtpParameters): RtpParameters;
 /**
  * Whether media can be sent based on the given RTP capabilities.
  */
-export declare function canSend(kind: 'audio' | 'video', extendedRtpCapabilities: any): boolean;
+export declare function canSend(kind: MediaKind, extendedRtpCapabilities: any): boolean;
 /**
  * Whether the given RTP parameters can be received with the given RTP
  * capabilities.
  */
 export declare function canReceive(rtpParameters: RtpParameters, extendedRtpCapabilities: any): boolean;
-/**
- * Create RTP parameters for a Consumer for the RTP probator.
- */
-export declare function generateProbatorRtpParameters(videoRtpParameters: RtpParameters): RtpParameters;
 //# sourceMappingURL=ortc.d.ts.map

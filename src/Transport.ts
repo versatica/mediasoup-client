@@ -475,6 +475,9 @@ export default class Transport extends EnhancedEventEmitter
 
 				try
 				{
+					// This will fill rtpParameters's missing fields with default values.
+					ortc.validateRtpParameters(rtpParameters);
+
 					const { id } = await this.safeEmitAsPromise(
 						'produce',
 						{
