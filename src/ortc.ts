@@ -82,11 +82,11 @@ export function validateRtpCodecCapability(codec: RtpCodecCapability): void
 		throw new TypeError('invalid codec.preferredPayloadType');
 
 	// clockRate is mandatory.
-	if (!codec.clockRate || typeof codec.clockRate !== 'number')
+	if (typeof codec.clockRate !== 'number')
 		throw new TypeError('missing codec.clockRate');
 
 	// channels is optional. If unset, set it to 1.
-	if (!codec.channels || typeof codec.channels !== 'number')
+	if (typeof codec.channels !== 'number')
 		codec.channels = 1;
 
 	// parameters is optional. If unset, set it to an empty object.
@@ -160,7 +160,7 @@ export function validateRtpHeaderExtension(ext: RtpHeaderExtension): void
 		throw new TypeError('missing ext.uri');
 
 	// preferredId is mandatory.
-	if (!ext.preferredId || typeof ext.preferredId !== 'number')
+	if (typeof ext.preferredId !== 'number')
 		throw new TypeError('missing ext.preferredId');
 
 	// preferredEncrypt is optional. If unset set it to false.
@@ -252,15 +252,15 @@ export function validateRtpCodecParameters(codec: RtpCodecParameters): void
 		throw new TypeError('invalid codec.mimeType');
 
 	// payloadType is mandatory.
-	if (!codec.payloadType || typeof codec.payloadType !== 'number')
+	if (typeof codec.payloadType !== 'number')
 		throw new TypeError('missing codec.payloadType');
 
 	// clockRate is mandatory.
-	if (!codec.clockRate || typeof codec.clockRate !== 'number')
+	if (typeof codec.clockRate !== 'number')
 		throw new TypeError('missing codec.clockRate');
 
 	// channels is optional. If unset, set it to 1.
-	if (!codec.channels || typeof codec.channels !== 'number')
+	if (typeof codec.channels !== 'number')
 		codec.channels = 1;
 
 	// parameters is optional. If unset, set it to an empty object.
@@ -310,7 +310,7 @@ export function validateRtpHeaderExtensionParameters(
 		throw new TypeError('missing ext.uri');
 
 	// id is mandatory.
-	if (!ext.id || typeof ext.id !== 'number')
+	if (typeof ext.id !== 'number')
 		throw new TypeError('missing ext.id');
 
 	// encrypt is optional. If unset set it to false.
@@ -358,7 +358,7 @@ export function validateRtpEncodingParameters(encoding: RtpEncodingParameters): 
 	else if (encoding.rtx)
 	{
 		// RTX ssrc is mandatory if rtx is present.
-		if (!encoding.rtx.ssrc || typeof encoding.rtx.ssrc !== 'number')
+		if (typeof encoding.rtx.ssrc !== 'number')
 			throw new TypeError('missing encoding.rtx.ssrc');
 	}
 
@@ -418,11 +418,11 @@ export function validateNumSctpStreams(numStreams: NumSctpStreams): void
 		throw new TypeError('numStreams is not an object');
 
 	// OS is mandatory.
-	if (!numStreams.OS || typeof numStreams.OS !== 'number')
+	if (typeof numStreams.OS !== 'number')
 		throw new TypeError('missing numStreams.OS');
 
 	// MIS is mandatory.
-	if (!numStreams.MIS || typeof numStreams.MIS !== 'number')
+	if (typeof numStreams.MIS !== 'number')
 		throw new TypeError('missing numStreams.MIS');
 }
 
@@ -437,19 +437,19 @@ export function validateSctpParameters(params: SctpParameters): void
 		throw new TypeError('params is not an object');
 
 	// port is mandatory.
-	if (!params.port || typeof params.port !== 'number')
+	if (typeof params.port !== 'number')
 		throw new TypeError('missing params.port');
 
 	// OS is mandatory.
-	if (!params.OS || typeof params.OS !== 'number')
+	if (typeof params.OS !== 'number')
 		throw new TypeError('missing params.OS');
 
 	// MIS is mandatory.
-	if (!params.MIS || typeof params.MIS !== 'number')
+	if (typeof params.MIS !== 'number')
 		throw new TypeError('missing params.MIS');
 
 	// maxMessageSize is mandatory.
-	if (!params.maxMessageSize || typeof params.maxMessageSize !== 'number')
+	if (typeof params.maxMessageSize !== 'number')
 		throw new TypeError('missing params.maxMessageSize');
 }
 
@@ -464,7 +464,7 @@ export function validateSctpStreamParameters(params: SctpStreamParameters): void
 		throw new TypeError('params is not an object');
 
 	// streamId is mandatory.
-	if (!params.streamId || typeof params.streamId !== 'number')
+	if (typeof params.streamId !== 'number')
 		throw new TypeError('missing params.streamId');
 
 	// ordered is optional.
