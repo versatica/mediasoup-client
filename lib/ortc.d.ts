@@ -1,6 +1,7 @@
 import { RtpCapabilities, MediaKind, RtpCodecCapability, RtpHeaderExtension, RtpParameters, RtpCodecParameters, RtcpFeedback, RtpEncodingParameters, RtpHeaderExtensionParameters, RtcpParameters } from './RtpParameters';
+import { SctpCapabilities, NumSctpStreams, SctpParameters, SctpStreamParameters } from './SctpParameters';
 /**
- * Validates RTCRtpCapabilities. It may modify given data by adding missing
+ * Validates RtpCapabilities. It may modify given data by adding missing
  * fields with default values.
  * It throws if invalid.
  */
@@ -53,6 +54,30 @@ export declare function validateRtpEncodingParameters(encoding: RtpEncodingParam
  * It throws if invalid.
  */
 export declare function validateRtcpParameters(rtcp: RtcpParameters): void;
+/**
+ * Validates SctpCapabilities. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateSctpCapabilities(caps: SctpCapabilities): void;
+/**
+ * Validates NumSctpStreams. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateNumSctpStreams(numStreams: NumSctpStreams): void;
+/**
+ * Validates SctpParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateSctpParameters(params: SctpParameters): void;
+/**
+ * Validates SctpStreamParameters. It may modify given data by adding missing
+ * fields with default values.
+ * It throws if invalid.
+ */
+export declare function validateSctpStreamParameters(params: SctpStreamParameters): void;
 /**
  * Generate extended RTP capabilities for sending and receiving.
  */

@@ -304,6 +304,7 @@ export default class Device
 		logger.debug(
 			'load() | got receiving RTP capabilities:%o', this._recvRtpCapabilities);
 
+		// Generate our SCTP capabilities.
 		this._sctpCapabilities = await this._Handler.getNativeSctpCapabilities();
 
 		logger.debug(

@@ -531,7 +531,6 @@ exports.generateDataConsumerRemoteParameters = function({ id } = {})
 		sctpStreamParameters :
 		{
 			streamId          : 666,
-			ordered           : true,
 			maxPacketLifeTime : 5000,
 			maxRetransmits    : undefined
 		}
