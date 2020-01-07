@@ -115,7 +115,6 @@ abstract class MediaSection
 		delete this._mediaObject.simulcast;
 		delete this._mediaObject.simulcast_03;
 		delete this._mediaObject.rids;
-		delete this._mediaObject.ext;
 		delete this._mediaObject.extmapAllowMixed;
 	}
 }
