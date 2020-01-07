@@ -7,6 +7,8 @@ const fakeParameters = require('./fakeParameters');
 const nativeRtpCapabilities = fakeParameters.generateNativeRtpCapabilities();
 const localDtlsParameters = fakeParameters.generateLocalDtlsParameters();
 
+const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+
 class FakeHandler extends EventEmitter
 {
 	static get label()
@@ -22,7 +24,7 @@ class FakeHandler extends EventEmitter
 	static async getNativeSctpCapabilities()
 	{
 		return {
-			numStreams : 4096
+			numStreams : SCTP_NUM_STREAMS
 		};
 	}
 
