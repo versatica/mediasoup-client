@@ -1,5 +1,5 @@
-import Logger from './Logger';
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
 
 export interface DataConsumerOptions
@@ -14,7 +14,7 @@ export interface DataConsumerOptions
 
 const logger = new Logger('DataConsumer');
 
-export default class DataConsumer extends EnhancedEventEmitter
+export class DataConsumer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;

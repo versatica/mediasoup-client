@@ -1,7 +1,7 @@
 import { IceParameters, IceCandidate, DtlsParameters } from './../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters } from '../SctpParameters';
-export default class Firefox60 {
+export declare class Firefox60 {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     static getNativeSctpCapabilities(): Promise<SctpCapabilities>;

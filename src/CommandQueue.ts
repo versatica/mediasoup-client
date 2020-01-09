@@ -1,9 +1,9 @@
-import Logger from './Logger';
+import { Logger } from './Logger';
 import { InvalidStateError } from './errors';
 
 const logger = new Logger('CommandQueue');
 
-export default class CommandQueue
+export class CommandQueue
 {
 	private _closed: boolean;
 	private readonly _commands: Function[];

@@ -1,5 +1,5 @@
 import { DtlsRole } from '../../Transport';
-export default class RemoteSdp {
+export declare class RemoteSdp {
     private _iceParameters;
     private readonly _iceCandidates;
     private readonly _dtlsParameters;

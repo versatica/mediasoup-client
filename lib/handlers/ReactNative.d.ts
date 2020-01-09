@@ -1,5 +1,5 @@
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
-import RemoteSdp from './sdp/RemoteSdp';
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import { ProducerCodecOptions } from '../Producer';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from './../Transport';
 import { RtpCapabilities, RtpEncodingParameters } from '../RtpParameters';
@@ -65,7 +65,7 @@ export declare class SendHandler extends Handler {
         iceParameters: IceParameters;
     }): Promise<void>;
 }
-export default class ReactNative {
+export declare class ReactNative {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     static getNativeSctpCapabilities(): Promise<SctpCapabilities>;

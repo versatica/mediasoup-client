@@ -1,13 +1,13 @@
 import { AwaitQueue } from 'awaitqueue';
-import Logger from './Logger';
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
-import Producer, { ProducerOptions } from './Producer';
-import Consumer, { ConsumerOptions } from './Consumer';
-import DataProducer, { DataProducerOptions } from './DataProducer';
-import DataConsumer, { DataConsumerOptions } from './DataConsumer';
+import { Producer, ProducerOptions } from './Producer';
+import { Consumer, ConsumerOptions } from './Consumer';
+import { DataProducer, DataProducerOptions } from './DataProducer';
+import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 import { SctpParameters } from './SctpParameters';
 
 interface InternalTransportOptions extends TransportOptions
@@ -127,7 +127,7 @@ export type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'c
 
 const logger = new Logger('Transport');
 
-export default class Transport extends EnhancedEventEmitter
+export class Transport extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;

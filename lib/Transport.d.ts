@@ -1,8 +1,8 @@
-import EnhancedEventEmitter from './EnhancedEventEmitter';
-import Producer, { ProducerOptions } from './Producer';
-import Consumer, { ConsumerOptions } from './Consumer';
-import DataProducer, { DataProducerOptions } from './DataProducer';
-import DataConsumer, { DataConsumerOptions } from './DataConsumer';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { Producer, ProducerOptions } from './Producer';
+import { Consumer, ConsumerOptions } from './Consumer';
+import { DataProducer, DataProducerOptions } from './DataProducer';
+import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 import { SctpParameters } from './SctpParameters';
 interface InternalTransportOptions extends TransportOptions {
     direction: 'send' | 'recv';
@@ -94,7 +94,7 @@ export interface DtlsFingerprint {
 }
 export declare type DtlsRole = 'auto' | 'client' | 'server';
 export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
-export default class Transport extends EnhancedEventEmitter {
+export declare class Transport extends EnhancedEventEmitter {
     private readonly _id;
     private _closed;
     private readonly _direction;

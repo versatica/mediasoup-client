@@ -1,8 +1,8 @@
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
 import { RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpParameters } from '../SctpParameters';
-export default class Edge11 extends EnhancedEventEmitter {
+export declare class Edge11 extends EnhancedEventEmitter {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<any>;
     static getNativeSctpCapabilities(): Promise<any>;

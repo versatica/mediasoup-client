@@ -1,4 +1,4 @@
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
 export interface DataProducerOptions {
     ordered?: boolean;
@@ -9,7 +9,7 @@ export interface DataProducerOptions {
     protocol?: string;
     appData?: any;
 }
-export default class DataProducer extends EnhancedEventEmitter {
+export declare class DataProducer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _dataChannel;
     private _closed;

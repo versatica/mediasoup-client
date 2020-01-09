@@ -1,12 +1,12 @@
 import * as sdpTransform from 'sdp-transform';
-import Logger from '../../Logger';
+import { Logger } from '../../Logger';
 import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
 import { SctpParameters } from '../../SctpParameters';
 
 const logger = new Logger('RemoteSdp');
 
-export default class RemoteSdp
+export class RemoteSdp
 {
 	// Remote ICE parameters.
 	private _iceParameters: IceParameters;

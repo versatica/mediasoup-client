@@ -1,19 +1,19 @@
 /* global RTCRtpTransceiver */
 
 import * as bowser from 'bowser';
-import Logger from './Logger';
+import { Logger } from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as ortc from './ortc';
-import Transport, { TransportOptions, CanProduceByKind } from './Transport';
-import Chrome74 from './handlers/Chrome74';
-import Chrome70 from './handlers/Chrome70';
-import Chrome67 from './handlers/Chrome67';
-import Chrome55 from './handlers/Chrome55';
-import Firefox60 from './handlers/Firefox60';
-import Safari12 from './handlers/Safari12';
-import Safari11 from './handlers/Safari11';
-import Edge11 from './handlers/Edge11';
-import ReactNative from './handlers/ReactNative';
+import { Transport, TransportOptions, CanProduceByKind } from './Transport';
+import { Chrome74 } from './handlers/Chrome74';
+import { Chrome70 } from './handlers/Chrome70';
+import { Chrome67 } from './handlers/Chrome67';
+import { Chrome55 } from './handlers/Chrome55';
+import { Firefox60 } from './handlers/Firefox60';
+import { Safari12 } from './handlers/Safari12';
+import { Safari11 } from './handlers/Safari11';
+import { Edge11 } from './handlers/Edge11';
+import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
 
@@ -134,7 +134,7 @@ export function detectDevice(): any | undefined
 	}
 }
 
-export default class Device
+export class Device
 {
 	// RTC handler class.
 	private readonly _Handler: any;

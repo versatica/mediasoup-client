@@ -1,4 +1,4 @@
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpParameters } from './RtpParameters';
 export interface ConsumerOptions {
     id?: string;
@@ -7,7 +7,7 @@ export interface ConsumerOptions {
     rtpParameters?: RtpParameters;
     appData?: any;
 }
-export default class Consumer extends EnhancedEventEmitter {
+export declare class Consumer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _localId;
     private readonly _producerId;

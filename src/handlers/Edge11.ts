@@ -1,5 +1,5 @@
-import Logger from '../Logger';
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
+import { Logger } from '../Logger';
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { UnsupportedError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
@@ -10,7 +10,7 @@ import { SctpParameters } from '../SctpParameters';
 
 const logger = new Logger('Edge11');
 
-export default class Edge11 extends EnhancedEventEmitter
+export class Edge11 extends EnhancedEventEmitter
 {
 	static get label(): string
 	{

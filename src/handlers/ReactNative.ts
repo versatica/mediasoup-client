@@ -1,12 +1,12 @@
 import * as sdpTransform from 'sdp-transform';
-import Logger from '../Logger';
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
+import { Logger } from '../Logger';
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { UnsupportedError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpPlanBUtils from './sdp/planBUtils';
-import RemoteSdp from './sdp/RemoteSdp';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
@@ -749,7 +749,7 @@ class RecvHandler extends Handler
 	}
 }
 
-export default class ReactNative
+export class ReactNative
 {
 	static get label(): string
 	{

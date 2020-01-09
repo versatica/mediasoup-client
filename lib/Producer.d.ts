@@ -1,4 +1,4 @@
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpParameters } from './RtpParameters';
 export interface ProducerOptions {
     track?: MediaStreamTrack;
@@ -15,7 +15,7 @@ export interface ProducerCodecOptions {
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
 }
-export default class Producer extends EnhancedEventEmitter {
+export declare class Producer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _localId;
     private _closed;

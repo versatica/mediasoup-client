@@ -1,5 +1,5 @@
-import Logger from './Logger';
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParameters';
 
@@ -23,7 +23,7 @@ export interface ProducerCodecOptions {
 
 const logger = new Logger('Producer');
 
-export default class Producer extends EnhancedEventEmitter
+export class Producer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;

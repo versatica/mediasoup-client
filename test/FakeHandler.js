@@ -267,4 +267,4 @@ class FakeHandler extends EventEmitter
 	}
 }
 
-module.exports = FakeHandler;
+exports.FakeHandler = FakeHandler;

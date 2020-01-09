@@ -1,11 +1,11 @@
 import * as sdpTransform from 'sdp-transform';
-import Logger from '../Logger';
-import EnhancedEventEmitter from '../EnhancedEventEmitter';
+import { Logger } from '../Logger';
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import RemoteSdp from './sdp/RemoteSdp';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { ProducerCodecOptions } from '../Producer';
 import {
@@ -747,7 +747,7 @@ class RecvHandler extends Handler
 	}
 }
 
-export default class Chrome70
+export class Chrome70
 {
 	static get label(): string
 	{

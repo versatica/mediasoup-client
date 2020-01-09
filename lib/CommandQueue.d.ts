@@ -1,4 +1,4 @@
-export default class CommandQueue {
+export declare class CommandQueue {
     private _closed;
     private readonly _commands;
     constructor();

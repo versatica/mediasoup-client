@@ -1,5 +1,5 @@
-import Logger from './Logger';
-import EnhancedEventEmitter from './EnhancedEventEmitter';
+import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParameters';
 
@@ -14,7 +14,7 @@ export interface ConsumerOptions
 
 const logger = new Logger('Consumer');
 
-export default class Consumer extends EnhancedEventEmitter
+export class Consumer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;

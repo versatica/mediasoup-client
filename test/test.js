@@ -10,7 +10,7 @@ const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupClient.types;
 const utils = require('../lib/utils');
-const FakeHandler = require('./FakeHandler');
+const { FakeHandler } = require('./FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
 expect.extend({ toBeType });

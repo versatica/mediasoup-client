@@ -1,7 +1,7 @@
-import Transport, { TransportOptions } from './Transport';
+import { Transport, TransportOptions } from './Transport';
 import { RtpCapabilities } from './RtpParameters';
 export declare function detectDevice(): any | undefined;
-export default class Device {
+export declare class Device {
     private readonly _Handler;
     private _loaded;
     private _extendedRtpCapabilities;

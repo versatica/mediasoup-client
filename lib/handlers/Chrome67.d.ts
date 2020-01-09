@@ -1,7 +1,7 @@
 import { IceParameters, IceCandidate, DtlsParameters } from './../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters } from '../SctpParameters';
-export default class Chrome67 {
+export declare class Chrome67 {
     static readonly label: string;
     static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     static getNativeSctpCapabilities(): Promise<SctpCapabilities>;

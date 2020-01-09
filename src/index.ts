@@ -1,4 +1,4 @@
-import Device, { detectDevice } from './Device';
+import { Device, detectDevice } from './Device';
 import * as types from './types';
 
 /**
