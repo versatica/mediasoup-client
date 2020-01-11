@@ -778,9 +778,10 @@ export function getSendingRtpParameters(
 
 		const ext: RtpHeaderExtensionParameters =
 		{
-			uri     : extendedExtension.uri,
-			id      : extendedExtension.sendId,
-			encrypt : extendedExtension.encrypt
+			uri        : extendedExtension.uri,
+			id         : extendedExtension.sendId,
+			encrypt    : extendedExtension.encrypt,
+			parameters : {}
 		};
 
 		rtpParameters.headerExtensions.push(ext);
@@ -862,9 +863,10 @@ export function getSendingRemoteRtpParameters(
 
 		const ext: RtpHeaderExtensionParameters =
 		{
-			uri     : extendedExtension.uri,
-			id      : extendedExtension.sendId,
-			encrypt : extendedExtension.encrypt
+			uri        : extendedExtension.uri,
+			id         : extendedExtension.sendId,
+			encrypt    : extendedExtension.encrypt,
+			parameters : {}
 
 		};
 
@@ -976,13 +978,15 @@ export function canReceive(
 		.some((codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType);
 }
 
-function isRtxCodec(codec: RtpCodecCapability): boolean
+function isRtxCodec(codec: RtpCodecCapability | RtpCodecParameters): boolean
 {
 	return /.+\/rtx$/i.test(codec.mimeType);
 }
 
 function matchCodecs(
-	aCodec: any, bCodec: any, { strict = false, modify = false } = {}
+	aCodec: RtpCodecCapability | RtpCodecParameters,
+	bCodec: RtpCodecCapability | RtpCodecParameters,
+	{ strict = false, modify = false } = {}
 ): boolean
 {
 	const aMimeType = aCodec.mimeType.toLowerCase();
@@ -1057,7 +1061,10 @@ function matchCodecs(
 	return true;
 }
 
-function matchHeaderExtensions(aExt: any, bExt: any): boolean
+function matchHeaderExtensions(
+	aExt: RtpHeaderExtension,
+	bExt: RtpHeaderExtension
+): boolean
 {
 	if (aExt.kind && bExt.kind && aExt.kind !== bExt.kind)
 		return false;
