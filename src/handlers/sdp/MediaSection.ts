@@ -25,7 +25,6 @@ abstract class MediaSection
 	)
 	{
 		this._mediaObject = {};
-
 		this._planB = planB;
 
 		if (iceParameters)

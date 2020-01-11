@@ -13,7 +13,7 @@ export class RemoteSdp
 	private _iceParameters: IceParameters;
 
 	// Remote ICE candidates.
-	private readonly _iceCandidates: IceCandidate[];
+	private readonly _iceCandidates: IceCandidate[] = [];
 
 	// Remote DTLS parameters.
 	private readonly _dtlsParameters: DtlsParameters;
@@ -34,10 +34,10 @@ export class RemoteSdp
 	private readonly _planB: boolean;
 
 	// MediaSection instances indexed by MID.
-	private _mediaSections: Map<string, any>;
+	private _mediaSections: Map<string, any> = new Map();
 
 	// First MID.
-	private _firstMid: string;
+	private _firstMid: string | undefined = undefined;
 
 	// SDP object.
 	private readonly _sdpObject: any;
@@ -62,21 +62,11 @@ export class RemoteSdp
 	)
 	{
 		this._iceParameters = iceParameters;
-
 		this._iceCandidates = iceCandidates;
-
 		this._dtlsParameters = dtlsParameters;
-
 		this._sctpParameters = sctpParameters;
-
 		this._plainRtpParameters = plainRtpParameters;
-
 		this._planB = planB;
-
-		this._mediaSections = new Map();
-
-		this._firstMid = undefined;
-
 		this._sdpObject =
 		{
 			version : 0,
