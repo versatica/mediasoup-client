@@ -2,6 +2,7 @@ import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../../Logger';
 import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
 import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
+import { RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 
 const logger = new Logger('RemoteSdp');
@@ -54,7 +55,7 @@ export class RemoteSdp
 			iceParameters?: any;
 			iceCandidates?: any;
 			dtlsParameters?: any;
-			sctpParameters?: any;
+			sctpParameters?: SctpParameters;
 			plainRtpParameters?: any;
 			planB?: boolean;
 		}
@@ -180,8 +181,8 @@ export class RemoteSdp
 		{
 			offerMediaObject: any;
 			reuseMid?: boolean;
-			offerRtpParameters: any;
-			answerRtpParameters: any;
+			offerRtpParameters: RtpParameters;
+			answerRtpParameters: RtpParameters;
 			codecOptions: any;
 			extmapAllowMixed? : boolean;
 		}
@@ -229,7 +230,7 @@ export class RemoteSdp
 		{
 			mid: string;
 			kind: string;
-			offerRtpParameters: any;
+			offerRtpParameters: RtpParameters;
 			streamId: string;
 			trackId: string;
 		}
@@ -295,8 +296,14 @@ export class RemoteSdp
 	}
 
 	planBStopReceiving(
-		{ mid, offerRtpParameters }:
-		{ mid: string; offerRtpParameters: any }
+		{
+			mid,
+			offerRtpParameters
+		}:
+		{
+			mid: string;
+			offerRtpParameters: RtpParameters;
+		}
 	): void
 	{
 		const mediaSection = this._mediaSections.get(mid);

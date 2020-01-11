@@ -1,3 +1,4 @@
+import { RtpParameters } from '../../RtpParameters';
 declare abstract class MediaSection {
     protected readonly _mediaObject: any;
     protected readonly _planB: boolean;
@@ -32,12 +33,12 @@ export declare class OfferMediaSection extends MediaSection {
      */
     setDtlsRole(role: 'client' | 'server' | 'auto'): void;
     planBReceive({ offerRtpParameters, streamId, trackId }: {
-        offerRtpParameters: any;
+        offerRtpParameters: RtpParameters;
         streamId: string;
         trackId: string;
     }): void;
     planBStopReceiving({ offerRtpParameters }: {
-        offerRtpParameters: any;
+        offerRtpParameters: RtpParameters;
     }): void;
 }
 export {};

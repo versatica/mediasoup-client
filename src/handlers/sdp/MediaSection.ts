@@ -1,4 +1,5 @@
 import * as utils from '../../utils';
+import { RtpParameters, RtpCodecParameters } from '../../RtpParameters';
 
 abstract class MediaSection
 {
@@ -169,7 +170,7 @@ export class AnswerMediaSection extends MediaSection
 					const rtp: any =
 					{
 						payload : codec.payloadType,
-						codec   : codec.mimeType.replace(/^.*\//, ''),
+						codec   : getCodecName(codec),
 						rate    : codec.clockRate
 					};
 
@@ -259,17 +260,14 @@ export class AnswerMediaSection extends MediaSection
 					if (fmtp.config)
 						this._mediaObject.fmtp.push(fmtp);
 
-					if (codec.rtcpFeedback)
+					for (const fb of codec.rtcpFeedback)
 					{
-						for (const fb of codec.rtcpFeedback)
-						{
-							this._mediaObject.rtcpFb.push(
-								{
-									payload : codec.payloadType,
-									type    : fb.type,
-									subtype : fb.parameter || ''
-								});
-						}
+						this._mediaObject.rtcpFb.push(
+							{
+								payload : codec.payloadType,
+								type    : fb.type,
+								subtype : fb.parameter
+							});
 					}
 				}
 
@@ -466,7 +464,7 @@ export class OfferMediaSection extends MediaSection
 					const rtp: any =
 					{
 						payload : codec.payloadType,
-						codec   : codec.mimeType.replace(/^.*\//, ''),
+						codec   : getCodecName(codec),
 						rate    : codec.clockRate
 					};
 
@@ -475,37 +473,31 @@ export class OfferMediaSection extends MediaSection
 
 					this._mediaObject.rtp.push(rtp);
 
-					if (codec.parameters)
+					const fmtp =
 					{
-						const fmtp =
-						{
-							payload : codec.payloadType,
-							config  : ''
-						};
+						payload : codec.payloadType,
+						config  : ''
+					};
 
-						for (const key of Object.keys(codec.parameters))
-						{
-							if (fmtp.config)
-								fmtp.config += ';';
-
-							fmtp.config += `${key}=${codec.parameters[key]}`;
-						}
-
+					for (const key of Object.keys(codec.parameters))
+					{
 						if (fmtp.config)
-							this._mediaObject.fmtp.push(fmtp);
+							fmtp.config += ';';
+
+						fmtp.config += `${key}=${codec.parameters[key]}`;
 					}
 
-					if (codec.rtcpFeedback)
+					if (fmtp.config)
+						this._mediaObject.fmtp.push(fmtp);
+
+					for (const fb of codec.rtcpFeedback)
 					{
-						for (const fb of codec.rtcpFeedback)
-						{
-							this._mediaObject.rtcpFb.push(
-								{
-									payload : codec.payloadType,
-									type    : fb.type,
-									subtype : fb.parameter || ''
-								});
-						}
+						this._mediaObject.rtcpFb.push(
+							{
+								payload : codec.payloadType,
+								type    : fb.type,
+								subtype : fb.parameter
+							});
 					}
 				}
 
@@ -630,10 +622,11 @@ export class OfferMediaSection extends MediaSection
 			streamId,
 			trackId }:
 		{
-			offerRtpParameters: any;
+			offerRtpParameters: RtpParameters;
 			streamId: string;
 			trackId: string;
-		}): void
+		}
+	): void
 	{
 		const encoding = offerRtpParameters.encodings[0];
 		const ssrc = encoding.ssrc;
@@ -686,7 +679,14 @@ export class OfferMediaSection extends MediaSection
 		}
 	}
 
-	planBStopReceiving({ offerRtpParameters }: { offerRtpParameters: any }): void
+	planBStopReceiving(
+		{
+			offerRtpParameters
+		}:
+		{
+			offerRtpParameters: RtpParameters;
+		}
+	): void
 	{
 		const encoding = offerRtpParameters.encodings[0];
 		const ssrc = encoding.ssrc;
@@ -703,4 +703,15 @@ export class OfferMediaSection extends MediaSection
 				.filter((group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`);
 		}
 	}
+}
+
+function getCodecName(codec: RtpCodecParameters): string
+{
+	const MimeTypeRegex = new RegExp('^(audio|video)/(.+)', 'i');
+	const mimeTypeMatch = MimeTypeRegex.exec(codec.mimeType);
+
+	if (!mimeTypeMatch)
+		throw new TypeError('invalid codec.mimeType');
+
+	return mimeTypeMatch[2];
 }

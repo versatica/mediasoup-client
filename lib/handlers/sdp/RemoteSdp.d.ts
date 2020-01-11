@@ -1,4 +1,6 @@
 import { DtlsRole } from '../../Transport';
+import { RtpParameters } from '../../RtpParameters';
+import { SctpParameters } from '../../SctpParameters';
 export declare class RemoteSdp {
     private _iceParameters;
     private readonly _iceCandidates;
@@ -13,7 +15,7 @@ export declare class RemoteSdp {
         iceParameters?: any;
         iceCandidates?: any;
         dtlsParameters?: any;
-        sctpParameters?: any;
+        sctpParameters?: SctpParameters;
         plainRtpParameters?: any;
         planB?: boolean;
     });
@@ -23,15 +25,15 @@ export declare class RemoteSdp {
     send({ offerMediaObject, reuseMid, offerRtpParameters, answerRtpParameters, codecOptions, extmapAllowMixed }: {
         offerMediaObject: any;
         reuseMid?: boolean;
-        offerRtpParameters: any;
-        answerRtpParameters: any;
+        offerRtpParameters: RtpParameters;
+        answerRtpParameters: RtpParameters;
         codecOptions: any;
         extmapAllowMixed?: boolean;
     }): void;
     receive({ mid, kind, offerRtpParameters, streamId, trackId }: {
         mid: string;
         kind: string;
-        offerRtpParameters: any;
+        offerRtpParameters: RtpParameters;
         streamId: string;
         trackId: string;
     }): void;
@@ -39,7 +41,7 @@ export declare class RemoteSdp {
     closeMediaSection(mid: string): void;
     planBStopReceiving({ mid, offerRtpParameters }: {
         mid: string;
-        offerRtpParameters: any;
+        offerRtpParameters: RtpParameters;
     }): void;
     sendSctpAssociation({ offerMediaObject }: {
         offerMediaObject: any;
