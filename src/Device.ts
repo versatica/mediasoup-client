@@ -276,10 +276,14 @@ export class Device
 
 		if (this._loaded)
 			throw new InvalidStateError('already loaded');
-		else if (typeof routerRtpCapabilities !== 'object')
-			throw new TypeError('missing routerRtpCapabilities');
+
+		// This may throw.
+		ortc.validateRtpCapabilities(routerRtpCapabilities);
 
 		const nativeRtpCapabilities = await this._Handler.getNativeRtpCapabilities();
+
+		// This may throw.
+		ortc.validateRtpCapabilities(nativeRtpCapabilities);
 
 		logger.debug(
 			'load() | got native RTP capabilities:%o', nativeRtpCapabilities);

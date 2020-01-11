@@ -520,10 +520,6 @@ export function getExtendedRtpCapabilities(
 	remoteCaps: RtpCapabilities
 ): any
 {
-	// This may throw.
-	validateRtpCapabilities(localCaps);
-	validateRtpCapabilities(remoteCaps);
-
 	const extendedRtpCapabilities: any =
 	{
 		codecs           : [],

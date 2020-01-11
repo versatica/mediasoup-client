@@ -2,7 +2,7 @@ import * as utils from '../../utils';
 import { RtpCapabilities, RtpParameters } from '../../RtpParameters';
 
 /**
- * Normalize Edge's RTCRtpReceiver.getCapabilities() to produce a full
+ * Normalize ORTC based Edge's RTCRtpReceiver.getCapabilities() to produce a full
  * compliant ORTC RTCRtpCapabilities.
  */
 export function getCapabilities(): RtpCapabilities
@@ -16,16 +16,10 @@ export function getCapabilities(): RtpCapabilities
 		codec.channels = codec.numChannels;
 		delete codec.numChannels;
 
-		// Normalize channels.
-		if (codec.kind !== 'audio')
-			delete codec.channels;
-		else if (!codec.channels)
-			codec.channels = 1;
-
 		// Add mimeType.
 		codec.mimeType = codec.mimeType || `${codec.kind}/${codec.name}`;
 
-		// NOTE: Edge sets some numeric parameters as String rather than Number. Fix them.
+		// NOTE: Edge sets some numeric parameters as string rather than number. Fix them.
 		if (codec.parameters)
 		{
 			const parameters = codec.parameters;
@@ -41,7 +35,7 @@ export function getCapabilities(): RtpCapabilities
 		for (const feedback of codec.rtcpFeedback || [])
 		{
 			if (!feedback.parameter)
-				delete feedback.parameter;
+				feedback.parameter = '';
 		}
 	}
 
@@ -49,7 +43,7 @@ export function getCapabilities(): RtpCapabilities
 }
 
 /**
- * Generate RTCRtpParameters as Edge like them.
+ * Generate RTCRtpParameters as ORTC based Edge likes.
  */
 export function mangleRtpParameters(rtpParameters: RtpParameters): RtpParameters
 {
