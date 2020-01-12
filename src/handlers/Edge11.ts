@@ -93,7 +93,7 @@ export class Edge11 extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
+		super();
 
 		logger.debug('constructor() [direction:%s]', direction);
 

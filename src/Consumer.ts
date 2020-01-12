@@ -70,7 +70,9 @@ export class Consumer extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
+		super();
+
+		logger.debug('constructor()');
 
 		this._id = id;
 		this._localId = localId;

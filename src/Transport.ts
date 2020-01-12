@@ -200,7 +200,7 @@ export class Transport extends EnhancedEventEmitter
 		}: InternalTransportOptions
 	)
 	{
-		super(logger);
+		super();
 
 		logger.debug('constructor() [id:%s, direction:%s]', id, direction);
 

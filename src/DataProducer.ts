@@ -56,7 +56,9 @@ export class DataProducer extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
+		super();
+
+		logger.debug('constructor()');
 
 		this._id = id;
 		this._dataChannel = dataChannel;

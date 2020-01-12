@@ -71,7 +71,7 @@ class Handler extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
+		super();
 
 		this._remoteSdp = new RemoteSdp(
 			{

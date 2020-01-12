@@ -59,7 +59,9 @@ export class DataConsumer extends EnhancedEventEmitter
 		}
 	)
 	{
-		super(logger);
+		super();
+
+		logger.debug('constructor()');
 
 		this._id = id;
 		this._dataProducerId = dataProducerId;
