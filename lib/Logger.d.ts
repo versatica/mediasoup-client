@@ -7,6 +7,5 @@ export declare class Logger {
     readonly debug: debug.Debugger;
     readonly warn: debug.Debugger;
     readonly error: debug.Debugger;
-    destroy(): void;
 }
 //# sourceMappingURL=Logger.d.ts.map
