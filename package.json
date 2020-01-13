@@ -53,7 +53,7 @@
     "eslint-plugin-jest": "^23.6.0",
     "jest": "^24.9.0",
     "jest-tobetype": "^1.2.3",
-    "node-mediastreamtrack": "0.1.0",
+    "node-mediastreamtrack": "^1.0.0",
     "open-cli": "^5.0.0",
     "tsc-watch": "^4.0.0",
     "typescript": "~3.6.4",

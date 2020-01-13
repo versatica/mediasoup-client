@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events');
-const MediaStreamTrack = require('node-mediastreamtrack');
+const { MediaStreamTrack } = require('node-mediastreamtrack');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');

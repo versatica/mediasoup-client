@@ -4,7 +4,7 @@
  */
 
 const { toBeType } = require('jest-tobetype');
-const MediaStreamTrack = require('node-mediastreamtrack');
+const { MediaStreamTrack } = require('node-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
