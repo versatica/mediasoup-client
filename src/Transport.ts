@@ -123,7 +123,13 @@ export interface DtlsFingerprint
 
 export type DtlsRole = 'auto' | 'client' | 'server';
 
-export type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
+export type ConnectionState =
+	| 'new'
+	| 'connecting'
+	| 'connected'
+	| 'failed'
+	| 'disconnected'
+	| 'closed';
 
 const logger = new Logger('Transport');
 

@@ -93,7 +93,7 @@ export interface DtlsFingerprint {
     value: string;
 }
 export declare type DtlsRole = 'auto' | 'client' | 'server';
-export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'closed';
+export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'disconnected' | 'closed';
 export declare class Transport extends EnhancedEventEmitter {
     private readonly _id;
     private _closed;
