@@ -12,7 +12,7 @@ import {
 	IceCandidate,
 	DtlsParameters,
 	DtlsRole
-} from './../Transport';
+} from '../Transport';
 import {
 	RtpCapabilities,
 	RtpParameters,

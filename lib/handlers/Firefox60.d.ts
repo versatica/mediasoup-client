@@ -1,4 +1,4 @@
-import { IceParameters, IceCandidate, DtlsParameters } from './../Transport';
+import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters } from '../SctpParameters';
 export declare class Firefox60 {
