@@ -3,6 +3,11 @@ import { Logger } from '../Logger';
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
+import {
+	HandlerInterface,
+	SendHandlerInterface,
+	RecvHandlerInterface,
+} from './HandlerInterface';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import { RemoteSdp } from './sdp/RemoteSdp';
@@ -13,7 +18,7 @@ import {
 	IceCandidate,
 	DtlsParameters,
 	DtlsRole
-} from './../Transport';
+} from '../Transport';
 import {
 	RtpCapabilities,
 	RtpParameters,
@@ -29,7 +34,7 @@ const logger = new Logger('Chrome74');
 
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-class Handler extends EnhancedEventEmitter
+class Handler extends EnhancedEventEmitter implements HandlerInterface
 {
 	// Got transport local and remote parameters.
 	protected _transportReady = false;
@@ -172,7 +177,7 @@ class Handler extends EnhancedEventEmitter
 	}
 }
 
-class SendHandler extends Handler
+class SendHandler extends Handler implements SendHandlerInterface
 {
 	// Generic sending RTP parameters for audio and video.
 	private readonly _sendingRtpParametersByKind: any;
@@ -549,7 +554,7 @@ class SendHandler extends Handler
 	}
 }
 
-class RecvHandler extends Handler
+class RecvHandler extends Handler implements RecvHandlerInterface
 {
 	// MID value counter. It must be converted to string and incremented for
 	// each new m= section.

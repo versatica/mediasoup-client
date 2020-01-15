@@ -1,7 +1,7 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { ProducerCodecOptions } from '../Producer';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from './../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 declare class Handler extends EnhancedEventEmitter {
