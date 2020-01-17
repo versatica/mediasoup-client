@@ -264,13 +264,13 @@ function (_RemoteSdp) {
               }
 
               if (codec.rtcpFeedback) {
-                var _iteratorNormalCompletion6 = true;
-                var _didIteratorError6 = false;
-                var _iteratorError6 = undefined;
+                var _iteratorNormalCompletion7 = true;
+                var _didIteratorError7 = false;
+                var _iteratorError7 = undefined;
 
                 try {
-                  for (var _iterator6 = codec.rtcpFeedback[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                    var fb = _step6.value;
+                  for (var _iterator7 = codec.rtcpFeedback[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var fb = _step7.value;
                     remoteMediaObj.rtcpFb.push({
                       payload: codec.payloadType,
                       type: fb.type,
@@ -278,16 +278,16 @@ function (_RemoteSdp) {
                     });
                   }
                 } catch (err) {
-                  _didIteratorError6 = true;
-                  _iteratorError6 = err;
+                  _didIteratorError7 = true;
+                  _iteratorError7 = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion6 && _iterator6["return"] != null) {
-                      _iterator6["return"]();
+                    if (!_iteratorNormalCompletion7 && _iterator7["return"] != null) {
+                      _iterator7["return"]();
                     }
                   } finally {
-                    if (_didIteratorError6) {
-                      throw _iteratorError6;
+                    if (_didIteratorError7) {
+                      throw _iteratorError7;
                     }
                   }
                 }
@@ -354,10 +354,10 @@ function (_RemoteSdp) {
           } // Simulcast.
 
 
-          if (localMediaObj.simulcast_03) {
-            // eslint-disable-next-line camelcase
-            remoteMediaObj.simulcast_03 = {
-              value: localMediaObj.simulcast_03.value.replace(/send/g, 'recv')
+          if (localMediaObj.simulcast) {
+            remoteMediaObj.simulcast = {
+              dir1: 'recv',
+              list1: localMediaObj.simulcast.list1
             };
             remoteMediaObj.rids = [];
             var _iteratorNormalCompletion5 = true;
@@ -387,7 +387,41 @@ function (_RemoteSdp) {
                 }
               }
             }
-          }
+          } // Simulcast (draft version 03).
+          else if (localMediaObj.simulcast_03) {
+              // eslint-disable-next-line camelcase
+              remoteMediaObj.simulcast_03 = {
+                value: localMediaObj.simulcast_03.value.replace(/send/g, 'recv')
+              };
+              remoteMediaObj.rids = [];
+              var _iteratorNormalCompletion6 = true;
+              var _didIteratorError6 = false;
+              var _iteratorError6 = undefined;
+
+              try {
+                for (var _iterator6 = (localMediaObj.rids || [])[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                  var _rid = _step6.value;
+                  if (_rid.direction !== 'send') continue;
+                  remoteMediaObj.rids.push({
+                    id: _rid.id,
+                    direction: 'recv'
+                  });
+                }
+              } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion6 && _iterator6["return"] != null) {
+                    _iterator6["return"]();
+                  }
+                } finally {
+                  if (_didIteratorError6) {
+                    throw _iteratorError6;
+                  }
+                }
+              }
+            }
 
           remoteMediaObj.rtcpMux = 'rtcp-mux';
           remoteMediaObj.rtcpRsize = 'rtcp-rsize'; // Push it.
@@ -482,13 +516,13 @@ function (_RemoteSdp2) {
         type: remoteDtlsParameters.fingerprints[numFingerprints - 1].algorithm,
         hash: remoteDtlsParameters.fingerprints[numFingerprints - 1].value
       };
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator7 = consumerInfos[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var info = _step7.value;
+        for (var _iterator8 = consumerInfos[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var info = _step8.value;
           var closed = info.closed;
           var kind = info.kind;
           var codecs = void 0;
@@ -525,13 +559,13 @@ function (_RemoteSdp2) {
           remoteMediaObj.iceUfrag = remoteIceParameters.usernameFragment;
           remoteMediaObj.icePwd = remoteIceParameters.password;
           remoteMediaObj.candidates = [];
-          var _iteratorNormalCompletion8 = true;
-          var _didIteratorError8 = false;
-          var _iteratorError8 = undefined;
+          var _iteratorNormalCompletion9 = true;
+          var _didIteratorError9 = false;
+          var _iteratorError9 = undefined;
 
           try {
-            for (var _iterator8 = remoteIceCandidates[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-              var candidate = _step8.value;
+            for (var _iterator9 = remoteIceCandidates[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+              var candidate = _step9.value;
               var candidateObj = {}; // mediasoup does not support non rtcp-mux so candidates component is
               // always RTP (1).
 
@@ -546,16 +580,16 @@ function (_RemoteSdp2) {
               remoteMediaObj.candidates.push(candidateObj);
             }
           } catch (err) {
-            _didIteratorError8 = true;
-            _iteratorError8 = err;
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion8 && _iterator8["return"] != null) {
-                _iterator8["return"]();
+              if (!_iteratorNormalCompletion9 && _iterator9["return"] != null) {
+                _iterator9["return"]();
               }
             } finally {
-              if (_didIteratorError8) {
-                throw _iteratorError8;
+              if (_didIteratorError9) {
+                throw _iteratorError9;
               }
             }
           }
@@ -571,13 +605,13 @@ function (_RemoteSdp2) {
             remoteMediaObj.rtp = [];
             remoteMediaObj.rtcpFb = [];
             remoteMediaObj.fmtp = [];
-            var _iteratorNormalCompletion9 = true;
-            var _didIteratorError9 = false;
-            var _iteratorError9 = undefined;
+            var _iteratorNormalCompletion10 = true;
+            var _didIteratorError10 = false;
+            var _iteratorError10 = undefined;
 
             try {
-              for (var _iterator9 = codecs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-                var codec = _step9.value;
+              for (var _iterator10 = codecs[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var codec = _step10.value;
                 var rtp = {
                   payload: codec.payloadType,
                   codec: codec.name,
@@ -602,13 +636,13 @@ function (_RemoteSdp2) {
                 }
 
                 if (codec.rtcpFeedback) {
-                  var _iteratorNormalCompletion11 = true;
-                  var _didIteratorError11 = false;
-                  var _iteratorError11 = undefined;
+                  var _iteratorNormalCompletion12 = true;
+                  var _didIteratorError12 = false;
+                  var _iteratorError12 = undefined;
 
                   try {
-                    for (var _iterator11 = codec.rtcpFeedback[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-                      var fb = _step11.value;
+                    for (var _iterator12 = codec.rtcpFeedback[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                      var fb = _step12.value;
                       remoteMediaObj.rtcpFb.push({
                         payload: codec.payloadType,
                         type: fb.type,
@@ -616,32 +650,32 @@ function (_RemoteSdp2) {
                       });
                     }
                   } catch (err) {
-                    _didIteratorError11 = true;
-                    _iteratorError11 = err;
+                    _didIteratorError12 = true;
+                    _iteratorError12 = err;
                   } finally {
                     try {
-                      if (!_iteratorNormalCompletion11 && _iterator11["return"] != null) {
-                        _iterator11["return"]();
+                      if (!_iteratorNormalCompletion12 && _iterator12["return"] != null) {
+                        _iterator12["return"]();
                       }
                     } finally {
-                      if (_didIteratorError11) {
-                        throw _iteratorError11;
+                      if (_didIteratorError12) {
+                        throw _iteratorError12;
                       }
                     }
                   }
                 }
               }
             } catch (err) {
-              _didIteratorError9 = true;
-              _iteratorError9 = err;
+              _didIteratorError10 = true;
+              _iteratorError10 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion9 && _iterator9["return"] != null) {
-                  _iterator9["return"]();
+                if (!_iteratorNormalCompletion10 && _iterator10["return"] != null) {
+                  _iterator10["return"]();
                 }
               } finally {
-                if (_didIteratorError9) {
-                  throw _iteratorError9;
+                if (_didIteratorError10) {
+                  throw _iteratorError10;
                 }
               }
             }
@@ -652,13 +686,13 @@ function (_RemoteSdp2) {
 
             if (!closed) {
               remoteMediaObj.ext = [];
-              var _iteratorNormalCompletion10 = true;
-              var _didIteratorError10 = false;
-              var _iteratorError10 = undefined;
+              var _iteratorNormalCompletion11 = true;
+              var _didIteratorError11 = false;
+              var _iteratorError11 = undefined;
 
               try {
-                for (var _iterator10 = headerExtensions[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-                  var ext = _step10.value;
+                for (var _iterator11 = headerExtensions[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                  var ext = _step11.value;
                   // Ignore MID RTP extension for receiving media.
                   if (ext.uri === 'urn:ietf:params:rtp-hdrext:sdes:mid') continue;
                   remoteMediaObj.ext.push({
@@ -667,16 +701,16 @@ function (_RemoteSdp2) {
                   });
                 }
               } catch (err) {
-                _didIteratorError10 = true;
-                _iteratorError10 = err;
+                _didIteratorError11 = true;
+                _iteratorError11 = err;
               } finally {
                 try {
-                  if (!_iteratorNormalCompletion10 && _iterator10["return"] != null) {
-                    _iterator10["return"]();
+                  if (!_iteratorNormalCompletion11 && _iterator11["return"] != null) {
+                    _iterator11["return"]();
                   }
                 } finally {
-                  if (_didIteratorError10) {
-                    throw _iteratorError10;
+                  if (_didIteratorError11) {
+                    throw _iteratorError11;
                   }
                 }
               }
@@ -720,16 +754,16 @@ function (_RemoteSdp2) {
           sdpObj.media.push(remoteMediaObj);
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7["return"] != null) {
-            _iterator7["return"]();
+          if (!_iteratorNormalCompletion8 && _iterator8["return"] != null) {
+            _iterator8["return"]();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
