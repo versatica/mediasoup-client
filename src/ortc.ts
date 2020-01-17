@@ -97,7 +97,7 @@ export function validateRtpCodecCapability(codec: RtpCodecCapability): void
 	{
 		const value = codec.parameters[key];
 
-		if (typeof value !== 'string' && typeof value !== 'number')
+		if (value && typeof value !== 'string' && typeof value !== 'number')
 			throw new TypeError('invalid codec parameter');
 
 		// Specific parameters validation.
@@ -271,7 +271,7 @@ export function validateRtpCodecParameters(codec: RtpCodecParameters): void
 	{
 		const value = codec.parameters[key];
 
-		if (typeof value !== 'string' && typeof value !== 'number')
+		if (value && typeof value !== 'string' && typeof value !== 'number')
 			throw new TypeError('invalid codec parameter');
 
 		// Specific parameters validation.
