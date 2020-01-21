@@ -4,7 +4,7 @@
  */
 
 const { toBeType } = require('jest-tobetype');
-const { MediaStreamTrack } = require('node-mediastreamtrack');
+const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
@@ -266,7 +266,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 
 test('transport.produce() without "connect" listener rejects', async () =>
 {
-	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(sendTransport.produce({ track: audioTrack }))
 		.rejects
@@ -275,8 +275,8 @@ test('transport.produce() without "connect" listener rejects', async () =>
 
 test('transport.produce() succeeds', async () =>
 {
-	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
-	const videoTrack = new MediaStreamTrack({ kind: 'video' });
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
+	const videoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 	let audioProducerId;
 	let videoProducerId;
 	let connectEventNumTimesCalled = 0;
@@ -525,7 +525,7 @@ test('transport.produce() without track rejects with TypeError', async () =>
 
 test('transport.produce() in a receiving Transport rejects with UnsupportedError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(recvTransport.produce({ track }))
 		.rejects
@@ -534,7 +534,7 @@ test('transport.produce() in a receiving Transport rejects with UnsupportedError
 
 test('transport.produce() with an ended track rejects with InvalidStateError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	track.stop();
 
@@ -545,7 +545,7 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 
 test('transport.produce() with a non object appData rejects with TypeError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(sendTransport.produce({ track, appData: true }))
 		.rejects
@@ -1039,7 +1039,7 @@ test('producer.replaceTrack() succeeds', async () =>
 	audioProducer.pause();
 
 	const audioProducerPreviousTrack = audioProducer.track;
-	const newAudioTrack = new MediaStreamTrack({ kind: 'audio' });
+	const newAudioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(audioProducer.replaceTrack({ track: newAudioTrack }))
 		.resolves
@@ -1056,7 +1056,7 @@ test('producer.replaceTrack() succeeds', async () =>
 	audioProducer.resume();
 
 	const videoProducerPreviousTrack = videoProducer.track;
-	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+	const newVideoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 
 	await expect(videoProducer.replaceTrack({ track: newVideoTrack }))
 		.resolves
@@ -1078,7 +1078,7 @@ test('producer.replaceTrack() without track rejects with TypeError', async () =>
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	track.stop();
 
@@ -1207,7 +1207,7 @@ test('producer.close() succeed', () =>
 
 test('producer.replaceTrack() rejects with InvalidStateError if closed', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(audioProducer.replaceTrack({ track }))
 		.rejects
@@ -1353,7 +1353,7 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 
 test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	// Add noop listener to avoid the method fail.
 	sendTransport.on('produce', () => {});

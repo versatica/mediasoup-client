@@ -1,5 +1,5 @@
 const { EventEmitter } = require('events');
-const { MediaStreamTrack } = require('node-mediastreamtrack');
+const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
 const utils = require('../lib/utils');
 const ortc = require('../lib/ortc');
 const fakeParameters = require('./fakeParameters');
@@ -65,7 +65,7 @@ class FakeHandler extends EventEmitter
 		this._nextLocalId = 1;
 
 		// Sending and receiving tracks indexed by localId.
-		// @type {Map<Number, MediaStreamTrack>}
+		// @type {Map<Number, FakeMediaStreamTrack>}
 		this._tracks = new Map();
 
 		// DataChannel id value counter. It must be incremented for each new DataChannel.
@@ -210,7 +210,7 @@ class FakeHandler extends EventEmitter
 			await this._setupTransport({ localDtlsRole: 'client' });
 
 		const localId = this._nextLocalId++;
-		const track = new MediaStreamTrack({ kind });
+		const track = new FakeMediaStreamTrack({ kind });
 
 		this._tracks.set(localId, track);
 
