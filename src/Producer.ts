@@ -7,6 +7,7 @@ export interface ProducerOptions {
 	track?: MediaStreamTrack;
 	encodings?: RTCRtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	stopTracks?: boolean;
 	appData?: any;
 }
 
@@ -49,6 +50,9 @@ export class Producer extends EnhancedEventEmitter
 	// Video max spatial layer.
 	private _maxSpatialLayer: number | undefined;
 
+	// Whether the Producer should call stop() in given tracks.
+	private _stopTracks: boolean;
+
 	// App custom data.
 	private readonly _appData: any;
 
@@ -68,6 +72,7 @@ export class Producer extends EnhancedEventEmitter
 			rtpSender,
 			track,
 			rtpParameters,
+			stopTracks,
 			appData
 		}:
 		{
@@ -76,6 +81,7 @@ export class Producer extends EnhancedEventEmitter
 			rtpSender?: RTCRtpSender;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
+			stopTracks: boolean;
 			appData: any;
 		}
 	)
@@ -91,6 +97,7 @@ export class Producer extends EnhancedEventEmitter
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
 		this._maxSpatialLayer = undefined;
+		this._stopTracks = stopTracks;
 		this._appData = appData;
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
@@ -279,8 +286,11 @@ export class Producer extends EnhancedEventEmitter
 		{
 			// This must be done here. Otherwise there is no chance to stop the given
 			// track.
-			try { track.stop(); }
-			catch (error) {}
+			if (this._stopTracks)
+			{
+				try { track.stop(); }
+				catch (error) {}
+			}
 
 			throw new InvalidStateError('closed');
 		}
@@ -370,7 +380,10 @@ export class Producer extends EnhancedEventEmitter
 		try
 		{
 			this._track.removeEventListener('ended', this._onTrackEnded);
-			this._track.stop();
+
+			// Just stop the track unless the app set stopTracks: false.
+			if (this._stopTracks)
+				this._track.stop();
 		}
 		catch (error)
 		{}
