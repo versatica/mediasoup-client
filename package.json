@@ -34,7 +34,7 @@
     "testRegex": "test/test.*\\.js"
   },
   "dependencies": {
-    "awaitqueue": "^2.0.0",
+    "awaitqueue": "^2.1.0",
     "bowser": "^2.8.1",
     "debug": "^4.1.1",
     "events": "^3.1.0",
