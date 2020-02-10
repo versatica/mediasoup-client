@@ -1,8 +1,15 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { ProducerCodecOptions } from '../Producer';
 import { IceParameters } from '../Transport';
-import { RtpParameters, RtpEncodingParameters } from '../RtpParameters';
-import { SctpStreamParameters } from '../SctpParameters';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
+import {
+	SctpCapabilities,
+	SctpStreamParameters
+} from '../SctpParameters';
 
 export abstract class HandlerInterface extends EnhancedEventEmitter
 {
@@ -13,48 +20,73 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 
 	abstract close(): void;
 
-	abstract async getTransportStats(): Promise<any>;
+	abstract async getNativeRtpCapabilities(): Promise<RtpCapabilities>;
 
-	abstract async updateIceServers(
-		{ iceServers }:
-		{ iceServers: RTCIceServer[] }
-	): Promise<void>
-}
+	abstract async getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 
-export abstract class SendHandlerInterface extends HandlerInterface
-{
-	constructor()
-	{
-		super();
-	}
+	abstract async getTransportStats(): Promise<RTCStatsReport>;
+
+	abstract async updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
+
+	abstract async restartIce(iceParameters: IceParameters): Promise<void>;
 
 	abstract async send(
-		{ track, encodings, codecOptions }:
+		{
+			track,
+			encodings,
+			codecOptions
+		}:
 		{
 			track: MediaStreamTrack;
 			encodings?: RtpEncodingParameters[];
 			codecOptions?: ProducerCodecOptions;
 		}
-	): Promise<any>;
+	): Promise<
+		{
+			sendId: string;
+			rtpSender?: RTCRtpSender;
+			rtpParameters: RtpParameters;
+		}
+	>;
 
-	abstract async stopSending({ localId }: { localId: string }): Promise<void>;
+	abstract async stopSending(sendId: string): Promise<void>;
 
-	abstract async replaceTrack(
-		{ localId, track }:
-		{ localId: string; track: MediaStreamTrack }
-	): Promise<void>;
+	abstract async replaceTrack(sendId: string, track: MediaStreamTrack): Promise<void>;
 
 	abstract async setMaxSpatialLayer(
-		{ localId, spatialLayer }:
-		{ localId: string; spatialLayer: number }
+		sendId: string,
+		spatialLayer: number
 	): Promise<void>;
 
 	abstract async setRtpEncodingParameters(
-		{ localId, params }:
-		{ localId: string; params: any }
+		sendId: string,
+		params: any
 	): Promise<void>;
 
-	abstract async getSenderStats({ localId }: { localId: string }): Promise<any>;
+	abstract async getSenderStats(sendId: string): Promise<RTCStatsReport>;
+
+	abstract async receive(
+		{
+			id,
+			kind,
+			rtpParameters
+		}:
+		{
+			id: string;
+			kind: 'audio' | 'video';
+			rtpParameters: RtpParameters
+		}
+	): Promise<
+		{
+			recvId: string;
+			rtpReceiver?: RTCRtpReceiver;
+			rtpParameters: RtpParameters;
+		}
+	>;
+
+	abstract async stopReceiving(recvId: string): Promise<void>;
+
+	abstract async getReceiverStats(recvId: string): Promise<RTCStatsReport>;
 
 	abstract async sendDataChannel(
 		{
@@ -65,37 +97,23 @@ export abstract class SendHandlerInterface extends HandlerInterface
 			protocol,
 			priority
 		}: SctpStreamParameters
-	): Promise<any>;
-
-	abstract async restartIce(
-		{ iceParameters }:
-		{ iceParameters: IceParameters }
-	): Promise<void>;
-}
-
-export abstract class RecvHandlerInterface extends HandlerInterface
-{
-	constructor()
-	{
-		super();
-	}
-
-	abstract async receive(
-		{ id, kind, rtpParameters }:
-		{ id: string; kind: 'audio' | 'video'; rtpParameters: RtpParameters }
-	): Promise<any>;
-
-	abstract async stopReceiving({ localId }: { localId: string }): Promise<void>;
-
-	abstract async getReceiverStats({ localId }: { localId: string }): Promise<any>;
+	): Promise<
+		{
+			dataChannel: RTCDataChannel;
+			sctpStreamParameters: SctpStreamParameters;
+		}
+	>;
 
 	abstract async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }:
-		{ sctpStreamParameters: SctpStreamParameters; label?: string; protocol?: string }
-	): Promise<any>;
-
-	abstract async restartIce(
-		{ iceParameters }:
-		{ iceParameters: IceParameters }
-	): Promise<void>;
+		{
+			sctpStreamParameters,
+			label,
+			protocol
+		}:
+		{
+			sctpStreamParameters: SctpStreamParameters;
+			label?: string;
+			protocol?: string
+		}
+	): Promise<{ dataChannel: RTCDataChannel }>;
 }
