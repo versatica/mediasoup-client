@@ -5,7 +5,7 @@ import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Chrome74 } from './handlers/Chrome74';
-// import { Chrome70 } from './handlers/Chrome70';
+import { Chrome70 } from './handlers/Chrome70';
 // import { Chrome67 } from './handlers/Chrome67';
 // import { Chrome55 } from './handlers/Chrome55';
 // import { Firefox60 } from './handlers/Firefox60';
@@ -104,9 +104,9 @@ export class Device
 				case 'Chrome74':
 					this._handlerFactory = Chrome74.createFactory();
 					break;
-				// case 'Chrome70':
-				// 	this._handlerFactory = Chrome70.createFactory();
-				// 	break;
+				case 'Chrome70':
+					this._handlerFactory = Chrome70.createFactory();
+					break;
 				// case 'Chrome67':
 				// 	this._handlerFactory = Chrome67.createFactory();
 				// 	break;
@@ -241,7 +241,8 @@ export class Device
 				nativeRtpCapabilities, routerRtpCapabilities);
 
 			logger.debug(
-				'load() | got extended RTP capabilities:%o', this._extendedRtpCapabilities);
+				'load() | got extended RTP capabilities:%o',
+				this._extendedRtpCapabilities);
 
 			// Check whether we can produce audio/video.
 			this._canProduceByKind.audio =
@@ -254,7 +255,8 @@ export class Device
 				ortc.getRecvRtpCapabilities(this._extendedRtpCapabilities);
 
 			logger.debug(
-				'load() | got receiving RTP capabilities:%o', this._recvRtpCapabilities);
+				'load() | got receiving RTP capabilities:%o',
+				this._recvRtpCapabilities);
 
 			// Generate our SCTP capabilities.
 			this._sctpCapabilities = await handler.getNativeSctpCapabilities();
@@ -387,8 +389,6 @@ export class Device
 		}: InternalTransportOptions
 	): Transport
 	{
-		logger.debug('createTransport()');
-
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
 		else if (typeof id !== 'string')
@@ -434,7 +434,8 @@ export class Device
 		{
 			if (typeof RTCPeerConnection === 'undefined')
 			{
-				logger.warn('this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+				logger.warn(
+					'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
 
 				return undefined;
 			}
@@ -450,7 +451,7 @@ export class Device
 		{
 			const ua = navigator.userAgent;
 			const browser = bowser.getParser(ua);
-			// const engine = browser.getEngine();
+			const engine = browser.getEngine();
 
 			// Chrome and Chromium.
 			if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
@@ -459,12 +460,12 @@ export class Device
 
 				return Chrome74.createFactory();
 			}
-			// else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
-			// {
-			// 	logger.debug('this._detectDevice() | Chrome70 handler chosen');
+			else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
+			{
+				logger.debug('this._detectDevice() | Chrome70 handler chosen');
 
-			// 	return Chrome70.createFactory();
-			// }
+				return Chrome70.createFactory();
+			}
 			// else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
 			// {
 			// 	logger.debug('this._detectDevice() | Chrome67 handler chosen');
@@ -513,48 +514,51 @@ export class Device
 			// 	return Edge11.createFactory();
 			// }
 			// // Best effort for Chromium based browsers.
-			// else if (engine.name && engine.name.toLowerCase() === 'blink')
-			// {
-			// 	logger.debug('this._detectDevice() | best effort Chromium based browser detection');
+			else if (engine.name && engine.name.toLowerCase() === 'blink')
+			{
+				logger.debug(
+					'this._detectDevice() | best effort Chromium based browser detection');
 
-			// 	const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+				const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
 
-			// 	if (match)
-			// 	{
-			// 		const version = Number(match[1]);
+				if (match)
+				{
+					const version = Number(match[1]);
 
-			// 		if (version >= 74)
-			// 		{
-			// 			logger.debug('this._detectDevice() | Chrome74 handler chosen');
+					if (version >= 74)
+					{
+						logger.debug('this._detectDevice() | Chrome74 handler chosen');
 
-			// 			return Chrome74.createFactory();
-			// 		}
-			// 		else if (version >= 70)
-			// 		{
-			// 			logger.debug('this._detectDevice() | Chrome70 handler chosen');
+						return Chrome74.createFactory();
+					}
+					else if (version >= 70)
+					{
+						logger.debug('this._detectDevice() | Chrome70 handler chosen');
 
-			// 			return Chrome70.createFactory();
-			// 		}
-			// 		else if (version >= 67)
-			// 		{
-			// 			logger.debug('this._detectDevice() | Chrome67 handler chosen');
+						return Chrome70.createFactory();
+					}
+					// else if (version >= 67)
+					// {
+					// 	logger.debug('this._detectDevice() | Chrome67 handler chosen');
 
-			// 			return Chrome67.createFactory();
-			// 		}
-			// 		else
-			// 		{
-			// 			logger.debug('this._detectDevice() | Chrome55 handler chosen');
+					// 	return Chrome67.createFactory();
+					// }
+					else
+					{
+						logger.debug('this._detectDevice() | Chrome55 handler chosen');
 
-			// 			return Chrome55.createFactory();
-			// 		}
-			// 	}
-			// 	else
-			// 	{
-			// 		logger.debug('this._detectDevice() | Chrome74 handler chosen');
+						// TODO: Uncomment when done.
+						// return Chrome55.createFactory();
+						return undefined;
+					}
+				}
+				else
+				{
+					logger.debug('this._detectDevice() | no match, Chrome74 handler chosen');
 
-			// 		return Chrome74.createFactory();
-			// 	}
-			// }
+					return Chrome74.createFactory();
+				}
+			}
 			// Unsupported browser.
 			else
 			{

@@ -44,7 +44,7 @@ export class Chrome74 extends HandlerInterface
 	private _mapMidTransceiver: Map<string, any> = new Map();
 	// Local stream for sending.
 	private _sendStream = new MediaStream();
-	// Whcted ether a DataChannel m=application section has been created.
+	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
 	// Sending DataChannel id value counter. Incremented for each new DataChannel.
 	private _nextSendSctpStreamId = 0;
