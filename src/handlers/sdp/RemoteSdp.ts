@@ -1,7 +1,13 @@
 import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../../Logger';
 import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
+import {
+	IceParameters,
+	IceCandidate,
+	DtlsParameters,
+	DtlsRole
+} from '../../Transport';
+import { ProducerCodecOptions } from '../../Producer';
 import { RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 
@@ -30,7 +36,7 @@ export class RemoteSdp
 	// MediaSection instances indexed by MID.
 	private _mediaSections: Map<string, any> = new Map();
 	// First MID.
-	private _firstMid: string | undefined = undefined;
+	private _firstMid: string | undefined;
 	// SDP object.
 	private readonly _sdpObject: any;
 
@@ -44,11 +50,11 @@ export class RemoteSdp
 			planB = false
 		}:
 		{
-			iceParameters?: any;
-			iceCandidates?: any;
-			dtlsParameters?: any;
+			iceParameters?: IceParameters;
+			iceCandidates?: IceCandidate[];
+			dtlsParameters?: DtlsParameters;
 			sctpParameters?: SctpParameters;
-			plainRtpParameters?: any;
+			plainRtpParameters?: any; // TODO: Define them.
 			planB?: boolean;
 		}
 	)
@@ -107,7 +113,7 @@ export class RemoteSdp
 		}
 	}
 
-	updateIceParameters(iceParameters: any): void
+	updateIceParameters(iceParameters: IceParameters): void
 	{
 		logger.debug(
 			'updateIceParameters() [iceParameters:%o]',
@@ -134,7 +140,7 @@ export class RemoteSdp
 		}
 	}
 
-	getNextMediaSectionIdx(): any
+	getNextMediaSectionIdx(): { idx: number; reuseMid: boolean }
 	{
 		let idx = -1;
 
@@ -148,7 +154,7 @@ export class RemoteSdp
 		}
 
 		// If no closed media section is found, return next one.
-		return { idx: this._mediaSections.size, reuseMid: null };
+		return { idx: this._mediaSections.size, reuseMid: false };
 	}
 
 	send(
@@ -165,7 +171,7 @@ export class RemoteSdp
 			reuseMid?: boolean;
 			offerRtpParameters: RtpParameters;
 			answerRtpParameters: RtpParameters;
-			codecOptions: any;
+			codecOptions?: ProducerCodecOptions;
 			extmapAllowMixed? : boolean;
 		}
 	): void

@@ -1,4 +1,5 @@
-import { DtlsRole } from '../../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
+import { ProducerCodecOptions } from '../../Producer';
 import { RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 export declare class RemoteSdp {
@@ -12,22 +13,25 @@ export declare class RemoteSdp {
     private _firstMid;
     private readonly _sdpObject;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB }: {
-        iceParameters?: any;
-        iceCandidates?: any;
-        dtlsParameters?: any;
+        iceParameters?: IceParameters;
+        iceCandidates?: IceCandidate[];
+        dtlsParameters?: DtlsParameters;
         sctpParameters?: SctpParameters;
         plainRtpParameters?: any;
         planB?: boolean;
     });
-    updateIceParameters(iceParameters: any): void;
+    updateIceParameters(iceParameters: IceParameters): void;
     updateDtlsRole(role: DtlsRole): void;
-    getNextMediaSectionIdx(): any;
+    getNextMediaSectionIdx(): {
+        idx: number;
+        reuseMid: boolean;
+    };
     send({ offerMediaObject, reuseMid, offerRtpParameters, answerRtpParameters, codecOptions, extmapAllowMixed }: {
         offerMediaObject: any;
         reuseMid?: boolean;
         offerRtpParameters: RtpParameters;
         answerRtpParameters: RtpParameters;
-        codecOptions: any;
+        codecOptions?: ProducerCodecOptions;
         extmapAllowMixed?: boolean;
     }): void;
     receive({ mid, kind, offerRtpParameters, streamId, trackId }: {

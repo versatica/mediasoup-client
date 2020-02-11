@@ -1,5 +1,12 @@
 import * as utils from '../../utils';
-import { RtpParameters, RtpCodecParameters } from '../../RtpParameters';
+import { IceParameters, IceCandidate, DtlsParameters } from '../../Transport';
+import { ProducerCodecOptions } from '../../Producer';
+import {
+	RtpParameters,
+	RtpCodecParameters,
+	RtpHeaderExtensionParameters
+} from '../../RtpParameters';
+import { SctpParameters } from '../../SctpParameters';
 
 abstract class MediaSection
 {
@@ -10,15 +17,15 @@ abstract class MediaSection
 
 	constructor(
 		{
-			iceParameters = undefined,
+			iceParameters,
 			iceCandidates = [],
-			dtlsParameters = undefined,
+			dtlsParameters,
 			planB = false
 		}:
 		{
-			iceParameters: any;
-			iceCandidates: any[];
-			dtlsParameters: any;
+			iceParameters?: IceParameters;
+			iceCandidates: IceCandidate[];
+			dtlsParameters?: DtlsParameters;
 			planB: boolean;
 		}
 	)
@@ -84,7 +91,7 @@ abstract class MediaSection
 	/**
 	 * @param {RTCIceParameters} iceParameters
 	 */
-	setIceParameters(iceParameters: any): void
+	setIceParameters(iceParameters: IceParameters): void
 	{
 		this._mediaObject.iceUfrag = iceParameters.usernameFragment;
 		this._mediaObject.icePwd = iceParameters.password;
@@ -132,7 +139,16 @@ export class AnswerMediaSection extends MediaSection
 			plainRtpParameters,
 			codecOptions,
 			extmapAllowMixed
-		} = data;
+		} = data as
+		{
+			sctpParameters: SctpParameters;
+			offerMediaObject: any;
+			offerRtpParameters: RtpParameters;
+			answerRtpParameters: RtpParameters;
+			plainRtpParameters?: any;
+			codecOptions?: ProducerCodecOptions;
+			extmapAllowMixed?: boolean;
+		};
 
 		this._mediaObject.mid = String(offerMediaObject.mid);
 		this._mediaObject.type = offerMediaObject.type;
@@ -270,7 +286,7 @@ export class AnswerMediaSection extends MediaSection
 				}
 
 				this._mediaObject.payloads = answerRtpParameters.codecs
-					.map((codec: any) => codec.payloadType)
+					.map((codec: RtpCodecParameters) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];
@@ -279,7 +295,7 @@ export class AnswerMediaSection extends MediaSection
 				{
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext || [])
-						.some((localExt: any) => localExt.uri === ext.uri);
+						.some((localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri);
 
 					if (!found)
 						continue;
@@ -500,7 +516,7 @@ export class OfferMediaSection extends MediaSection
 				}
 
 				this._mediaObject.payloads = offerRtpParameters.codecs
-					.map((codec: any) => codec.payloadType)
+					.map((codec: RtpCodecParameters) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];

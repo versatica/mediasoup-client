@@ -1,11 +1,12 @@
+import { IceParameters, IceCandidate, DtlsParameters } from '../../Transport';
 import { RtpParameters } from '../../RtpParameters';
 declare abstract class MediaSection {
     protected readonly _mediaObject: any;
     protected readonly _planB: boolean;
     constructor({ iceParameters, iceCandidates, dtlsParameters, planB }: {
-        iceParameters: any;
-        iceCandidates: any[];
-        dtlsParameters: any;
+        iceParameters?: IceParameters;
+        iceCandidates: IceCandidate[];
+        dtlsParameters?: DtlsParameters;
         planB: boolean;
     });
     abstract setDtlsRole(role: 'client' | 'server' | 'auto'): void;
@@ -15,7 +16,7 @@ declare abstract class MediaSection {
     /**
      * @param {RTCIceParameters} iceParameters
      */
-    setIceParameters(iceParameters: any): void;
+    setIceParameters(iceParameters: IceParameters): void;
     disable(): void;
     close(): void;
 }
