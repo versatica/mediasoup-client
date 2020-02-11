@@ -227,14 +227,16 @@ export class Chrome74 extends HandlerInterface
 			const offer = await this._pc.createOffer({ iceRestart: true });
 
 			logger.debug(
-				'restartIce() | calling pc.setLocalDescription() [offer:%o]', offer);
+				'restartIce() | calling pc.setLocalDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setLocalDescription(offer);
 
 			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'restartIce() | calling pc.setRemoteDescription() [answer:%o]', answer);
+				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setRemoteDescription(answer);
 		}
@@ -243,14 +245,16 @@ export class Chrome74 extends HandlerInterface
 			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'restartIce() | calling pc.setRemoteDescription() [offer:%o]', offer);
+				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setRemoteDescription(offer);
 
 			const answer = await this._pc.createAnswer();
 
 			logger.debug(
-				'restartIce() | calling pc.setLocalDescription() [answer:%o]', answer);
+				'restartIce() | calling pc.setLocalDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setLocalDescription(answer);
 		}
@@ -299,7 +303,8 @@ export class Chrome74 extends HandlerInterface
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 		logger.debug(
-			'send() | calling pc.setLocalDescription() [offer:%o]', offer);
+			'send() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
 
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
@@ -400,7 +405,8 @@ export class Chrome74 extends HandlerInterface
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'send() | calling pc.setRemoteDescription() [answer:%o]', answer);
+			'send() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setRemoteDescription(answer);
 
@@ -432,21 +438,24 @@ export class Chrome74 extends HandlerInterface
 		const offer = await this._pc.createOffer();
 
 		logger.debug(
-			'stopSending() | calling pc.setLocalDescription() [offer:%o]', offer);
+			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setLocalDescription(offer);
 
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopSending() | calling pc.setRemoteDescription() [answer:%o]', answer);
+			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setRemoteDescription(answer);
 	}
 
 	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
-		logger.debug('replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		logger.debug(
+			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
 
 		this.assertSendDirection();
 
@@ -550,7 +559,8 @@ export class Chrome74 extends HandlerInterface
 		const dataChannel = this._pc.createDataChannel(label, options);
 
 		// Increase next id.
-		this._nextSendSctpStreamId = ++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
+		this._nextSendSctpStreamId =
+			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
 
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
@@ -565,7 +575,8 @@ export class Chrome74 extends HandlerInterface
 				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]', offer);
+				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setLocalDescription(offer);
 
@@ -574,7 +585,8 @@ export class Chrome74 extends HandlerInterface
 			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]', answer);
+				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setRemoteDescription(answer);
 
@@ -614,7 +626,8 @@ export class Chrome74 extends HandlerInterface
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'receive() | calling pc.setRemoteDescription() [offer:%o]', offer);
+			'receive() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setRemoteDescription(offer);
 
@@ -637,7 +650,8 @@ export class Chrome74 extends HandlerInterface
 			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
-			'receive() | calling pc.setLocalDescription() [answer:%o]', answer);
+			'receive() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setLocalDescription(answer);
 
@@ -673,14 +687,16 @@ export class Chrome74 extends HandlerInterface
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]', offer);
+			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setRemoteDescription(offer);
 
 		const answer = await this._pc.createAnswer();
 
 		logger.debug(
-			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]', answer);
+			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setLocalDescription(answer);
 	}
@@ -698,7 +714,8 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol }:
+		HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		logger.debug('receiveDataChannel()');
@@ -735,7 +752,8 @@ export class Chrome74 extends HandlerInterface
 			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]', offer);
+				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setRemoteDescription(offer);
 
@@ -749,7 +767,8 @@ export class Chrome74 extends HandlerInterface
 			}
 
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]', answer);
+				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setLocalDescription(answer);
 
@@ -788,7 +807,8 @@ export class Chrome74 extends HandlerInterface
 	{
 		if (this._direction !== 'send')
 		{
-			throw new Error('method can just be called for handlers with "send" direction');
+			throw new Error(
+				'method can just be called for handlers with "send" direction');
 		}
 	}
 
@@ -796,7 +816,8 @@ export class Chrome74 extends HandlerInterface
 	{
 		if (this._direction !== 'recv')
 		{
-			throw new Error('method can just be called for handlers with "recv" direction');
+			throw new Error(
+				'method can just be called for handlers with "recv" direction');
 		}
 	}
 }
