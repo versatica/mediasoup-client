@@ -1,7 +1,14 @@
 import * as utils from '../../utils';
-import { IceParameters, IceCandidate, DtlsParameters } from '../../Transport';
+import {
+	IceParameters,
+	IceCandidate,
+	DtlsParameters,
+	DtlsRole,
+	PlainRtpParameters
+} from '../../Transport';
 import { ProducerCodecOptions } from '../../Producer';
 import {
+	MediaKind,
 	RtpParameters,
 	RtpCodecParameters,
 	RtpHeaderExtensionParameters
@@ -18,13 +25,13 @@ abstract class MediaSection
 	constructor(
 		{
 			iceParameters,
-			iceCandidates = [],
+			iceCandidates,
 			dtlsParameters,
 			planB = false
 		}:
 		{
 			iceParameters?: IceParameters;
-			iceCandidates: IceCandidate[];
+			iceCandidates?: IceCandidate[];
 			dtlsParameters?: DtlsParameters;
 			planB: boolean;
 		}
@@ -71,7 +78,7 @@ abstract class MediaSection
 		}
 	}
 
-	abstract setDtlsRole(role: 'client' | 'server' | 'auto'): void;
+	abstract setDtlsRole(role: DtlsRole): void;
 
 	get mid(): string
 	{
@@ -88,9 +95,6 @@ abstract class MediaSection
 		return this._mediaObject;
 	}
 
-	/**
-	 * @param {RTCIceParameters} iceParameters
-	 */
 	setIceParameters(iceParameters: IceParameters): void
 	{
 		this._mediaObject.iceUfrag = iceParameters.usernameFragment;
@@ -127,28 +131,36 @@ abstract class MediaSection
 
 export class AnswerMediaSection extends MediaSection
 {
-	constructor(data: any)
-	{
-		super(data);
-
-		const {
+	constructor(
+		{
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
 			sctpParameters,
+			plainRtpParameters,
+			planB = false,
 			offerMediaObject,
 			offerRtpParameters,
 			answerRtpParameters,
-			plainRtpParameters,
 			codecOptions,
-			extmapAllowMixed
-		} = data as
+			extmapAllowMixed = false
+		}:
 		{
-			sctpParameters: SctpParameters;
+			iceParameters?: IceParameters;
+			iceCandidates?: IceCandidate[];
+			dtlsParameters?: DtlsParameters;
+			sctpParameters?: SctpParameters;
+			plainRtpParameters?: PlainRtpParameters;
+			planB?: boolean;
 			offerMediaObject: any;
-			offerRtpParameters: RtpParameters;
-			answerRtpParameters: RtpParameters;
-			plainRtpParameters?: any;
+			offerRtpParameters?: RtpParameters;
+			answerRtpParameters?: RtpParameters;
 			codecOptions?: ProducerCodecOptions;
 			extmapAllowMixed?: boolean;
-		};
+		}
+	)
+	{
+		super({ iceParameters, iceCandidates, dtlsParameters, planB });
 
 		this._mediaObject.mid = String(offerMediaObject.mid);
 		this._mediaObject.type = offerMediaObject.type;
@@ -398,10 +410,7 @@ export class AnswerMediaSection extends MediaSection
 		}
 	}
 
-	/**
-	 * @param {String} role
-	 */
-	setDtlsRole(role: 'client' | 'server' | 'auto'): void
+	setDtlsRole(role: DtlsRole): void
 	{
 		switch (role)
 		{
@@ -420,20 +429,38 @@ export class AnswerMediaSection extends MediaSection
 
 export class OfferMediaSection extends MediaSection
 {
-	constructor(data: any)
-	{
-		super(data);
-
-		const {
+	constructor(
+		{
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
 			sctpParameters,
 			plainRtpParameters,
+			planB = false,
 			mid,
 			kind,
 			offerRtpParameters,
 			streamId,
 			trackId,
-			oldDataChannelSpec
-		} = data;
+			oldDataChannelSpec = false
+		}:
+		{
+			iceParameters?: IceParameters;
+			iceCandidates?: IceCandidate[];
+			dtlsParameters?: DtlsParameters;
+			sctpParameters?: SctpParameters;
+			plainRtpParameters?: PlainRtpParameters;
+			planB?: boolean;
+			mid: string;
+			kind: MediaKind | 'application';
+			offerRtpParameters?: RtpParameters;
+			streamId?: string;
+			trackId?: string;
+			oldDataChannelSpec?: boolean;
+		}
+	)
+	{
+		super({ iceParameters, iceCandidates, dtlsParameters, planB });
 
 		this._mediaObject.mid = String(mid);
 		this._mediaObject.type = kind;
@@ -621,10 +648,8 @@ export class OfferMediaSection extends MediaSection
 		}
 	}
 
-	/**
-	 * @param {String} role
-	 */
-	setDtlsRole(role: 'client' | 'server' | 'auto'): void // eslint-disable-line @typescript-eslint/no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	setDtlsRole(role: DtlsRole): void
 	{
 		// Always 'actpass'.
 		this._mediaObject.setup = 'actpass';
@@ -634,7 +659,8 @@ export class OfferMediaSection extends MediaSection
 		{
 			offerRtpParameters,
 			streamId,
-			trackId }:
+			trackId
+		}:
 		{
 			offerRtpParameters: RtpParameters;
 			streamId: string;
@@ -694,12 +720,7 @@ export class OfferMediaSection extends MediaSection
 	}
 
 	planBStopReceiving(
-		{
-			offerRtpParameters
-		}:
-		{
-			offerRtpParameters: RtpParameters;
-		}
+		{ offerRtpParameters }: { offerRtpParameters: RtpParameters }
 	): void
 	{
 		const encoding = offerRtpParameters.encodings[0];

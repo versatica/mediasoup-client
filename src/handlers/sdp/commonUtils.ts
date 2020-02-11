@@ -1,6 +1,11 @@
 import * as sdpTransform from 'sdp-transform';
-import { RtpCapabilities, RtpCodecCapability } from '../../RtpParameters';
-import { DtlsRole } from '../../Transport';
+import { DtlsParameters, DtlsRole } from '../../Transport';
+import {
+	RtpCapabilities,
+	RtpCodecCapability,
+	RtpHeaderExtension,
+	RtcpFeedback
+} from '../../RtpParameters';
 
 export function extractRtpCapabilities(
 	{ sdpObject }:
@@ -8,9 +13,9 @@ export function extractRtpCapabilities(
 ): RtpCapabilities
 {
 	// Map of RtpCodecParameters indexed by payload type.
-	const codecsMap: Map<number, any> = new Map();
+	const codecsMap: Map<number, RtpCodecCapability> = new Map();
 	// Array of RtpHeaderExtensions.
-	const headerExtensions = [];
+	const headerExtensions: RtpHeaderExtension[] = [];
 	// Whether a m=audio/video section has been already found.
 	let gotAudio = false;
 	let gotVideo = false;
@@ -86,7 +91,7 @@ export function extractRtpCapabilities(
 			if (!codec)
 				continue;
 
-			const feedback =
+			const feedback: RtcpFeedback =
 			{
 				type      : fb.type,
 				parameter : fb.subtype
@@ -101,7 +106,7 @@ export function extractRtpCapabilities(
 		// Get RTP header extensions.
 		for (const ext of m.ext || [])
 		{
-			const headerExtension =
+			const headerExtension: RtpHeaderExtension =
 			{
 				kind        : kind,
 				uri         : ext.uri,
@@ -121,7 +126,10 @@ export function extractRtpCapabilities(
 	return rtpCapabilities;
 }
 
-export function extractDtlsParameters({ sdpObject }: { sdpObject: any }): any
+export function extractDtlsParameters(
+	{ sdpObject }:
+	{ sdpObject: any }
+): DtlsParameters
 {
 	const mediaObject = (sdpObject.media || [])
 		.find((m: { iceUfrag: any; port: number }) => m.iceUfrag && m.port !== 0);
@@ -145,7 +153,7 @@ export function extractDtlsParameters({ sdpObject }: { sdpObject: any }): any
 			break;
 	}
 
-	const dtlsParameters =
+	const dtlsParameters: DtlsParameters =
 	{
 		role,
 		fingerprints :
@@ -160,7 +168,10 @@ export function extractDtlsParameters({ sdpObject }: { sdpObject: any }): any
 	return dtlsParameters;
 }
 
-export function getCname({ offerMediaObject }: { offerMediaObject: any }): string
+export function getCname(
+	{ offerMediaObject }:
+	{ offerMediaObject: any }
+): string
 {
 	const ssrcCnameLine = (offerMediaObject.ssrcs || [])
 		.find((line: { attribute: string }) => line.attribute === 'cname');

@@ -760,7 +760,7 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	private async _setupTransport(
-		{ localDtlsRole, localSdpObject = null }:
+		{ localDtlsRole, localSdpObject }:
 		{ localDtlsRole: DtlsRole; localSdpObject?: any }
 	): Promise<void>
 	{

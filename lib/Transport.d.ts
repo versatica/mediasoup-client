@@ -95,6 +95,11 @@ export declare type DtlsFingerprint = {
 };
 export declare type DtlsRole = 'auto' | 'client' | 'server';
 export declare type ConnectionState = 'new' | 'connecting' | 'connected' | 'failed' | 'disconnected' | 'closed';
+export declare type PlainRtpParameters = {
+    ip: string;
+    ipVersion: 4 | 6;
+    port: number;
+};
 export declare class Transport extends EnhancedEventEmitter {
     private readonly _id;
     private _closed;

@@ -1,23 +1,23 @@
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, PlainRtpParameters } from '../../Transport';
 import { ProducerCodecOptions } from '../../Producer';
-import { RtpParameters } from '../../RtpParameters';
+import { MediaKind, RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 export declare class RemoteSdp {
-    private _iceParameters;
-    private readonly _iceCandidates;
-    private readonly _dtlsParameters;
-    private readonly _sctpParameters;
-    private readonly _plainRtpParameters;
+    private _iceParameters?;
+    private readonly _iceCandidates?;
+    private readonly _dtlsParameters?;
+    private readonly _sctpParameters?;
+    private readonly _plainRtpParameters?;
     private readonly _planB;
     private _mediaSections;
-    private _firstMid;
+    private _firstMid?;
     private readonly _sdpObject;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB }: {
         iceParameters?: IceParameters;
         iceCandidates?: IceCandidate[];
         dtlsParameters?: DtlsParameters;
         sctpParameters?: SctpParameters;
-        plainRtpParameters?: any;
+        plainRtpParameters?: PlainRtpParameters;
         planB?: boolean;
     });
     updateIceParameters(iceParameters: IceParameters): void;
@@ -36,7 +36,7 @@ export declare class RemoteSdp {
     }): void;
     receive({ mid, kind, offerRtpParameters, streamId, trackId }: {
         mid: string;
-        kind: string;
+        kind: MediaKind;
         offerRtpParameters: RtpParameters;
         streamId: string;
         trackId: string;

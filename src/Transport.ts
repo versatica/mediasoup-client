@@ -123,6 +123,13 @@ export type ConnectionState =
 	| 'disconnected'
 	| 'closed';
 
+export type PlainRtpParameters =
+{
+	ip: string;
+	ipVersion: 4 | 6;
+	port: number;
+};
+
 const logger = new Logger('Transport');
 
 export class Transport extends EnhancedEventEmitter

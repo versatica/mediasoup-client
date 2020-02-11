@@ -1,4 +1,4 @@
-import { Device, detectDevice } from './Device';
+import { Device } from './Device';
 import * as types from './types';
 
 /**
@@ -12,9 +12,9 @@ export { types };
 export const version = '__MEDIASOUP_CLIENT_VERSION__';
 
 /**
- * Expose Device class and detectDevice() function.
+ * Expose Device class.
  */
-export { Device, detectDevice };
+export { Device };
 
 /**
  * Expose parseScalabilityMode() function.

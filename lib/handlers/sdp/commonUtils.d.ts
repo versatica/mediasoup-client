@@ -1,10 +1,11 @@
+import { DtlsParameters } from '../../Transport';
 import { RtpCapabilities } from '../../RtpParameters';
 export declare function extractRtpCapabilities({ sdpObject }: {
     sdpObject: any;
 }): RtpCapabilities;
 export declare function extractDtlsParameters({ sdpObject }: {
     sdpObject: any;
-}): any;
+}): DtlsParameters;
 export declare function getCname({ offerMediaObject }: {
     offerMediaObject: any;
 }): string;

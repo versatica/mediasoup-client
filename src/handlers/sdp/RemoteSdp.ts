@@ -5,10 +5,11 @@ import {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
-	DtlsRole
+	DtlsRole,
+	PlainRtpParameters
 } from '../../Transport';
 import { ProducerCodecOptions } from '../../Producer';
-import { RtpParameters } from '../../RtpParameters';
+import { MediaKind, RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 
 const logger = new Logger('RemoteSdp');
@@ -16,37 +17,31 @@ const logger = new Logger('RemoteSdp');
 export class RemoteSdp
 {
 	// Remote ICE parameters.
-	private _iceParameters: IceParameters;
+	private _iceParameters?: IceParameters;
 	// Remote ICE candidates.
-	private readonly _iceCandidates: IceCandidate[] = [];
+	private readonly _iceCandidates?: IceCandidate[];
 	// Remote DTLS parameters.
-	private readonly _dtlsParameters: DtlsParameters;
+	private readonly _dtlsParameters?: DtlsParameters;
 	// Remote SCTP parameters.
-	private readonly _sctpParameters: SctpParameters;
-	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
-	// @type {Object}
-	//
-	// Fields:
-	// @param {String} ip
-	// @param {Number} ipVersion - 4 or 6.
-	// @param {Number} port
-	private readonly _plainRtpParameters: any;
+	private readonly _sctpParameters?: SctpParameters;
+	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE).
+	private readonly _plainRtpParameters?: PlainRtpParameters;
 	// Whether this is Plan-B SDP.
 	private readonly _planB: boolean;
 	// MediaSection instances indexed by MID.
 	private _mediaSections: Map<string, any> = new Map();
 	// First MID.
-	private _firstMid: string | undefined;
+	private _firstMid?: string;
 	// SDP object.
 	private readonly _sdpObject: any;
 
 	constructor(
 		{
-			iceParameters = undefined,
-			iceCandidates = undefined,
-			dtlsParameters = undefined,
-			sctpParameters = undefined,
-			plainRtpParameters = undefined,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters,
+			plainRtpParameters,
 			planB = false
 		}:
 		{
@@ -54,7 +49,7 @@ export class RemoteSdp
 			iceCandidates?: IceCandidate[];
 			dtlsParameters?: DtlsParameters;
 			sctpParameters?: SctpParameters;
-			plainRtpParameters?: any; // TODO: Define them.
+			plainRtpParameters?: PlainRtpParameters;
 			planB?: boolean;
 		}
 	)
@@ -88,7 +83,7 @@ export class RemoteSdp
 			this._sdpObject.icelite = 'ice-lite';
 		}
 
-		// If DTLS parameters are given assume WebRTC and BUNDLE.
+		// If DTLS parameters are given, assume WebRTC and BUNDLE.
 		if (dtlsParameters)
 		{
 			this._sdpObject.msidSemantic = { semantic: 'WMS', token: '*' };
@@ -105,7 +100,7 @@ export class RemoteSdp
 			this._sdpObject.groups = [ { type: 'BUNDLE', mids: '' } ];
 		}
 
-		// If there are plain parameters override SDP origin.
+		// If there are plain RPT parameters, override SDP origin.
 		if (plainRtpParameters)
 		{
 			this._sdpObject.origin.address = plainRtpParameters.ip;
@@ -164,7 +159,7 @@ export class RemoteSdp
 			offerRtpParameters,
 			answerRtpParameters,
 			codecOptions,
-			extmapAllowMixed
+			extmapAllowMixed = false
 		}:
 		{
 			offerMediaObject: any;
@@ -217,7 +212,7 @@ export class RemoteSdp
 		}:
 		{
 			mid: string;
-			kind: string;
+			kind: MediaKind;
 			offerRtpParameters: RtpParameters;
 			streamId: string;
 			trackId: string;
@@ -315,7 +310,10 @@ export class RemoteSdp
 		this._addMediaSection(mediaSection);
 	}
 
-	receiveSctpAssociation({ oldDataChannelSpec = false } = {}): void
+	receiveSctpAssociation(
+		{ oldDataChannelSpec = false }:
+		{ oldDataChannelSpec?: boolean } = {}
+	): void
 	{
 		const mediaSection = new OfferMediaSection(
 			{
