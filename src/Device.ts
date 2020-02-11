@@ -1,30 +1,57 @@
-/* global RTCRtpTransceiver */
-
 import * as bowser from 'bowser';
 import { Logger } from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
+import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Chrome74 } from './handlers/Chrome74';
-import { Chrome70 } from './handlers/Chrome70';
-import { Chrome67 } from './handlers/Chrome67';
-import { Chrome55 } from './handlers/Chrome55';
-import { Firefox60 } from './handlers/Firefox60';
-import { Safari12 } from './handlers/Safari12';
-import { Safari11 } from './handlers/Safari11';
-import { Edge11 } from './handlers/Edge11';
-import { ReactNative } from './handlers/ReactNative';
+// import { Chrome70 } from './handlers/Chrome70';
+// import { Chrome67 } from './handlers/Chrome67';
+// import { Chrome55 } from './handlers/Chrome55';
+// import { Firefox60 } from './handlers/Firefox60';
+// import { Safari12 } from './handlers/Safari12';
+// import { Safari11 } from './handlers/Safari11';
+// import { Edge11 } from './handlers/Edge11';
+// import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
 
 const logger = new Logger('Device');
+
+export type BuiltinHandlerName =
+	| 'Chrome74'
+	| 'Chrome70'
+	| 'Chrome67'
+	| 'Chrome55'
+	| 'Firefox60'
+	| 'Safari12'
+	| 'Safari11'
+	| 'Edge11'
+	| 'ReactNative';
+
+export type DeviceOptions =
+{
+	/**
+	 * The name of one of the builtin handlers.
+	 */
+	handlerName?: BuiltinHandlerName;
+	/**
+	 * Custom handler factory.
+	 */
+	handlerFactory?: HandlerFactory;
+	/**
+	 * DEPRECATED!
+	 * The name of one of the builtin handlers.
+	 */
+	Handler?: string;
+};
 
 interface InternalTransportOptions extends TransportOptions
 {
 	direction: 'send' | 'recv';
 }
 
-export function detectDevice(): any | undefined
+export function detectDevice(): HandlerFactory | undefined
 {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
@@ -34,87 +61,125 @@ export function detectDevice(): any | undefined
 		{
 			logger.warn('detectDevice() | unsupported ReactNative without RTCPeerConnection');
 
-			return;
+			return undefined;
 		}
 
-		return ReactNative;
+		logger.debug('detectDevice() | ReactNative handler chosen');
+
+		// TODO: Uncomment when ready.
+		// return ReactNative.createFactory();
+		return undefined;
 	}
 	// Browser.
 	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
 	{
 		const ua = navigator.userAgent;
 		const browser = bowser.getParser(ua);
-		const engine = browser.getEngine();
+		// const engine = browser.getEngine();
 
 		// Chrome and Chromium.
 		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
 		{
-			return Chrome74;
-		}
-		else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
-		{
-			return Chrome70;
-		}
-		else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
-		{
-			return Chrome67;
-		}
-		else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
-		{
-			return Chrome55;
-		}
-		// Firefox.
-		else if (browser.satisfies({ firefox: '>=60' }))
-		{
-			return Firefox60;
-		}
-		// Safari with Unified-Plan support enabled.
-		else if (
-			browser.satisfies({ safari: '>=12.0' }) &&
-			typeof RTCRtpTransceiver !== 'undefined' &&
-			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		)
-		{
-			return Safari12;
-		}
-		// Safari with Plab-B support.
-		else if (browser.satisfies({ safari: '>=11' }))
-		{
-			return Safari11;
-		}
-		// Old Edge with ORTC support.
-		else if (
-			browser.satisfies({ 'microsoft edge': '>=11' }) &&
-			browser.satisfies({ 'microsoft edge': '<=18' })
-		)
-		{
-			return Edge11;
-		}
-		// Best effort for Chromium based browsers.
-		else if (engine.name && engine.name.toLowerCase() === 'blink')
-		{
-			logger.debug('detectDevice() | best effort Chromium based browser detection');
+			logger.debug('detectDevice() | Chrome74 handler chosen');
 
-			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
-
-			if (match)
-			{
-				const version = Number(match[1]);
-
-				if (version >= 74)
-					return Chrome74;
-				else if (version >= 70)
-					return Chrome70;
-				else if (version >= 67)
-					return Chrome67;
-				else
-					return Chrome55;
-			}
-			else
-			{
-				return Chrome74;
-			}
+			return Chrome74.createFactory();
 		}
+		// else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
+		// {
+		// 	logger.debug('detectDevice() | Chrome70 handler chosen');
+
+		// 	return Chrome70.createFactory();
+		// }
+		// else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
+		// {
+		// 	logger.debug('detectDevice() | Chrome67 handler chosen');
+
+		// 	return Chrome67.createFactory();
+		// }
+		// else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
+		// {
+		// 	logger.debug('detectDevice() | Chrome55 handler chosen');
+
+		// 	return Chrome55.createFactory();
+		// }
+		// // Firefox.
+		// else if (browser.satisfies({ firefox: '>=60' }))
+		// {
+		// 	logger.debug('detectDevice() | Firefox60 handler chosen');
+
+		// 	return Firefox60.createFactory();
+		// }
+		// // Safari with Unified-Plan support enabled.
+		// else if (
+		// 	browser.satisfies({ safari: '>=12.0' }) &&
+		// 	typeof RTCRtpTransceiver !== 'undefined' &&
+		// 	RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+		// )
+		// {
+		// 	logger.debug('detectDevice() | Safari12 handler chosen');
+
+		// 	return Safari12.createFactory();
+		// }
+		// // Safari with Plab-B support.
+		// else if (browser.satisfies({ safari: '>=11' }))
+		// {
+		// 	logger.debug('detectDevice() | Safari11 handler chosen');
+
+		// 	return Safari11.createFactory();
+		// }
+		// // Old Edge with ORTC support.
+		// else if (
+		// 	browser.satisfies({ 'microsoft edge': '>=11' }) &&
+		// 	browser.satisfies({ 'microsoft edge': '<=18' })
+		// )
+		// {
+		// 	logger.debug('detectDevice() | Edge11 handler chosen');
+
+		// 	return Edge11.createFactory();
+		// }
+		// // Best effort for Chromium based browsers.
+		// else if (engine.name && engine.name.toLowerCase() === 'blink')
+		// {
+		// 	logger.debug('detectDevice() | best effort Chromium based browser detection');
+
+		// 	const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+
+		// 	if (match)
+		// 	{
+		// 		const version = Number(match[1]);
+
+		// 		if (version >= 74)
+		// 		{
+		// 			logger.debug('detectDevice() | Chrome74 handler chosen');
+
+		// 			return Chrome74.createFactory();
+		// 		}
+		// 		else if (version >= 70)
+		// 		{
+		// 			logger.debug('detectDevice() | Chrome70 handler chosen');
+
+		// 			return Chrome70.createFactory();
+		// 		}
+		// 		else if (version >= 67)
+		// 		{
+		// 			logger.debug('detectDevice() | Chrome67 handler chosen');
+
+		// 			return Chrome67.createFactory();
+		// 		}
+		// 		else
+		// 		{
+		// 			logger.debug('detectDevice() | Chrome55 handler chosen');
+
+		// 			return Chrome55.createFactory();
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		logger.debug('detectDevice() | Chrome74 handler chosen');
+
+		// 		return Chrome74.createFactory();
+		// 	}
+		// }
 		// Unsupported browser.
 		else
 		{
@@ -122,7 +187,7 @@ export function detectDevice(): any | undefined
 				'detectDevice() | browser not supported [name:%s, version:%s]',
 				browser.getBrowserName(), browser.getBrowserVersion());
 
-			return;
+			return undefined;
 		}
 	}
 	// Unknown device.
@@ -130,85 +195,109 @@ export function detectDevice(): any | undefined
 	{
 		logger.warn('detectDevice() | unknown device');
 
-		return;
+		return undefined;
 	}
 }
 
 export class Device
 {
-	// RTC handler class.
-	private readonly _Handler: any;
-
+	// RTC handler factory.
+	private readonly _handlerFactory: HandlerFactory;
+	// Handler name.
+	private readonly _handlerName: string;
 	// Loaded flag.
 	private _loaded = false;
-
 	// Extended RTP capabilities.
 	private _extendedRtpCapabilities: any;
-
 	// Local RTP capabilities for receiving media.
 	private _recvRtpCapabilities?: RtpCapabilities;
-
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
-
 	// Local SCTP capabilities.
 	private _sctpCapabilities: SctpCapabilities;
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
 	 *
-	 * @param {Class|String} [Handler] - An optional RTC handler class for unsupported or
-	 *   custom devices (not needed when running in a browser). If a String, it will
-	 *   force usage of the given built-in handler.
-	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ Handler }: { Handler?: string | any } = {})
+	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {})
 	{
-		if (typeof Handler === 'string')
+		logger.debug('constructor()');
+
+		// Handle deprecated option.
+		if (Handler)
 		{
-			switch (Handler)
-			{
-				case 'Chrome74':
-					Handler = Chrome74;
-					break;
-				case 'Chrome70':
-					Handler = Chrome70;
-					break;
-				case 'Chrome67':
-					Handler = Chrome67;
-					break;
-				case 'Chrome55':
-					Handler = Chrome55;
-					break;
-				case 'Firefox60':
-					Handler = Firefox60;
-					break;
-				case 'Safari12':
-					Handler = Safari12;
-					break;
-				case 'Safari11':
-					Handler = Safari11;
-					break;
-				case 'Edge11':
-					Handler = Edge11;
-					break;
-				case 'ReactNative':
-					Handler = ReactNative;
-					break;
-				default:
-					throw new TypeError(`unknown Handler "${Handler}"`);
-			}
+			logger.warn(
+				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
+
+			if (typeof Handler === 'string')
+				handlerName = Handler as BuiltinHandlerName;
+			else
+				throw new TypeError(
+					'non string Handler option no longer supported, use handlerFactory instead');
 		}
 
-		// RTC handler class.
-		this._Handler = Handler || detectDevice();
+		if (handlerName && handlerFactory)
+		{
+			throw new TypeError(
+				'just one of handlerName or handlerInterface can be given');
+		}
 
-		if (!this._Handler)
+		if (handlerName)
+		{
+			switch (handlerName)
+			{
+				case 'Chrome74':
+					this._handlerFactory = Chrome74.createFactory();
+					break;
+				// case 'Chrome70':
+				// 	this._handlerFactory = Chrome70.createFactory();
+				// 	break;
+				// case 'Chrome67':
+				// 	this._handlerFactory = Chrome67.createFactory();
+				// 	break;
+				// case 'Chrome55':
+				// 	this._handlerFactory = Chrome55.createFactory();
+				// 	break;
+				// case 'Firefox60':
+				// 	this._handlerFactory = Firefox60.createFactory();
+				// 	break;
+				// case 'Safari12':
+				// 	this._handlerFactory = Safari12.createFactory();
+				// 	break;
+				// case 'Safari11':
+				// 	this._handlerFactory = Safari11.createFactory();
+				// 	break;
+				// case 'Edge11':
+				// 	this._handlerFactory = Edge11.createFactory();
+				// 	break;
+				// case 'ReactNative':
+				// 	this._handlerFactory = ReactNative.createFactory();
+				// 	break;
+				default:
+					throw new TypeError(`unknown handlerName "${handlerName}"`);
+			}
+		}
+		else if (handlerFactory)
+		{
+			this._handlerFactory = handlerFactory;
+		}
+		else
+		{
+			this._handlerFactory = detectDevice();
+		}
+
+		if (!this._handlerFactory)
 			throw new UnsupportedError('device not supported');
 
-		logger.debug('constructor() [Handler:%s]', this._Handler.name);
+		// Create a temporal handler to get its name.
+		const handler = this._handlerFactory();
+
+		this._handlerName = handler.name;
+
+		handler.close();
 
 		this._extendedRtpCapabilities = null;
 		this._recvRtpCapabilities = undefined;
@@ -223,11 +312,11 @@ export class Device
 	}
 
 	/**
-	 * The RTC handler class name ('Chrome70', 'Firefox65', etc).
+	 * The RTC handler name.
 	 */
 	get handlerName(): string
 	{
-		return this._Handler.label;
+		return this._handlerName;
 	}
 
 	/**
@@ -274,49 +363,66 @@ export class Device
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
-		if (this._loaded)
-			throw new InvalidStateError('already loaded');
+		// Temporal handler to get its capabilities.
+		let handler: HandlerInterface | undefined;
 
-		// This may throw.
-		ortc.validateRtpCapabilities(routerRtpCapabilities);
+		try
+		{
+			if (this._loaded)
+				throw new InvalidStateError('already loaded');
 
-		const nativeRtpCapabilities = await this._Handler.getNativeRtpCapabilities();
+			// This may throw.
+			ortc.validateRtpCapabilities(routerRtpCapabilities);
 
-		// This may throw.
-		ortc.validateRtpCapabilities(nativeRtpCapabilities);
+			handler = this._handlerFactory();
 
-		logger.debug(
-			'load() | got native RTP capabilities:%o', nativeRtpCapabilities);
+			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities();
 
-		// Get extended RTP capabilities.
-		this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
-			nativeRtpCapabilities, routerRtpCapabilities);
+			// This may throw.
+			ortc.validateRtpCapabilities(nativeRtpCapabilities);
 
-		logger.debug(
-			'load() | got extended RTP capabilities:%o', this._extendedRtpCapabilities);
+			logger.debug(
+				'load() | got native RTP capabilities:%o', nativeRtpCapabilities);
 
-		// Check whether we can produce audio/video.
-		this._canProduceByKind.audio =
-			ortc.canSend('audio', this._extendedRtpCapabilities);
-		this._canProduceByKind.video =
-			ortc.canSend('video', this._extendedRtpCapabilities);
+			// Get extended RTP capabilities.
+			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
+				nativeRtpCapabilities, routerRtpCapabilities);
 
-		// Generate our receiving RTP capabilities for receiving media.
-		this._recvRtpCapabilities =
-			ortc.getRecvRtpCapabilities(this._extendedRtpCapabilities);
+			logger.debug(
+				'load() | got extended RTP capabilities:%o', this._extendedRtpCapabilities);
 
-		logger.debug(
-			'load() | got receiving RTP capabilities:%o', this._recvRtpCapabilities);
+			// Check whether we can produce audio/video.
+			this._canProduceByKind.audio =
+				ortc.canSend('audio', this._extendedRtpCapabilities);
+			this._canProduceByKind.video =
+				ortc.canSend('video', this._extendedRtpCapabilities);
 
-		// Generate our SCTP capabilities.
-		this._sctpCapabilities = await this._Handler.getNativeSctpCapabilities();
+			// Generate our receiving RTP capabilities for receiving media.
+			this._recvRtpCapabilities =
+				ortc.getRecvRtpCapabilities(this._extendedRtpCapabilities);
 
-		logger.debug(
-			'load() | got native SCTP capabilities:%o', this._sctpCapabilities);
+			logger.debug(
+				'load() | got receiving RTP capabilities:%o', this._recvRtpCapabilities);
 
-		logger.debug('load() succeeded');
+			// Generate our SCTP capabilities.
+			this._sctpCapabilities = await handler.getNativeSctpCapabilities();
 
-		this._loaded = true;
+			logger.debug(
+				'load() | got native SCTP capabilities:%o', this._sctpCapabilities);
+
+			logger.debug('load() succeeded');
+
+			this._loaded = true;
+
+			handler.close();
+		}
+		catch (error)
+		{
+			if (handler)
+				handler.close();
+
+			throw error;
+		}
 	}
 
 	/**
@@ -460,7 +566,7 @@ export class Device
 				additionalSettings,
 				proprietaryConstraints,
 				appData,
-				Handler                 : this._Handler,
+				handlerFactory          : this._handlerFactory,
 				extendedRtpCapabilities : this._extendedRtpCapabilities,
 				canProduceByKind        : this._canProduceByKind
 			});

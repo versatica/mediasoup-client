@@ -1,4 +1,5 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
@@ -6,7 +7,7 @@ import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 import { SctpParameters } from './SctpParameters';
 interface InternalTransportOptions extends TransportOptions {
     direction: 'send' | 'recv';
-    Handler: any;
+    handlerFactory: HandlerFactory;
     extendedRtpCapabilities: any;
     canProduceByKind: CanProduceByKind;
 }
@@ -116,7 +117,7 @@ export declare class Transport extends EnhancedEventEmitter {
      * @emits produce - (producerLocalParameters: any, callback: Function, errback: Function)
      * @emits producedata - (dataProducerLocalParameters: any, callback: Function, errback: Function)
      */
-    constructor({ direction, id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData, Handler, extendedRtpCapabilities, canProduceByKind }: InternalTransportOptions);
+    constructor({ direction, id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData, handlerFactory, extendedRtpCapabilities, canProduceByKind }: InternalTransportOptions);
     /**
      * Transport id.
      */
@@ -132,7 +133,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * RTC handler instance.
      */
-    readonly handler: any;
+    readonly handler: HandlerInterface;
     /**
      * Connection state.
      */
@@ -153,7 +154,7 @@ export declare class Transport extends EnhancedEventEmitter {
      *
      * @returns {RTCStatsReport}
      */
-    getStats(): Promise<any>;
+    getStats(): Promise<RTCStatsReport>;
     /**
      * Restart ICE connection.
      */

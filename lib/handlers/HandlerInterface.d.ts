@@ -3,8 +3,8 @@ import { ProducerCodecOptions } from '../Producer';
 import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
 import { RtpCapabilities, RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
-export declare type HandlerFactory = (options: HandlerOptions) => HandlerInterface;
-export declare type HandlerOptions = {
+export declare type HandlerFactory = () => HandlerInterface;
+export declare type HandlerRunOptions = {
     direction: 'send' | 'recv';
     iceParameters: IceParameters;
     iceCandidates: IceCandidate[];
@@ -16,57 +16,59 @@ export declare type HandlerOptions = {
     proprietaryConstraints?: any;
     extendedRtpCapabilities: any;
 };
-export declare type SendOptions = {
+export declare type HandlerSendOptions = {
     track: MediaStreamTrack;
     encodings?: RtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
 };
-export declare type SendResult = {
-    sendId: string;
+export declare type HandlerSendResult = {
+    localId: string;
     rtpParameters: RtpParameters;
     rtpSender?: RTCRtpSender;
 };
-export declare type ReceiveOptions = {
+export declare type HandlerReceiveOptions = {
     trackId: string;
     kind: 'audio' | 'video';
     rtpParameters: RtpParameters;
 };
-export declare type ReceiveResult = {
-    recvId: string;
+export declare type HandlerReceiveResult = {
+    localId: string;
     track: MediaStreamTrack;
     rtpReceiver?: RTCRtpReceiver;
 };
-export declare type SendDataChannelOptions = SctpStreamParameters;
-export declare type SendDataChannelResult = {
+export declare type HandlerSendDataChannelOptions = SctpStreamParameters;
+export declare type HandlerSendDataChannelResult = {
     dataChannel: RTCDataChannel;
     sctpStreamParameters: SctpStreamParameters;
 };
-export declare type ReceiveDataChannelOptions = {
+export declare type HandlerReceiveDataChannelOptions = {
     sctpStreamParameters: SctpStreamParameters;
     label?: string;
     protocol?: string;
 };
-export declare type ReceiveDataChannelResult = {
+export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;
 };
 export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     constructor();
+    abstract readonly name: string;
     abstract close(): void;
+    abstract run(options: HandlerRunOptions): void;
     abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
     abstract restartIce(iceParameters: IceParameters): Promise<void>;
     abstract getTransportStats(): Promise<RTCStatsReport>;
-    abstract send(options: SendOptions): Promise<SendResult>;
-    abstract stopSending(sendId: string): Promise<void>;
-    abstract replaceTrack(sendId: string, track: MediaStreamTrack): Promise<void>;
-    abstract setMaxSpatialLayer(sendId: string, spatialLayer: number): Promise<void>;
-    abstract setRtpEncodingParameters(sendId: string, params: any): Promise<void>;
-    abstract getSenderStats(sendId: string): Promise<RTCStatsReport>;
-    abstract sendDataChannel(options: SendDataChannelOptions): Promise<SendDataChannelResult>;
-    abstract receive(options: ReceiveOptions): Promise<ReceiveResult>;
-    abstract stopReceiving(recvId: string): Promise<void>;
-    abstract getReceiverStats(recvId: string): Promise<RTCStatsReport>;
-    abstract receiveDataChannel(options: ReceiveDataChannelOptions): Promise<ReceiveDataChannelResult>;
+    abstract send(options: HandlerSendOptions): Promise<HandlerSendResult>;
+    abstract stopSending(localId: string): Promise<void>;
+    abstract replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>;
+    abstract setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
+    abstract setRtpEncodingParameters(localId: string, params: any): Promise<void>;
+    abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
+    abstract sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
+    abstract receive(options: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    abstract stopReceiving(localId: string): Promise<void>;
+    abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
+    abstract receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
 }
 //# sourceMappingURL=HandlerInterface.d.ts.map

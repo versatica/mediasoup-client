@@ -11,16 +11,12 @@ export class RemoteSdp
 {
 	// Remote ICE parameters.
 	private _iceParameters: IceParameters;
-
 	// Remote ICE candidates.
 	private readonly _iceCandidates: IceCandidate[] = [];
-
 	// Remote DTLS parameters.
 	private readonly _dtlsParameters: DtlsParameters;
-
 	// Remote SCTP parameters.
 	private readonly _sctpParameters: SctpParameters;
-
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE). Fields:
 	// @type {Object}
 	//
@@ -29,16 +25,12 @@ export class RemoteSdp
 	// @param {Number} ipVersion - 4 or 6.
 	// @param {Number} port
 	private readonly _plainRtpParameters: any;
-
 	// Whether this is Plan-B SDP.
 	private readonly _planB: boolean;
-
 	// MediaSection instances indexed by MID.
 	private _mediaSections: Map<string, any> = new Map();
-
 	// First MID.
 	private _firstMid: string | undefined = undefined;
-
 	// SDP object.
 	private readonly _sdpObject: any;
 

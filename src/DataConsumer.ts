@@ -18,19 +18,14 @@ export class DataConsumer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;
-
 	// Associated DataProducer Id.
 	private readonly _dataProducerId: string;
-
 	// The underlying RTCDataChannel instance.
 	private readonly _dataChannel: any;
-
 	// Closed flag.
 	private _closed = false;
-
 	// SCTP stream parameters.
 	private readonly _sctpStreamParameters: SctpStreamParameters;
-
 	// App custom data.
 	private readonly _appData: any;
 

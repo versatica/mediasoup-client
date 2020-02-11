@@ -1,8 +1,26 @@
 import { Transport, TransportOptions } from './Transport';
+import { HandlerFactory } from './handlers/HandlerInterface';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
-export declare function detectDevice(): any | undefined;
+export declare type BuiltinHandlerName = 'Chrome74' | 'Chrome70' | 'Chrome67' | 'Chrome55' | 'Firefox60' | 'Safari12' | 'Safari11' | 'Edge11' | 'ReactNative';
+export declare type DeviceOptions = {
+    /**
+     * The name of one of the builtin handlers.
+     */
+    handlerName?: BuiltinHandlerName;
+    /**
+     * Custom handler factory.
+     */
+    handlerFactory?: HandlerFactory;
+    /**
+     * DEPRECATED!
+     * The name of one of the builtin handlers.
+     */
+    Handler?: string;
+};
+export declare function detectDevice(): HandlerFactory | undefined;
 export declare class Device {
-    private readonly _Handler;
+    private readonly _handlerFactory;
+    private readonly _handlerName;
     private _loaded;
     private _extendedRtpCapabilities;
     private _recvRtpCapabilities?;
@@ -11,17 +29,11 @@ export declare class Device {
     /**
      * Create a new Device to connect to mediasoup server.
      *
-     * @param {Class|String} [Handler] - An optional RTC handler class for unsupported or
-     *   custom devices (not needed when running in a browser). If a String, it will
-     *   force usage of the given built-in handler.
-     *
      * @throws {UnsupportedError} if device is not supported.
      */
-    constructor({ Handler }?: {
-        Handler?: string | any;
-    });
+    constructor({ handlerName, handlerFactory, Handler }?: DeviceOptions);
     /**
-     * The RTC handler class name ('Chrome70', 'Firefox65', etc).
+     * The RTC handler name.
      */
     readonly handlerName: string;
     /**

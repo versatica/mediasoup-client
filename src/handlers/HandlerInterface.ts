@@ -16,9 +16,9 @@ import {
 	SctpStreamParameters
 } from '../SctpParameters';
 
-export type HandlerFactory = (options: HandlerOptions) => HandlerInterface;
+export type HandlerFactory = () => HandlerInterface;
 
-export type HandlerOptions =
+export type HandlerRunOptions =
 {
 	direction: 'send' | 'recv';
 	iceParameters: IceParameters;
@@ -32,50 +32,50 @@ export type HandlerOptions =
 	extendedRtpCapabilities: any;
 };
 
-export type SendOptions =
+export type HandlerSendOptions =
 {
 	track: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 };
 
-export type SendResult =
+export type HandlerSendResult =
 {
-	sendId: string;
+	localId: string;
 	rtpParameters: RtpParameters;
 	rtpSender?: RTCRtpSender;
 };
 
-export type ReceiveOptions =
+export type HandlerReceiveOptions =
 {
 	trackId: string;
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 };
 
-export type ReceiveResult =
+export type HandlerReceiveResult =
 {
-	recvId: string;
+	localId: string;
 	track: MediaStreamTrack;
 	rtpReceiver?: RTCRtpReceiver;
 };
 
-export type SendDataChannelOptions = SctpStreamParameters;
+export type HandlerSendDataChannelOptions = SctpStreamParameters;
 
-export type SendDataChannelResult =
+export type HandlerSendDataChannelResult =
 {
 	dataChannel: RTCDataChannel;
 	sctpStreamParameters: SctpStreamParameters;
 };
 
-export type ReceiveDataChannelOptions =
+export type HandlerReceiveDataChannelOptions =
 {
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
 }
 
-export type ReceiveDataChannelResult =
+export type HandlerReceiveDataChannelResult =
 {
 	dataChannel: RTCDataChannel;
 }
@@ -87,7 +87,11 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 		super();
 	}
 
+	abstract get name(): string;
+
 	abstract close(): void;
+
+	abstract run(options: HandlerRunOptions): void;
 
 	abstract async getNativeRtpCapabilities(): Promise<RtpCapabilities>;
 
@@ -99,35 +103,39 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 
 	abstract async getTransportStats(): Promise<RTCStatsReport>;
 
-	abstract async send(options: SendOptions): Promise<SendResult>;
+	abstract async send(options: HandlerSendOptions): Promise<HandlerSendResult>;
 
-	abstract async stopSending(sendId: string): Promise<void>;
+	abstract async stopSending(localId: string): Promise<void>;
 
-	abstract async replaceTrack(sendId: string, track: MediaStreamTrack): Promise<void>;
+	abstract async replaceTrack(
+		localId: string, track: MediaStreamTrack
+	): Promise<void>;
 
 	abstract async setMaxSpatialLayer(
-		sendId: string,
+		localId: string,
 		spatialLayer: number
 	): Promise<void>;
 
 	abstract async setRtpEncodingParameters(
-		sendId: string,
+		localId: string,
 		params: any
 	): Promise<void>;
 
-	abstract async getSenderStats(sendId: string): Promise<RTCStatsReport>;
+	abstract async getSenderStats(localId: string): Promise<RTCStatsReport>;
 
 	abstract async sendDataChannel(
-		options: SendDataChannelOptions
-	): Promise<SendDataChannelResult>;
+		options: HandlerSendDataChannelOptions
+	): Promise<HandlerSendDataChannelResult>;
 
-	abstract async receive(options: ReceiveOptions): Promise<ReceiveResult>;
+	abstract async receive(
+		options: HandlerReceiveOptions
+	): Promise<HandlerReceiveResult>;
 
-	abstract async stopReceiving(recvId: string): Promise<void>;
+	abstract async stopReceiving(localId: string): Promise<void>;
 
-	abstract async getReceiverStats(recvId: string): Promise<RTCStatsReport>;
+	abstract async getReceiverStats(localId: string): Promise<RTCStatsReport>;
 
 	abstract async receiveDataChannel(
-		options: ReceiveDataChannelOptions
-	): Promise<ReceiveDataChannelResult>;
+		options: HandlerReceiveDataChannelOptions
+	): Promise<HandlerReceiveDataChannelResult>;
 }

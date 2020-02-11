@@ -18,28 +18,20 @@ export class Consumer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;
-
 	// Local id.
 	private readonly _localId: string;
-
 	// Associated Producer id.
 	private readonly _producerId: string;
-
 	// Closed flag.
 	private _closed = false;
-
 	// Associated RTCRtpReceiver.
 	private readonly _rtpReceiver?: RTCRtpReceiver;
-
 	// Remote track.
 	private readonly _track: MediaStreamTrack;
-
 	// RTP parameters.
 	private readonly _rtpParameters: RtpParameters;
-
 	// Paused flag.
 	private _paused: boolean;
-
 	// App custom data.
 	private readonly _appData: any;
 

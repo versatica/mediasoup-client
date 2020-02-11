@@ -29,28 +29,20 @@ export class Producer extends EnhancedEventEmitter
 {
 	// Id.
 	private readonly _id: string;
-
 	// Local id.
 	private readonly _localId: string;
-
 	// Closed flag.
 	private _closed = false;
-
 	// Associated RTCRtpSender.
 	private readonly _rtpSender?: RTCRtpSender;
-
 	// Local track.
 	private _track: MediaStreamTrack;
-
 	// RTP parameters.
 	private readonly _rtpParameters: RtpParameters;
-
 	// Paused flag.
 	private _paused: boolean;
-
 	// Video max spatial layer.
 	private _maxSpatialLayer: number | undefined;
-
 	// App custom data.
 	private readonly _appData: any;
 

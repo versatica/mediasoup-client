@@ -5,7 +5,6 @@ abstract class MediaSection
 {
 	// SDP media object.
 	protected readonly _mediaObject: any;
-
 	// Whether this is Plan-B SDP.
 	protected readonly _planB: boolean;
 

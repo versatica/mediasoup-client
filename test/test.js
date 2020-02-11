@@ -36,21 +36,21 @@ test('detectDevice() returns nothing in Node', () =>
 	expect(detectDevice()).toBe(undefined);
 }, 500);
 
-test('create a Device in Node without custom Handler throws UnsupportedError', () =>
+test('create a Device in Node without custom handlerName/handlerFactory throws UnsupportedError', () =>
 {
 	expect(() => new Device())
 		.toThrow(UnsupportedError);
 }, 500);
 
-test('create a Device with an unknown Handler string throws TypeError', () =>
+test('create a Device with an unknown handlerName string throws TypeError', () =>
 {
-	expect(() => new Device({ Handler: 'FooBrowser666' }))
+	expect(() => new Device({ handlerName: 'FooBrowser666' }))
 		.toThrow(TypeError);
 }, 500);
 
-test('create a Device in Node with a FakeHandler succeeds', () =>
+test('create a Device in Node with a valid handlerFactory succeeds', () =>
 {
-	expect(device = new Device({ Handler: FakeHandler }))
+	expect(device = new Device({ handlerFactory: FakeHandler.createFactory() }))
 		.toBeType('object');
 
 	expect(device.handlerName).toBe('FakeHandler');
@@ -192,6 +192,7 @@ test('device.createSendTransport() for sending media succeeds', () =>
 	expect(sendTransport.closed).toBe(false);
 	expect(sendTransport.direction).toBe('send');
 	expect(sendTransport.handler).toBeType('object');
+	expect(sendTransport.handler instanceof FakeHandler).toBe(true);
 	expect(sendTransport.connectionState).toBe('new');
 	expect(sendTransport.appData).toEqual({ baz: 'BAZ' }, 500);
 }, 500);
@@ -221,6 +222,7 @@ test('device.createRecvTransport() for receiving media succeeds', () =>
 	expect(recvTransport.closed).toBe(false);
 	expect(recvTransport.direction).toBe('recv');
 	expect(recvTransport.handler).toBeType('object');
+	expect(recvTransport.handler instanceof FakeHandler).toBe(true);
 	expect(recvTransport.connectionState).toBe('new');
 	expect(recvTransport.appData).toEqual({});
 }, 500);
