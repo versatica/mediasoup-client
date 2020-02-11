@@ -18,7 +18,7 @@ interface InternalTransportOptions extends TransportOptions
 	canProduceByKind: CanProduceByKind;
 }
 
-export interface TransportOptions
+export type TransportOptions =
 {
 	id: string;
 	iceParameters: IceParameters;
@@ -32,77 +32,68 @@ export interface TransportOptions
 	appData?: any;
 }
 
-export interface CanProduceByKind
+export type CanProduceByKind =
 {
 	audio: boolean;
 	video: boolean;
 	[key: string]: boolean;
 }
 
-export interface IceParameters
+export type IceParameters =
 {
 	/**
 	 * ICE username fragment.
 	 * */
 	usernameFragment: string;
-
 	/**
 	 * ICE password.
 	 */
 	password: string;
-
 	/**
 	 * ICE Lite.
 	 */
 	iceLite?: boolean;
 }
 
-export interface IceCandidate
+export type IceCandidate =
 {
 	/**
 	 * Unique identifier that allows ICE to correlate candidates that appear on
 	 * multiple transports.
 	 */
 	foundation: string;
-
 	/**
 	 * The assigned priority of the candidate.
 	 */
 	priority: number;
-
 	/**
 	 * The IP address of the candidate.
 	 */
 	ip: string;
-
 	/**
 	 * The protocol of the candidate.
 	 */
 	protocol: 'udp' | 'tcp';
-
 	/**
 	 * The port for the candidate.
 	 */
 	port: number;
-
 	/**
 	 * The type of candidate..
 	 */
 	type: 'host' | 'srflx' | 'prflx' | 'relay';
-
 	/**
 	 * The type of TCP candidate.
 	 */
 	tcpType: 'active' | 'passive' | 'so';
 }
 
-export interface DtlsParameters
+export type DtlsParameters =
 {
 	/**
 	 * DTLS role. Default 'auto'.
 	 */
 	role?: DtlsRole;
-
 	/**
 	 * DTLS fingerprints.
 	 */
@@ -115,7 +106,7 @@ export interface DtlsParameters
  * certificate fingerprint value (in lowercase hex string as expressed utilizing
  * the syntax of "fingerprint" in RFC 4572 Section 5).
  */
-export interface DtlsFingerprint
+export type DtlsFingerprint =
 {
 	algorithm: string;
 	value: string;

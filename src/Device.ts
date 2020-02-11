@@ -14,7 +14,7 @@ import { Safari12 } from './handlers/Safari12';
 import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
 import { ReactNative } from './handlers/ReactNative';
-import { RtpCapabilities } from './RtpParameters';
+import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
 
 const logger = new Logger('Device');
@@ -325,7 +325,7 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	canProduce(kind: 'audio' | 'video'): boolean
+	canProduce(kind: MediaKind): boolean
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');

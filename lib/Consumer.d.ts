@@ -1,12 +1,12 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpParameters } from './RtpParameters';
-export interface ConsumerOptions {
+export declare type ConsumerOptions = {
     id?: string;
     producerId?: string;
     kind?: 'audio' | 'video';
     rtpParameters?: RtpParameters;
     appData?: any;
-}
+};
 export declare class Consumer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _localId;

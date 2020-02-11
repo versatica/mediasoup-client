@@ -3,7 +3,7 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParameters';
 
-export interface ConsumerOptions
+export type ConsumerOptions =
 {
 	id?: string;
 	producerId?: string;

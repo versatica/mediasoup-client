@@ -3,7 +3,7 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { SctpStreamParameters } from './SctpParameters';
 
-export interface DataProducerOptions
+export type DataProducerOptions =
 {
 	ordered?: boolean;
 	maxPacketLifeTime?: number;

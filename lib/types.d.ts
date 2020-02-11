@@ -6,6 +6,7 @@ export * from './DataProducer';
 export * from './DataConsumer';
 export * from './RtpParameters';
 export * from './SctpParameters';
+export * from './handlers/HandlerInterface';
 export * from './errors';
 export { ScalabilityMode } from './scalabilityModes';
 //# sourceMappingURL=types.d.ts.map

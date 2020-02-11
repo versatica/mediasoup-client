@@ -1,1 +1,1 @@
-{"version":3,"file":"scalabilityModes.d.ts","sourceRoot":"","sources":["../src/scalabilityModes.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,eAAe;IAE/B,aAAa,EAAE,MAAM,CAAC;IACtB,cAAc,EAAE,MAAM,CAAC;CACvB;AAED,wBAAgB,KAAK,CAAC,eAAe,EAAE,MAAM,GAAG,eAAe,CAkB9D"}
+{"version":3,"file":"scalabilityModes.d.ts","sourceRoot":"","sources":["../src/scalabilityModes.ts"],"names":[],"mappings":"AAEA,oBAAY,eAAe,GAC3B;IACC,aAAa,EAAE,MAAM,CAAC;IACtB,cAAc,EAAE,MAAM,CAAC;CACvB,CAAA;AAED,wBAAgB,KAAK,CAAC,eAAe,EAAE,MAAM,GAAG,eAAe,CAkB9D"}

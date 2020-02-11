@@ -1,12 +1,12 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpParameters } from './RtpParameters';
-export interface ProducerOptions {
+export declare type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RTCRtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
     appData?: any;
-}
-export interface ProducerCodecOptions {
+};
+export declare type ProducerCodecOptions = {
     opusStereo?: boolean;
     opusFec?: boolean;
     opusDtx?: boolean;
@@ -14,7 +14,7 @@ export interface ProducerCodecOptions {
     videoGoogleStartBitrate?: number;
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
-}
+};
 export declare class Producer extends EnhancedEventEmitter {
     private readonly _id;
     private readonly _localId;

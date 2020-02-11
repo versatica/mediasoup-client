@@ -3,7 +3,8 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParameters';
 
-export interface ProducerOptions {
+export type ProducerOptions =
+{
 	track?: MediaStreamTrack;
 	encodings?: RTCRtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
@@ -11,7 +12,8 @@ export interface ProducerOptions {
 }
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
-export interface ProducerCodecOptions {
+export type ProducerCodecOptions =
+{
 	opusStereo?: boolean;
 	opusFec?: boolean;
 	opusDtx?: boolean;

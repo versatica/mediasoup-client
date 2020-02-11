@@ -1,5 +1,5 @@
 import { Transport, TransportOptions } from './Transport';
-import { RtpCapabilities } from './RtpParameters';
+import { RtpCapabilities, MediaKind } from './RtpParameters';
 export declare function detectDevice(): any | undefined;
 export declare class Device {
     private readonly _Handler;
@@ -52,7 +52,7 @@ export declare class Device {
      * @throws {InvalidStateError} if not loaded.
      * @throws {TypeError} if wrong arguments.
      */
-    canProduce(kind: 'audio' | 'video'): boolean;
+    canProduce(kind: MediaKind): boolean;
     /**
      * Creates a Transport for sending media.
      *

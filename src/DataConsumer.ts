@@ -2,7 +2,7 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
 
-export interface DataConsumerOptions
+export type DataConsumerOptions =
 {
 	id?: string;
 	dataProducerId?: string;
