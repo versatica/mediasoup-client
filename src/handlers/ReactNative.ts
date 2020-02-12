@@ -285,7 +285,7 @@ export class ReactNative extends HandlerInterface
 		{ track, encodings, codecOptions }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -394,7 +394,7 @@ export class ReactNative extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -480,7 +480,7 @@ export class ReactNative extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('sendDataChannel()');
 
@@ -550,7 +550,7 @@ export class ReactNative extends HandlerInterface
 		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -623,7 +623,7 @@ export class ReactNative extends HandlerInterface
 
 	async stopReceiving(localId: string): Promise<void>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
@@ -662,7 +662,7 @@ export class ReactNative extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('receiveDataChannel()');
 
@@ -754,7 +754,7 @@ export class ReactNative extends HandlerInterface
 		this._transportReady = true;
 	}
 
-	private assertSendDirection(): void
+	private _assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -763,7 +763,7 @@ export class ReactNative extends HandlerInterface
 		}
 	}
 
-	private assertRecvDirection(): void
+	private _assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

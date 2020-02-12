@@ -38,7 +38,7 @@ export declare class Chrome74 extends HandlerInterface {
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;
-    private assertSendDirection;
-    private assertRecvDirection;
+    private _assertSendDirection;
+    private _assertRecvDirection;
 }
 //# sourceMappingURL=Chrome74.d.ts.map

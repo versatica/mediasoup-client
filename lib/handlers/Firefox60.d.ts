@@ -41,7 +41,7 @@ export declare class Firefox60 extends HandlerInterface {
         localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
-    private assertSendDirection;
-    private assertRecvDirection;
+    private _assertSendDirection;
+    private _assertRecvDirection;
 }
 //# sourceMappingURL=Firefox60.d.ts.map

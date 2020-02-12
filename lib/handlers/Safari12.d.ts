@@ -41,7 +41,7 @@ export declare class Safari12 extends HandlerInterface {
         localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
-    private assertSendDirection;
-    private assertRecvDirection;
+    private _assertSendDirection;
+    private _assertRecvDirection;
 }
 //# sourceMappingURL=Safari12.d.ts.map

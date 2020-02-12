@@ -43,7 +43,7 @@ export declare class ReactNative extends HandlerInterface {
         localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
-    private assertSendDirection;
-    private assertRecvDirection;
+    private _assertSendDirection;
+    private _assertRecvDirection;
 }
 //# sourceMappingURL=ReactNative.d.ts.map

@@ -269,7 +269,7 @@ export class Safari12 extends HandlerInterface
 		{ track, encodings, codecOptions }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -379,7 +379,7 @@ export class Safari12 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -411,7 +411,7 @@ export class Safari12 extends HandlerInterface
 
 	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug(
 			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
@@ -426,7 +426,7 @@ export class Safari12 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
@@ -452,7 +452,7 @@ export class Safari12 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
@@ -475,7 +475,7 @@ export class Safari12 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -496,7 +496,7 @@ export class Safari12 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this.assertSendDirection();
+		this._assertSendDirection();
 
 		logger.debug('sendDataChannel()');
 
@@ -565,7 +565,7 @@ export class Safari12 extends HandlerInterface
 		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -630,7 +630,7 @@ export class Safari12 extends HandlerInterface
 
 	async stopReceiving(localId: string): Promise<void>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
@@ -660,7 +660,7 @@ export class Safari12 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -674,7 +674,7 @@ export class Safari12 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this.assertRecvDirection();
+		this._assertRecvDirection();
 
 		logger.debug('receiveDataChannel()');
 
@@ -765,7 +765,7 @@ export class Safari12 extends HandlerInterface
 		this._transportReady = true;
 	}
 
-	private assertSendDirection(): void
+	private _assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -774,7 +774,7 @@ export class Safari12 extends HandlerInterface
 		}
 	}
 
-	private assertRecvDirection(): void
+	private _assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

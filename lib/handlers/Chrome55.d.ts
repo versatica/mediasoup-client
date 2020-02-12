@@ -43,7 +43,7 @@ export declare class Chrome55 extends HandlerInterface {
         localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
-    private assertSendDirection;
-    private assertRecvDirection;
+    private _assertSendDirection;
+    private _assertRecvDirection;
 }
 //# sourceMappingURL=Chrome55.d.ts.map
