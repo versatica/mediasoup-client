@@ -1,55 +1,135 @@
 import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import {
+	HandlerFactory,
+	HandlerInterface,
+	HandlerRunOptions,
+	HandlerSendOptions,
+	HandlerSendResult,
+	HandlerReceiveOptions,
+	HandlerReceiveResult,
+	HandlerSendDataChannelOptions,
+	HandlerSendDataChannelResult,
+	HandlerReceiveDataChannelOptions,
+	HandlerReceiveDataChannelResult
+} from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
-import { ProducerCodecOptions } from '../Producer';
-import {
-	IceParameters,
-	IceCandidate,
-	DtlsParameters,
-	DtlsRole
-} from '../Transport';
-import {
-	RtpCapabilities,
-	RtpParameters,
-	RtpEncodingParameters
-} from '../RtpParameters';
-import {
-	SctpCapabilities,
-	SctpParameters,
-	SctpStreamParameters
-} from '../SctpParameters';
+import { IceParameters, DtlsRole } from '../Transport';
+import { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Safari12');
 
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-class Handler extends EnhancedEventEmitter
+export class Safari12 extends HandlerInterface
 {
-	// Got transport local and remote parameters.
-	protected _transportReady = false;
-
+	// Handler direction.
+	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
-	protected readonly _remoteSdp: RemoteSdp;
-
+	private _remoteSdp: RemoteSdp;
+	// Generic sending RTP parameters for audio and video.
+	private _sendingRtpParametersByKind: { [key: string]: RtpParameters };
+	// Generic sending RTP parameters for audio and video suitable for the SDP
+	// remote answer.
+	private _sendingRemoteRtpParametersByKind: { [key: string]: RtpParameters };
 	// RTCPeerConnection instance.
-	protected readonly _pc: any;
-
+	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
-	protected readonly _mapMidTransceiver: Map<string, any> = new Map();
-
+	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
+		new Map();
+	// Local stream for sending.
+	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
-	protected _hasDataChannelMediaSection = false;
+	private _hasDataChannelMediaSection = false;
+	// Sending DataChannel id value counter. Incremented for each new DataChannel.
+	private _nextSendSctpStreamId = 0;
+	// Got transport local and remote parameters.
+	private _transportReady = false;
 
-	// DataChannel id value counter. It must be incremented for each new DataChannel.
-	protected _nextSctpStreamId = 0;
+	/**
+	 * Creates a factory function.
+	 */
+	static createFactory(): HandlerFactory
+	{
+		return (): Safari12 => new Safari12();
+	}
 
-	constructor(
+	constructor()
+	{
+		super();
+	}
+
+	get name(): string
+	{
+		return 'Safari12';
+	}
+
+	close(): void
+	{
+		logger.debug('close()');
+
+		// Close RTCPeerConnection.
+		if (this._pc)
 		{
+			try { this._pc.close(); }
+			catch (error) {}
+		}
+	}
+
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
+	{
+		logger.debug('getNativeRtpCapabilities()');
+
+		const pc = new (RTCPeerConnection as any)(
+			{
+				iceServers         : [],
+				iceTransportPolicy : 'all',
+				bundlePolicy       : 'max-bundle',
+				rtcpMuxPolicy      : 'require'
+			});
+
+		try
+		{
+			pc.addTransceiver('audio');
+			pc.addTransceiver('video');
+
+			const offer = await pc.createOffer();
+
+			try { pc.close(); }
+			catch (error) {}
+
+			const sdpObject = sdpTransform.parse(offer.sdp);
+			const nativeRtpCapabilities =
+				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+			return nativeRtpCapabilities;
+		}
+		catch (error)
+		{
+			try { pc.close(); }
+			catch (error2) {}
+
+			throw error;
+		}
+	}
+
+	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
+	{
+		logger.debug('getNativeSctpCapabilities()');
+
+		return {
+			numStreams : SCTP_NUM_STREAMS
+		};
+	}
+
+	run(
+		{
+			direction,
 			iceParameters,
 			iceCandidates,
 			dtlsParameters,
@@ -57,21 +137,14 @@ class Handler extends EnhancedEventEmitter
 			iceServers,
 			iceTransportPolicy,
 			additionalSettings,
-			proprietaryConstraints
-		}:
-		{
-			iceParameters: IceParameters;
-			iceCandidates: IceCandidate[];
-			dtlsParameters: DtlsParameters;
-			sctpParameters?: SctpParameters;
-			iceServers?: RTCIceServer[];
-			iceTransportPolicy?: RTCIceTransportPolicy;
-			additionalSettings?: any;
-			proprietaryConstraints?: any;
-		}
-	)
+			proprietaryConstraints,
+			extendedRtpCapabilities
+		}: HandlerRunOptions
+	): void
 	{
-		super();
+		logger.debug('run()');
+
+		this._direction = direction;
 
 		this._remoteSdp = new RemoteSdp(
 			{
@@ -80,6 +153,18 @@ class Handler extends EnhancedEventEmitter
 				dtlsParameters,
 				sctpParameters
 			});
+
+		this._sendingRtpParametersByKind =
+		{
+			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+		};
+
+		this._sendingRemoteRtpParametersByKind =
+		{
+			audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
+			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
+		};
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
@@ -116,24 +201,7 @@ class Handler extends EnhancedEventEmitter
 		});
 	}
 
-	close(): void
-	{
-		logger.debug('close()');
-
-		// Close RTCPeerConnection.
-		try { this._pc.close(); }
-		catch (error) {}
-	}
-
-	async getTransportStats(): Promise<any>
-	{
-		return this._pc.getStats();
-	}
-
-	async updateIceServers(
-		{ iceServers }:
-		{ iceServers: RTCIceServer[] }
-	): Promise<void>
+	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
 	{
 		logger.debug('updateIceServers()');
 
@@ -144,66 +212,70 @@ class Handler extends EnhancedEventEmitter
 		this._pc.setConfiguration(configuration);
 	}
 
-	async _setupTransport(
-		{ localDtlsRole, localSdpObject = null }:
-		{ localDtlsRole: DtlsRole; localSdpObject: any | null }
-	): Promise<void>
+	async restartIce(iceParameters: IceParameters): Promise<void>
 	{
-		if (!localSdpObject)
-			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+		logger.debug('restartIce()');
 
-		// Get our local DTLS parameters.
-		const dtlsParameters =
-			sdpCommonUtils.extractDtlsParameters({ sdpObject: localSdpObject });
+		// Provide the remote SDP handler with new remote ICE parameters.
+		this._remoteSdp.updateIceParameters(iceParameters);
 
-		// Set our DTLS role.
-		dtlsParameters.role = localDtlsRole;
+		if (!this._transportReady)
+			return;
 
-		// Update the remote DTLS role in the SDP.
-		this._remoteSdp.updateDtlsRole(
-			localDtlsRole === 'client' ? 'server' : 'client');
+		if (this._direction === 'send')
+		{
+			const offer = await this._pc.createOffer({ iceRestart: true });
 
-		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+			logger.debug(
+				'restartIce() | calling pc.setLocalDescription() [offer:%o]',
+				offer);
 
-		this._transportReady = true;
+			await this._pc.setLocalDescription(offer);
+
+			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+
+			logger.debug(
+				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
+
+			await this._pc.setRemoteDescription(answer);
+		}
+		else
+		{
+			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+
+			logger.debug(
+				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
+				offer);
+
+			await this._pc.setRemoteDescription(offer);
+
+			const answer = await this._pc.createAnswer();
+
+			logger.debug(
+				'restartIce() | calling pc.setLocalDescription() [answer:%o]',
+				answer);
+
+			await this._pc.setLocalDescription(answer);
+		}
 	}
-}
 
-class SendHandler extends Handler
-{
-	// Generic sending RTP parameters for audio and video.
-	private readonly _sendingRtpParametersByKind: any;
-
-	// Generic sending RTP parameters for audio and video suitable for the SDP
-	// remote answer.
-	private readonly _sendingRemoteRtpParametersByKind: any;
-
-	// Local stream.
-	private readonly _stream = new MediaStream();
-
-	constructor(data: any)
+	async getTransportStats(): Promise<RTCStatsReport>
 	{
-		super(data);
-
-		this._sendingRtpParametersByKind = data.sendingRtpParametersByKind;
-		this._sendingRemoteRtpParametersByKind = data.sendingRemoteRtpParametersByKind;
+		return this._pc.getStats();
 	}
 
 	async send(
-		{ track, encodings, codecOptions }:
-		{
-			track: MediaStreamTrack;
-			encodings?: RtpEncodingParameters[];
-			codecOptions?: ProducerCodecOptions;
-		}
-	): Promise<any>
+		{ track, encodings, codecOptions }: HandlerSendOptions
+	): Promise<HandlerSendResult>
 	{
+		this.assertSendDirection();
+
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
-			track, { direction: 'sendonly', streams: [ this._stream ] });
+			track, { direction: 'sendonly', streams: [ this._sendStream ] });
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
@@ -230,7 +302,8 @@ class SendHandler extends Handler
 		}
 
 		logger.debug(
-			'send() | calling pc.setLocalDescription() [offer:%o]', offer);
+			'send() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setLocalDescription(offer);
 
@@ -283,14 +356,14 @@ class SendHandler extends Handler
 				reuseMid            : mediaSectionIdx.reuseMid,
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
-				codecOptions,
-				extmapAllowMixed    : true
+				codecOptions
 			});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'send() | calling pc.setRemoteDescription() [answer:%o]', answer);
+			'send() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setRemoteDescription(answer);
 
@@ -299,14 +372,15 @@ class SendHandler extends Handler
 
 		return {
 			localId,
-			rtpSender     : transceiver.sender,
-			rtpParameters : sendingRtpParameters
+			rtpParameters : sendingRtpParameters,
+			rtpSender     : transceiver.sender
 		};
-
 	}
 
-	async stopSending({ localId }: { localId: string }): Promise<void>
+	async stopSending(localId: string): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug('stopSending() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -321,24 +395,26 @@ class SendHandler extends Handler
 		const offer = await this._pc.createOffer();
 
 		logger.debug(
-			'stopSending() | calling pc.setLocalDescription() [offer:%o]', offer);
+			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setLocalDescription(offer);
 
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopSending() | calling pc.setRemoteDescription() [answer:%o]', answer);
+			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	async replaceTrack(
-		{ localId, track }:
-		{ localId: string; track: MediaStreamTrack }
-	): Promise<void>
+	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
-		logger.debug('replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		this.assertSendDirection();
+
+		logger.debug(
+			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -348,11 +424,10 @@ class SendHandler extends Handler
 		await transceiver.sender.replaceTrack(track);
 	}
 
-	async setMaxSpatialLayer(
-		{ localId, spatialLayer }:
-		{ localId: string; spatialLayer: number }
-	): Promise<void>
+	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId, spatialLayer);
@@ -375,11 +450,10 @@ class SendHandler extends Handler
 		await transceiver.sender.setParameters(parameters);
 	}
 
-	async setRtpEncodingParameters(
-		{ localId, params }:
-		{ localId: string; params: any }
-	): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId, params);
@@ -399,8 +473,10 @@ class SendHandler extends Handler
 		await transceiver.sender.setParameters(parameters);
 	}
 
-	async getSenderStats({ localId }: { localId: string }): Promise<any>
+	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertSendDirection();
+
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
@@ -417,15 +493,17 @@ class SendHandler extends Handler
 			label,
 			protocol,
 			priority
-		}: SctpStreamParameters
-	): Promise<any>
+		}: HandlerSendDataChannelOptions
+	): Promise<HandlerSendDataChannelResult>
 	{
+		this.assertSendDirection();
+
 		logger.debug('sendDataChannel()');
 
 		const options =
 		{
 			negotiated : true,
-			id         : this._nextSctpStreamId,
+			id         : this._nextSendSctpStreamId,
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
@@ -438,7 +516,8 @@ class SendHandler extends Handler
 		const dataChannel = this._pc.createDataChannel(label, options);
 
 		// Increase next id.
-		this._nextSctpStreamId = ++this._nextSctpStreamId % SCTP_NUM_STREAMS.MIS;
+		this._nextSendSctpStreamId =
+			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
 
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
@@ -453,7 +532,8 @@ class SendHandler extends Handler
 				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]', offer);
+				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setLocalDescription(offer);
 
@@ -462,14 +542,15 @@ class SendHandler extends Handler
 			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]', answer);
+				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setRemoteDescription(answer);
 
 			this._hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters =
+		const sctpStreamParameters: SctpStreamParameters =
 		{
 			streamId          : options.id,
 			ordered           : options.ordered,
@@ -480,54 +561,15 @@ class SendHandler extends Handler
 		return { dataChannel, sctpStreamParameters };
 	}
 
-	async restartIce(
-		{ iceParameters }:
-		{ iceParameters: IceParameters }
-	): Promise<void>
-	{
-		logger.debug('restartIce()');
-
-		// Provide the remote SDP handler with new remote ICE parameters.
-		this._remoteSdp.updateIceParameters(iceParameters);
-
-		if (!this._transportReady)
-			return;
-
-		const offer = await this._pc.createOffer({ iceRestart: true });
-
-		logger.debug(
-			'restartIce() | calling pc.setLocalDescription() [offer:%o]', offer);
-
-		await this._pc.setLocalDescription(offer);
-
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
-
-		logger.debug(
-			'restartIce() | calling pc.setRemoteDescription() [answer:%o]', answer);
-
-		await this._pc.setRemoteDescription(answer);
-	}
-}
-
-class RecvHandler extends Handler
-{
-	// MID value counter. It must be converted to string and incremented for
-	// each new m= section.
-	private _nextMid = 0;
-
-	constructor(data: any)
-	{
-		super(data);
-	}
-
 	async receive(
-		{ id, kind, rtpParameters }:
-		{ id: string; kind: 'audio' | 'video'; rtpParameters: RtpParameters }
-	): Promise<any>
+		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+	): Promise<HandlerReceiveResult>
 	{
-		logger.debug('receive() [id:%s, kind:%s]', id, kind);
+		this.assertRecvDirection();
 
-		const localId = String(this._nextMid);
+		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+		const localId = String(this._mapMidTransceiver.size);
 
 		this._remoteSdp.receive(
 			{
@@ -535,13 +577,14 @@ class RecvHandler extends Handler
 				kind,
 				offerRtpParameters : rtpParameters,
 				streamId           : rtpParameters.rtcp.cname,
-				trackId            : id
+				trackId
 			});
 
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'receive() | calling pc.setRemoteDescription() [offer:%o]', offer);
+			'receive() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setRemoteDescription(offer);
 
@@ -564,7 +607,8 @@ class RecvHandler extends Handler
 			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
-			'receive() | calling pc.setLocalDescription() [answer:%o]', answer);
+			'receive() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setLocalDescription(answer);
 
@@ -577,18 +621,17 @@ class RecvHandler extends Handler
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
 
-		// Increase next MID.
-		this._nextMid++;
-
 		return {
 			localId,
-			rtpReceiver : transceiver.receiver,
-			track       : transceiver.receiver.track
+			track       : transceiver.receiver.track,
+			rtpReceiver : transceiver.receiver
 		};
 	}
 
-	async stopReceiving({ localId }: { localId: string }): Promise<void>
+	async stopReceiving(localId: string): Promise<void>
 	{
+		this.assertRecvDirection();
+
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -601,23 +644,38 @@ class RecvHandler extends Handler
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]', offer);
+			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setRemoteDescription(offer);
 
 		const answer = await this._pc.createAnswer();
 
 		logger.debug(
-			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]', answer);
+			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
 
 		await this._pc.setLocalDescription(answer);
 	}
 
-	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }:
-		{ sctpStreamParameters: SctpStreamParameters; label?: string; protocol?: string }
-	): Promise<any>
+	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertRecvDirection();
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		return transceiver.receiver.getStats();
+	}
+
+	async receiveDataChannel(
+		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+	): Promise<HandlerReceiveDataChannelResult>
+	{
+		this.assertRecvDirection();
+
 		logger.debug('receiveDataChannel()');
 
 		const {
@@ -625,7 +683,7 @@ class RecvHandler extends Handler
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits
-		} = sctpStreamParameters;
+		}: SctpStreamParameters = sctpStreamParameters;
 
 		const options =
 		{
@@ -650,7 +708,8 @@ class RecvHandler extends Handler
 			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]', offer);
+				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
+				offer);
 
 			await this._pc.setRemoteDescription(offer);
 
@@ -664,7 +723,8 @@ class RecvHandler extends Handler
 			}
 
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]', answer);
+				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
 
 			await this._pc.setLocalDescription(answer);
 
@@ -674,172 +734,52 @@ class RecvHandler extends Handler
 		return { dataChannel };
 	}
 
-	async getReceiverStats({ localId }: { localId: string }): Promise<any>
-	{
-		const transceiver = this._mapMidTransceiver.get(localId);
-
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
-
-		return transceiver.receiver.getStats();
-	}
-
-	async restartIce(
-		{ iceParameters }:
-		{ iceParameters: IceParameters }
-	): Promise<void>
-	{
-		logger.debug('restartIce()');
-
-		// Provide the remote SDP handler with new remote ICE parameters.
-		this._remoteSdp.updateIceParameters(iceParameters);
-
-		if (!this._transportReady)
-			return;
-
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
-
-		logger.debug(
-			'restartIce() | calling pc.setRemoteDescription() [offer:%o]', offer);
-
-		await this._pc.setRemoteDescription(offer);
-
-		const answer = await this._pc.createAnswer();
-
-		logger.debug(
-			'restartIce() | calling pc.setLocalDescription() [answer:%o]', answer);
-
-		await this._pc.setLocalDescription(answer);
-	}
-}
-
-export class Safari12
-{
-	static get label(): string
-	{
-		return 'Safari12';
-	}
-
-	static async getNativeRtpCapabilities(): Promise<RtpCapabilities>
-	{
-		logger.debug('getNativeRtpCapabilities()');
-
-		const pc = new RTCPeerConnection(
-			{
-				iceServers         : [],
-				iceTransportPolicy : 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require'
-			});
-
-		try
+	async _setupTransport(
 		{
-			pc.addTransceiver('audio');
-			pc.addTransceiver('video');
-
-			const offer = await pc.createOffer();
-
-			try { pc.close(); }
-			catch (error) {}
-
-			const sdpObject = sdpTransform.parse(offer.sdp);
-			const nativeRtpCapabilities =
-				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-			return nativeRtpCapabilities;
-		}
-		catch (error)
-		{
-			try { pc.close(); }
-			catch (error2) {}
-
-			throw error;
-		}
-	}
-
-	static async getNativeSctpCapabilities(): Promise<SctpCapabilities>
-	{
-		logger.debug('getNativeSctpCapabilities()');
-
-		return {
-			numStreams : SCTP_NUM_STREAMS
-		};
-	}
-
-	constructor(
-		{
-			direction,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings,
-			proprietaryConstraints,
-			extendedRtpCapabilities
+			localDtlsRole,
+			localSdpObject
 		}:
 		{
-			direction: 'send' | 'recv';
-			iceParameters: IceParameters;
-			iceCandidates: IceCandidate[];
-			dtlsParameters: DtlsParameters;
-			sctpParameters?: SctpParameters;
-			iceServers?: RTCIceServer[];
-			iceTransportPolicy?: RTCIceTransportPolicy;
-			additionalSettings?: any;
-			proprietaryConstraints?: any;
-			extendedRtpCapabilities: any;
+			localDtlsRole: DtlsRole;
+			localSdpObject?: any;
 		}
-	)
+	): Promise<void>
 	{
-		logger.debug('constructor() [direction:%s]', direction);
+		if (!localSdpObject)
+			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 
-		switch (direction)
+		// Get our local DTLS parameters.
+		const dtlsParameters =
+			sdpCommonUtils.extractDtlsParameters({ sdpObject: localSdpObject });
+
+		// Set our DTLS role.
+		dtlsParameters.role = localDtlsRole;
+
+		// Update the remote DTLS role in the SDP.
+		this._remoteSdp.updateDtlsRole(
+			localDtlsRole === 'client' ? 'server' : 'client');
+
+		// Need to tell the remote transport about our parameters.
+		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+
+		this._transportReady = true;
+	}
+
+	private assertSendDirection(): void
+	{
+		if (this._direction !== 'send')
 		{
-			case 'send':
-			{
-				const sendingRtpParametersByKind =
-				{
-					audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-					video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
-				};
+			throw new Error(
+				'method can just be called for handlers with "send" direction');
+		}
+	}
 
-				const sendingRemoteRtpParametersByKind =
-				{
-					audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
-					video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
-				};
-
-				return new SendHandler(
-					{
-						iceParameters,
-						iceCandidates,
-						dtlsParameters,
-						sctpParameters,
-						iceServers,
-						iceTransportPolicy,
-						additionalSettings,
-						proprietaryConstraints,
-						sendingRtpParametersByKind,
-						sendingRemoteRtpParametersByKind
-					});
-			}
-
-			case 'recv':
-			{
-				return new RecvHandler(
-					{
-						iceParameters,
-						iceCandidates,
-						dtlsParameters,
-						sctpParameters,
-						iceServers,
-						iceTransportPolicy,
-						additionalSettings,
-						proprietaryConstraints
-					});
-			}
+	private assertRecvDirection(): void
+	{
+		if (this._direction !== 'recv')
+		{
+			throw new Error(
+				'method can just be called for handlers with "recv" direction');
 		}
 	}
 }

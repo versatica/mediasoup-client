@@ -97,6 +97,8 @@ export class Chrome70 extends HandlerInterface
 		}: HandlerRunOptions
 	): void
 	{
+		logger.debug('run()');
+
 		this._direction = direction;
 
 		this._remoteSdp = new RemoteSdp(
@@ -365,7 +367,9 @@ export class Chrome70 extends HandlerInterface
 
 		// Hack for VP9 SVC.
 		if (hackVp9Svc)
+		{
 			sendingRtpParameters.encodings = [ sendingRtpParameters.encodings[0] ];
+		}
 
 		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
 		// each encoding.

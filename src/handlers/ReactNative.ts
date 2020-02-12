@@ -44,7 +44,7 @@ export class ReactNative extends HandlerInterface
 	private readonly _sendStream = new MediaStream();
 	// Map of sending MediaStreamTracks indexed by localId.
 	private readonly _mapSendLocalIdTrack: Map<string, MediaStreamTrack> = new Map();
-	// Latest sending localId.
+	// Next sending localId.
 	private _nextSendLocalId = 0;
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
 	// Value is an Object with mid, rtpParameters and rtpReceiver.
@@ -93,6 +93,54 @@ export class ReactNative extends HandlerInterface
 		}
 	}
 
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
+	{
+		logger.debug('getNativeRtpCapabilities()');
+
+		const pc = new (RTCPeerConnection as any)(
+			{
+				iceServers         : [],
+				iceTransportPolicy : 'all',
+				bundlePolicy       : 'max-bundle',
+				rtcpMuxPolicy      : 'require',
+				sdpSemantics       : 'plan-b'
+			});
+
+		try
+		{
+			const offer = await pc.createOffer(
+				{
+					offerToReceiveAudio : true,
+					offerToReceiveVideo : true
+				});
+
+			try { pc.close(); }
+			catch (error) {}
+
+			const sdpObject = sdpTransform.parse(offer.sdp);
+			const nativeRtpCapabilities =
+				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+			return nativeRtpCapabilities;
+		}
+		catch (error)
+		{
+			try { pc.close(); }
+			catch (error2) {}
+
+			throw error;
+		}
+	}
+
+	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
+	{
+		logger.debug('getNativeSctpCapabilities()');
+
+		return {
+			numStreams : SCTP_NUM_STREAMS
+		};
+	}
+
 	run(
 		{
 			direction,
@@ -108,6 +156,8 @@ export class ReactNative extends HandlerInterface
 		}: HandlerRunOptions
 	): void
 	{
+		logger.debug('run()');
+
 		this._direction = direction;
 
 		this._remoteSdp = new RemoteSdp(
@@ -165,54 +215,6 @@ export class ReactNative extends HandlerInterface
 					break;
 			}
 		});
-	}
-
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
-	{
-		logger.debug('getNativeRtpCapabilities()');
-
-		const pc = new (RTCPeerConnection as any)(
-			{
-				iceServers         : [],
-				iceTransportPolicy : 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'plan-b'
-			});
-
-		try
-		{
-			const offer = await pc.createOffer(
-				{
-					offerToReceiveAudio : true,
-					offerToReceiveVideo : true
-				});
-
-			try { pc.close(); }
-			catch (error) {}
-
-			const sdpObject = sdpTransform.parse(offer.sdp);
-			const nativeRtpCapabilities =
-				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-			return nativeRtpCapabilities;
-		}
-		catch (error)
-		{
-			try { pc.close(); }
-			catch (error2) {}
-
-			throw error;
-		}
-	}
-
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
-	{
-		logger.debug('getNativeSctpCapabilities()');
-
-		return {
-			numStreams : SCTP_NUM_STREAMS
-		};
 	}
 
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>

@@ -1,3 +1,5 @@
+/* global RTCRtpTransceiver */
+
 import * as bowser from 'bowser';
 import { Logger } from './Logger';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -8,10 +10,10 @@ import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
 import { Chrome67 } from './handlers/Chrome67';
 import { Chrome55 } from './handlers/Chrome55';
-// import { Firefox60 } from './handlers/Firefox60';
-// import { Safari12 } from './handlers/Safari12';
-// import { Safari11 } from './handlers/Safari11';
-// import { Edge11 } from './handlers/Edge11';
+import { Firefox60 } from './handlers/Firefox60';
+import { Safari12 } from './handlers/Safari12';
+import { Safari11 } from './handlers/Safari11';
+import { Edge11 } from './handlers/Edge11';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
@@ -113,18 +115,18 @@ export class Device
 				case 'Chrome55':
 					this._handlerFactory = Chrome55.createFactory();
 					break;
-				// case 'Firefox60':
-				// 	this._handlerFactory = Firefox60.createFactory();
-				// 	break;
-				// case 'Safari12':
-				// 	this._handlerFactory = Safari12.createFactory();
-				// 	break;
-				// case 'Safari11':
-				// 	this._handlerFactory = Safari11.createFactory();
-				// 	break;
-				// case 'Edge11':
-				// 	this._handlerFactory = Edge11.createFactory();
-				// 	break;
+				case 'Firefox60':
+					this._handlerFactory = Firefox60.createFactory();
+					break;
+				case 'Safari12':
+					this._handlerFactory = Safari12.createFactory();
+					break;
+				case 'Safari11':
+					this._handlerFactory = Safari11.createFactory();
+					break;
+				case 'Edge11':
+					this._handlerFactory = Edge11.createFactory();
+					break;
 				case 'ReactNative':
 					this._handlerFactory = ReactNative.createFactory();
 					break;
@@ -476,42 +478,42 @@ export class Device
 
 				return Chrome55.createFactory();
 			}
-			// // Firefox.
-			// else if (browser.satisfies({ firefox: '>=60' }))
-			// {
-			// 	logger.debug('this._detectDevice() | Firefox60 handler chosen');
+			// Firefox.
+			else if (browser.satisfies({ firefox: '>=60' }))
+			{
+				logger.debug('this._detectDevice() | Firefox60 handler chosen');
 
-			// 	return Firefox60.createFactory();
-			// }
-			// // Safari with Unified-Plan support enabled.
-			// else if (
-			// 	browser.satisfies({ safari: '>=12.0' }) &&
-			// 	typeof RTCRtpTransceiver !== 'undefined' &&
-			// 	RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-			// )
-			// {
-			// 	logger.debug('this._detectDevice() | Safari12 handler chosen');
+				return Firefox60.createFactory();
+			}
+			// Safari with Unified-Plan support enabled.
+			else if (
+				browser.satisfies({ safari: '>=12.0' }) &&
+				typeof RTCRtpTransceiver !== 'undefined' &&
+				RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+			)
+			{
+				logger.debug('this._detectDevice() | Safari12 handler chosen');
 
-			// 	return Safari12.createFactory();
-			// }
-			// // Safari with Plab-B support.
-			// else if (browser.satisfies({ safari: '>=11' }))
-			// {
-			// 	logger.debug('this._detectDevice() | Safari11 handler chosen');
+				return Safari12.createFactory();
+			}
+			// Safari with Plab-B support.
+			else if (browser.satisfies({ safari: '>=11' }))
+			{
+				logger.debug('this._detectDevice() | Safari11 handler chosen');
 
-			// 	return Safari11.createFactory();
-			// }
-			// // Old Edge with ORTC support.
-			// else if (
-			// 	browser.satisfies({ 'microsoft edge': '>=11' }) &&
-			// 	browser.satisfies({ 'microsoft edge': '<=18' })
-			// )
-			// {
-			// 	logger.debug('this._detectDevice() | Edge11 handler chosen');
+				return Safari11.createFactory();
+			}
+			// Old Edge with ORTC support.
+			else if (
+				browser.satisfies({ 'microsoft edge': '>=11' }) &&
+				browser.satisfies({ 'microsoft edge': '<=18' })
+			)
+			{
+				logger.debug('this._detectDevice() | Edge11 handler chosen');
 
-			// 	return Edge11.createFactory();
-			// }
-			// // Best effort for Chromium based browsers.
+				return Edge11.createFactory();
+			}
+			// Best effort for Chromium based browsers.
 			else if (engine.name && engine.name.toLowerCase() === 'blink')
 			{
 				logger.debug(

@@ -7,3 +7,5 @@
 * `Device.ts`: Make `detectDevice()` private and undocument it.
 
 * `PlainRtpParameters` defined in `Transport.ts`. Document it.
+
+* Doc: document that client `getStats()` returns `Promise<RTCStatsReport>` instead of `Promise<any>`.

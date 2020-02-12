@@ -53,9 +53,9 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     constructor();
     abstract readonly name: string;
     abstract close(): void;
-    abstract run(options: HandlerRunOptions): void;
     abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+    abstract run(options: HandlerRunOptions): void;
     abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
     abstract restartIce(iceParameters: IceParameters): Promise<void>;
     abstract getTransportStats(): Promise<RTCStatsReport>;

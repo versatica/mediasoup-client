@@ -91,11 +91,11 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 
 	abstract close(): void;
 
-	abstract run(options: HandlerRunOptions): void;
-
 	abstract async getNativeRtpCapabilities(): Promise<RtpCapabilities>;
 
 	abstract async getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+
+	abstract run(options: HandlerRunOptions): void;
 
 	abstract async updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
 
