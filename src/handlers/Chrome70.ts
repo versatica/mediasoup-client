@@ -41,9 +41,10 @@ export class Chrome70 extends HandlerInterface
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
-	private _mapMidTransceiver: Map<string, any> = new Map();
+	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
+		new Map();
 	// Local stream for sending.
-	private _sendStream = new MediaStream();
+	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
 	// Sending DataChannel id value counter. Incremented for each new DataChannel.
@@ -66,7 +67,7 @@ export class Chrome70 extends HandlerInterface
 
 	get name(): string
 	{
-		return 'Chrome74';
+		return 'Chrome70';
 	}
 
 	close(): void
@@ -509,7 +510,7 @@ export class Chrome70 extends HandlerInterface
 		await transceiver.sender.setParameters(parameters);
 	}
 
-	async getSenderStats(localId: string): Promise<any>
+	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
 		this.assertSendDirection();
 

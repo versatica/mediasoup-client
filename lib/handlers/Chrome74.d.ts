@@ -8,8 +8,8 @@ export declare class Chrome74 extends HandlerInterface {
     private _sendingRtpParametersByKind;
     private _sendingRemoteRtpParametersByKind;
     private _pc;
-    private _mapMidTransceiver;
-    private _sendStream;
+    private readonly _mapMidTransceiver;
+    private readonly _sendStream;
     private _hasDataChannelMediaSection;
     private _nextSendSctpStreamId;
     private _transportReady;
@@ -31,7 +31,7 @@ export declare class Chrome74 extends HandlerInterface {
     replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>;
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
-    getSenderStats(localId: string): Promise<any>;
+    getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;

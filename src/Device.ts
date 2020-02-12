@@ -6,7 +6,7 @@ import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
-// import { Chrome67 } from './handlers/Chrome67';
+import { Chrome67 } from './handlers/Chrome67';
 // import { Chrome55 } from './handlers/Chrome55';
 // import { Firefox60 } from './handlers/Firefox60';
 // import { Safari12 } from './handlers/Safari12';
@@ -107,9 +107,9 @@ export class Device
 				case 'Chrome70':
 					this._handlerFactory = Chrome70.createFactory();
 					break;
-				// case 'Chrome67':
-				// 	this._handlerFactory = Chrome67.createFactory();
-				// 	break;
+				case 'Chrome67':
+					this._handlerFactory = Chrome67.createFactory();
+					break;
 				// case 'Chrome55':
 				// 	this._handlerFactory = Chrome55.createFactory();
 				// 	break;
@@ -466,12 +466,12 @@ export class Device
 
 				return Chrome70.createFactory();
 			}
-			// else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
-			// {
-			// 	logger.debug('this._detectDevice() | Chrome67 handler chosen');
+			else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
+			{
+				logger.debug('this._detectDevice() | Chrome67 handler chosen');
 
-			// 	return Chrome67.createFactory();
-			// }
+				return Chrome67.createFactory();
+			}
 			// else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
 			// {
 			// 	logger.debug('this._detectDevice() | Chrome55 handler chosen');
@@ -537,12 +537,12 @@ export class Device
 
 						return Chrome70.createFactory();
 					}
-					// else if (version >= 67)
-					// {
-					// 	logger.debug('this._detectDevice() | Chrome67 handler chosen');
+					else if (version >= 67)
+					{
+						logger.debug('this._detectDevice() | Chrome67 handler chosen');
 
-					// 	return Chrome67.createFactory();
-					// }
+						return Chrome67.createFactory();
+					}
 					else
 					{
 						logger.debug('this._detectDevice() | Chrome55 handler chosen');

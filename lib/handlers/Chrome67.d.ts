@@ -1,21 +1,48 @@
-import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
+import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
+import { IceParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
-import { SctpCapabilities, SctpParameters } from '../SctpParameters';
-export declare class Chrome67 {
-    static readonly label: string;
-    static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-    static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
-    constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {
-        direction: 'send' | 'recv';
-        iceParameters: IceParameters;
-        iceCandidates: IceCandidate[];
-        dtlsParameters: DtlsParameters;
-        sctpParameters?: SctpParameters;
-        iceServers?: RTCIceServer[];
-        iceTransportPolicy?: RTCIceTransportPolicy;
-        additionalSettings?: any;
-        proprietaryConstraints?: any;
-        extendedRtpCapabilities: any;
-    });
+import { SctpCapabilities } from '../SctpParameters';
+export declare class Chrome67 extends HandlerInterface {
+    private _direction;
+    private _remoteSdp;
+    private _sendingRtpParametersByKind;
+    private _sendingRemoteRtpParametersByKind;
+    private _pc;
+    private readonly _sendStream;
+    private readonly _mapSendLocalIdTrack;
+    private _nextSendLocalId;
+    private readonly _mapRecvLocalIdInfo;
+    private _hasDataChannelMediaSection;
+    private _nextSendSctpStreamId;
+    private _transportReady;
+    /**
+     * Creates a factory function.
+     */
+    static createFactory(): HandlerFactory;
+    readonly name: string;
+    close(): void;
+    run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
+    getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+    getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+    updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
+    restartIce(iceParameters: IceParameters): Promise<void>;
+    getTransportStats(): Promise<RTCStatsReport>;
+    send({ track, encodings, codecOptions }: HandlerSendOptions): Promise<HandlerSendResult>;
+    stopSending(localId: string): Promise<void>;
+    replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>;
+    setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
+    setRtpEncodingParameters(localId: string, params: any): Promise<void>;
+    getSenderStats(localId: string): Promise<RTCStatsReport>;
+    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
+    receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    stopReceiving(localId: string): Promise<void>;
+    getReceiverStats(localId: string): Promise<RTCStatsReport>;
+    receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
+    _setupTransport({ localDtlsRole, localSdpObject }: {
+        localDtlsRole: DtlsRole;
+        localSdpObject?: any;
+    }): Promise<void>;
+    private assertSendDirection;
+    private assertRecvDirection;
 }
 //# sourceMappingURL=Chrome67.d.ts.map
