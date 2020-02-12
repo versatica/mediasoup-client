@@ -120,8 +120,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	): Promise<void>;
 
 	abstract async setMaxSpatialLayer(
-		localId: string,
-		spatialLayer: number
+		localId: string, spatialLayer: number
 	): Promise<void>;
 
 	abstract async setRtpEncodingParameters(

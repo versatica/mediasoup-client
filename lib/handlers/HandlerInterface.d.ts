@@ -50,6 +50,14 @@ export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;
 };
 export declare abstract class HandlerInterface extends EnhancedEventEmitter {
+    /**
+     * @emits @connect - (
+     *     { dtlsParameters: DtlsParameters },
+     *     callback: Function,
+     *     errback: Function
+     *   )
+     * @emits @connectionstatechange - (connectionState: ConnectionState)
+     */
     constructor();
     abstract readonly name: string;
     abstract close(): void;
