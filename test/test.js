@@ -4,7 +4,7 @@
  */
 
 const { toBeType } = require('jest-tobetype');
-const { MediaStreamTrack } = require('node-mediastreamtrack');
+const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
@@ -268,7 +268,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 
 test('transport.produce() without "connect" listener rejects', async () =>
 {
-	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(sendTransport.produce({ track: audioTrack }))
 		.rejects
@@ -277,8 +277,8 @@ test('transport.produce() without "connect" listener rejects', async () =>
 
 test('transport.produce() succeeds', async () =>
 {
-	const audioTrack = new MediaStreamTrack({ kind: 'audio' });
-	const videoTrack = new MediaStreamTrack({ kind: 'video' });
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
+	const videoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 	let audioProducerId;
 	let videoProducerId;
 	let connectEventNumTimesCalled = 0;
@@ -347,8 +347,9 @@ test('transport.produce() succeeds', async () =>
 	// Pause the audio track before creating its Producer.
 	audioTrack.enabled = false;
 
+	// Use stopTracks: false.
 	audioProducer = await sendTransport.produce(
-		{ track: audioTrack, appData: { foo: 'FOO' } });
+		{ track: audioTrack, stopTracks: false, appData: { foo: 'FOO' } });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(1);
@@ -417,6 +418,7 @@ test('transport.produce() succeeds', async () =>
 		{ maxBitrate: 500000 }
 	];
 
+	// Note that stopTracks is not give so it's true by default.
 	videoProducer = await sendTransport.produce(
 		{ track: videoTrack, encodings: videoEncodings });
 
@@ -527,7 +529,7 @@ test('transport.produce() without track rejects with TypeError', async () =>
 
 test('transport.produce() in a receiving Transport rejects with UnsupportedError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(recvTransport.produce({ track }))
 		.rejects
@@ -536,7 +538,7 @@ test('transport.produce() in a receiving Transport rejects with UnsupportedError
 
 test('transport.produce() with an ended track rejects with InvalidStateError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	track.stop();
 
@@ -547,7 +549,7 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 
 test('transport.produce() with a non object appData rejects with TypeError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(sendTransport.produce({ track, appData: true }))
 		.rejects
@@ -1041,13 +1043,14 @@ test('producer.replaceTrack() succeeds', async () =>
 	audioProducer.pause();
 
 	const audioProducerPreviousTrack = audioProducer.track;
-	const newAudioTrack = new MediaStreamTrack({ kind: 'audio' });
+	const newAudioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(audioProducer.replaceTrack({ track: newAudioTrack }))
 		.resolves
 		.toBe(undefined);
 
-	expect(audioProducerPreviousTrack.readyState).toBe('ended');
+	// Previous track must be 'live' due to stopTracks: false.
+	expect(audioProducerPreviousTrack.readyState).toBe('live');
 	expect(audioProducer.track.readyState).toBe('live');
 	expect(audioProducer.track).not.toBe(audioProducerPreviousTrack);
 	expect(audioProducer.track).toBe(newAudioTrack);
@@ -1058,12 +1061,14 @@ test('producer.replaceTrack() succeeds', async () =>
 	audioProducer.resume();
 
 	const videoProducerPreviousTrack = videoProducer.track;
-	const newVideoTrack = new MediaStreamTrack({ kind: 'video' });
+	const newVideoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 
 	await expect(videoProducer.replaceTrack({ track: newVideoTrack }))
 		.resolves
 		.toBe(undefined);
 
+	// Previous track must be 'ended' due to stopTracks: true.
+	expect(videoProducerPreviousTrack.readyState).toBe('ended');
 	expect(videoProducer.track).not.toBe(videoProducerPreviousTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
 	expect(videoProducer.paused).toBe(false);
@@ -1080,7 +1085,7 @@ test('producer.replaceTrack() without track rejects with TypeError', async () =>
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	track.stop();
 
@@ -1204,18 +1209,19 @@ test('producer.close() succeed', () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
-	expect(audioProducer.track.readyState).toBe('ended');
+	// Track will be still 'live' due to stopTracks: false.
+	expect(audioProducer.track.readyState).toBe('live');
 }, 500);
 
 test('producer.replaceTrack() rejects with InvalidStateError if closed', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
-	await expect(audioProducer.replaceTrack({ track }))
+	await expect(audioProducer.replaceTrack({ track: audioTrack }))
 		.rejects
 		.toThrow(InvalidStateError);
 
-	expect(track.readyState).toBe('ended');
+	expect(audioTrack.readyState).toBe('live');
 }, 500);
 
 test('producer.getStats() rejects with InvalidStateError if closed', async () =>
@@ -1355,16 +1361,17 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 
 test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
-	const track = new MediaStreamTrack({ kind: 'audio' });
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	// Add noop listener to avoid the method fail.
 	sendTransport.on('produce', () => {});
 
-	await expect(sendTransport.produce({ track }))
+	await expect(sendTransport.produce({ track, stopTracks: false }))
 		.rejects
 		.toThrow(InvalidStateError);
 
-	expect(track.readyState).toBe('ended');
+	// The track must be 'live' due to stopTracks: false.
+	expect(track.readyState).toBe('live');
 
 	sendTransport.removeAllListeners('produce');
 }, 500);

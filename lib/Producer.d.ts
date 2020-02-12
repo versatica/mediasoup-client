@@ -4,6 +4,7 @@ export declare type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RTCRtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
+    stopTracks?: boolean;
     appData?: any;
 };
 export declare type ProducerCodecOptions = {
@@ -11,6 +12,7 @@ export declare type ProducerCodecOptions = {
     opusFec?: boolean;
     opusDtx?: boolean;
     opusMaxPlaybackRate?: number;
+    opusPtime?: number;
     videoGoogleStartBitrate?: number;
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
@@ -24,6 +26,7 @@ export declare class Producer extends EnhancedEventEmitter {
     private readonly _rtpParameters;
     private _paused;
     private _maxSpatialLayer;
+    private _stopTracks;
     private readonly _appData;
     /**
      * @emits transportclose
@@ -34,12 +37,13 @@ export declare class Producer extends EnhancedEventEmitter {
      * @emits @getstats
      * @emits @close
      */
-    constructor({ id, localId, rtpSender, track, rtpParameters, appData }: {
+    constructor({ id, localId, rtpSender, track, rtpParameters, stopTracks, appData }: {
         id: string;
         localId: string;
         rtpSender?: RTCRtpSender;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
+        stopTracks: boolean;
         appData: any;
     });
     /**

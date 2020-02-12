@@ -396,6 +396,7 @@ export class Transport extends EnhancedEventEmitter
 			track,
 			encodings,
 			codecOptions,
+			stopTracks = true,
 			appData = {}
 		}: ProducerOptions = {}
 	): Promise<Producer>
@@ -480,7 +481,7 @@ export class Transport extends EnhancedEventEmitter
 						});
 
 					const producer = new Producer(
-						{ id, localId, rtpSender, track, rtpParameters, appData });
+						{ id, localId, rtpSender, track, rtpParameters, stopTracks, appData });
 
 					this._producers.set(producer.id, producer);
 					this._handleProducer(producer);
@@ -499,8 +500,11 @@ export class Transport extends EnhancedEventEmitter
 			// failed due to closed Transport.
 			.catch((error: Error) =>
 			{
-				try { track.stop(); }
-				catch (error2) {}
+				if (stopTracks)
+				{
+					try { track.stop(); }
+					catch (error2) {}
+				}
 
 				throw error;
 			});
