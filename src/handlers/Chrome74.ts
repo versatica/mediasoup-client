@@ -301,10 +301,6 @@ export class Chrome74 extends HandlerInterface
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
-		logger.debug(
-			'send() | calling pc.setLocalDescription() [offer:%o]',
-			offer);
-
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
 
@@ -332,6 +328,10 @@ export class Chrome74 extends HandlerInterface
 
 			offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
 		}
+
+		logger.debug(
+			'send() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
 
 		await this._pc.setLocalDescription(offer);
 
