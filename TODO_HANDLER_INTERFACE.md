@@ -4,7 +4,7 @@
 
 * `Device.ts`: `DeviceOptions` exported, so must document it.
 
-* `Device.ts`: Make `detectDevice()` private and undocument it.
+* `Device.ts`: `detectDevice()` now returns the handler name (string).
 
 * `PlainRtpParameters` defined in `Transport.ts`. Document it.
 

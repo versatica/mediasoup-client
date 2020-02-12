@@ -53,6 +53,125 @@ interface InternalTransportOptions extends TransportOptions
 	direction: 'send' | 'recv';
 }
 
+export function detectDevice(): BuiltinHandlerName | undefined
+{
+	// React-Native.
+	// NOTE: react-native-webrtc >= 1.75.0 is required.
+	if (typeof navigator === 'object' && navigator.product === 'ReactNative')
+	{
+		if (typeof RTCPeerConnection === 'undefined')
+		{
+			logger.warn(
+				'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+
+			return undefined;
+		}
+
+		logger.debug('this._detectDevice() | ReactNative handler chosen');
+
+		return 'ReactNative';
+	}
+	// Browser.
+	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
+	{
+		const ua = navigator.userAgent;
+		const browser = bowser.getParser(ua);
+		const engine = browser.getEngine();
+
+		// Chrome and Chromium.
+		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
+		{
+			return 'Chrome74';
+		}
+		else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
+		{
+			return 'Chrome70';
+		}
+		else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
+		{
+			return 'Chrome67';
+		}
+		else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
+		{
+			return 'Chrome55';
+		}
+		// Firefox.
+		else if (browser.satisfies({ firefox: '>=60' }))
+		{
+			return 'Firefox60';
+		}
+		// Safari with Unified-Plan support enabled.
+		else if (
+			browser.satisfies({ safari: '>=12.0' }) &&
+			typeof RTCRtpTransceiver !== 'undefined' &&
+			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+		)
+		{
+			return 'Safari12';
+		}
+		// Safari with Plab-B support.
+		else if (browser.satisfies({ safari: '>=11' }))
+		{
+			return 'Safari11';
+		}
+		// Old Edge with ORTC support.
+		else if (
+			browser.satisfies({ 'microsoft edge': '>=11' }) &&
+			browser.satisfies({ 'microsoft edge': '<=18' })
+		)
+		{
+			return 'Edge11';
+		}
+		// Best effort for Chromium based browsers.
+		else if (engine.name && engine.name.toLowerCase() === 'blink')
+		{
+			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+
+			if (match)
+			{
+				const version = Number(match[1]);
+
+				if (version >= 74)
+				{
+					return 'Chrome74';
+				}
+				else if (version >= 70)
+				{
+					return 'Chrome70';
+				}
+				else if (version >= 67)
+				{
+					return 'Chrome67';
+				}
+				else
+				{
+					return 'Chrome55';
+				}
+			}
+			else
+			{
+				return 'Chrome74';
+			}
+		}
+		// Unsupported browser.
+		else
+		{
+			logger.warn(
+				'this._detectDevice() | browser not supported [name:%s, version:%s]',
+				browser.getBrowserName(), browser.getBrowserVersion());
+
+			return undefined;
+		}
+	}
+	// Unknown device.
+	else
+	{
+		logger.warn('this._detectDevice() | unknown device');
+
+		return undefined;
+	}
+}
+
 export class Device
 {
 	// RTC handler factory.
@@ -99,8 +218,26 @@ export class Device
 				'just one of handlerName or handlerInterface can be given');
 		}
 
-		if (handlerName)
+		if (handlerFactory)
 		{
+			this._handlerFactory = handlerFactory;
+		}
+		else
+		{
+			if (handlerName)
+			{
+				logger.debug('constructor() | handler given: %s', handlerName);
+			}
+			else
+			{
+				handlerName = detectDevice();
+
+				if (handlerName)
+					logger.debug('constructor() | detected handler: %s', handlerName);
+				else
+					throw new UnsupportedError('device not supported');
+			}
+
 			switch (handlerName)
 			{
 				case 'Chrome74':
@@ -134,17 +271,6 @@ export class Device
 					throw new TypeError(`unknown handlerName "${handlerName}"`);
 			}
 		}
-		else if (handlerFactory)
-		{
-			this._handlerFactory = handlerFactory;
-		}
-		else
-		{
-			this._handlerFactory = this._detectDevice();
-		}
-
-		if (!this._handlerFactory)
-			throw new UnsupportedError('device not supported');
 
 		// Create a temporal handler to get its name.
 		const handler = this._handlerFactory();
@@ -232,11 +358,11 @@ export class Device
 
 			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities();
 
-			// This may throw.
-			ortc.validateRtpCapabilities(nativeRtpCapabilities);
-
 			logger.debug(
 				'load() | got native RTP capabilities:%o', nativeRtpCapabilities);
+
+			// This may throw.
+			ortc.validateRtpCapabilities(nativeRtpCapabilities);
 
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
@@ -426,153 +552,5 @@ export class Device
 			});
 
 		return transport;
-	}
-
-	private _detectDevice(): HandlerFactory | undefined
-	{
-		// React-Native.
-		// NOTE: react-native-webrtc >= 1.75.0 is required.
-		if (typeof navigator === 'object' && navigator.product === 'ReactNative')
-		{
-			if (typeof RTCPeerConnection === 'undefined')
-			{
-				logger.warn(
-					'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
-
-				return undefined;
-			}
-
-			logger.debug('this._detectDevice() | ReactNative handler chosen');
-
-			return ReactNative.createFactory();
-		}
-		// Browser.
-		else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
-		{
-			const ua = navigator.userAgent;
-			const browser = bowser.getParser(ua);
-			const engine = browser.getEngine();
-
-			// Chrome and Chromium.
-			if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
-			{
-				logger.debug('this._detectDevice() | Chrome74 handler chosen');
-
-				return Chrome74.createFactory();
-			}
-			else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
-			{
-				logger.debug('this._detectDevice() | Chrome70 handler chosen');
-
-				return Chrome70.createFactory();
-			}
-			else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
-			{
-				logger.debug('this._detectDevice() | Chrome67 handler chosen');
-
-				return Chrome67.createFactory();
-			}
-			else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
-			{
-				logger.debug('this._detectDevice() | Chrome55 handler chosen');
-
-				return Chrome55.createFactory();
-			}
-			// Firefox.
-			else if (browser.satisfies({ firefox: '>=60' }))
-			{
-				logger.debug('this._detectDevice() | Firefox60 handler chosen');
-
-				return Firefox60.createFactory();
-			}
-			// Safari with Unified-Plan support enabled.
-			else if (
-				browser.satisfies({ safari: '>=12.0' }) &&
-				typeof RTCRtpTransceiver !== 'undefined' &&
-				RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-			)
-			{
-				logger.debug('this._detectDevice() | Safari12 handler chosen');
-
-				return Safari12.createFactory();
-			}
-			// Safari with Plab-B support.
-			else if (browser.satisfies({ safari: '>=11' }))
-			{
-				logger.debug('this._detectDevice() | Safari11 handler chosen');
-
-				return Safari11.createFactory();
-			}
-			// Old Edge with ORTC support.
-			else if (
-				browser.satisfies({ 'microsoft edge': '>=11' }) &&
-				browser.satisfies({ 'microsoft edge': '<=18' })
-			)
-			{
-				logger.debug('this._detectDevice() | Edge11 handler chosen');
-
-				return Edge11.createFactory();
-			}
-			// Best effort for Chromium based browsers.
-			else if (engine.name && engine.name.toLowerCase() === 'blink')
-			{
-				logger.debug(
-					'this._detectDevice() | best effort Chromium based browser detection');
-
-				const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
-
-				if (match)
-				{
-					const version = Number(match[1]);
-
-					if (version >= 74)
-					{
-						logger.debug('this._detectDevice() | Chrome74 handler chosen');
-
-						return Chrome74.createFactory();
-					}
-					else if (version >= 70)
-					{
-						logger.debug('this._detectDevice() | Chrome70 handler chosen');
-
-						return Chrome70.createFactory();
-					}
-					else if (version >= 67)
-					{
-						logger.debug('this._detectDevice() | Chrome67 handler chosen');
-
-						return Chrome67.createFactory();
-					}
-					else
-					{
-						logger.debug('this._detectDevice() | Chrome55 handler chosen');
-
-						return Chrome55.createFactory();
-					}
-				}
-				else
-				{
-					logger.debug('this._detectDevice() | no match, Chrome74 handler chosen');
-
-					return Chrome74.createFactory();
-				}
-			}
-			// Unsupported browser.
-			else
-			{
-				logger.warn(
-					'this._detectDevice() | browser not supported [name:%s, version:%s]',
-					browser.getBrowserName(), browser.getBrowserVersion());
-
-				return undefined;
-			}
-		}
-		// Unknown device.
-		else
-		{
-			logger.warn('this._detectDevice() | unknown device');
-
-			return undefined;
-		}
 	}
 }

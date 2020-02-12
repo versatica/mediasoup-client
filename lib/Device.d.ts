@@ -17,6 +17,7 @@ export declare type DeviceOptions = {
      */
     Handler?: string;
 };
+export declare function detectDevice(): BuiltinHandlerName | undefined;
 export declare class Device {
     private readonly _handlerFactory;
     private readonly _handlerName;
@@ -79,6 +80,5 @@ export declare class Device {
      */
     createRecvTransport({ id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData }: TransportOptions): Transport;
     private _createTransport;
-    private _detectDevice;
 }
 //# sourceMappingURL=Device.d.ts.map
