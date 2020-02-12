@@ -82,6 +82,14 @@ export type HandlerReceiveDataChannelResult =
 
 export abstract class HandlerInterface extends EnhancedEventEmitter
 {
+	/**
+	 * @emits @connect - (
+	 *     { dtlsParameters: DtlsParameters },
+	 *     callback: Function,
+	 *     errback: Function
+	 *   )
+	 * @emits @connectionstatechange - (connectionState: ConnectionState)
+	 */
 	constructor()
 	{
 		super();
