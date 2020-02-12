@@ -1,86 +1,49 @@
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
-import { RemoteSdp } from './sdp/RemoteSdp';
-import { ProducerCodecOptions } from '../Producer';
-import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpEncodingParameters } from '../RtpParameters';
-import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
-declare class Handler extends EnhancedEventEmitter {
-    protected _transportReady: boolean;
-    protected readonly _remoteSdp: RemoteSdp;
-    protected readonly _pc: any;
-    protected _hasDataChannelMediaSection: boolean;
-    protected _nextSctpStreamId: number;
-    constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints }: {
-        iceParameters: IceParameters;
-        iceCandidates: IceCandidate[];
-        dtlsParameters: DtlsParameters;
-        sctpParameters?: SctpParameters;
-        iceServers?: RTCIceServer[];
-        iceTransportPolicy?: RTCIceTransportPolicy;
-        additionalSettings?: any;
-        proprietaryConstraints?: any;
-    });
+import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
+import { IceParameters, DtlsRole } from '../Transport';
+import { RtpCapabilities } from '../RtpParameters';
+import { SctpCapabilities } from '../SctpParameters';
+export declare class Chrome55 extends HandlerInterface {
+    private _direction;
+    private _remoteSdp;
+    private _sendingRtpParametersByKind;
+    private _sendingRemoteRtpParametersByKind;
+    private _pc;
+    private readonly _sendStream;
+    private readonly _mapSendLocalIdTrack;
+    private _nextSendLocalId;
+    private readonly _mapRecvLocalIdInfo;
+    private _hasDataChannelMediaSection;
+    private _nextSendSctpStreamId;
+    private _transportReady;
+    /**
+     * Creates a factory function.
+     */
+    static createFactory(): HandlerFactory;
+    constructor();
+    readonly name: string;
     close(): void;
-    getTransportStats(): Promise<any>;
-    updateIceServers({ iceServers }: {
-        iceServers: RTCIceServer[];
-    }): Promise<void>;
+    run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
+    getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+    getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+    updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
+    restartIce(iceParameters: IceParameters): Promise<void>;
+    getTransportStats(): Promise<RTCStatsReport>;
+    send({ track, encodings, codecOptions }: HandlerSendOptions): Promise<HandlerSendResult>;
+    stopSending(localId: string): Promise<void>;
+    replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>;
+    setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
+    setRtpEncodingParameters(localId: string, params: any): Promise<void>;
+    getSenderStats(localId: string): Promise<RTCStatsReport>;
+    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
+    receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    stopReceiving(localId: string): Promise<void>;
+    getReceiverStats(localId: string): Promise<RTCStatsReport>;
+    receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     _setupTransport({ localDtlsRole, localSdpObject }: {
         localDtlsRole: DtlsRole;
         localSdpObject?: any;
     }): Promise<void>;
+    private assertSendDirection;
+    private assertRecvDirection;
 }
-export declare class SendHandler extends Handler {
-    private readonly _sendingRtpParametersByKind;
-    private readonly _sendingRemoteRtpParametersByKind;
-    private readonly _stream;
-    private readonly _mapIdTrack;
-    private _lastId;
-    constructor(data: any);
-    send({ track, encodings, codecOptions }: {
-        track: MediaStreamTrack;
-        encodings?: RtpEncodingParameters[];
-        codecOptions?: ProducerCodecOptions;
-    }): Promise<any>;
-    stopSending({ localId }: {
-        localId: string;
-    }): Promise<void>;
-    replaceTrack({ localId, track }: {
-        localId: string;
-        track: MediaStreamTrack;
-    }): Promise<never>;
-    setMaxSpatialLayer({ local, spatialLayer }: {
-        local: true;
-        spatialLayer: number;
-    }): Promise<never>;
-    setRtpEncodingParameters({ local, params }: {
-        local: true;
-        params: any;
-    }): Promise<never>;
-    getSenderStats({ localId }: {
-        localId: string;
-    }): Promise<never>;
-    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: SctpStreamParameters): Promise<any>;
-    restartIce({ iceParameters }: {
-        iceParameters: IceParameters;
-    }): Promise<void>;
-}
-export declare class Chrome55 {
-    static readonly label: string;
-    static getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-    static getNativeSctpCapabilities(): Promise<SctpCapabilities>;
-    constructor({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: {
-        direction: 'send' | 'recv';
-        iceParameters: IceParameters;
-        iceCandidates: IceCandidate[];
-        dtlsParameters: DtlsParameters;
-        sctpParameters?: SctpParameters;
-        iceServers?: RTCIceServer[];
-        iceTransportPolicy?: RTCIceTransportPolicy;
-        additionalSettings?: any;
-        proprietaryConstraints?: any;
-        extendedRtpCapabilities: any;
-    });
-}
-export {};
 //# sourceMappingURL=Chrome55.d.ts.map

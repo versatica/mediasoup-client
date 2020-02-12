@@ -19,6 +19,7 @@ export declare class Chrome67 extends HandlerInterface {
      * Creates a factory function.
      */
     static createFactory(): HandlerFactory;
+    constructor();
     readonly name: string;
     close(): void;
     run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;

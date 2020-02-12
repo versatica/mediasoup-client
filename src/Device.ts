@@ -7,12 +7,12 @@ import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
 import { Chrome67 } from './handlers/Chrome67';
-// import { Chrome55 } from './handlers/Chrome55';
+import { Chrome55 } from './handlers/Chrome55';
 // import { Firefox60 } from './handlers/Firefox60';
 // import { Safari12 } from './handlers/Safari12';
 // import { Safari11 } from './handlers/Safari11';
 // import { Edge11 } from './handlers/Edge11';
-// import { ReactNative } from './handlers/ReactNative';
+import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
 
@@ -110,9 +110,9 @@ export class Device
 				case 'Chrome67':
 					this._handlerFactory = Chrome67.createFactory();
 					break;
-				// case 'Chrome55':
-				// 	this._handlerFactory = Chrome55.createFactory();
-				// 	break;
+				case 'Chrome55':
+					this._handlerFactory = Chrome55.createFactory();
+					break;
 				// case 'Firefox60':
 				// 	this._handlerFactory = Firefox60.createFactory();
 				// 	break;
@@ -125,9 +125,9 @@ export class Device
 				// case 'Edge11':
 				// 	this._handlerFactory = Edge11.createFactory();
 				// 	break;
-				// case 'ReactNative':
-				// 	this._handlerFactory = ReactNative.createFactory();
-				// 	break;
+				case 'ReactNative':
+					this._handlerFactory = ReactNative.createFactory();
+					break;
 				default:
 					throw new TypeError(`unknown handlerName "${handlerName}"`);
 			}
@@ -442,9 +442,7 @@ export class Device
 
 			logger.debug('this._detectDevice() | ReactNative handler chosen');
 
-			// TODO: Uncomment when ready.
-			// return ReactNative.createFactory();
-			return undefined;
+			return ReactNative.createFactory();
 		}
 		// Browser.
 		else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
@@ -472,12 +470,12 @@ export class Device
 
 				return Chrome67.createFactory();
 			}
-			// else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
-			// {
-			// 	logger.debug('this._detectDevice() | Chrome55 handler chosen');
+			else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
+			{
+				logger.debug('this._detectDevice() | Chrome55 handler chosen');
 
-			// 	return Chrome55.createFactory();
-			// }
+				return Chrome55.createFactory();
+			}
 			// // Firefox.
 			// else if (browser.satisfies({ firefox: '>=60' }))
 			// {
@@ -547,9 +545,7 @@ export class Device
 					{
 						logger.debug('this._detectDevice() | Chrome55 handler chosen');
 
-						// TODO: Uncomment when done.
-						// return Chrome55.createFactory();
-						return undefined;
+						return Chrome55.createFactory();
 					}
 				}
 				else

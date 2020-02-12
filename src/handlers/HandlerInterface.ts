@@ -117,8 +117,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	): Promise<void>;
 
 	abstract async setRtpEncodingParameters(
-		localId: string,
-		params: any
+		localId: string, params: any
 	): Promise<void>;
 
 	abstract async getSenderStats(localId: string): Promise<RTCStatsReport>;

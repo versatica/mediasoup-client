@@ -267,16 +267,12 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async send(
-		{
-			track,
-			encodings,
-			codecOptions
-		}: HandlerSendOptions
+		{ track, encodings, codecOptions }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
-
 		this.assertSendDirection();
+
+		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (encodings && encodings.length > 1)
 		{
@@ -423,9 +419,9 @@ export class Chrome74 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		logger.debug('stopSending() [localId:%s]', localId);
-
 		this.assertSendDirection();
+
+		logger.debug('stopSending() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -455,10 +451,10 @@ export class Chrome74 extends HandlerInterface
 
 	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
-
-		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -470,11 +466,11 @@ export class Chrome74 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId, spatialLayer);
-
-		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -496,11 +492,11 @@ export class Chrome74 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId, params);
-
-		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -540,9 +536,9 @@ export class Chrome74 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		logger.debug('sendDataChannel()');
-
 		this.assertSendDirection();
+
+		logger.debug('sendDataChannel()');
 
 		const options =
 		{
@@ -609,9 +605,9 @@ export class Chrome74 extends HandlerInterface
 		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
-
 		this.assertRecvDirection();
+
+		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 		const localId = String(this._mapMidTransceiver.size);
 
@@ -674,9 +670,9 @@ export class Chrome74 extends HandlerInterface
 
 	async stopReceiving(localId: string): Promise<void>
 	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
-
 		this.assertRecvDirection();
+
+		logger.debug('stopReceiving() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -715,13 +711,12 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }:
-		HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		logger.debug('receiveDataChannel()');
-
 		this.assertRecvDirection();
+
+		logger.debug('receiveDataChannel()');
 
 		const {
 			streamId,
@@ -780,8 +775,14 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	private async _setupTransport(
-		{ localDtlsRole, localSdpObject }:
-		{ localDtlsRole: DtlsRole; localSdpObject?: any }
+		{
+			localDtlsRole,
+			localSdpObject
+		}:
+		{
+			localDtlsRole: DtlsRole;
+			localSdpObject?: any;
+		}
 	): Promise<void>
 	{
 		if (!localSdpObject)

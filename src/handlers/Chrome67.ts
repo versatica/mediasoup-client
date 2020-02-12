@@ -48,7 +48,8 @@ export class Chrome67 extends HandlerInterface
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
 	// Value is an Object with mid, rtpParameters and rtpReceiver.
 	private readonly _mapRecvLocalIdInfo:
-		Map<string,
+		Map<
+			string,
 			{
 				mid: string;
 				rtpParameters: RtpParameters;
@@ -68,6 +69,11 @@ export class Chrome67 extends HandlerInterface
 	static createFactory(): HandlerFactory
 	{
 		return (): Chrome67 => new Chrome67();
+	}
+
+	constructor()
+	{
+		super();
 	}
 
 	get name(): string
@@ -274,16 +280,12 @@ export class Chrome67 extends HandlerInterface
 	}
 
 	async send(
-		{
-			track,
-			encodings,
-			codecOptions
-		}: HandlerSendOptions
+		{ track, encodings, codecOptions }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
-
 		this.assertSendDirection();
+
+		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		this._sendStream.addTrack(track);
 		this._pc.addTrack(track, this._sendStream);
@@ -391,9 +393,9 @@ export class Chrome67 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		logger.debug('stopSending() [localId:%s]', localId);
-
 		this.assertSendDirection();
+
+		logger.debug('stopSending() [localId:%s]', localId);
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
@@ -446,10 +448,10 @@ export class Chrome67 extends HandlerInterface
 
 	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
-
-		this.assertSendDirection();
 
 		const oldTrack = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
@@ -472,11 +474,11 @@ export class Chrome67 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId, spatialLayer);
-
-		this.assertSendDirection();
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
@@ -500,11 +502,11 @@ export class Chrome67 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId, params);
-
-		this.assertSendDirection();
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
@@ -525,6 +527,8 @@ export class Chrome67 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertSendDirection();
+
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
 			.find((s: any) => s.track === track);
@@ -546,6 +550,8 @@ export class Chrome67 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
+		this.assertSendDirection();
+
 		logger.debug('sendDataChannel()');
 
 		const options =
@@ -614,9 +620,9 @@ export class Chrome67 extends HandlerInterface
 		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
-
 		this.assertRecvDirection();
+
+		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 		const localId = trackId;
 		const mid = kind;
@@ -680,6 +686,8 @@ export class Chrome67 extends HandlerInterface
 
 	async stopReceiving(localId: string): Promise<void>
 	{
+		this.assertRecvDirection();
+
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
 		const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId);
@@ -709,6 +717,8 @@ export class Chrome67 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertRecvDirection();
+
 		const { rtpReceiver } = this._mapRecvLocalIdInfo.get(localId);
 
 		if (!rtpReceiver)
@@ -718,10 +728,11 @@ export class Chrome67 extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }:
-		HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
+		this.assertRecvDirection();
+
 		logger.debug('receiveDataChannel()');
 
 		const {
@@ -782,8 +793,14 @@ export class Chrome67 extends HandlerInterface
 	}
 
 	async _setupTransport(
-		{ localDtlsRole, localSdpObject }:
-		{ localDtlsRole: DtlsRole; localSdpObject?: any }
+		{
+			localDtlsRole,
+			localSdpObject
+		}:
+		{
+			localDtlsRole: DtlsRole;
+			localSdpObject?: any;
+		}
 	): Promise<void>
 	{
 		if (!localSdpObject)
