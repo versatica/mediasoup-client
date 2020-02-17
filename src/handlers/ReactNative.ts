@@ -482,8 +482,6 @@ export class ReactNative extends HandlerInterface
 	{
 		this._assertSendDirection();
 
-		logger.debug('sendDataChannel()');
-
 		const options =
 		{
 			negotiated        : true,
@@ -496,7 +494,7 @@ export class ReactNative extends HandlerInterface
 			priority
 		};
 
-		logger.debug('DataChannel options:%o', options);
+		logger.debug('sendDataChannel() [options:%o]', options);
 
 		const dataChannel = this._pc.createDataChannel(label, options);
 
@@ -664,8 +662,6 @@ export class ReactNative extends HandlerInterface
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receiveDataChannel()');
-
 		const {
 			streamId,
 			ordered,
@@ -684,7 +680,7 @@ export class ReactNative extends HandlerInterface
 			protocol
 		};
 
-		logger.debug('DataChannel options:%o', options);
+		logger.debug('receiveDataChannel() [options:%o]', options);
 
 		const dataChannel = this._pc.createDataChannel(label, options);
 
