@@ -32,8 +32,10 @@ export class RemoteSdp
 	private readonly _plainRtpParameters?: PlainRtpParameters;
 	// Whether this is Plan-B SDP.
 	private readonly _planB: boolean;
-	// MediaSection instances indexed by MID.
-	private _mediaSections: Map<string, MediaSection> = new Map();
+	// MediaSection instances.
+	private readonly _mediaSections: MediaSection[] = [];
+	// MediaSection indices indexed by MID.
+	private readonly _midToIndex: Map<string, number> = new Map();
 	// First MID.
 	private _firstMid?: string;
 	// SDP object.
@@ -121,7 +123,7 @@ export class RemoteSdp
 		this._iceParameters = iceParameters;
 		this._sdpObject.icelite = iceParameters.iceLite ? 'ice-lite' : undefined;
 
-		for (const mediaSection of this._mediaSections.values())
+		for (const mediaSection of this._mediaSections)
 		{
 			mediaSection.setIceParameters(iceParameters);
 		}
@@ -133,7 +135,7 @@ export class RemoteSdp
 
 		this._dtlsParameters.role = role;
 
-		for (const mediaSection of this._mediaSections.values())
+		for (const mediaSection of this._mediaSections)
 		{
 			mediaSection.setDtlsRole(role);
 		}
@@ -141,19 +143,17 @@ export class RemoteSdp
 
 	getNextMediaSectionIdx(): { idx: number; reuseMid?: string }
 	{
-		let idx = -1;
-
 		// If a closed media section is found, return its index.
-		for (const mediaSection of this._mediaSections.values())
+		for (let idx = 0; idx < this._mediaSections.length; ++idx)
 		{
-			idx++;
+			const mediaSection = this._mediaSections[idx];
 
 			if (mediaSection.closed)
 				return { idx, reuseMid: mediaSection.mid };
 		}
 
 		// If no closed media section is found, return next one.
-		return { idx: this._mediaSections.size };
+		return { idx: this._mediaSections.length };
 	}
 
 	send(
@@ -195,7 +195,7 @@ export class RemoteSdp
 			this._replaceMediaSection(mediaSection, reuseMid);
 		}
 		// Unified-Plan or Plan-B with different media kind.
-		else if (!this._mediaSections.has(mediaSection.mid))
+		else if (!this._midToIndex.has(mediaSection.mid))
 		{
 			this._addMediaSection(mediaSection);
 		}
@@ -223,10 +223,16 @@ export class RemoteSdp
 		}
 	): void
 	{
+		const idx = this._midToIndex.get(mid);
+		let mediaSection: OfferMediaSection;
+
+		if (idx !== undefined)
+			mediaSection = this._mediaSections[idx] as OfferMediaSection;
+
 		// Unified-Plan or different media kind.
-		if (!this._mediaSections.has(mid))
+		if (!mediaSection)
 		{
-			const mediaSection = new OfferMediaSection(
+			mediaSection = new OfferMediaSection(
 				{
 					iceParameters      : this._iceParameters,
 					iceCandidates      : this._iceCandidates,
@@ -245,27 +251,28 @@ export class RemoteSdp
 		// Plan-B.
 		else
 		{
-			const mediaSection = this._mediaSections.get(mid) as OfferMediaSection;
-
 			mediaSection.planBReceive({ offerRtpParameters, streamId, trackId });
+
 			this._replaceMediaSection(mediaSection);
 		}
 	}
 
 	disableMediaSection(mid: string): void
 	{
-		const mediaSection = this._mediaSections.get(mid);
+		const idx = this._midToIndex.get(mid);
+		const mediaSection = this._mediaSections[idx];
 
 		mediaSection.disable();
 	}
 
 	closeMediaSection(mid: string): void
 	{
-		const mediaSection = this._mediaSections.get(mid);
+		const idx = this._midToIndex.get(mid);
+		const mediaSection = this._mediaSections[idx];
 
 		// NOTE: Closing the first m section is a pain since it invalidates the
 		// bundled transport, so let's avoid it.
-		if (String(mid) === this._firstMid)
+		if (mid === this._firstMid)
 		{
 			logger.debug(
 				'closeMediaSection() | cannot close first media section, disabling it instead [mid:%s]',
@@ -293,7 +300,8 @@ export class RemoteSdp
 		}
 	): void
 	{
-		const mediaSection = this._mediaSections.get(mid) as OfferMediaSection;
+		const idx = this._midToIndex.get(mid);
+		const mediaSection = this._mediaSections[idx] as OfferMediaSection;
 
 		mediaSection.planBStopReceiving({ offerRtpParameters });
 		this._replaceMediaSection(mediaSection);
@@ -347,10 +355,13 @@ export class RemoteSdp
 		if (!this._firstMid)
 			this._firstMid = newMediaSection.mid;
 
-		// Store it in the map.
-		this._mediaSections.set(newMediaSection.mid, newMediaSection);
+		// Add to the vector.
+		this._mediaSections.push(newMediaSection);
 
-		// Update SDP object.
+		// Add to the map.
+		this._midToIndex.set(newMediaSection.mid, this._mediaSections.length - 1);
+
+		// Add to the SDP object.
 		this._sdpObject.media.push(newMediaSection.getObject());
 
 		// Regenerate BUNDLE mids.
@@ -362,30 +373,32 @@ export class RemoteSdp
 		// Store it in the map.
 		if (reuseMid)
 		{
-			const newMediaSections = new Map();
+			const idx = this._midToIndex.get(reuseMid);
+			const oldMediaSection = this._mediaSections[idx];
 
-			for (const mediaSection of this._mediaSections.values())
-			{
-				if (mediaSection.mid === reuseMid)
-					newMediaSections.set(newMediaSection.mid, newMediaSection);
-				else
-					newMediaSections.set(mediaSection.mid, mediaSection);
-			}
+			// Replace the index in the vector with the new media section.
+			this._mediaSections[idx] = newMediaSection;
 
-			// Regenerate media sections.
-			this._mediaSections = newMediaSections;
+			// Update the map.
+			this._midToIndex.delete(oldMediaSection.mid);
+			this._midToIndex.set(newMediaSection.mid, idx);
+
+			// Update the SDP object.
+			this._sdpObject.media[idx] = newMediaSection.getObject();
 
 			// Regenerate BUNDLE mids.
 			this._regenerateBundleMids();
 		}
 		else
 		{
-			this._mediaSections.set(newMediaSection.mid, newMediaSection);
-		}
+			const idx = this._midToIndex.get(newMediaSection.mid);
 
-		// Update SDP object.
-		this._sdpObject.media = Array.from(this._mediaSections.values())
-			.map((mediaSection: any) => mediaSection.getObject());
+			// Replace the index in the vector with the new media section.
+			this._mediaSections[idx] = newMediaSection;
+
+			// Update the SDP object.
+			this._sdpObject.media[idx] = newMediaSection.getObject();
+		}
 	}
 
 	_regenerateBundleMids(): void
@@ -393,9 +406,9 @@ export class RemoteSdp
 		if (!this._dtlsParameters)
 			return;
 
-		this._sdpObject.groups[0].mids = Array.from(this._mediaSections.values())
-			.filter((mediaSection: any) => !mediaSection.closed)
-			.map((mediaSection: any) => mediaSection.mid)
+		this._sdpObject.groups[0].mids = this._mediaSections
+			.filter((mediaSection: MediaSection) => !mediaSection.closed)
+			.map((mediaSection: MediaSection) => mediaSection.mid)
 			.join(' ');
 	}
 }

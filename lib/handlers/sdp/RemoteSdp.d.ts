@@ -10,7 +10,8 @@ export declare class RemoteSdp {
     private readonly _sctpParameters?;
     private readonly _plainRtpParameters?;
     private readonly _planB;
-    private _mediaSections;
+    private readonly _mediaSections;
+    private readonly _midToIndex;
     private _firstMid?;
     private readonly _sdpObject;
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB }: {
