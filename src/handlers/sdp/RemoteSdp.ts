@@ -1,6 +1,10 @@
 import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../../Logger';
-import { AnswerMediaSection, OfferMediaSection } from './MediaSection';
+import {
+	MediaSection,
+	AnswerMediaSection,
+	OfferMediaSection
+} from './MediaSection';
 import {
 	IceParameters,
 	IceCandidate,
@@ -29,7 +33,7 @@ export class RemoteSdp
 	// Whether this is Plan-B SDP.
 	private readonly _planB: boolean;
 	// MediaSection instances indexed by MID.
-	private _mediaSections: Map<string, any> = new Map();
+	private _mediaSections: Map<string, MediaSection> = new Map();
 	// First MID.
 	private _firstMid?: string;
 	// SDP object.
@@ -135,7 +139,7 @@ export class RemoteSdp
 		}
 	}
 
-	getNextMediaSectionIdx(): { idx: number; reuseMid: boolean }
+	getNextMediaSectionIdx(): { idx: number; reuseMid?: string }
 	{
 		let idx = -1;
 
@@ -149,7 +153,7 @@ export class RemoteSdp
 		}
 
 		// If no closed media section is found, return next one.
-		return { idx: this._mediaSections.size, reuseMid: false };
+		return { idx: this._mediaSections.size };
 	}
 
 	send(
@@ -163,7 +167,7 @@ export class RemoteSdp
 		}:
 		{
 			offerMediaObject: any;
-			reuseMid?: boolean;
+			reuseMid?: string;
 			offerRtpParameters: RtpParameters;
 			answerRtpParameters: RtpParameters;
 			codecOptions?: ProducerCodecOptions;
@@ -241,7 +245,7 @@ export class RemoteSdp
 		// Plan-B.
 		else
 		{
-			const mediaSection = this._mediaSections.get(mid);
+			const mediaSection = this._mediaSections.get(mid) as OfferMediaSection;
 
 			mediaSection.planBReceive({ offerRtpParameters, streamId, trackId });
 			this._replaceMediaSection(mediaSection);
@@ -289,7 +293,7 @@ export class RemoteSdp
 		}
 	): void
 	{
-		const mediaSection = this._mediaSections.get(mid);
+		const mediaSection = this._mediaSections.get(mid) as OfferMediaSection;
 
 		mediaSection.planBStopReceiving({ offerRtpParameters });
 		this._replaceMediaSection(mediaSection);
@@ -338,7 +342,7 @@ export class RemoteSdp
 		return sdpTransform.write(this._sdpObject);
 	}
 
-	_addMediaSection(newMediaSection: any): void
+	_addMediaSection(newMediaSection: MediaSection): void
 	{
 		if (!this._firstMid)
 			this._firstMid = newMediaSection.mid;
@@ -353,7 +357,7 @@ export class RemoteSdp
 		this._regenerateBundleMids();
 	}
 
-	_replaceMediaSection(newMediaSection: any, reuseMid?: boolean): void
+	_replaceMediaSection(newMediaSection: MediaSection, reuseMid?: string): void
 	{
 		// Store it in the map.
 		if (reuseMid)
