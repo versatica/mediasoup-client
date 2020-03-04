@@ -18,6 +18,7 @@ import {
 	SctpStreamParameters
 } from './SctpParameters';
 
+const PROBATOR_MID = 'probator';
 const PROBATOR_SSRC = 1234;
 
 /**
@@ -945,7 +946,7 @@ export function generateProbatorRtpParameters(
 
 	const rtpParameters: RtpParameters =
 	{
-		mid              : undefined,
+		mid              : PROBATOR_MID,
 		codecs           : [],
 		headerExtensions : [],
 		encodings        : [],

@@ -567,7 +567,7 @@ export class Safari12 extends HandlerInterface
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		const localId = String(this._mapMidTransceiver.size);
+		const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
 
 		this._remoteSdp.receive(
 			{
