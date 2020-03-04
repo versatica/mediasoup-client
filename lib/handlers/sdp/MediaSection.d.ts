@@ -2,7 +2,7 @@ import { IceParameters, IceCandidate, DtlsParameters, DtlsRole, PlainRtpParamete
 import { ProducerCodecOptions } from '../../Producer';
 import { MediaKind, RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
-declare abstract class MediaSection {
+export declare abstract class MediaSection {
     protected readonly _mediaObject: any;
     protected readonly _planB: boolean;
     constructor({ iceParameters, iceCandidates, dtlsParameters, planB }: {
@@ -60,5 +60,4 @@ export declare class OfferMediaSection extends MediaSection {
         offerRtpParameters: RtpParameters;
     }): void;
 }
-export {};
 //# sourceMappingURL=MediaSection.d.ts.map

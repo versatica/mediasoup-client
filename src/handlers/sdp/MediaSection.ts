@@ -15,7 +15,7 @@ import {
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 
-abstract class MediaSection
+export abstract class MediaSection
 {
 	// SDP media object.
 	protected readonly _mediaObject: any;
