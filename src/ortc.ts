@@ -86,9 +86,16 @@ export function validateRtpCodecCapability(codec: RtpCodecCapability): void
 	if (typeof codec.clockRate !== 'number')
 		throw new TypeError('missing codec.clockRate');
 
-	// channels is optional. If unset, set it to 1.
-	if (typeof codec.channels !== 'number')
-		codec.channels = 1;
+	// channels is optional. If unset, set it to 1 (just if audio).
+	if (codec.kind === 'audio')
+	{
+		if (typeof codec.channels !== 'number')
+			codec.channels = 1;
+	}
+	else
+	{
+		delete codec.channels;
+	}
 
 	// parameters is optional. If unset, set it to an empty object.
 	if (!codec.parameters || typeof codec.parameters !== 'object')
@@ -269,9 +276,18 @@ export function validateRtpCodecParameters(codec: RtpCodecParameters): void
 	if (typeof codec.clockRate !== 'number')
 		throw new TypeError('missing codec.clockRate');
 
-	// channels is optional. If unset, set it to 1.
-	if (typeof codec.channels !== 'number')
-		codec.channels = 1;
+	const kind = mimeTypeMatch[1].toLowerCase() as MediaKind;
+
+	// channels is optional. If unset, set it to 1 (just if audio).
+	if (kind === 'audio')
+	{
+		if (typeof codec.channels !== 'number')
+			codec.channels = 1;
+	}
+	else
+	{
+		delete codec.channels;
+	}
 
 	// parameters is optional. If unset, set it to an empty object.
 	if (!codec.parameters || typeof codec.parameters !== 'object')
@@ -685,7 +701,6 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 			kind                 : extendedCodec.kind,
 			preferredPayloadType : extendedCodec.remoteRtxPayloadType,
 			clockRate            : extendedCodec.clockRate,
-			channels             : 1,
 			parameters           :
 			{
 				apt : extendedCodec.remotePayloadType
@@ -768,7 +783,6 @@ export function getSendingRtpParameters(
 				mimeType    : `${extendedCodec.kind}/rtx`,
 				payloadType : extendedCodec.localRtxPayloadType,
 				clockRate   : extendedCodec.clockRate,
-				channels    : 1,
 				parameters  :
 				{
 					apt : extendedCodec.localPayloadType
@@ -853,7 +867,6 @@ export function getSendingRemoteRtpParameters(
 				mimeType    : `${extendedCodec.kind}/rtx`,
 				payloadType : extendedCodec.localRtxPayloadType,
 				clockRate   : extendedCodec.clockRate,
-				channels    : 1,
 				parameters  :
 				{
 					apt : extendedCodec.localPayloadType

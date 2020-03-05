@@ -439,7 +439,6 @@ test('transport.produce() succeeds', async () =>
 			mimeType     : 'video/VP8',
 			payloadType  : 96,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback :
 			[
 				{ type: 'goog-remb', parameter: '' },
@@ -457,7 +456,6 @@ test('transport.produce() succeeds', async () =>
 			mimeType     : 'video/rtx',
 			payloadType  : 97,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback : [],
 			parameters   :
 			{
@@ -666,7 +664,6 @@ test('transport.consume() succeeds', async () =>
 			mimeType     : 'video/VP8',
 			payloadType  : 101,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback :
 			[
 				{ type: 'nack', parameter: '' },
@@ -684,7 +681,6 @@ test('transport.consume() succeeds', async () =>
 			mimeType     : 'video/rtx',
 			payloadType  : 102,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback : [],
 			parameters   :
 			{
