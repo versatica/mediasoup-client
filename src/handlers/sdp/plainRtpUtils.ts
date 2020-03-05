@@ -1,10 +1,5 @@
 import { MediaKind, RtpEncodingParameters } from '../../RtpParameters';
 
-/**
- * Extract plain RTP parameters from a SDP.
- *
- * @returns {Object} with ip (String), ipVersion (4 or 6 Number) and port (Number).
- */
 export function extractPlainRtpParameters(
 	{
 		sdpObject,
@@ -14,7 +9,12 @@ export function extractPlainRtpParameters(
 		sdpObject: any;
 		kind: MediaKind;
 	}
-): any
+):
+{
+	ip: string;
+	ipVersion: 4 | 6;
+	port: number;
+}
 {
 	const mediaObject = (sdpObject.media || [])
 		.find((m: any) => m.type === kind);
