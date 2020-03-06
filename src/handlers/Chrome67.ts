@@ -384,7 +384,7 @@ export class Chrome67 extends HandlerInterface
 		this._mapSendLocalIdTrack.set(localId, track);
 
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === track);
+			.find((s: RTCRtpSender) => s.track === track);
 
 		return {
 			localId       : localId,
@@ -401,7 +401,7 @@ export class Chrome67 extends HandlerInterface
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === track);
+			.find((s: RTCRtpSender) => s.track === track);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
@@ -457,7 +457,7 @@ export class Chrome67 extends HandlerInterface
 
 		const oldTrack = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === oldTrack);
+			.find((s: RTCRtpSender) => s.track === oldTrack);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
@@ -484,14 +484,14 @@ export class Chrome67 extends HandlerInterface
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === track);
+			.find((s: RTCRtpSender) => s.track === track);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx <= spatialLayer)
 				encoding.active = true;
@@ -512,14 +512,14 @@ export class Chrome67 extends HandlerInterface
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === track);
+			.find((s: RTCRtpSender) => s.track === track);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
@@ -533,7 +533,7 @@ export class Chrome67 extends HandlerInterface
 
 		const track = this._mapSendLocalIdTrack.get(localId);
 		const rtpSender = this._pc.getSenders()
-			.find((s: any) => s.track === track);
+			.find((s: RTCRtpSender) => s.track === track);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
@@ -669,7 +669,7 @@ export class Chrome67 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 
 		const rtpReceiver = this._pc.getReceivers()
-			.find((r: any) => r.track && r.track.id === localId);
+			.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
 
 		if (!rtpReceiver)
 			throw new Error('new RTCRtpReceiver not');

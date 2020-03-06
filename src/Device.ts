@@ -312,7 +312,7 @@ export class Device
 	 *
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get rtpCapabilities(): RtpCapabilities | undefined
+	get rtpCapabilities(): RtpCapabilities
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
@@ -325,7 +325,7 @@ export class Device
 	 *
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get sctpCapabilities(): any
+	get sctpCapabilities(): SctpCapabilities
 	{
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');

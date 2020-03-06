@@ -497,7 +497,7 @@ export class Firefox60 extends HandlerInterface
 		// requires them in reverse order, so do magic here.
 		spatialLayer = parameters.encodings.length - 1 - spatialLayer;
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx >= spatialLayer)
 				encoding.active = true;
@@ -523,7 +523,7 @@ export class Firefox60 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
@@ -669,7 +669,7 @@ export class Firefox60 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 
 		const transceiver = this._pc.getTransceivers()
-			.find((t: any) => t.mid === localId);
+			.find((t: RTCRtpTransceiver) => t.mid === localId);
 
 		if (!transceiver)
 			throw new Error('new RTCRtpTransceiver not found');

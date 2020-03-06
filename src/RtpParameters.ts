@@ -252,7 +252,7 @@ export type RtpEncodingParameters =
 	 * RTX stream information. It must contain a numeric ssrc field indicating
 	 * the RTX SSRC.
 	 */
-	rtx?: any;
+	rtx?: { ssrc: number };
 	/**
 	 * It indicates whether discontinuous RTP transmission will be used. Useful
 	 * for audio (if the codec supports it) and for video screen sharing (when

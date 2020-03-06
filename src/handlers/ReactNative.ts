@@ -607,7 +607,7 @@ export class ReactNative extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 
 		const stream = this._pc.getRemoteStreams()
-			.find((s: any) => s.id === streamId);
+			.find((s: MediaStream) => s.id === streamId);
 		const track = stream.getTrackById(localId);
 
 		if (!track)

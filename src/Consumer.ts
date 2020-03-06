@@ -204,7 +204,7 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * Get associated RTCRtpReceiver stats.
 	 */
-	async getStats(): Promise<any>
+	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');

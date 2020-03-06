@@ -20,7 +20,11 @@ import {
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome74');
@@ -278,7 +282,7 @@ export class Chrome74 extends HandlerInterface
 
 		if (encodings && encodings.length > 1)
 		{
-			encodings.forEach((encoding: any, idx: number) =>
+			encodings.forEach((encoding: RtpEncodingParameters, idx: number) =>
 			{
 				encoding.rid = `r${idx}`;
 			});
@@ -481,7 +485,7 @@ export class Chrome74 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx <= spatialLayer)
 				encoding.active = true;
@@ -507,7 +511,7 @@ export class Chrome74 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
@@ -653,7 +657,7 @@ export class Chrome74 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 
 		const transceiver = this._pc.getTransceivers()
-			.find((t: any) => t.mid === localId);
+			.find((t: RTCRtpTransceiver) => t.mid === localId);
 
 		if (!transceiver)
 			throw new Error('new RTCRtpTransceiver not found');

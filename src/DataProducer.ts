@@ -21,7 +21,7 @@ export class DataProducer extends EnhancedEventEmitter
 	// Id.
 	private readonly _id: string;
 	// The underlying RTCDataChannel instance.
-	private readonly _dataChannel: any;
+	private readonly _dataChannel: RTCDataChannel;
 	// Closed flag.
 	private _closed = false;
 	// SCTP stream parameters.
@@ -46,7 +46,7 @@ export class DataProducer extends EnhancedEventEmitter
 		}:
 		{
 			id: string;
-			dataChannel: any;
+			dataChannel: RTCDataChannel;
 			sctpStreamParameters: SctpStreamParameters;
 			appData: any;
 		}

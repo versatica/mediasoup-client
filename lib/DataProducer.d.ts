@@ -25,7 +25,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
      */
     constructor({ id, dataChannel, sctpStreamParameters, appData }: {
         id: string;
-        dataChannel: any;
+        dataChannel: RTCDataChannel;
         sctpStreamParameters: SctpStreamParameters;
         appData: any;
     });

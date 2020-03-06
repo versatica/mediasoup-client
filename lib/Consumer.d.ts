@@ -86,7 +86,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     /**
      * Get associated RTCRtpReceiver stats.
      */
-    getStats(): Promise<any>;
+    getStats(): Promise<RTCStatsReport>;
     /**
      * Pauses receiving media.
      */

@@ -54,7 +54,7 @@ export function getRtpEncodings(
 
 	for (const [ ssrc, rtxSsrc ] of ssrcToRtxSsrc)
 	{
-		const encoding: any = { ssrc };
+		const encoding: RtpEncodingParameters = { ssrc };
 
 		if (rtxSsrc)
 			encoding.rtx = { ssrc: rtxSsrc };

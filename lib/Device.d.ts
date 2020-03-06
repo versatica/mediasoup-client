@@ -1,6 +1,7 @@
 import { Transport, TransportOptions } from './Transport';
 import { HandlerFactory } from './handlers/HandlerInterface';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
+import { SctpCapabilities } from './SctpParameters';
 export declare type BuiltinHandlerName = 'Chrome74' | 'Chrome70' | 'Chrome67' | 'Chrome55' | 'Firefox60' | 'Safari12' | 'Safari11' | 'Edge11' | 'ReactNative';
 export declare type DeviceOptions = {
     /**
@@ -45,13 +46,13 @@ export declare class Device {
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    readonly rtpCapabilities: RtpCapabilities | undefined;
+    readonly rtpCapabilities: RtpCapabilities;
     /**
      * SCTP capabilities of the Device.
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    readonly sctpCapabilities: any;
+    readonly sctpCapabilities: SctpCapabilities;
     /**
      * Initialize the Device.
      */

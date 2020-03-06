@@ -4,6 +4,7 @@ import {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpHeaderExtension,
+	RtpParameters,
 	RtcpFeedback
 } from '../../RtpParameters';
 
@@ -132,7 +133,9 @@ export function extractDtlsParameters(
 ): DtlsParameters
 {
 	const mediaObject = (sdpObject.media || [])
-		.find((m: { iceUfrag: any; port: number }) => m.iceUfrag && m.port !== 0);
+		.find((m: { iceUfrag: string; port: number }) => (
+			m.iceUfrag && m.port !== 0
+		));
 
 	if (!mediaObject)
 		throw new Error('no active media section found');
@@ -192,7 +195,7 @@ export function applyCodecParameters(
 		answerMediaObject
 	}:
 	{
-		offerRtpParameters: any;
+		offerRtpParameters: RtpParameters;
 		answerMediaObject: any;
 	}
 ): void
@@ -206,7 +209,7 @@ export function applyCodecParameters(
 			continue;
 
 		const rtp = (answerMediaObject.rtp || [])
-			.find((r: { payload: any }) => r.payload === codec.payloadType);
+			.find((r: { payload: number }) => r.payload === codec.payloadType);
 
 		if (!rtp)
 			continue;
@@ -215,7 +218,7 @@ export function applyCodecParameters(
 		answerMediaObject.fmtp = answerMediaObject.fmtp || [];
 
 		let fmtp = answerMediaObject.fmtp
-			.find((f: { payload: any }) => f.payload === codec.payloadType);
+			.find((f: { payload: number }) => f.payload === codec.payloadType);
 
 		if (!fmtp)
 		{

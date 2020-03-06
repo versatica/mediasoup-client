@@ -1,8 +1,8 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
-import { RtpParameters } from './RtpParameters';
+import { RtpParameters, RtpEncodingParameters } from './RtpParameters';
 export declare type ProducerOptions = {
     track?: MediaStreamTrack;
-    encodings?: RTCRtpEncodingParameters[];
+    encodings?: RtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
     stopTracks?: boolean;
     appData?: any;
@@ -102,7 +102,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * Get associated RTCRtpSender stats.
      */
-    getStats(): Promise<any>;
+    getStats(): Promise<RTCStatsReport>;
     /**
      * Pauses sending media.
      */
@@ -124,7 +124,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * Sets the DSCP value.
      */
-    setRtpEncodingParameters(params: any): Promise<void>;
+    setRtpEncodingParameters(params: RTCRtpEncodingParameters[]): Promise<void>;
     private _onTrackEnded;
     private _handleTrack;
     private _destroyTrack;

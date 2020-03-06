@@ -1,12 +1,12 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
-import { RtpParameters } from './RtpParameters';
+import { RtpParameters, RtpEncodingParameters } from './RtpParameters';
 
 export type ProducerOptions =
 {
 	track?: MediaStreamTrack;
-	encodings?: RTCRtpEncodingParameters[];
+	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	stopTracks?: boolean;
 	appData?: any;
@@ -225,7 +225,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Get associated RTCRtpSender stats.
 	 */
-	async getStats(): Promise<any>
+	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
@@ -347,7 +347,9 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Sets the DSCP value.
 	 */
-	async setRtpEncodingParameters(params: any): Promise<void>
+	async setRtpEncodingParameters(
+		params: RTCRtpEncodingParameters[]
+	): Promise<void>
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');

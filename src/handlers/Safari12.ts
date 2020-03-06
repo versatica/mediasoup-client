@@ -439,7 +439,7 @@ export class Safari12 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx <= spatialLayer)
 				encoding.active = true;
@@ -465,7 +465,7 @@ export class Safari12 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
+		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
@@ -611,7 +611,7 @@ export class Safari12 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 
 		const transceiver = this._pc.getTransceivers()
-			.find((t: any) => t.mid === localId);
+			.find((t: RTCRtpTransceiver) => t.mid === localId);
 
 		if (!transceiver)
 			throw new Error('new RTCRtpTransceiver not found');
