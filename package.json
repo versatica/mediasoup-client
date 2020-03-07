@@ -45,7 +45,7 @@
     "supports-color": "^7.1.0"
   },
   "devDependencies": {
-    "@types/sdp-transform": "^2.4.2",
+    "@types/sdp-transform": "^2.4.3",
     "@types/uuid": "^3.4.7",
     "@typescript-eslint/eslint-plugin": "^2.22.0",
     "@typescript-eslint/parser": "^2.22.0",
