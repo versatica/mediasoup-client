@@ -382,6 +382,9 @@ export class Device
 			this._recvRtpCapabilities =
 				ortc.getRecvRtpCapabilities(this._extendedRtpCapabilities);
 
+			// This may throw.
+			ortc.validateRtpCapabilities(this._recvRtpCapabilities);
+
 			logger.debug(
 				'load() | got receiving RTP capabilities:%o',
 				this._recvRtpCapabilities);
@@ -391,6 +394,9 @@ export class Device
 
 			logger.debug(
 				'load() | got native SCTP capabilities:%o', this._sctpCapabilities);
+
+			// This may throw.
+			ortc.validateSctpCapabilities(this._sctpCapabilities);
 
 			logger.debug('load() succeeded');
 
