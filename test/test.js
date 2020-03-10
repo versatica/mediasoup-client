@@ -369,8 +369,11 @@ test('transport.produce() succeeds', async () =>
 			payloadType  : 111,
 			clockRate    : 48000,
 			channels     : 2,
-			rtcpFeedback : [],
-			parameters   :
+			rtcpFeedback :
+			[
+				{ type: 'transport-cc', parameter: '' }
+			],
+			parameters :
 			{
 				minptime     : 10,
 				useinbandfec : 1
@@ -381,14 +384,14 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-				id         : 10,
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id         : 1,
 				encrypt    : false,
 				parameters : {}
 			},
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id         : 9,
+				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id         : 10,
 				encrypt    : false,
 				parameters : {}
 			}
@@ -442,6 +445,7 @@ test('transport.produce() succeeds', async () =>
 			rtcpFeedback :
 			[
 				{ type: 'goog-remb', parameter: '' },
+				{ type: 'transport-cc', parameter: '' },
 				{ type: 'ccm', parameter: 'fir' },
 				{ type: 'nack', parameter: '' },
 				{ type: 'nack', parameter: 'pli' }
@@ -467,8 +471,8 @@ test('transport.produce() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
-				id         : 2,
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id         : 1,
 				encrypt    : false,
 				parameters : {}
 			},
@@ -479,14 +483,20 @@ test('transport.produce() succeeds', async () =>
 				parameters : {}
 			},
 			{
+				uri        : 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+				id         : 5,
+				encrypt    : false,
+				parameters : {}
+			},
+			{
 				uri        : 'urn:3gpp:video-orientation',
 				id         : 4,
 				encrypt    : false,
 				parameters : {}
 			},
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
-				id         : 9,
+				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
+				id         : 2,
 				encrypt    : false,
 				parameters : {}
 			}
@@ -606,8 +616,11 @@ test('transport.consume() succeeds', async () =>
 			payloadType  : 100,
 			clockRate    : 48000,
 			channels     : 2,
-			rtcpFeedback : [],
-			parameters   :
+			rtcpFeedback :
+			[
+				{ type: 'transport-cc', parameter: '' }
+			],
+			parameters :
 			{
 				useinbandfec : 1,
 				foo          : 'bar'
@@ -618,8 +631,20 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
 				id         : 1,
+				encrypt    : false,
+				parameters : {}
+			},
+			{
+				uri        : 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+				id         : 5,
+				encrypt    : false,
+				parameters : {}
+			},
+			{
+				uri        : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				id         : 10,
 				encrypt    : false,
 				parameters : {}
 			}
@@ -669,7 +694,8 @@ test('transport.consume() succeeds', async () =>
 				{ type: 'nack', parameter: '' },
 				{ type: 'nack', parameter: 'pli' },
 				{ type: 'ccm', parameter: 'fir' },
-				{ type: 'goog-remb', parameter: '' }
+				{ type: 'goog-remb', parameter: '' },
+				{ type: 'transport-cc', parameter: '' }
 			],
 			parameters :
 			{
@@ -692,20 +718,32 @@ test('transport.consume() succeeds', async () =>
 	expect(headerExtensions).toEqual(
 		[
 			{
-				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
-				id         : 2,
+				uri        : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				id         : 1,
 				encrypt    : false,
 				parameters : {}
 			},
 			{
 				uri        : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-				id         : 3,
+				id         : 4,
+				encrypt    : false,
+				parameters : {}
+			},
+			{
+				uri        : 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+				id         : 5,
 				encrypt    : false,
 				parameters : {}
 			},
 			{
 				uri        : 'urn:3gpp:video-orientation',
-				id         : 4,
+				id         : 11,
+				encrypt    : false,
+				parameters : {}
+			},
+			{
+				uri        : 'urn:ietf:params:rtp-hdrext:toffset',
+				id         : 12,
 				encrypt    : false,
 				parameters : {}
 			}

@@ -17,9 +17,11 @@ import {
 	SctpParameters,
 	SctpStreamParameters
 } from './SctpParameters';
+import { clone } from './utils';
 
-const PROBATOR_MID = 'probator';
-const PROBATOR_SSRC = 1234;
+const RTP_PROBATOR_MID = 'probator';
+const RTP_PROBATOR_SSRC = 1234;
+const RTP_PROBATOR_CODEC_PAYLOAD_TYPE = 127;
 
 /**
  * Validates RtpCapabilities. It may modify given data by adding missing
@@ -954,30 +956,24 @@ export function generateProbatorRtpParameters(
 	videoRtpParameters: RtpParameters
 ): RtpParameters
 {
+	// Clone given reference video RTP parameters.
+	videoRtpParameters = clone(videoRtpParameters) as RtpParameters;
+
 	// This may throw.
 	validateRtpParameters(videoRtpParameters);
 
 	const rtpParameters: RtpParameters =
 	{
-		mid              : PROBATOR_MID,
+		mid              : RTP_PROBATOR_MID,
 		codecs           : [],
 		headerExtensions : [],
-		encodings        : [],
-		rtcp             :
-		{
-			cname : 'probator'
-		}
+		encodings        : [ { ssrc: RTP_PROBATOR_SSRC } ],
+		rtcp             : { cname: 'probator' }
 	};
 
 	rtpParameters.codecs.push(videoRtpParameters.codecs[0]);
-
-	rtpParameters.headerExtensions = videoRtpParameters.headerExtensions
-		.filter((ext: any) => (
-			ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' ||
-			ext.uri === 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
-		));
-
-	rtpParameters.encodings.push({ ssrc: PROBATOR_SSRC });
+	rtpParameters.codecs[0].payloadType = RTP_PROBATOR_CODEC_PAYLOAD_TYPE;
+	rtpParameters.headerExtensions = videoRtpParameters.headerExtensions;
 
 	return rtpParameters;
 }
