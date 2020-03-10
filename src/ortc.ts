@@ -1109,9 +1109,12 @@ function matchHeaderExtensions(
 	return true;
 }
 
-function reduceRtcpFeedback(codecA: any, codecB: any): any
+function reduceRtcpFeedback(
+	codecA: RtpCodecCapability | RtpCodecParameters,
+	codecB: RtpCodecCapability | RtpCodecParameters
+): RtcpFeedback[]
 {
-	const reducedRtcpFeedback = [];
+	const reducedRtcpFeedback: RtcpFeedback[] = [];
 
 	for (const aFb of codecA.rtcpFeedback || [])
 	{
