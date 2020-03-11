@@ -409,12 +409,21 @@ export class Safari12 extends HandlerInterface
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
+	async replaceTrack(
+		localId: string, track: MediaStreamTrack | null
+	): Promise<void>
 	{
 		this._assertSendDirection();
 
-		logger.debug(
-			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		if (track)
+		{
+			logger.debug(
+				'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		}
+		else
+		{
+			logger.debug('replaceTrack() [localId:%s, no track]', localId);
+		}
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 

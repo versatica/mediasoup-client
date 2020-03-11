@@ -442,8 +442,10 @@ export class Chrome55 extends HandlerInterface
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
+	async replaceTrack(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string, track: MediaStreamTrack | null
+	): Promise<void>
 	{
 		throw new UnsupportedError('not implemented');
 	}

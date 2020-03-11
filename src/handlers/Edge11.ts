@@ -271,23 +271,26 @@ export class Edge11 extends HandlerInterface
 		}
 	}
 
-	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
+	async replaceTrack(
+		localId: string, track: MediaStreamTrack | null
+	): Promise<void>
 	{
-		logger.debug(
-			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		if (track)
+		{
+			logger.debug(
+				'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		}
+		else
+		{
+			logger.debug('replaceTrack() [localId:%s, no track]', localId);
+		}
 
 		const rtpSender = this._rtpSenders.get(localId);
 
 		if (!rtpSender)
 			throw new Error('RTCRtpSender not found');
 
-		const oldTrack = rtpSender.track;
-
 		(rtpSender as any).setTrack(track);
-
-		// Replace key.
-		this._rtpSenders.delete(oldTrack.id);
-		this._rtpSenders.set(track.id, rtpSender);
 	}
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>

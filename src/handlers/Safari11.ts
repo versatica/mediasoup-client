@@ -41,8 +41,9 @@ export class Safari11 extends HandlerInterface
 	private _pc: any;
 	// Local stream for sending.
 	private readonly _sendStream = new MediaStream();
-	// Map of sending MediaStreamTracks indexed by localId.
-	private readonly _mapSendLocalIdTrack: Map<string, MediaStreamTrack> = new Map();
+	// Map of RTCRtpSender indexed by localId.
+	private readonly _mapSendLocalIdRtpSender: Map<string, RTCRtpSender> =
+		new Map();
 	// Next sending localId.
 	private _nextSendLocalId = 0;
 	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
@@ -379,11 +380,11 @@ export class Safari11 extends HandlerInterface
 
 		this._nextSendLocalId++;
 
-		// Insert into the map.
-		this._mapSendLocalIdTrack.set(localId, track);
-
 		const rtpSender = this._pc.getSenders()
 			.find((s: RTCRtpSender) => s.track === track);
+
+		// Insert into the map.
+		this._mapSendLocalIdRtpSender.set(localId, rtpSender);
 
 		return {
 			localId       : localId,
@@ -396,16 +397,15 @@ export class Safari11 extends HandlerInterface
 	{
 		this._assertSendDirection();
 
-		const track = this._mapSendLocalIdTrack.get(localId);
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === track);
+		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
 
-		this._pc.removeTrack(rtpSender);
-		this._sendStream.removeTrack(track);
-		this._mapSendLocalIdTrack.delete(localId);
+		if (rtpSender.track)
+			this._sendStream.removeTrack(rtpSender.track);
+
+		this._mapSendLocalIdRtpSender.delete(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -445,30 +445,38 @@ export class Safari11 extends HandlerInterface
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
+	async replaceTrack(
+		localId: string, track: MediaStreamTrack | null
+	): Promise<void>
 	{
 		this._assertSendDirection();
 
-		logger.debug(
-			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		if (track)
+		{
+			logger.debug(
+				'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+		}
+		else
+		{
+			logger.debug('replaceTrack() [localId:%s, no track]', localId);
+		}
 
-		const oldTrack = this._mapSendLocalIdTrack.get(localId);
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === oldTrack);
+		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
 
+		const oldTrack = rtpSender.track;
+
 		await rtpSender.replaceTrack(track);
 
 		// Remove the old track from the local stream.
-		this._sendStream.removeTrack(oldTrack);
+		if (oldTrack)
+			this._sendStream.removeTrack(oldTrack);
 
 		// Add the new track to the local stream.
-		this._sendStream.addTrack(track);
-
-		// Replace entry in the map.
-		this._mapSendLocalIdTrack.set(localId, track);
+		if (track)
+			this._sendStream.addTrack(track);
 	}
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
@@ -479,9 +487,7 @@ export class Safari11 extends HandlerInterface
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId, spatialLayer);
 
-		const track = this._mapSendLocalIdTrack.get(localId);
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === track);
+		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
@@ -507,9 +513,7 @@ export class Safari11 extends HandlerInterface
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId, params);
 
-		const track = this._mapSendLocalIdTrack.get(localId);
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === track);
+		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');
@@ -528,9 +532,7 @@ export class Safari11 extends HandlerInterface
 	{
 		this._assertSendDirection();
 
-		const track = this._mapSendLocalIdTrack.get(localId);
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === track);
+		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
 			throw new Error('associated RTCRtpSender not found');

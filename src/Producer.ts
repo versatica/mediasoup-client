@@ -1,7 +1,11 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
-import { RtpParameters, RtpEncodingParameters } from './RtpParameters';
+import {
+	MediaKind,
+	RtpParameters,
+	RtpEncodingParameters
+} from './RtpParameters';
 
 export type ProducerOptions =
 {
@@ -38,7 +42,9 @@ export class Producer extends EnhancedEventEmitter
 	// Associated RTCRtpSender.
 	private readonly _rtpSender?: RTCRtpSender;
 	// Local track.
-	private _track: MediaStreamTrack;
+	private _track: MediaStreamTrack | null;
+	// Producer kind.
+	private readonly _kind: MediaKind;
 	// RTP parameters.
 	private readonly _rtpParameters: RtpParameters;
 	// Paused flag.
@@ -53,7 +59,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * @emits transportclose
 	 * @emits trackended
-	 * @emits @replacetrack - (track: MediaStreamTrack)
+	 * @emits @replacetrack - (track: MediaStreamTrack | null)
 	 * @emits @setmaxspatiallayer - (spatialLayer: string)
 	 * @emits @setrtpencodingparameters - (params: any)
 	 * @emits @getstats
@@ -88,6 +94,7 @@ export class Producer extends EnhancedEventEmitter
 		this._localId = localId;
 		this._rtpSender = rtpSender;
 		this._track = track;
+		this._kind = track.kind as MediaKind;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
 		this._maxSpatialLayer = undefined;
@@ -127,7 +134,7 @@ export class Producer extends EnhancedEventEmitter
 	 */
 	get kind(): string
 	{
-		return this._track.kind;
+		return this._kind;
 	}
 
 	/**
@@ -141,7 +148,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * The associated track.
 	 */
-	get track(): MediaStreamTrack
+	get track(): MediaStreamTrack | null
 	{
 		return this._track;
 	}
@@ -248,7 +255,9 @@ export class Producer extends EnhancedEventEmitter
 		}
 
 		this._paused = true;
-		this._track.enabled = false;
+
+		if (this._track)
+			this._track.enabled = false;
 	}
 
 	/**
@@ -266,13 +275,15 @@ export class Producer extends EnhancedEventEmitter
 		}
 
 		this._paused = false;
-		this._track.enabled = true;
+
+		if (this._track)
+			this._track.enabled = true;
 	}
 
 	/**
-	 * Replaces the current track with a new one.
+	 * Replaces the current track with a new one or null.
 	 */
-	async replaceTrack({ track }: { track: MediaStreamTrack }): Promise<void>
+	async replaceTrack({ track }: { track: MediaStreamTrack | null }): Promise<void>
 	{
 		logger.debug('replaceTrack() [track:%o]', track);
 
@@ -280,7 +291,7 @@ export class Producer extends EnhancedEventEmitter
 		{
 			// This must be done here. Otherwise there is no chance to stop the given
 			// track.
-			if (this._stopTracks)
+			if (track && this._stopTracks)
 			{
 				try { track.stop(); }
 				catch (error) {}
@@ -288,11 +299,7 @@ export class Producer extends EnhancedEventEmitter
 
 			throw new InvalidStateError('closed');
 		}
-		else if (!track)
-		{
-			throw new TypeError('missing track');
-		}
-		else if (track.readyState === 'ended')
+		else if (track && track.readyState === 'ended')
 		{
 			throw new InvalidStateError('track ended');
 		}
@@ -315,9 +322,9 @@ export class Producer extends EnhancedEventEmitter
 
 		// If this Producer was paused/resumed and the state of the new
 		// track does not match, fix it.
-		if (!this._paused)
+		if (track && !this._paused)
 			this._track.enabled = true;
-		else
+		else if (track && this._paused)
 			this._track.enabled = false;
 
 		// Handle the effective track.
@@ -331,7 +338,7 @@ export class Producer extends EnhancedEventEmitter
 	{
 		if (this._closed)
 			throw new InvalidStateError('closed');
-		else if (this._track.kind !== 'video')
+		else if (this._kind !== 'video')
 			throw new UnsupportedError('not a video Producer');
 		else if (typeof spatialLayer !== 'number')
 			throw new TypeError('invalid spatialLayer');
@@ -368,11 +375,17 @@ export class Producer extends EnhancedEventEmitter
 
 	private _handleTrack(): void
 	{
+		if (!this._track)
+			return;
+
 		this._track.addEventListener('ended', this._onTrackEnded);
 	}
 
 	private _destroyTrack(): void
 	{
+		if (!this._track)
+			return;
+
 		try
 		{
 			this._track.removeEventListener('ended', this._onTrackEnded);

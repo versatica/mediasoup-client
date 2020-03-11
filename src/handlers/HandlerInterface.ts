@@ -116,7 +116,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	abstract async stopSending(localId: string): Promise<void>;
 
 	abstract async replaceTrack(
-		localId: string, track: MediaStreamTrack
+		localId: string, track: MediaStreamTrack | null
 	): Promise<void>;
 
 	abstract async setMaxSpatialLayer(

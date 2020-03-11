@@ -23,6 +23,7 @@ export declare class Producer extends EnhancedEventEmitter {
     private _closed;
     private readonly _rtpSender?;
     private _track;
+    private readonly _kind;
     private readonly _rtpParameters;
     private _paused;
     private _maxSpatialLayer;
@@ -31,7 +32,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * @emits transportclose
      * @emits trackended
-     * @emits @replacetrack - (track: MediaStreamTrack)
+     * @emits @replacetrack - (track: MediaStreamTrack | null)
      * @emits @setmaxspatiallayer - (spatialLayer: string)
      * @emits @setrtpencodingparameters - (params: any)
      * @emits @getstats
@@ -69,7 +70,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * The associated track.
      */
-    readonly track: MediaStreamTrack;
+    readonly track: MediaStreamTrack | null;
     /**
      * RTP parameters.
      */
@@ -112,10 +113,10 @@ export declare class Producer extends EnhancedEventEmitter {
      */
     resume(): void;
     /**
-     * Replaces the current track with a new one.
+     * Replaces the current track with a new one or null.
      */
     replaceTrack({ track }: {
-        track: MediaStreamTrack;
+        track: MediaStreamTrack | null;
     }): Promise<void>;
     /**
      * Sets the video max spatial layer to be sent.

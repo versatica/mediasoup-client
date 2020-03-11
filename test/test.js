@@ -1071,7 +1071,7 @@ test('producer.resume() succeeds', () =>
 	expect(videoProducer.paused).toBe(false);
 }, 500);
 
-test('producer.replaceTrack() succeeds', async () =>
+test('producer.replaceTrack() with a new track succeeds', async () =>
 {
 	// Have the audio Producer paused.
 	audioProducer.pause();
@@ -1108,13 +1108,43 @@ test('producer.replaceTrack() succeeds', async () =>
 	expect(videoProducer.paused).toBe(false);
 }, 500);
 
-test('producer.replaceTrack() without track rejects with TypeError', async () =>
+test('producer.replaceTrack() with null succeeds', async () =>
 {
-	await expect(videoProducer.replaceTrack({}))
-		.rejects
-		.toThrow(TypeError);
+	// Have the audio Producer paused.
+	audioProducer.pause();
 
-	expect(videoProducer.track.readyState).toBe('live');
+	const audioProducerPreviousTrack = audioProducer.track;
+
+	await expect(audioProducer.replaceTrack({ track: null }))
+		.resolves
+		.toBe(undefined);
+
+	// Previous track must be 'live' due to stopTracks: false.
+	expect(audioProducerPreviousTrack.readyState).toBe('live');
+	expect(audioProducer.track).toBeNull();
+	// Producer was already paused.
+	expect(audioProducer.paused).toBe(true);
+
+	// Reset the audio paused state.
+	audioProducer.resume();
+
+	expect(audioProducer.paused).toBe(false);
+
+	// Manually "mute" the original audio track.
+	audioProducerPreviousTrack.enabled = false;
+
+	// Set the original audio track back.
+	await expect(audioProducer.replaceTrack({ track: audioProducerPreviousTrack }))
+		.resolves
+		.toBe(undefined);
+
+	// The given audio track was muted but the Producer was not, so the track
+	// must not be muted now.
+	expect(audioProducer.paused).toBe(false);
+	expect(audioProducerPreviousTrack.enabled).toBe(true);
+
+	// Reset the audio paused state.
+	audioProducer.resume();
 }, 500);
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () =>
