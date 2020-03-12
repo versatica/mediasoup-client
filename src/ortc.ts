@@ -576,7 +576,7 @@ export function getExtendedRtpCapabilities(
 			continue;
 
 		const matchingLocalCodec = (localCaps.codecs || [])
-			.find((localCodec: any) => (
+			.find((localCodec: RtpCodecCapability) => (
 				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true }))
 			);
 
@@ -605,13 +605,13 @@ export function getExtendedRtpCapabilities(
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
 	{
 		const matchingLocalRtxCodec = localCaps.codecs
-			.find((localCodec: any) => (
+			.find((localCodec: RtpCodecCapability) => (
 				isRtxCodec(localCodec) &&
 				localCodec.parameters.apt === extendedCodec.localPayloadType
 			));
 
 		const matchingRemoteRtxCodec = remoteCaps.codecs
-			.find((remoteCodec: any) => (
+			.find((remoteCodec: RtpCodecCapability) => (
 				isRtxCodec(remoteCodec) &&
 				remoteCodec.parameters.apt === extendedCodec.remotePayloadType
 			));
@@ -627,12 +627,12 @@ export function getExtendedRtpCapabilities(
 	for (const remoteExt of remoteCaps.headerExtensions)
 	{
 		const matchingLocalExt = localCaps.headerExtensions
-			.find((localExt: any) => matchHeaderExtensions(localExt, remoteExt));
+			.find((localExt: RtpHeaderExtension) => (
+				matchHeaderExtensions(localExt, remoteExt)
+			));
 
 		if (!matchingLocalExt)
 			continue;
-
-		// TODO: Must do stuff for encrypted extensions.
 
 		const extendedExt =
 		{
@@ -919,7 +919,7 @@ export function getSendingRemoteRtpParameters(
 		for (const codec of rtpParameters.codecs)
 		{
 			codec.rtcpFeedback = (codec.rtcpFeedback || [])
-				.filter((fb: any) => fb.type !== 'goog-remb');
+				.filter((fb: RtcpFeedback) => fb.type !== 'goog-remb');
 		}
 	}
 	else if (
@@ -939,7 +939,7 @@ export function getSendingRemoteRtpParameters(
 		for (const codec of rtpParameters.codecs)
 		{
 			codec.rtcpFeedback = (codec.rtcpFeedback || [])
-				.filter((fb: any) => (
+				.filter((fb: RtcpFeedback) => (
 					fb.type !== 'transport-cc' &&
 					fb.type !== 'goog-remb'
 				));
@@ -1115,7 +1115,7 @@ function reduceRtcpFeedback(
 	for (const aFb of codecA.rtcpFeedback || [])
 	{
 		const matchingBFb = (codecB.rtcpFeedback || [])
-			.find((bFb: any) => (
+			.find((bFb: RtcpFeedback) => (
 				bFb.type === aFb.type &&
 				(bFb.parameter === aFb.parameter || (!bFb.parameter && !aFb.parameter))
 			));
