@@ -325,8 +325,11 @@ export class AnswerMediaSection extends MediaSection
 
 					this._mediaObject.ext.push(
 						{
-							uri   : ext.uri,
-							value : ext.id
+							uri           : ext.uri,
+							value         : ext.id,
+							'encrypt-uri' : ext.encrypt
+								? 'urn:ietf:params:rtp-hdrext:encrypt'
+								: undefined
 						});
 				}
 
@@ -563,8 +566,11 @@ export class OfferMediaSection extends MediaSection
 				{
 					this._mediaObject.ext.push(
 						{
-							uri   : ext.uri,
-							value : ext.id
+							uri           : ext.uri,
+							value         : ext.id,
+							'encrypt-uri' : ext.encrypt
+								? 'urn:ietf:params:rtp-hdrext:encrypt'
+								: undefined
 						});
 				}
 

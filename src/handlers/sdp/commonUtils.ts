@@ -107,19 +107,23 @@ export function extractRtpCapabilities(
 		// Get RTP header extensions.
 		for (const ext of m.ext || [])
 		{
-			// Ignore encrypted extensions (not yet supported in mediasoup).
-			if (ext['encrypt-uri'])
-				continue;
-
 			const headerExtension: RtpHeaderExtension =
 			{
-				kind        : kind,
-				uri         : ext.uri,
-				preferredId : ext.value
+				kind             : kind,
+				uri              : ext.uri,
+				preferredId      : ext.value,
+				preferredEncrypt : Boolean(ext['encrypt-uri'])
 			};
 
 			headerExtensions.push(headerExtension);
 		}
+
+		// TODO: Here we should inspect all extensions.
+		// - If there are extensions with same uri but different preferredEncrypt,
+		//   filter those with preferredEncrypt: true.
+		// - There may also be extensions with preferredId: 0, meaning that the
+		//   remote (mediasoup must choose and set the id in the SDP answer). If so,
+		//   choose the id here.
 	}
 
 	const rtpCapabilities: RtpCapabilities =
