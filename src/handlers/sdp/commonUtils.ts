@@ -107,6 +107,10 @@ export function extractRtpCapabilities(
 		// Get RTP header extensions.
 		for (const ext of m.ext || [])
 		{
+			// Ignore encrypted extensions (not yet supported in mediasoup).
+			if (ext['encrypt-uri'])
+				continue;
+
 			const headerExtension: RtpHeaderExtension =
 			{
 				kind        : kind,
