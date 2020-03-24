@@ -18,7 +18,7 @@ export declare class Chrome70 extends HandlerInterface {
      */
     static createFactory(): HandlerFactory;
     constructor();
-    readonly name: string;
+    get name(): string;
     close(): void;
     run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;

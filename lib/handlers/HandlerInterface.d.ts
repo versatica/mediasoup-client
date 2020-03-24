@@ -59,7 +59,7 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
      * @emits @connectionstatechange - (connectionState: ConnectionState)
      */
     constructor();
-    abstract readonly name: string;
+    abstract get name(): string;
     abstract close(): void;
     abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;

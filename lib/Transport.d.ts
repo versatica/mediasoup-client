@@ -126,30 +126,31 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Transport id.
      */
-    readonly id: string;
+    get id(): string;
     /**
      * Whether the Transport is closed.
      */
-    readonly closed: boolean;
+    get closed(): boolean;
     /**
      * Transport direction.
      */
-    readonly direction: 'send' | 'recv';
+    get direction(): 'send' | 'recv';
     /**
      * RTC handler instance.
      */
-    readonly handler: HandlerInterface;
+    get handler(): HandlerInterface;
     /**
      * Connection state.
      */
-    readonly connectionState: ConnectionState;
+    get connectionState(): ConnectionState;
     /**
      * App custom data.
      */
+    get appData(): any;
     /**
-    * Invalid setter.
-    */
-    appData: any;
+     * Invalid setter.
+     */
+    set appData(appData: any);
     /**
      * Close the Transport.
      */

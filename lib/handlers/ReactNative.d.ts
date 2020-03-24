@@ -20,7 +20,7 @@ export declare class ReactNative extends HandlerInterface {
      */
     static createFactory(): HandlerFactory;
     constructor();
-    readonly name: string;
+    get name(): string;
     close(): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;

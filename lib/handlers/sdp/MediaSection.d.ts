@@ -12,8 +12,8 @@ export declare abstract class MediaSection {
         planB: boolean;
     });
     abstract setDtlsRole(role: DtlsRole): void;
-    readonly mid: string;
-    readonly closed: boolean;
+    get mid(): string;
+    get closed(): boolean;
     getObject(): object;
     setIceParameters(iceParameters: IceParameters): void;
     disable(): void;

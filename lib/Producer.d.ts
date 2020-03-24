@@ -50,48 +50,49 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * Producer id.
      */
-    readonly id: string;
+    get id(): string;
     /**
      * Local id.
      */
-    readonly localId: string;
+    get localId(): string;
     /**
      * Whether the Producer is closed.
      */
-    readonly closed: boolean;
+    get closed(): boolean;
     /**
      * Media kind.
      */
-    readonly kind: string;
+    get kind(): string;
     /**
      * Associated RTCRtpSender.
      */
-    readonly rtpSender: RTCRtpSender | undefined;
+    get rtpSender(): RTCRtpSender | undefined;
     /**
      * The associated track.
      */
-    readonly track: MediaStreamTrack | null;
+    get track(): MediaStreamTrack | null;
     /**
      * RTP parameters.
      */
-    readonly rtpParameters: RtpParameters;
+    get rtpParameters(): RtpParameters;
     /**
      * Whether the Producer is paused.
      */
-    readonly paused: boolean;
+    get paused(): boolean;
     /**
      * Max spatial layer.
      *
      * @type {Number | undefined}
      */
-    readonly maxSpatialLayer: number | undefined;
+    get maxSpatialLayer(): number | undefined;
     /**
      * App custom data.
      */
+    get appData(): any;
     /**
-    * Invalid setter.
-    */
-    appData: any;
+     * Invalid setter.
+     */
+    set appData(appData: any);
     /**
      * Closes the Producer.
      */

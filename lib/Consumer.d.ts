@@ -35,46 +35,47 @@ export declare class Consumer extends EnhancedEventEmitter {
     /**
      * Consumer id.
      */
-    readonly id: string;
+    get id(): string;
     /**
      * Local id.
      */
-    readonly localId: string;
+    get localId(): string;
     /**
      * Associated Producer id.
      */
-    readonly producerId: string;
+    get producerId(): string;
     /**
      * Whether the Consumer is closed.
      */
-    readonly closed: boolean;
+    get closed(): boolean;
     /**
      * Media kind.
      */
-    readonly kind: string;
+    get kind(): string;
     /**
      * Associated RTCRtpReceiver.
      */
-    readonly rtpReceiver: RTCRtpReceiver | undefined;
+    get rtpReceiver(): RTCRtpReceiver | undefined;
     /**
      * The associated track.
      */
-    readonly track: MediaStreamTrack;
+    get track(): MediaStreamTrack;
     /**
      * RTP parameters.
      */
-    readonly rtpParameters: RtpParameters;
+    get rtpParameters(): RtpParameters;
     /**
      * Whether the Consumer is paused.
      */
-    readonly paused: boolean;
+    get paused(): boolean;
     /**
      * App custom data.
      */
+    get appData(): any;
     /**
-    * Invalid setter.
-    */
-    appData: any;
+     * Invalid setter.
+     */
+    set appData(appData: any);
     /**
      * Closes the Consumer.
      */

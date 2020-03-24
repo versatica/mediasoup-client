@@ -36,23 +36,23 @@ export declare class Device {
     /**
      * The RTC handler name.
      */
-    readonly handlerName: string;
+    get handlerName(): string;
     /**
      * Whether the Device is loaded.
      */
-    readonly loaded: boolean;
+    get loaded(): boolean;
     /**
      * RTP capabilities of the Device for receiving media.
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    readonly rtpCapabilities: RtpCapabilities;
+    get rtpCapabilities(): RtpCapabilities;
     /**
      * SCTP capabilities of the Device.
      *
      * @throws {InvalidStateError} if not loaded.
      */
-    readonly sctpCapabilities: SctpCapabilities;
+    get sctpCapabilities(): SctpCapabilities;
     /**
      * Initialize the Device.
      */
