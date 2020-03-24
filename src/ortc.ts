@@ -680,6 +680,8 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
 	{
+		const extendedParameters = matchExtendedCodecParameters(extendedCodec);
+
 		const codec =
 		{
 			mimeType             : extendedCodec.mimeType,
@@ -687,7 +689,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 			preferredPayloadType : extendedCodec.remotePayloadType,
 			clockRate            : extendedCodec.clockRate,
 			channels             : extendedCodec.channels,
-			parameters           : extendedCodec.localParameters,
+			parameters           : extendedParameters,
 			rtcpFeedback         : extendedCodec.rtcpFeedback
 		};
 
@@ -765,13 +767,15 @@ export function getSendingRtpParameters(
 		if (extendedCodec.kind !== kind)
 			continue;
 
+		const extendedParameters = matchExtendedCodecParameters(extendedCodec);
+
 		const codec: RtpCodecParameters =
 		{
 			mimeType     : extendedCodec.mimeType,
 			payloadType  : extendedCodec.localPayloadType,
 			clockRate    : extendedCodec.clockRate,
 			channels     : extendedCodec.channels,
-			parameters   : extendedCodec.localParameters,
+			parameters   : extendedParameters,
 			rtcpFeedback : extendedCodec.rtcpFeedback
 		};
 
@@ -1089,6 +1093,29 @@ function matchCodecs(
 	}
 
 	return true;
+}
+
+function matchExtendedCodecParameters(
+	extendedCodec: any
+): any
+{
+	const extendedParameters: any = {};
+
+	// Make the remote parameters the priority
+	for (const key of Object.keys(extendedCodec.remoteParameters))
+	{
+		if (!extendedParameters[key])
+			extendedParameters[key] = extendedCodec.remoteParameters[key];
+	}
+
+	// Add the local parameters if not already set by remote
+	for (const key of Object.keys(extendedCodec.localParameters))
+	{
+		if (!extendedParameters[key])
+			extendedParameters[key] = extendedCodec.localParameters[key];
+	}
+
+	return extendedParameters;
 }
 
 function matchHeaderExtensions(

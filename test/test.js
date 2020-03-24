@@ -376,7 +376,8 @@ test('transport.produce() succeeds', async () =>
 			parameters :
 			{
 				minptime     : 10,
-				useinbandfec : 1
+				useinbandfec : 1,
+				foo          : 'bar'
 			}
 		});
 
@@ -452,7 +453,8 @@ test('transport.produce() succeeds', async () =>
 			],
 			parameters :
 			{
-				baz : '1234abcd'
+				baz                      : '1234abcd',
+				'x-google-start-bitrate' : 1500
 			}
 		});
 	expect(codecs[1]).toEqual(
