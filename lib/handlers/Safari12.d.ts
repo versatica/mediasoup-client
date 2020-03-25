@@ -26,7 +26,7 @@ export declare class Safari12 extends HandlerInterface {
     updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
     restartIce(iceParameters: IceParameters): Promise<void>;
     getTransportStats(): Promise<RTCStatsReport>;
-    send({ track, encodings, codecOptions }: HandlerSendOptions): Promise<HandlerSendResult>;
+    send({ track, encodings, codecOptions, codec }: HandlerSendOptions): Promise<HandlerSendResult>;
     stopSending(localId: string): Promise<void>;
     replaceTrack(localId: string, track: MediaStreamTrack | null): Promise<void>;
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;

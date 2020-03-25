@@ -1,9 +1,10 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
-import { RtpParameters, RtpEncodingParameters } from './RtpParameters';
+import { RtpCodecCapability, RtpParameters, RtpEncodingParameters } from './RtpParameters';
 export declare type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
+    codec?: RtpCodecCapability;
     stopTracks?: boolean;
     appData?: any;
 };
