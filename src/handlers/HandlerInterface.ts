@@ -7,6 +7,7 @@ import {
 } from '../Transport';
 import {
 	RtpCapabilities,
+	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters
 } from '../RtpParameters';
@@ -37,6 +38,7 @@ export type HandlerSendOptions =
 	track: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	codec?: RtpCodecCapability;
 };
 
 export type HandlerSendResult =

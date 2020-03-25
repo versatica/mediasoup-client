@@ -295,7 +295,7 @@ export class Firefox60 extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
@@ -315,6 +315,20 @@ export class Firefox60 extends HandlerInterface
 			// from high to low.
 			reverseEncodings = utils.clone(encodings).reverse();
 		}
+
+		const sendingRtpParameters =
+			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+
+		// This may throw.
+		sendingRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
+
+		const sendingRemoteRtpParameters =
+			this._sendingRemoteRtpParametersByKind[track.kind];
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
 		// NOTE: Firefox fails sometimes to properly anticipate the closed media
 		// section that it should use, so don't reuse closed media sections.
@@ -336,8 +350,6 @@ export class Firefox60 extends HandlerInterface
 
 		const offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
-		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
 
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.
@@ -407,7 +419,7 @@ export class Firefox60 extends HandlerInterface
 			{
 				offerMediaObject,
 				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
+				answerRtpParameters : sendingRemoteRtpParameters,
 				codecOptions,
 				extmapAllowMixed    : true
 			});

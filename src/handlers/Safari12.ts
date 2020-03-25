@@ -266,12 +266,26 @@ export class Safari12 extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+
+		const sendingRtpParameters =
+			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+
+		// This may throw.
+		sendingRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
+
+		const sendingRemoteRtpParameters =
+			this._sendingRemoteRtpParametersByKind[track.kind];
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
@@ -279,8 +293,6 @@ export class Safari12 extends HandlerInterface
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
-		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
 
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
@@ -355,7 +367,7 @@ export class Safari12 extends HandlerInterface
 				offerMediaObject,
 				reuseMid            : mediaSectionIdx.reuseMid,
 				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
+				answerRtpParameters : sendingRemoteRtpParameters,
 				codecOptions
 			});
 

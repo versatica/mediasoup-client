@@ -3,6 +3,7 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import {
 	MediaKind,
+	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters
 } from './RtpParameters';
@@ -12,6 +13,7 @@ export type ProducerOptions =
 	track?: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	codec?: RtpCodecCapability;
 	stopTracks?: boolean;
 	appData?: any;
 }

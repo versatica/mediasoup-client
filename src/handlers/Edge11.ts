@@ -189,7 +189,7 @@ export class Edge11 extends HandlerInterface
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -202,8 +202,11 @@ export class Edge11 extends HandlerInterface
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters =
 			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+
+		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);
+
 		const useRtx = rtpParameters.codecs
-			.some((codec: any) => /.+\/rtx$/i.test(codec.mimeType));
+			.some((_codec: any) => /.+\/rtx$/i.test(_codec.mimeType));
 
 		if (!encodings)
 			encodings = [ {} ];

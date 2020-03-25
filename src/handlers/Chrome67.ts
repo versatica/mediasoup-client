@@ -283,12 +283,19 @@ export class Chrome67 extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+
+		if (codec)
+		{
+			logger.warn(
+				'send() | codec selection is not available in %s handler',
+				this.name);
+		}
 
 		this._sendStream.addTrack(track);
 		this._pc.addTrack(track, this._sendStream);
@@ -298,6 +305,15 @@ export class Chrome67 extends HandlerInterface
 		let offerMediaObject;
 		const sendingRtpParameters =
 			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+
+		sendingRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRtpParameters.codecs);
+
+		const sendingRemoteRtpParameters =
+			this._sendingRemoteRtpParametersByKind[track.kind];
+
+		sendingRemoteRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
 
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
@@ -365,7 +381,7 @@ export class Chrome67 extends HandlerInterface
 			{
 				offerMediaObject,
 				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
+				answerRtpParameters : sendingRemoteRtpParameters,
 				codecOptions
 			});
 

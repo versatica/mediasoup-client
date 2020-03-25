@@ -396,6 +396,7 @@ export class Transport extends EnhancedEventEmitter
 			track,
 			encodings,
 			codecOptions,
+			codec,
 			stopTracks = true,
 			appData = {}
 		}: ProducerOptions = {}
@@ -464,7 +465,8 @@ export class Transport extends EnhancedEventEmitter
 					{
 						track,
 						encodings : normalizedEncodings,
-						codecOptions
+						codecOptions,
+						codec
 					});
 
 				try
