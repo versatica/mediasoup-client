@@ -248,6 +248,11 @@ export declare type RtpEncodingParameters = {
      * See webrtc-svc.
      */
     scalabilityMode?: string;
+    /**
+     * Others.
+     */
+    scaleResolutionDownBy?: number;
+    maxBitrate?: number;
     priority?: 'very-low' | 'low' | 'medium' | 'high';
     networkPriority?: 'very-low' | 'low' | 'medium' | 'high';
 };
