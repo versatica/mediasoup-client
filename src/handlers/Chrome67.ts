@@ -310,7 +310,7 @@ export class Chrome67 extends HandlerInterface
 			ortc.reduceCodecs(sendingRtpParameters.codecs);
 
 		const sendingRemoteRtpParameters =
-			this._sendingRemoteRtpParametersByKind[track.kind];
+			utils.clone(this._sendingRemoteRtpParametersByKind[track.kind]);
 
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);

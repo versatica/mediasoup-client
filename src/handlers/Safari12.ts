@@ -281,7 +281,7 @@ export class Safari12 extends HandlerInterface
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			this._sendingRemoteRtpParametersByKind[track.kind];
+			utils.clone(this._sendingRemoteRtpParametersByKind[track.kind]);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
