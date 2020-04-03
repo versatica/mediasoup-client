@@ -6,6 +6,7 @@ export declare type ProducerOptions = {
     codecOptions?: ProducerCodecOptions;
     codec?: RtpCodecCapability;
     stopTracks?: boolean;
+    zeroRtpOnPause?: boolean;
     appData?: any;
 };
 export declare type ProducerCodecOptions = {
@@ -29,6 +30,7 @@ export declare class Producer extends EnhancedEventEmitter {
     private _paused;
     private _maxSpatialLayer;
     private _stopTracks;
+    private _zeroRtpOnPause;
     private readonly _appData;
     /**
      * @emits transportclose
@@ -39,13 +41,14 @@ export declare class Producer extends EnhancedEventEmitter {
      * @emits @getstats
      * @emits @close
      */
-    constructor({ id, localId, rtpSender, track, rtpParameters, stopTracks, appData }: {
+    constructor({ id, localId, rtpSender, track, rtpParameters, stopTracks, zeroRtpOnPause, appData }: {
         id: string;
         localId: string;
         rtpSender?: RTCRtpSender;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
         stopTracks: boolean;
+        zeroRtpOnPause: boolean;
         appData: any;
     });
     /**

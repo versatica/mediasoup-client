@@ -47,14 +47,14 @@
   "devDependencies": {
     "@types/sdp-transform": "^2.4.3",
     "@types/uuid": "^3.4.7",
-    "@typescript-eslint/eslint-plugin": "^2.25.0",
-    "@typescript-eslint/parser": "^2.25.0",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.26.0",
     "eslint": "^6.8.0",
     "eslint-plugin-jest": "^23.8.2",
     "fake-mediastreamtrack": "^1.1.3",
-    "jest": "^25.2.0",
+    "jest": "^25.2.7",
     "jest-tobetype": "^1.2.3",
-    "open-cli": "^6.0.0",
+    "open-cli": "^6.0.1",
     "tsc-watch": "^4.2.3",
     "typescript": "~3.7.5",
     "uuid": "^3.4.0"
