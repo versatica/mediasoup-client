@@ -15,6 +15,7 @@ export type ProducerOptions =
 	codecOptions?: ProducerCodecOptions;
 	codec?: RtpCodecCapability;
 	stopTracks?: boolean;
+	zeroRtpOnPause?: boolean;
 	appData?: any;
 }
 
@@ -55,6 +56,8 @@ export class Producer extends EnhancedEventEmitter
 	private _maxSpatialLayer: number | undefined;
 	// Whether the Producer should call stop() in given tracks.
 	private _stopTracks: boolean;
+	// Whether we should replace the RTCRtpSender.track with null when paused.
+	private _zeroRtpOnPause: boolean;
 	// App custom data.
 	private readonly _appData: any;
 
@@ -75,6 +78,7 @@ export class Producer extends EnhancedEventEmitter
 			track,
 			rtpParameters,
 			stopTracks,
+			zeroRtpOnPause,
 			appData
 		}:
 		{
@@ -84,6 +88,7 @@ export class Producer extends EnhancedEventEmitter
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
 			stopTracks: boolean;
+			zeroRtpOnPause: boolean;
 			appData: any;
 		}
 	)
@@ -101,6 +106,7 @@ export class Producer extends EnhancedEventEmitter
 		this._paused = !track.enabled;
 		this._maxSpatialLayer = undefined;
 		this._stopTracks = stopTracks;
+		this._zeroRtpOnPause = zeroRtpOnPause;
 		this._appData = appData;
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
@@ -260,6 +266,12 @@ export class Producer extends EnhancedEventEmitter
 
 		if (this._track)
 			this._track.enabled = false;
+
+		if (this._zeroRtpOnPause)
+		{
+			this.safeEmitAsPromise('@replacetrack', null)
+				.catch(() => {});
+		}
 	}
 
 	/**
@@ -280,6 +292,12 @@ export class Producer extends EnhancedEventEmitter
 
 		if (this._track)
 			this._track.enabled = true;
+
+		if (this._zeroRtpOnPause)
+		{
+			this.safeEmitAsPromise('@replacetrack', this._track)
+				.catch(() => {});
+		}
 	}
 
 	/**

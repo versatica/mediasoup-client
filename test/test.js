@@ -422,8 +422,9 @@ test('transport.produce() succeeds', async () =>
 	];
 
 	// Note that stopTracks is not give so it's true by default.
+	// Use zeroRtpOnPause: true
 	videoProducer = await sendTransport.produce(
-		{ track: videoTrack, encodings: videoEncodings });
+		{ track: videoTrack, encodings: videoEncodings, zeroRtpOnPause: true });
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(2);
@@ -1063,12 +1064,14 @@ test('producer.pause() succeeds', () =>
 {
 	videoProducer.pause();
 	expect(videoProducer.paused).toBe(true);
+	expect(videoProducer.track.enabled).toBe(false);
 }, 500);
 
 test('producer.resume() succeeds', () =>
 {
 	videoProducer.resume();
 	expect(videoProducer.paused).toBe(false);
+	expect(videoProducer.track.enabled).toBe(true);
 }, 500);
 
 test('producer.replaceTrack() with a new track succeeds', async () =>
