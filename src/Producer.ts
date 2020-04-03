@@ -110,6 +110,9 @@ export class Producer extends EnhancedEventEmitter
 		this._appData = appData;
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
+		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
+		// '@replacetrack' event here, so RTCRtpSender.track won't be null.
+
 		this._handleTrack();
 	}
 
@@ -332,7 +335,10 @@ export class Producer extends EnhancedEventEmitter
 			return;
 		}
 
-		await this.safeEmitAsPromise('@replacetrack', track);
+		if (!this._zeroRtpOnPause || !this._paused)
+		{
+			await this.safeEmitAsPromise('@replacetrack', track);
+		}
 
 		// Destroy the previous track.
 		this._destroyTrack();
