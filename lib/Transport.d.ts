@@ -176,7 +176,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Create a Producer.
      */
-    produce({ track, encodings, codecOptions, codec, stopTracks, zeroRtpOnPause, appData }?: ProducerOptions): Promise<Producer>;
+    produce({ track, encodings, codecOptions, codec, stopTracks, disableTrackOnPause, zeroRtpOnPause, appData }?: ProducerOptions): Promise<Producer>;
     /**
      * Create a Consumer to consume a remote Producer.
      */
