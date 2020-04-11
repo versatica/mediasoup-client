@@ -398,6 +398,7 @@ export class Transport extends EnhancedEventEmitter
 			codecOptions,
 			codec,
 			stopTracks = true,
+			disableTrackOnPause = true,
 			zeroRtpOnPause = false,
 			appData = {}
 		}: ProducerOptions = {}
@@ -491,6 +492,7 @@ export class Transport extends EnhancedEventEmitter
 							track,
 							rtpParameters,
 							stopTracks,
+							disableTrackOnPause,
 							zeroRtpOnPause,
 							appData
 						});
