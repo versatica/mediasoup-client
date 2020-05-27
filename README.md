@@ -3,10 +3,6 @@
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
 [![][travis-ci-shield-mediasoup-client]][travis-ci-mediasoup-client]
 
-<!--
-[![][npm-shield-mediasoup-client]][npm-mediasoup-client]
--->
-
 JavaScript client side library for building [mediasoup][mediasoup-website] based applications.
 
 
