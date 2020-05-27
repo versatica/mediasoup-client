@@ -46,16 +46,16 @@
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.3",
-    "@types/uuid": "^3.4.7",
-    "@typescript-eslint/eslint-plugin": "^3.0.0",
-    "@typescript-eslint/parser": "^3.0.0",
-    "eslint": "^7.0.0",
-    "eslint-plugin-jest": "^23.13.1",
+    "@types/uuid": "^3.4.9",
+    "@typescript-eslint/eslint-plugin": "^3.0.1",
+    "@typescript-eslint/parser": "^3.0.1",
+    "eslint": "^7.1.0",
+    "eslint-plugin-jest": "^23.13.2",
     "fake-mediastreamtrack": "^1.1.3",
     "jest": "^26.0.1",
     "jest-tobetype": "^1.2.3",
     "open-cli": "^6.0.1",
-    "tsc-watch": "^4.2.7",
+    "tsc-watch": "^4.2.8",
     "typescript": "~3.7.5",
     "uuid": "^3.4.0"
   }
