@@ -10,7 +10,7 @@ const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupClient.types;
 const utils = require('../lib/utils');
-const { FakeHandler } = require('./FakeHandler');
+const { FakeHandler } = require('../lib/handlers/FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
 expect.extend({ toBeType });
@@ -50,7 +50,8 @@ test('create a Device with an unknown handlerName string throws TypeError', () =
 
 test('create a Device in Node with a valid handlerFactory succeeds', () =>
 {
-	expect(device = new Device({ handlerFactory: FakeHandler.createFactory() }))
+	expect(
+		device = new Device({ handlerFactory: FakeHandler.createFactory(fakeParameters) }))
 		.toBeType('object');
 
 	expect(device.handlerName).toBe('FakeHandler');
