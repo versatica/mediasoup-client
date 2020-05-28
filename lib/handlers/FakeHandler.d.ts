@@ -1,7 +1,12 @@
 import { HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
-import { IceParameters } from '../Transport';
+import { IceParameters, DtlsParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
+export declare type FakeParameters = {
+    generateNativeRtpCapabilities: () => RtpCapabilities;
+    generateNativeSctpCapabilities: () => SctpCapabilities;
+    generateLocalDtlsParameters: () => DtlsParameters;
+};
 export declare class FakeHandler extends HandlerInterface {
     private fakeParameters;
     private _rtpParametersByKind;
@@ -13,22 +18,14 @@ export declare class FakeHandler extends HandlerInterface {
     /**
      * Creates a factory function.
      */
-    static createFactory(fakeParameters: any): () => FakeHandler;
+    static createFactory(fakeParameters: FakeParameters): () => FakeHandler;
     constructor(fakeParameters: any);
     get name(): string;
     close(): void;
     setConnectionState(connectionState: string): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;
-    run({ direction, // eslint-disable-line no-unused-vars
-    iceParameters, // eslint-disable-line no-unused-vars
-    iceCandidates, // eslint-disable-line no-unused-vars
-    dtlsParameters, // eslint-disable-line no-unused-vars
-    sctpParameters, // eslint-disable-line no-unused-vars
-    iceServers, // eslint-disable-line no-unused-vars
-    iceTransportPolicy, // eslint-disable-line no-unused-vars
-    proprietaryConstraints, // eslint-disable-line no-unused-vars
-    extendedRtpCapabilities }: HandlerRunOptions): void;
+    run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
     restartIce(iceParameters: IceParameters): Promise<void>;
     getTransportStats(): Promise<RTCStatsReport>;
