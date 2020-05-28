@@ -259,7 +259,8 @@ export class FakeHandler extends HandlerInterface
 			label,
 			protocol,
 			addEventListener : () => {},
-			close            : () => {}
+			close            : () => {},
+			send             : () => {}
 		};
 
 		const sctpStreamParameters =
