@@ -1,5 +1,4 @@
 import { Logger } from '../Logger';
-// @ts-ignore
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
