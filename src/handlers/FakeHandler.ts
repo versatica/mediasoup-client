@@ -39,16 +39,12 @@ export class FakeHandler extends HandlerInterface
 	private _rtpParametersByKind: { [key: string]: RtpParameters };
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
-
 	// Got transport local and remote parameters.
 	private _transportReady = false;
-
 	// Next localId.
 	private _nextLocalId = 1;
-
 	// Sending and receiving tracks indexed by localId.
 	private _tracks: Map<number, MediaStreamTrack> = new Map();
-
 	// DataChannel id value counter. It must be incremented for each new DataChannel.
 	private _nextSctpStreamId = 0;
 
