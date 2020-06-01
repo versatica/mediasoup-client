@@ -34,14 +34,14 @@ const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 export class Chrome74 extends HandlerInterface
 {
 	// Handler direction.
-	private _direction: 'send' | 'recv';
+	private _direction?: 'send' | 'recv';
 	// Remote SDP handler.
-	private _remoteSdp: RemoteSdp;
+	private _remoteSdp?: RemoteSdp;
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [key: string]: RtpParameters };
+	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private _sendingRemoteRtpParametersByKind: { [key: string]: RtpParameters };
+	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
@@ -224,7 +224,7 @@ export class Chrome74 extends HandlerInterface
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.
-		this._remoteSdp.updateIceParameters(iceParameters);
+		this._remoteSdp!.updateIceParameters(iceParameters);
 
 		if (!this._transportReady)
 			return;
@@ -239,7 +239,7 @@ export class Chrome74 extends HandlerInterface
 
 			await this._pc.setLocalDescription(offer);
 
-			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
@@ -249,7 +249,7 @@ export class Chrome74 extends HandlerInterface
 		}
 		else
 		{
-			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
@@ -289,20 +289,20 @@ export class Chrome74 extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
-		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
+		const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
 			track,
 			{
@@ -407,7 +407,7 @@ export class Chrome74 extends HandlerInterface
 			}
 		}
 
-		this._remoteSdp.send(
+		this._remoteSdp!.send(
 			{
 				offerMediaObject,
 				reuseMid            : mediaSectionIdx.reuseMid,
@@ -417,7 +417,7 @@ export class Chrome74 extends HandlerInterface
 				extmapAllowMixed    : true
 			});
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'send() | calling pc.setRemoteDescription() [answer:%o]',
@@ -448,7 +448,7 @@ export class Chrome74 extends HandlerInterface
 
 		transceiver.sender.replaceTrack(null);
 		this._pc.removeTrack(transceiver.sender);
-		this._remoteSdp.closeMediaSection(transceiver.mid);
+		this._remoteSdp!.closeMediaSection(transceiver.mid!);
 
 		const offer = await this._pc.createOffer();
 
@@ -458,7 +458,7 @@ export class Chrome74 extends HandlerInterface
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
@@ -602,9 +602,9 @@ export class Chrome74 extends HandlerInterface
 
 			await this._pc.setLocalDescription(offer);
 
-			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
+			this._remoteSdp!.sendSctpAssociation({ offerMediaObject });
 
-			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
@@ -636,16 +636,16 @@ export class Chrome74 extends HandlerInterface
 
 		const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
 
-		this._remoteSdp.receive(
+		this._remoteSdp!.receive(
 			{
 				mid                : localId,
 				kind,
 				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp.cname,
+				streamId           : rtpParameters.rtcp!.cname!,
 				trackId
 			});
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'receive() | calling pc.setRemoteDescription() [offer:%o]',
@@ -704,9 +704,9 @@ export class Chrome74 extends HandlerInterface
 		if (!transceiver)
 			throw new Error('associated RTCRtpTransceiver not found');
 
-		this._remoteSdp.closeMediaSection(transceiver.mid);
+		this._remoteSdp!.closeMediaSection(transceiver.mid!);
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
@@ -766,9 +766,9 @@ export class Chrome74 extends HandlerInterface
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			this._remoteSdp.receiveSctpAssociation();
+			this._remoteSdp!.receiveSctpAssociation();
 
-			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
@@ -819,7 +819,7 @@ export class Chrome74 extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Update the remote DTLS role in the SDP.
-		this._remoteSdp.updateDtlsRole(
+		this._remoteSdp!.updateDtlsRole(
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.

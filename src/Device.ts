@@ -181,14 +181,14 @@ export class Device
 	// Loaded flag.
 	private _loaded = false;
 	// Extended RTP capabilities.
-	private _extendedRtpCapabilities: any;
+	private _extendedRtpCapabilities?: any;
 	// Local RTP capabilities for receiving media.
 	private _recvRtpCapabilities?: RtpCapabilities;
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
 	// Local SCTP capabilities.
-	private _sctpCapabilities: SctpCapabilities;
+	private _sctpCapabilities?: SctpCapabilities;
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
@@ -279,16 +279,14 @@ export class Device
 
 		handler.close();
 
-		this._extendedRtpCapabilities = null;
+		this._extendedRtpCapabilities = undefined;
 		this._recvRtpCapabilities = undefined;
-
 		this._canProduceByKind =
 		{
 			audio : false,
 			video : false
 		};
-
-		this._sctpCapabilities = null;
+		this._sctpCapabilities = undefined;
 	}
 
 	/**
@@ -317,7 +315,7 @@ export class Device
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
 
-		return this._recvRtpCapabilities;
+		return this._recvRtpCapabilities!;
 	}
 
 	/**
@@ -330,7 +328,7 @@ export class Device
 		if (!this._loaded)
 			throw new InvalidStateError('not loaded');
 
-		return this._sctpCapabilities;
+		return this._sctpCapabilities!;
 	}
 
 	/**
@@ -338,7 +336,7 @@ export class Device
 	 */
 	async load(
 		{ routerRtpCapabilities }:
-		{ routerRtpCapabilities?: RtpCapabilities } = {}
+		{ routerRtpCapabilities: RtpCapabilities }
 	): Promise<void>
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);

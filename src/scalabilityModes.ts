@@ -6,9 +6,9 @@ export type ScalabilityMode =
 	temporalLayers: number;
 }
 
-export function parse(scalabilityMode: string): ScalabilityMode
+export function parse(scalabilityMode?: string): ScalabilityMode
 {
-	const match = ScalabilityModeRegex.exec(scalabilityMode);
+	const match = ScalabilityModeRegex.exec(scalabilityMode || '');
 
 	if (match)
 	{

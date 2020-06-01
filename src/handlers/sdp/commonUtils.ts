@@ -65,7 +65,7 @@ export function extractRtpCapabilities(
 				rtcpFeedback         : []
 			};
 
-			codecsMap.set(codec.preferredPayloadType, codec);
+			codecsMap.set(codec.preferredPayloadType!, codec);
 		}
 
 		// Get codec parameters.
@@ -101,7 +101,7 @@ export function extractRtpCapabilities(
 			if (!feedback.parameter)
 				delete feedback.parameter;
 
-			codec.rtcpFeedback.push(feedback);
+			codec.rtcpFeedback!.push(feedback);
 		}
 
 		// Get RTP header extensions.
@@ -145,7 +145,7 @@ export function extractDtlsParameters(
 		throw new Error('no active media section found');
 
 	const fingerprint = mediaObject.fingerprint || sdpObject.fingerprint;
-	let role: DtlsRole;
+	let role: DtlsRole | undefined;
 
 	switch (mediaObject.setup)
 	{

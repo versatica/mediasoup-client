@@ -534,7 +534,7 @@ export class Transport extends EnhancedEventEmitter
 			kind,
 			rtpParameters,
 			appData = {}
-		}: ConsumerOptions = {}
+		}: ConsumerOptions
 	): Promise<Consumer>
 	{
 		logger.debug('consume()');

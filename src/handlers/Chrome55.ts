@@ -30,14 +30,14 @@ const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 export class Chrome55 extends HandlerInterface
 {
 	// Handler direction.
-	private _direction: 'send' | 'recv';
+	private _direction?: 'send' | 'recv';
 	// Remote SDP handler.
-	private _remoteSdp: RemoteSdp;
+	private _remoteSdp?: RemoteSdp;
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [key: string]: RtpParameters };
+	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private _sendingRemoteRtpParametersByKind: { [key: string]: RtpParameters };
+	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Local stream for sending.
@@ -233,7 +233,7 @@ export class Chrome55 extends HandlerInterface
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.
-		this._remoteSdp.updateIceParameters(iceParameters);
+		this._remoteSdp!.updateIceParameters(iceParameters);
 
 		if (!this._transportReady)
 			return;
@@ -248,7 +248,7 @@ export class Chrome55 extends HandlerInterface
 
 			await this._pc.setLocalDescription(offer);
 
-			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
@@ -258,7 +258,7 @@ export class Chrome55 extends HandlerInterface
 		}
 		else
 		{
-			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
@@ -303,13 +303,13 @@ export class Chrome55 extends HandlerInterface
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind]);
 
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
@@ -376,7 +376,7 @@ export class Chrome55 extends HandlerInterface
 			}
 		}
 
-		this._remoteSdp.send(
+		this._remoteSdp!.send(
 			{
 				offerMediaObject,
 				offerRtpParameters  : sendingRtpParameters,
@@ -384,7 +384,7 @@ export class Chrome55 extends HandlerInterface
 				codecOptions
 			});
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'send() | calling pc.setRemoteDescription() [answer:%o]',
@@ -449,7 +449,7 @@ export class Chrome55 extends HandlerInterface
 		if (this._pc.signalingState === 'stable')
 			return;
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
@@ -535,9 +535,9 @@ export class Chrome55 extends HandlerInterface
 
 			await this._pc.setLocalDescription(offer);
 
-			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
+			this._remoteSdp!.sendSctpAssociation({ offerMediaObject });
 
-			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
@@ -569,9 +569,9 @@ export class Chrome55 extends HandlerInterface
 
 		const localId = trackId;
 		const mid = kind;
-		const streamId = rtpParameters.rtcp.cname;
+		const streamId = rtpParameters.rtcp!.cname!;
 
-		this._remoteSdp.receive(
+		this._remoteSdp!.receive(
 			{
 				mid,
 				kind,
@@ -580,7 +580,7 @@ export class Chrome55 extends HandlerInterface
 				trackId
 			});
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'receive() | calling pc.setRemoteDescription() [offer:%o]',
@@ -631,15 +631,15 @@ export class Chrome55 extends HandlerInterface
 
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId);
+		const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
 
 		// Remove from the map.
 		this._mapRecvLocalIdInfo.delete(localId);
 
-		this._remoteSdp.planBStopReceiving(
-			{ mid, offerRtpParameters: rtpParameters });
+		this._remoteSdp!.planBStopReceiving(
+			{ mid: mid!, offerRtpParameters: rtpParameters! });
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
@@ -694,9 +694,9 @@ export class Chrome55 extends HandlerInterface
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			this._remoteSdp.receiveSctpAssociation({ oldDataChannelSpec: true });
+			this._remoteSdp!.receiveSctpAssociation({ oldDataChannelSpec: true });
 
-			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
@@ -747,7 +747,7 @@ export class Chrome55 extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Update the remote DTLS role in the SDP.
-		this._remoteSdp.updateDtlsRole(
+		this._remoteSdp!.updateDtlsRole(
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.

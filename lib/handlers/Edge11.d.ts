@@ -3,17 +3,17 @@ import { IceParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 export declare class Edge11 extends HandlerInterface {
-    private _sendingRtpParametersByKind;
-    private _remoteIceParameters;
-    private _remoteIceCandidates;
-    private _remoteDtlsParameters;
+    private _sendingRtpParametersByKind?;
+    private _remoteIceParameters?;
+    private _remoteIceCandidates?;
+    private _remoteDtlsParameters?;
     private _iceGatherer?;
     private _iceTransport?;
     private _dtlsTransport?;
     private readonly _rtpSenders;
     private readonly _rtpReceivers;
     private _nextSendLocalId;
-    private _cname;
+    private _cname?;
     private _transportReady;
     /**
      * Creates a factory function.
@@ -44,8 +44,8 @@ export declare class Edge11 extends HandlerInterface {
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     _setIceGatherer({ iceServers, iceTransportPolicy }: {
-        iceServers: any[];
-        iceTransportPolicy: RTCIceTransportPolicy;
+        iceServers?: any[];
+        iceTransportPolicy?: RTCIceTransportPolicy;
     }): void;
     _setIceTransport(): void;
     _setDtlsTransport(): void;

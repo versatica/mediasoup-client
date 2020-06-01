@@ -5,7 +5,7 @@
  *
  * @returns {Object|Array}
  */
-export declare function clone(obj: any): any;
+export declare function clone(data: any): any;
 /**
  * Generates a random positive integer.
  */

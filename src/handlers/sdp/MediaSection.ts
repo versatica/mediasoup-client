@@ -74,7 +74,7 @@ export abstract class MediaSection
 
 		if (dtlsParameters)
 		{
-			this.setDtlsRole(dtlsParameters.role);
+			this.setDtlsRole(dtlsParameters.role!);
 		}
 	}
 
@@ -191,7 +191,7 @@ export class AnswerMediaSection extends MediaSection
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
 
-				for (const codec of answerRtpParameters.codecs)
+				for (const codec of answerRtpParameters!.codecs)
 				{
 					const rtp: any =
 					{
@@ -200,7 +200,7 @@ export class AnswerMediaSection extends MediaSection
 						rate    : codec.clockRate
 					};
 
-					if (codec.channels > 1)
+					if (codec.channels! > 1)
 						rtp.encoding = codec.channels;
 
 					this._mediaObject.rtp.push(rtp);
@@ -220,7 +220,7 @@ export class AnswerMediaSection extends MediaSection
 							videoGoogleMinBitrate
 						} = codecOptions;
 
-						const offerCodec = offerRtpParameters.codecs
+						const offerCodec = offerRtpParameters!.codecs
 							.find((c: RtpCodecParameters) => (
 								c.payloadType === codec.payloadType
 							));
@@ -231,19 +231,19 @@ export class AnswerMediaSection extends MediaSection
 							{
 								if (opusStereo !== undefined)
 								{
-									offerCodec.parameters['sprop-stereo'] = opusStereo ? 1 : 0;
+									offerCodec!.parameters['sprop-stereo'] = opusStereo ? 1 : 0;
 									codecParameters.stereo = opusStereo ? 1 : 0;
 								}
 
 								if (opusFec !== undefined)
 								{
-									offerCodec.parameters.useinbandfec = opusFec ? 1 : 0;
+									offerCodec!.parameters.useinbandfec = opusFec ? 1 : 0;
 									codecParameters.useinbandfec = opusFec ? 1 : 0;
 								}
 
 								if (opusDtx !== undefined)
 								{
-									offerCodec.parameters.usedtx = opusDtx ? 1 : 0;
+									offerCodec!.parameters.usedtx = opusDtx ? 1 : 0;
 									codecParameters.usedtx = opusDtx ? 1 : 0;
 								}
 
@@ -254,7 +254,7 @@ export class AnswerMediaSection extends MediaSection
 
 								if (opusPtime !== undefined)
 								{
-									offerCodec.parameters.ptime = opusPtime;
+									offerCodec!.parameters.ptime = opusPtime;
 									codecParameters.ptime = opusPtime;
 								}
 
@@ -297,7 +297,7 @@ export class AnswerMediaSection extends MediaSection
 					if (fmtp.config)
 						this._mediaObject.fmtp.push(fmtp);
 
-					for (const fb of codec.rtcpFeedback)
+					for (const fb of codec.rtcpFeedback!)
 					{
 						this._mediaObject.rtcpFb.push(
 							{
@@ -308,13 +308,13 @@ export class AnswerMediaSection extends MediaSection
 					}
 				}
 
-				this._mediaObject.payloads = answerRtpParameters.codecs
+				this._mediaObject.payloads = answerRtpParameters!.codecs
 					.map((codec: RtpCodecParameters) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];
 
-				for (const ext of answerRtpParameters.headerExtensions)
+				for (const ext of answerRtpParameters!.headerExtensions!)
 				{
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext || [])
@@ -401,18 +401,18 @@ export class AnswerMediaSection extends MediaSection
 				if (typeof offerMediaObject.sctpPort === 'number')
 				{
 					this._mediaObject.payloads = 'webrtc-datachannel';
-					this._mediaObject.sctpPort = sctpParameters.port;
-					this._mediaObject.maxMessageSize = sctpParameters.maxMessageSize;
+					this._mediaObject.sctpPort = sctpParameters!.port;
+					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 				}
 				// Old spec.
 				else if (offerMediaObject.sctpmap)
 				{
-					this._mediaObject.payloads = sctpParameters.port;
+					this._mediaObject.payloads = sctpParameters!.port;
 					this._mediaObject.sctpmap =
 					{
 						app            : 'webrtc-datachannel',
-						sctpmapNumber  : sctpParameters.port,
-						maxMessageSize : sctpParameters.maxMessageSize
+						sctpmapNumber  : sctpParameters!.port,
+						maxMessageSize : sctpParameters!.maxMessageSize
 					};
 				}
 
@@ -511,7 +511,7 @@ export class OfferMediaSection extends MediaSection
 				if (!this._planB)
 					this._mediaObject.msid = `${streamId || '-'} ${trackId}`;
 
-				for (const codec of offerRtpParameters.codecs)
+				for (const codec of offerRtpParameters!.codecs)
 				{
 					const rtp: any =
 					{
@@ -520,7 +520,7 @@ export class OfferMediaSection extends MediaSection
 						rate    : codec.clockRate
 					};
 
-					if (codec.channels > 1)
+					if (codec.channels! > 1)
 						rtp.encoding = codec.channels;
 
 					this._mediaObject.rtp.push(rtp);
@@ -542,7 +542,7 @@ export class OfferMediaSection extends MediaSection
 					if (fmtp.config)
 						this._mediaObject.fmtp.push(fmtp);
 
-					for (const fb of codec.rtcpFeedback)
+					for (const fb of codec.rtcpFeedback!)
 					{
 						this._mediaObject.rtcpFb.push(
 							{
@@ -553,13 +553,13 @@ export class OfferMediaSection extends MediaSection
 					}
 				}
 
-				this._mediaObject.payloads = offerRtpParameters.codecs
+				this._mediaObject.payloads = offerRtpParameters!.codecs
 					.map((codec: RtpCodecParameters) => codec.payloadType)
 					.join(' ');
 
 				this._mediaObject.ext = [];
 
-				for (const ext of offerRtpParameters.headerExtensions)
+				for (const ext of offerRtpParameters!.headerExtensions!)
 				{
 					this._mediaObject.ext.push(
 						{
@@ -571,7 +571,7 @@ export class OfferMediaSection extends MediaSection
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				const encoding = offerRtpParameters.encodings[0];
+				const encoding = offerRtpParameters!.encodings![0];
 				const ssrc = encoding.ssrc;
 				const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 					? encoding.rtx.ssrc
@@ -580,13 +580,13 @@ export class OfferMediaSection extends MediaSection
 				this._mediaObject.ssrcs = [];
 				this._mediaObject.ssrcGroups = [];
 
-				if (offerRtpParameters.rtcp.cname)
+				if (offerRtpParameters!.rtcp!.cname)
 				{
 					this._mediaObject.ssrcs.push(
 						{
 							id        : ssrc,
 							attribute : 'cname',
-							value     : offerRtpParameters.rtcp.cname
+							value     : offerRtpParameters!.rtcp!.cname
 						});
 				}
 
@@ -602,13 +602,13 @@ export class OfferMediaSection extends MediaSection
 
 				if (rtxSsrc)
 				{
-					if (offerRtpParameters.rtcp.cname)
+					if (offerRtpParameters!.rtcp!.cname)
 					{
 						this._mediaObject.ssrcs.push(
 							{
 								id        : rtxSsrc,
 								attribute : 'cname',
-								value     : offerRtpParameters.rtcp.cname
+								value     : offerRtpParameters!.rtcp!.cname
 							});
 					}
 
@@ -639,18 +639,18 @@ export class OfferMediaSection extends MediaSection
 				if (!oldDataChannelSpec)
 				{
 					this._mediaObject.payloads = 'webrtc-datachannel';
-					this._mediaObject.sctpPort = sctpParameters.port;
-					this._mediaObject.maxMessageSize = sctpParameters.maxMessageSize;
+					this._mediaObject.sctpPort = sctpParameters!.port;
+					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 				}
 				// Old spec.
 				else
 				{
-					this._mediaObject.payloads = sctpParameters.port;
+					this._mediaObject.payloads = sctpParameters!.port;
 					this._mediaObject.sctpmap =
 					{
 						app            : 'webrtc-datachannel',
-						sctpmapNumber  : sctpParameters.port,
-						maxMessageSize : sctpParameters.maxMessageSize
+						sctpmapNumber  : sctpParameters!.port,
+						maxMessageSize : sctpParameters!.maxMessageSize
 					};
 				}
 
@@ -679,19 +679,19 @@ export class OfferMediaSection extends MediaSection
 		}
 	): void
 	{
-		const encoding = offerRtpParameters.encodings[0];
+		const encoding = offerRtpParameters.encodings![0];
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
 
-		if (offerRtpParameters.rtcp.cname)
+		if (offerRtpParameters.rtcp!.cname)
 		{
 			this._mediaObject.ssrcs.push(
 				{
 					id        : ssrc,
 					attribute : 'cname',
-					value     : offerRtpParameters.rtcp.cname
+					value     : offerRtpParameters.rtcp!.cname
 				});
 		}
 
@@ -704,13 +704,13 @@ export class OfferMediaSection extends MediaSection
 
 		if (rtxSsrc)
 		{
-			if (offerRtpParameters.rtcp.cname)
+			if (offerRtpParameters.rtcp!.cname)
 			{
 				this._mediaObject.ssrcs.push(
 					{
 						id        : rtxSsrc,
 						attribute : 'cname',
-						value     : offerRtpParameters.rtcp.cname
+						value     : offerRtpParameters.rtcp!.cname
 					});
 			}
 
@@ -734,7 +734,7 @@ export class OfferMediaSection extends MediaSection
 		{ offerRtpParameters }: { offerRtpParameters: RtpParameters }
 	): void
 	{
-		const encoding = offerRtpParameters.encodings[0];
+		const encoding = offerRtpParameters.encodings![0];
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc

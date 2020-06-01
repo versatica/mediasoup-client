@@ -8,7 +8,7 @@ export type ConsumerOptions =
 	id?: string;
 	producerId?: string;
 	kind?: 'audio' | 'video';
-	rtpParameters?: RtpParameters;
+	rtpParameters: RtpParameters;
 	appData?: any;
 }
 
