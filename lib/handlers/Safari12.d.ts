@@ -3,10 +3,10 @@ import { IceParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 export declare class Safari12 extends HandlerInterface {
-    private _direction;
-    private _remoteSdp;
-    private _sendingRtpParametersByKind;
-    private _sendingRemoteRtpParametersByKind;
+    private _direction?;
+    private _remoteSdp?;
+    private _sendingRtpParametersByKind?;
+    private _sendingRemoteRtpParametersByKind?;
     private _pc;
     private readonly _mapMidTransceiver;
     private readonly _sendStream;

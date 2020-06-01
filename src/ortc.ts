@@ -604,13 +604,13 @@ export function getExtendedRtpCapabilities(
 	// Match RTX codecs.
 	for (const extendedCodec of extendedRtpCapabilities.codecs)
 	{
-		const matchingLocalRtxCodec = localCaps.codecs
+		const matchingLocalRtxCodec = localCaps.codecs!
 			.find((localCodec: RtpCodecCapability) => (
 				isRtxCodec(localCodec) &&
 				localCodec.parameters.apt === extendedCodec.localPayloadType
 			));
 
-		const matchingRemoteRtxCodec = remoteCaps.codecs
+		const matchingRemoteRtxCodec = remoteCaps.codecs!
 			.find((remoteCodec: RtpCodecCapability) => (
 				isRtxCodec(remoteCodec) &&
 				remoteCodec.parameters.apt === extendedCodec.remotePayloadType
@@ -624,9 +624,9 @@ export function getExtendedRtpCapabilities(
 	}
 
 	// Match header extensions.
-	for (const remoteExt of remoteCaps.headerExtensions)
+	for (const remoteExt of remoteCaps.headerExtensions!)
 	{
-		const matchingLocalExt = localCaps.headerExtensions
+		const matchingLocalExt = localCaps.headerExtensions!
 			.find((localExt: RtpHeaderExtension) => (
 				matchHeaderExtensions(localExt, remoteExt)
 			));
@@ -691,7 +691,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 			rtcpFeedback         : extendedCodec.rtcpFeedback
 		};
 
-		rtpCapabilities.codecs.push(codec);
+		rtpCapabilities.codecs!.push(codec);
 
 		// Add RTX codec.
 		if (!extendedCodec.remoteRtxPayloadType)
@@ -710,7 +710,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 			rtcpFeedback : []
 		};
 
-		rtpCapabilities.codecs.push(rtxCodec);
+		rtpCapabilities.codecs!.push(rtxCodec);
 
 		// TODO: In the future, we need to add FEC, CN, etc, codecs.
 	}
@@ -735,7 +735,7 @@ export function getRecvRtpCapabilities(extendedRtpCapabilities: any): RtpCapabil
 			direction        : extendedExtension.direction
 		};
 
-		rtpCapabilities.headerExtensions.push(ext);
+		rtpCapabilities.headerExtensions!.push(ext);
 	}
 
 	return rtpCapabilities;
@@ -817,7 +817,7 @@ export function getSendingRtpParameters(
 			parameters : {}
 		};
 
-		rtpParameters.headerExtensions.push(ext);
+		rtpParameters.headerExtensions!.push(ext);
 	}
 
 	return rtpParameters;
@@ -899,12 +899,12 @@ export function getSendingRemoteRtpParameters(
 
 		};
 
-		rtpParameters.headerExtensions.push(ext);
+		rtpParameters.headerExtensions!.push(ext);
 	}
 
 	// Reduce codecs' RTCP feedback. Use Transport-CC if available, REMB otherwise.
 	if (
-		rtpParameters.headerExtensions.some((ext) => (
+		rtpParameters.headerExtensions!.some((ext) => (
 			ext.uri === 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
 		))
 	)
@@ -916,7 +916,7 @@ export function getSendingRemoteRtpParameters(
 		}
 	}
 	else if (
-		rtpParameters.headerExtensions.some((ext) => (
+		rtpParameters.headerExtensions!.some((ext) => (
 			ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time'
 		))
 	)

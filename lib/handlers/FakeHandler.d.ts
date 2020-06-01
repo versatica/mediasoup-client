@@ -9,7 +9,7 @@ export declare type FakeParameters = {
 };
 export declare class FakeHandler extends HandlerInterface {
     private fakeParameters;
-    private _rtpParametersByKind;
+    private _rtpParametersByKind?;
     private _cname;
     private _transportReady;
     private _nextLocalId;

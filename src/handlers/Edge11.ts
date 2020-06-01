@@ -30,13 +30,13 @@ const logger = new Logger('Edge11');
 export class Edge11 extends HandlerInterface
 {
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [key: string]: RtpParameters };
+	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Transport remote ICE parameters.
-	private _remoteIceParameters: IceParameters;
+	private _remoteIceParameters?: IceParameters;
 	// Transport remote ICE candidates.
-	private _remoteIceCandidates: IceCandidate[];
+	private _remoteIceCandidates?: IceCandidate[];
 	// Transport remote DTLS parameters.
-	private _remoteDtlsParameters: DtlsParameters;
+	private _remoteDtlsParameters?: DtlsParameters;
 	// ICE gatherer.
 	private _iceGatherer?: any;
 	// ICE transport.
@@ -50,7 +50,7 @@ export class Edge11 extends HandlerInterface
 	// Next localId for sending tracks.
 	private _nextSendLocalId = 0;
 	// Local RTCP CNAME.
-	private _cname: string;
+	private _cname?: string;
 	// Got transport local and remote parameters.
 	private _transportReady = false;
 
@@ -174,7 +174,7 @@ export class Edge11 extends HandlerInterface
 		this._iceTransport.start(
 			this._iceGatherer, iceParameters, 'controlling');
 
-		for (const candidate of this._remoteIceCandidates)
+		for (const candidate of this._remoteIceCandidates!)
 		{
 			this._iceTransport.addRemoteCandidate(candidate);
 		}
@@ -201,7 +201,7 @@ export class Edge11 extends HandlerInterface
 
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind]);
 
 		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);
 
@@ -224,7 +224,7 @@ export class Edge11 extends HandlerInterface
 		// Fill RTCRtpParameters.rtcp.
 		rtpParameters.rtcp =
 		{
-			cname       : this._cname,
+			cname       : this._cname!,
 			reducedSize : true,
 			mux         : true
 		};
@@ -444,7 +444,7 @@ export class Edge11 extends HandlerInterface
 
 	_setIceGatherer(
 		{ iceServers, iceTransportPolicy }:
-		{ iceServers: any[]; iceTransportPolicy: RTCIceTransportPolicy }
+		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
 	): void
 	{
 		const iceGatherer = new (RTCIceGatherer as any)(
@@ -582,7 +582,7 @@ export class Edge11 extends HandlerInterface
 			this._iceGatherer, this._remoteIceParameters, 'controlling');
 
 		// Add remote ICE candidates.
-		for (const candidate of this._remoteIceCandidates)
+		for (const candidate of this._remoteIceCandidates!)
 		{
 			this._iceTransport.addRemoteCandidate(candidate);
 		}
@@ -594,7 +594,7 @@ export class Edge11 extends HandlerInterface
 		this._iceTransport.addRemoteCandidate({});
 
 		// NOTE: Edge does not like SHA less than 256.
-		this._remoteDtlsParameters.fingerprints = this._remoteDtlsParameters.fingerprints
+		this._remoteDtlsParameters!.fingerprints = this._remoteDtlsParameters!.fingerprints
 			.filter((fingerprint: any) =>
 			{
 				return (

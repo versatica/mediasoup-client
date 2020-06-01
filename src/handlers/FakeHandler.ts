@@ -35,7 +35,7 @@ export class FakeHandler extends HandlerInterface
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
 	private fakeParameters: any;
 	// Generic sending RTP parameters for audio and video.
-	private _rtpParametersByKind: { [key: string]: RtpParameters };
+	private _rtpParametersByKind?: { [key: string]: RtpParameters };
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
 	// Got transport local and remote parameters.
@@ -43,7 +43,7 @@ export class FakeHandler extends HandlerInterface
 	// Next localId.
 	private _nextLocalId = 1;
 	// Sending and receiving tracks indexed by localId.
-	private _tracks: Map<number, MediaStreamTrack> = new Map();
+	private _tracks: Map<number, MediaStreamTrack | null> = new Map();
 	// DataChannel id value counter. It must be incremented for each new DataChannel.
 	private _nextSctpStreamId = 0;
 
@@ -151,7 +151,7 @@ export class FakeHandler extends HandlerInterface
 			await this._setupTransport({ localDtlsRole: 'server' });
 
 		const rtpParameters =
-			utils.clone(this._rtpParametersByKind[track.kind]);
+			utils.clone(this._rtpParametersByKind![track.kind]);
 		const useRtx = rtpParameters.codecs
 			.some((_codec: any) => /.+\/rtx$/i.test(_codec.mimeType));
 

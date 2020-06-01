@@ -4,7 +4,7 @@ export declare type ConsumerOptions = {
     id?: string;
     producerId?: string;
     kind?: 'audio' | 'video';
-    rtpParameters?: RtpParameters;
+    rtpParameters: RtpParameters;
     appData?: any;
 };
 export declare class Consumer extends EnhancedEventEmitter {

@@ -180,7 +180,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Create a Consumer to consume a remote Producer.
      */
-    consume({ id, producerId, kind, rtpParameters, appData }?: ConsumerOptions): Promise<Consumer>;
+    consume({ id, producerId, kind, rtpParameters, appData }: ConsumerOptions): Promise<Consumer>;
     /**
      * Create a DataProducer
      */

@@ -23,10 +23,10 @@ export declare class Device {
     private readonly _handlerFactory;
     private readonly _handlerName;
     private _loaded;
-    private _extendedRtpCapabilities;
+    private _extendedRtpCapabilities?;
     private _recvRtpCapabilities?;
     private readonly _canProduceByKind;
-    private _sctpCapabilities;
+    private _sctpCapabilities?;
     /**
      * Create a new Device to connect to mediasoup server.
      *
@@ -56,8 +56,8 @@ export declare class Device {
     /**
      * Initialize the Device.
      */
-    load({ routerRtpCapabilities }?: {
-        routerRtpCapabilities?: RtpCapabilities;
+    load({ routerRtpCapabilities }: {
+        routerRtpCapabilities: RtpCapabilities;
     }): Promise<void>;
     /**
      * Whether we can produce audio/video.

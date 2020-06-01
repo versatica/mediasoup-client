@@ -95,7 +95,7 @@ export class RemoteSdp
 			this._sdpObject.msidSemantic = { semantic: 'WMS', token: '*' };
 
 			// NOTE: We take the latest fingerprint.
-			const numFingerprints = this._dtlsParameters.fingerprints.length;
+			const numFingerprints = this._dtlsParameters!.fingerprints.length;
 
 			this._sdpObject.fingerprint =
 			{
@@ -133,7 +133,7 @@ export class RemoteSdp
 	{
 		logger.debug('updateDtlsRole() [role:%s]', role);
 
-		this._dtlsParameters.role = role;
+		this._dtlsParameters!.role = role;
 
 		for (const mediaSection of this._mediaSections)
 		{
@@ -224,7 +224,7 @@ export class RemoteSdp
 	): void
 	{
 		const idx = this._midToIndex.get(mid);
-		let mediaSection: OfferMediaSection;
+		let mediaSection: OfferMediaSection | undefined;
 
 		if (idx !== undefined)
 			mediaSection = this._mediaSections[idx] as OfferMediaSection;
@@ -260,6 +260,12 @@ export class RemoteSdp
 	disableMediaSection(mid: string): void
 	{
 		const idx = this._midToIndex.get(mid);
+
+		if (idx === undefined)
+		{
+			throw new Error(`no media section found with mid '${mid}'`);
+		}
+
 		const mediaSection = this._mediaSections[idx];
 
 		mediaSection.disable();
@@ -268,6 +274,12 @@ export class RemoteSdp
 	closeMediaSection(mid: string): void
 	{
 		const idx = this._midToIndex.get(mid);
+
+		if (idx === undefined)
+		{
+			throw new Error(`no media section found with mid '${mid}'`);
+		}
+
 		const mediaSection = this._mediaSections[idx];
 
 		// NOTE: Closing the first m section is a pain since it invalidates the
@@ -301,6 +313,12 @@ export class RemoteSdp
 	): void
 	{
 		const idx = this._midToIndex.get(mid);
+
+		if (idx === undefined)
+		{
+			throw new Error(`no media section found with mid '${mid}'`);
+		}
+
 		const mediaSection = this._mediaSections[idx] as OfferMediaSection;
 
 		mediaSection.planBStopReceiving({ offerRtpParameters });
@@ -371,9 +389,15 @@ export class RemoteSdp
 	_replaceMediaSection(newMediaSection: MediaSection, reuseMid?: string): void
 	{
 		// Store it in the map.
-		if (reuseMid)
+		if (typeof reuseMid === 'string')
 		{
 			const idx = this._midToIndex.get(reuseMid);
+
+			if (idx === undefined)
+			{
+				throw new Error(`no media section found for reuseMid '${reuseMid}'`);
+			}
+
 			const oldMediaSection = this._mediaSections[idx];
 
 			// Replace the index in the vector with the new media section.
@@ -392,6 +416,12 @@ export class RemoteSdp
 		else
 		{
 			const idx = this._midToIndex.get(newMediaSection.mid);
+
+			if (idx === undefined)
+			{
+				throw new Error(
+					`no media section found with mid '${newMediaSection.mid}'`);
+			}
 
 			// Replace the index in the vector with the new media section.
 			this._mediaSections[idx] = newMediaSection;

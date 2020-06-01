@@ -5,12 +5,12 @@
  *
  * @returns {Object|Array}
  */
-export function clone(obj: any): any
+export function clone(data: any): any
 {
-	if (typeof obj !== 'object')
+	if (typeof data !== 'object')
 		return {};
 
-	return JSON.parse(JSON.stringify(obj));
+	return JSON.parse(JSON.stringify(data));
 }
 
 /**
