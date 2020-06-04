@@ -1,5 +1,5 @@
 import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
-import { IceParameters, DtlsRole } from '../Transport';
+import { IceParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 export declare class Chrome55 extends HandlerInterface {
@@ -39,10 +39,7 @@ export declare class Chrome55 extends HandlerInterface {
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
-    _setupTransport({ localDtlsRole, localSdpObject }: {
-        localDtlsRole: DtlsRole;
-        localSdpObject?: any;
-    }): Promise<void>;
+    private _setupTransport;
     private _assertSendDirection;
     private _assertRecvDirection;
 }

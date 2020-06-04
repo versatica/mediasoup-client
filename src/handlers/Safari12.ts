@@ -751,7 +751,7 @@ export class Safari12 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	async _setupTransport(
+	private async _setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject

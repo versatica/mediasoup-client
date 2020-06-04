@@ -737,7 +737,7 @@ export class ReactNative extends HandlerInterface
 		return { dataChannel };
 	}
 
-	async _setupTransport(
+	private async _setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject

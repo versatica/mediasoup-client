@@ -809,7 +809,7 @@ export class Firefox60 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	async _setupTransport(
+	private async _setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject

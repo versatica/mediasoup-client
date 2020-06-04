@@ -82,6 +82,53 @@ export class Chrome70 extends HandlerInterface
 		}
 	}
 
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
+	{
+		logger.debug('getNativeRtpCapabilities()');
+
+		const pc = new (RTCPeerConnection as any)(
+			{
+				iceServers         : [],
+				iceTransportPolicy : 'all',
+				bundlePolicy       : 'max-bundle',
+				rtcpMuxPolicy      : 'require',
+				sdpSemantics       : 'unified-plan'
+			});
+
+		try
+		{
+			pc.addTransceiver('audio');
+			pc.addTransceiver('video');
+
+			const offer = await pc.createOffer();
+
+			try { pc.close(); }
+			catch (error) {}
+
+			const sdpObject = sdpTransform.parse(offer.sdp);
+			const nativeRtpCapabilities =
+				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+			return nativeRtpCapabilities;
+		}
+		catch (error)
+		{
+			try { pc.close(); }
+			catch (error2) {}
+
+			throw error;
+		}
+	}
+
+	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
+	{
+		logger.debug('getNativeSctpCapabilities()');
+
+		return {
+			numStreams : SCTP_NUM_STREAMS
+		};
+	}
+
 	run(
 		{
 			direction,
@@ -155,53 +202,6 @@ export class Chrome70 extends HandlerInterface
 					break;
 			}
 		});
-	}
-
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
-	{
-		logger.debug('getNativeRtpCapabilities()');
-
-		const pc = new (RTCPeerConnection as any)(
-			{
-				iceServers         : [],
-				iceTransportPolicy : 'all',
-				bundlePolicy       : 'max-bundle',
-				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'unified-plan'
-			});
-
-		try
-		{
-			pc.addTransceiver('audio');
-			pc.addTransceiver('video');
-
-			const offer = await pc.createOffer();
-
-			try { pc.close(); }
-			catch (error) {}
-
-			const sdpObject = sdpTransform.parse(offer.sdp);
-			const nativeRtpCapabilities =
-				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-			return nativeRtpCapabilities;
-		}
-		catch (error)
-		{
-			try { pc.close(); }
-			catch (error2) {}
-
-			throw error;
-		}
-	}
-
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
-	{
-		logger.debug('getNativeSctpCapabilities()');
-
-		return {
-			numStreams : SCTP_NUM_STREAMS
-		};
 	}
 
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
@@ -790,7 +790,7 @@ export class Chrome70 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	async _setupTransport(
+	private async _setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject

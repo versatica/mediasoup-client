@@ -1,5 +1,5 @@
 import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
-import { IceParameters, DtlsRole } from '../Transport';
+import { IceParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 export declare class Chrome70 extends HandlerInterface {
@@ -20,9 +20,9 @@ export declare class Chrome70 extends HandlerInterface {
     constructor();
     get name(): string;
     close(): void;
-    run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+    run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
     restartIce(iceParameters: IceParameters): Promise<void>;
     getTransportStats(): Promise<RTCStatsReport>;
@@ -37,10 +37,7 @@ export declare class Chrome70 extends HandlerInterface {
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
-    _setupTransport({ localDtlsRole, localSdpObject }: {
-        localDtlsRole: DtlsRole;
-        localSdpObject?: any;
-    }): Promise<void>;
+    private _setupTransport;
     private _assertSendDirection;
     private _assertRecvDirection;
 }

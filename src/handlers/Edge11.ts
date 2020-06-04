@@ -442,7 +442,7 @@ export class Edge11 extends HandlerInterface
 		throw new UnsupportedError('not implemented');
 	}
 
-	_setIceGatherer(
+	private _setIceGatherer(
 		{ iceServers, iceTransportPolicy }:
 		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
 	): void
@@ -472,7 +472,7 @@ export class Edge11 extends HandlerInterface
 		this._iceGatherer = iceGatherer;
 	}
 
-	_setIceTransport(): void
+	private _setIceTransport(): void
 	{
 		const iceTransport = new (RTCIceTransport as any)(this._iceGatherer);
 
@@ -533,7 +533,7 @@ export class Edge11 extends HandlerInterface
 		this._iceTransport = iceTransport;
 	}
 
-	_setDtlsTransport(): void
+	private _setDtlsTransport(): void
 	{
 		const dtlsTransport = new (RTCDtlsTransport as any)(this._iceTransport);
 
@@ -562,7 +562,7 @@ export class Edge11 extends HandlerInterface
 		this._dtlsTransport = dtlsTransport;
 	}
 
-	async _setupTransport(
+	private async _setupTransport(
 		{ localDtlsRole }:
 		{ localDtlsRole: DtlsRole }
 	): Promise<void>
