@@ -350,6 +350,28 @@ export class Chrome70 extends HandlerInterface
 
 		await this._pc.setLocalDescription(offer);
 
+		// If encodings are given, apply them now.
+		if (encodings)
+		{
+			logger.debug('send() | applying given encodings');
+
+			const parameters = transceiver.sender.getParameters();
+
+			for (let idx = 0; idx < (parameters.encodings || []).length; ++idx)
+			{
+				const encoding = parameters.encodings[idx];
+				const desiredEncoding = encodings[idx];
+
+				// Should not happen but just in case.
+				if (!desiredEncoding)
+					break;
+
+				parameters.encodings[idx] = Object.assign(encoding, desiredEncoding);
+			}
+
+			await transceiver.sender.setParameters(parameters);
+		}
+
 		// We can now get the transceiver.mid.
 		const localId = transceiver.mid;
 
