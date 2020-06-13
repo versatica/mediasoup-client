@@ -270,6 +270,8 @@ export type RtpEncodingParameters =
 	 */
 	scaleResolutionDownBy?: number;
 	maxBitrate?: number;
+	maxFramerate?: number;
+	adaptivePtime?: boolean;
 	priority?: 'very-low' | 'low' | 'medium' | 'high';
 	networkPriority?: 'very-low' | 'low' | 'medium' | 'high';
 }

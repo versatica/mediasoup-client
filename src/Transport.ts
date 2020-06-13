@@ -444,16 +444,18 @@ export class Transport extends EnhancedEventEmitter
 
 							if (encoding.active === false)
 								normalizedEncoding.active = false;
-							if (typeof encoding.maxBitrate === 'number')
-								normalizedEncoding.maxBitrate = encoding.maxBitrate;
-							if (typeof encoding.maxFramerate === 'number')
-								normalizedEncoding.maxFramerate = encoding.maxFramerate;
-							if (typeof encoding.scaleResolutionDownBy === 'number')
-								normalizedEncoding.scaleResolutionDownBy = encoding.scaleResolutionDownBy;
 							if (typeof encoding.dtx === 'boolean')
 								normalizedEncoding.dtx = encoding.dtx;
 							if (typeof encoding.scalabilityMode === 'string')
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
+							if (typeof encoding.scaleResolutionDownBy === 'number')
+								normalizedEncoding.scaleResolutionDownBy = encoding.scaleResolutionDownBy;
+							if (typeof encoding.maxBitrate === 'number')
+								normalizedEncoding.maxBitrate = encoding.maxBitrate;
+							if (typeof encoding.maxFramerate === 'number')
+								normalizedEncoding.maxFramerate = encoding.maxFramerate;
+							if (typeof encoding.adaptivePtime === 'boolean')
+								normalizedEncoding.adaptivePtime = encoding.adaptivePtime;
 							if (typeof encoding.priority === 'string')
 								normalizedEncoding.priority = encoding.priority;
 							if (typeof encoding.networkPriority === 'string')
