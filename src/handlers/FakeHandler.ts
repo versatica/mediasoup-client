@@ -1,3 +1,4 @@
+import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { Logger } from '../Logger';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as utils from '../utils';
@@ -23,6 +24,62 @@ import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('FakeHandler');
+
+class FakeDataChannel extends EnhancedEventEmitter
+{
+	id: number;
+	ordered?: boolean;
+	maxPacketLifeTime?: number;
+	maxRetransmits?: number;
+	priority?: RTCPriorityType;
+	label?: string;
+	protocol?: string;
+
+	constructor(
+		{
+			id,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			priority,
+			label,
+			protocol
+		}: {
+			id: number;
+			ordered?: boolean;
+			maxPacketLifeTime?: number;
+			maxRetransmits?: number;
+			priority?: RTCPriorityType;
+			label?: string;
+			protocol?: string;
+		})
+	{
+		super();
+
+		this.id = id;
+		this.ordered= ordered;
+		this.maxPacketLifeTime = maxPacketLifeTime;
+		this.maxRetransmits = maxRetransmits;
+		this.priority = priority;
+		this.label = label;
+		this.protocol = protocol;
+	}
+
+	close(): void
+	{
+		this.safeEmit('close');
+	}
+
+	send(data: any): void
+	{
+		this.safeEmit('message', data);
+	}
+
+	addEventListener(event: string, fn: () => void): void
+	{
+		this.on(event, fn);
+	}
+}
 
 export type FakeParameters = {
 	generateNativeRtpCapabilities: () => RtpCapabilities;
@@ -249,19 +306,16 @@ export class FakeHandler extends HandlerInterface
 
 		logger.debug('sendDataChannel()');
 
-		const dataChannel =
-		{
-			id               : this._nextSctpStreamId++,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			priority,
-			label,
-			protocol,
-			addEventListener : () => {},
-			close            : () => {},
-			send             : () => {}
-		};
+		const dataChannel = new FakeDataChannel(
+			{
+				id : this._nextSctpStreamId++,
+				ordered,
+				maxPacketLifeTime,
+				maxRetransmits,
+				priority,
+				label,
+				protocol
+			});
 
 		const sctpStreamParameters =
 		{
@@ -315,17 +369,15 @@ export class FakeHandler extends HandlerInterface
 
 		logger.debug('receiveDataChannel()');
 
-		const dataChannel =
-		{
-			id                : sctpStreamParameters.streamId,
-			ordered           : sctpStreamParameters.ordered,
-			maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
-			maxRetransmits    : sctpStreamParameters.maxRetransmits,
-			label,
-			protocol,
-			addEventListener  : () => {},
-			close             : () => {}
-		};
+		const dataChannel = new FakeDataChannel(
+			{
+				id                : sctpStreamParameters.streamId!,
+				ordered           : sctpStreamParameters.ordered,
+				maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
+				maxRetransmits    : sctpStreamParameters.maxRetransmits,
+				label,
+				protocol
+			});
 
 		// @ts-ignore.
 		return { dataChannel };
