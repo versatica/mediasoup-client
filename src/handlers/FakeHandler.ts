@@ -27,7 +27,7 @@ const logger = new Logger('FakeHandler');
 
 class FakeDataChannel extends EnhancedEventEmitter
 {
-	id: number;
+	id?: number;
 	ordered?: boolean;
 	maxPacketLifeTime?: number;
 	maxRetransmits?: number;
@@ -371,7 +371,7 @@ export class FakeHandler extends HandlerInterface
 
 		const dataChannel = new FakeDataChannel(
 			{
-				id                : sctpStreamParameters.streamId!,
+				id                : sctpStreamParameters.streamId,
 				ordered           : sctpStreamParameters.ordered,
 				maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
 				maxRetransmits    : sctpStreamParameters.maxRetransmits,
