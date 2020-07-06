@@ -109,7 +109,7 @@ export class FakeHandler extends HandlerInterface
 	 */
 	static createFactory(fakeParameters: FakeParameters)
 	{
-		return () => new FakeHandler(fakeParameters);
+		return (): FakeHandler => new FakeHandler(fakeParameters);
 	}
 
 	constructor(fakeParameters: any)
@@ -119,12 +119,12 @@ export class FakeHandler extends HandlerInterface
 		this.fakeParameters = fakeParameters;
 	}
 
-	get name()
+	get name(): string
 	{
 		return 'FakeHandler';
 	}
 
-	close()
+	close(): void
 	{
 		logger.debug('close()');
 	}
@@ -163,7 +163,7 @@ export class FakeHandler extends HandlerInterface
 			extendedRtpCapabilities
 			/* eslint-enable @typescript-eslint/no-unused-vars */
 		}: HandlerRunOptions
-	)
+	): void
 	{
 		logger.debug('run()');
 
