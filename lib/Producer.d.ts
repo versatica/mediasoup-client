@@ -133,7 +133,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * Sets the DSCP value.
      */
-    setRtpEncodingParameters(params: RTCRtpEncodingParameters[]): Promise<void>;
+    setRtpEncodingParameters(params: RTCRtpEncodingParameters): Promise<void>;
     private _onTrackEnded;
     private _handleTrack;
     private _destroyTrack;

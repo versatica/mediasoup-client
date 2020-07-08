@@ -371,7 +371,7 @@ export class FakeHandler extends HandlerInterface
 
 		const dataChannel = new FakeDataChannel(
 			{
-				id                : sctpStreamParameters.streamId,
+				id                : sctpStreamParameters.streamId!,
 				ordered           : sctpStreamParameters.ordered,
 				maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
 				maxRetransmits    : sctpStreamParameters.maxRetransmits,
