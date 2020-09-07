@@ -42,17 +42,17 @@
     "events": "^3.2.0",
     "h264-profile-level-id": "^1.0.1",
     "sdp-transform": "^2.14.0",
-    "supports-color": "^7.1.0"
+    "supports-color": "^7.2.0"
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.4",
     "@types/uuid": "^3.4.9",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
-    "eslint": "^7.6.0",
+    "eslint": "^7.8.1",
     "eslint-plugin-jest": "^23.20.0",
     "fake-mediastreamtrack": "^1.1.6",
-    "jest": "^26.2.2",
+    "jest": "^26.4.2",
     "jest-tobetype": "^1.2.3",
     "open-cli": "^6.0.1",
     "tsc-watch": "^4.2.9",
