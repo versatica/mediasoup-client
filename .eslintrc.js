@@ -15,7 +15,8 @@ const eslintConfig =
 		ecmaFeatures :
 		{
 			impliedStrict : true
-		}
+		},
+		lib : [ 'es2018', 'dom' ]
 	},
 	rules :
 	{
