@@ -32,7 +32,7 @@ export class RemoteSdp
 	private readonly _plainRtpParameters?: PlainRtpParameters;
 	// Whether this is Plan-B SDP.
 	private readonly _planB: boolean;
-	// MediaSection instances.
+	// MediaSection instances with same order as in the SDP.
 	private readonly _mediaSections: MediaSection[] = [];
 	// MediaSection indices indexed by MID.
 	private readonly _midToIndex: Map<string, number> = new Map();
@@ -246,7 +246,18 @@ export class RemoteSdp
 					trackId
 				});
 
-			this._addMediaSection(mediaSection);
+			// Let's try to recycle a closed media section (if any).
+			// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
+			const oldMediaSection = this._mediaSections.find((m) => (m.closed));
+
+			if (oldMediaSection)
+			{
+				this._replaceMediaSection(mediaSection, oldMediaSection.mid);
+			}
+			else
+			{
+				this._addMediaSection(mediaSection);
+			}
 		}
 		// Plan-B.
 		else
