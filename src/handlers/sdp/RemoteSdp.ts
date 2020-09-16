@@ -373,15 +373,34 @@ export class RemoteSdp
 		if (!this._firstMid)
 			this._firstMid = newMediaSection.mid;
 
-		// Add to the vector.
-		this._mediaSections.push(newMediaSection);
+		let availableIdx = -1;
+		if (newMediaSection instanceof OfferMediaSection) {
+			availableIdx = this._mediaSections.findIndex(ms => 
+				ms instanceof OfferMediaSection &&
+				ms.closed &&
+				ms.kind === newMediaSection.kind);
+		}
+	
+		if (availableIdx >= 0) {
+			// Add to the vector.
+			this._mediaSections[availableIdx] = newMediaSection;
 
-		// Add to the map.
-		this._midToIndex.set(newMediaSection.mid, this._mediaSections.length - 1);
+			// Add to the map.
+			this._midToIndex.set(newMediaSection.mid, availableIdx);
 
-		// Add to the SDP object.
-		this._sdpObject.media.push(newMediaSection.getObject());
+			// Add to the SDP object.
+			this._sdpObject.media[availableIdx] = newMediaSection.getObject();
+		} else {
+			// Add to the vector.
+			this._mediaSections.push(newMediaSection);
 
+			// Add to the map.
+			this._midToIndex.set(newMediaSection.mid, this._mediaSections.length - 1);
+
+			// Add to the SDP object.
+			this._sdpObject.media.push(newMediaSection.getObject());
+		}
+		
 		// Regenerate BUNDLE mids.
 		this._regenerateBundleMids();
 	}

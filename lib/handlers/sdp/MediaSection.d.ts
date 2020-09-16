@@ -36,6 +36,7 @@ export declare class AnswerMediaSection extends MediaSection {
     setDtlsRole(role: DtlsRole): void;
 }
 export declare class OfferMediaSection extends MediaSection {
+    readonly kind: MediaKind | 'application';
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB, mid, kind, offerRtpParameters, streamId, trackId, oldDataChannelSpec }: {
         iceParameters?: IceParameters;
         iceCandidates?: IceCandidate[];

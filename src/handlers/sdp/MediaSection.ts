@@ -440,6 +440,8 @@ export class AnswerMediaSection extends MediaSection
 
 export class OfferMediaSection extends MediaSection
 {
+	readonly kind: MediaKind | 'application';
+
 	constructor(
 		{
 			iceParameters,
@@ -473,6 +475,7 @@ export class OfferMediaSection extends MediaSection
 	{
 		super({ iceParameters, iceCandidates, dtlsParameters, planB });
 
+		this.kind = kind;
 		this._mediaObject.mid = String(mid);
 		this._mediaObject.type = kind;
 
