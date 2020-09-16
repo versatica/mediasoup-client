@@ -374,14 +374,17 @@ export class RemoteSdp
 			this._firstMid = newMediaSection.mid;
 
 		let availableIdx = -1;
-		if (newMediaSection instanceof OfferMediaSection) {
-			availableIdx = this._mediaSections.findIndex(ms => 
+
+		if (newMediaSection instanceof OfferMediaSection) 
+		{
+			availableIdx = this._mediaSections.findIndex((ms) => 
 				ms instanceof OfferMediaSection &&
 				ms.closed &&
 				ms.kind === newMediaSection.kind);
 		}
 	
-		if (availableIdx >= 0) {
+		if (availableIdx >= 0)
+		{
 			// Add to the vector.
 			this._mediaSections[availableIdx] = newMediaSection;
 
@@ -390,7 +393,9 @@ export class RemoteSdp
 
 			// Add to the SDP object.
 			this._sdpObject.media[availableIdx] = newMediaSection.getObject();
-		} else {
+		} 
+		else
+		{
 			// Add to the vector.
 			this._mediaSections.push(newMediaSection);
 
