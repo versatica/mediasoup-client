@@ -34,6 +34,7 @@ export declare class Producer extends EnhancedEventEmitter {
     private _disableTrackOnPause;
     private _zeroRtpOnPause;
     private readonly _appData;
+    protected readonly _observer: EnhancedEventEmitter;
     /**
      * @emits transportclose
      * @emits trackended
@@ -100,6 +101,14 @@ export declare class Producer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: any);
+    /**
+     * Observer.
+     *
+     * @emits close
+     * @emits pause
+     * @emits resume
+     */
+    get observer(): EnhancedEventEmitter;
     /**
      * Closes the Producer.
      */

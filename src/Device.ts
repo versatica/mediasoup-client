@@ -2,6 +2,7 @@
 
 import * as bowser from 'bowser';
 import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
@@ -189,6 +190,8 @@ export class Device
 	private readonly _canProduceByKind: CanProduceByKind;
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
+	// Observer instance.
+	protected readonly _observer = new EnhancedEventEmitter();
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
@@ -329,6 +332,16 @@ export class Device
 			throw new InvalidStateError('not loaded');
 
 		return this._sctpCapabilities!;
+	}
+
+	/**
+	 * Observer.
+	 *
+	 * @emits newtransport - (transport: Transport)
+	 */
+	get observer(): EnhancedEventEmitter
+	{
+		return this._observer;
 	}
 
 	/**
@@ -554,6 +567,9 @@ export class Device
 				extendedRtpCapabilities : this._extendedRtpCapabilities,
 				canProduceByKind        : this._canProduceByKind
 			});
+
+		// Emit observer event.
+		this._observer.safeEmit('newtransport', transport);
 
 		return transport;
 	}

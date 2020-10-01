@@ -165,6 +165,8 @@ export class Transport extends EnhancedEventEmitter
 	private _probatorConsumerCreated = false;
 	// AwaitQueue instance to make async tasks happen sequentially.
 	private readonly _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
+	// Observer instance.
+	protected readonly _observer = new EnhancedEventEmitter();
 
 	/**
 	 * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
@@ -289,6 +291,20 @@ export class Transport extends EnhancedEventEmitter
 	}
 
 	/**
+	 * Observer.
+	 *
+	 * @emits close
+	 * @emits newproducer - (producer: Producer)
+	 * @emits newconsumer - (producer: Producer)
+	 * @emits newdataproducer - (dataProducer: DataProducer)
+	 * @emits newdataconsumer - (dataProducer: DataProducer)
+	 */
+	get observer(): EnhancedEventEmitter
+	{
+		return this._observer;
+	}
+
+	/**
 	 * Close the Transport.
 	 */
 	close(): void
@@ -333,6 +349,9 @@ export class Transport extends EnhancedEventEmitter
 			dataConsumer.transportClosed();
 		}
 		this._dataConsumers.clear();
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -502,6 +521,9 @@ export class Transport extends EnhancedEventEmitter
 					this._producers.set(producer.id, producer);
 					this._handleProducer(producer);
 
+					// Emit observer event.
+					this._observer.safeEmit('newproducer', producer);
+
 					return producer;
 				}
 				catch (error)
@@ -612,6 +634,9 @@ export class Transport extends EnhancedEventEmitter
 					}
 				}
 
+				// Emit observer event.
+				this._observer.safeEmit('newconsumer', consumer);
+
 				return consumer;
 			});
 	}
@@ -684,6 +709,9 @@ export class Transport extends EnhancedEventEmitter
 				this._dataProducers.set(dataProducer.id, dataProducer);
 				this._handleDataProducer(dataProducer);
 
+				// Emit observer event.
+				this._observer.safeEmit('newdataproducer', dataProducer);
+
 				return dataProducer;
 			});
 	}
@@ -746,6 +774,9 @@ export class Transport extends EnhancedEventEmitter
 
 				this._dataConsumers.set(dataConsumer.id, dataConsumer);
 				this._handleDataConsumer(dataConsumer);
+
+				// Emit observer event.
+				this._observer.safeEmit('newdataconsumer', dataConsumer);
 
 				return dataConsumer;
 			});

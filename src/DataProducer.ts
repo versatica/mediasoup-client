@@ -28,6 +28,8 @@ export class DataProducer extends EnhancedEventEmitter
 	private readonly _sctpStreamParameters: SctpStreamParameters;
 	// App custom data.
 	private readonly _appData: any;
+	// Observer instance.
+	protected readonly _observer = new EnhancedEventEmitter();
 
 	/**
 	 * @emits transportclose
@@ -153,6 +155,16 @@ export class DataProducer extends EnhancedEventEmitter
 	}
 
 	/**
+	 * Observer.
+	 *
+	 * @emits close
+	 */
+	get observer(): EnhancedEventEmitter
+	{
+		return this._observer;
+	}
+
+	/**
 	 * Closes the DataProducer.
 	 */
 	close(): void
@@ -167,6 +179,9 @@ export class DataProducer extends EnhancedEventEmitter
 		this._dataChannel.close();
 
 		this.emit('@close');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -184,6 +199,9 @@ export class DataProducer extends EnhancedEventEmitter
 		this._dataChannel.close();
 
 		this.safeEmit('transportclose');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**

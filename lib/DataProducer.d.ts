@@ -15,6 +15,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
     private _closed;
     private readonly _sctpStreamParameters;
     private readonly _appData;
+    protected readonly _observer: EnhancedEventEmitter;
     /**
      * @emits transportclose
      * @emits open
@@ -73,6 +74,12 @@ export declare class DataProducer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: any);
+    /**
+     * Observer.
+     *
+     * @emits close
+     */
+    get observer(): EnhancedEventEmitter;
     /**
      * Closes the DataProducer.
      */
