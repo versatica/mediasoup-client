@@ -17,6 +17,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     private readonly _rtpParameters;
     private _paused;
     private readonly _appData;
+    protected readonly _observer: EnhancedEventEmitter;
     /**
      * @emits transportclose
      * @emits trackended
@@ -76,6 +77,14 @@ export declare class Consumer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: any);
+    /**
+     * Observer.
+     *
+     * @emits close
+     * @emits pause
+     * @emits resume
+     */
+    get observer(): EnhancedEventEmitter;
     /**
      * Closes the Consumer.
      */

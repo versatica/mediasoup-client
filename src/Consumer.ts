@@ -34,6 +34,8 @@ export class Consumer extends EnhancedEventEmitter
 	private _paused: boolean;
 	// App custom data.
 	private readonly _appData: any;
+	// Observer instance.
+	protected readonly _observer = new EnhancedEventEmitter();
 
 	/**
 	 * @emits transportclose
@@ -168,6 +170,19 @@ export class Consumer extends EnhancedEventEmitter
 	}
 
 	/**
+	 * Observer.
+	 *
+	 * @emits close
+	 * @emits pause
+	 * @emits resume
+	 * @emits trackended
+	 */
+	get observer(): EnhancedEventEmitter
+	{
+		return this._observer;
+	}
+
+	/**
 	 * Closes the Consumer.
 	 */
 	close(): void
@@ -182,6 +197,9 @@ export class Consumer extends EnhancedEventEmitter
 		this._destroyTrack();
 
 		this.emit('@close');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -199,6 +217,9 @@ export class Consumer extends EnhancedEventEmitter
 		this._destroyTrack();
 
 		this.safeEmit('transportclose');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -228,6 +249,9 @@ export class Consumer extends EnhancedEventEmitter
 
 		this._paused = true;
 		this._track.enabled = false;
+
+		// Emit observer event.
+		this._observer.safeEmit('pause');
 	}
 
 	/**
@@ -246,6 +270,9 @@ export class Consumer extends EnhancedEventEmitter
 
 		this._paused = false;
 		this._track.enabled = true;
+
+		// Emit observer event.
+		this._observer.safeEmit('resume');
 	}
 
 	private _onTrackEnded(): void
@@ -253,6 +280,9 @@ export class Consumer extends EnhancedEventEmitter
 		logger.debug('track "ended" event');
 
 		this.safeEmit('trackended');
+
+		// Emit observer event.
+		this._observer.safeEmit('trackended');
 	}
 
 	private _handleTrack(): void

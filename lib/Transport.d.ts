@@ -116,6 +116,7 @@ export declare class Transport extends EnhancedEventEmitter {
     private readonly _dataConsumers;
     private _probatorConsumerCreated;
     private readonly _awaitQueue;
+    protected readonly _observer: EnhancedEventEmitter;
     /**
      * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
      * @emits connectionstatechange - (connectionState: ConnectionState)
@@ -151,6 +152,16 @@ export declare class Transport extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: any);
+    /**
+     * Observer.
+     *
+     * @emits close
+     * @emits newproducer - (producer: Producer)
+     * @emits newconsumer - (producer: Producer)
+     * @emits newdataproducer - (dataProducer: DataProducer)
+     * @emits newdataconsumer - (dataProducer: DataProducer)
+     */
+    get observer(): EnhancedEventEmitter;
     /**
      * Close the Transport.
      */

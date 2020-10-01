@@ -63,6 +63,8 @@ export class Producer extends EnhancedEventEmitter
 	private _zeroRtpOnPause: boolean;
 	// App custom data.
 	private readonly _appData: any;
+	// Observer instance.
+	protected readonly _observer = new EnhancedEventEmitter();
 
 	/**
 	 * @emits transportclose
@@ -213,6 +215,19 @@ export class Producer extends EnhancedEventEmitter
 	}
 
 	/**
+	 * Observer.
+	 *
+	 * @emits close
+	 * @emits pause
+	 * @emits resume
+	 * @emits trackended
+	 */
+	get observer(): EnhancedEventEmitter
+	{
+		return this._observer;
+	}
+
+	/**
 	 * Closes the Producer.
 	 */
 	close(): void
@@ -227,6 +242,9 @@ export class Producer extends EnhancedEventEmitter
 		this._destroyTrack();
 
 		this.emit('@close');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -244,6 +262,9 @@ export class Producer extends EnhancedEventEmitter
 		this._destroyTrack();
 
 		this.safeEmit('transportclose');
+
+		// Emit observer event.
+		this._observer.safeEmit('close');
 	}
 
 	/**
@@ -283,6 +304,9 @@ export class Producer extends EnhancedEventEmitter
 			this.safeEmitAsPromise('@replacetrack', null)
 				.catch(() => {});
 		}
+
+		// Emit observer event.
+		this._observer.safeEmit('pause');
 	}
 
 	/**
@@ -311,6 +335,9 @@ export class Producer extends EnhancedEventEmitter
 			this.safeEmitAsPromise('@replacetrack', this._track)
 				.catch(() => {});
 		}
+
+		// Emit observer event.
+		this._observer.safeEmit('resume');
 	}
 
 	/**
@@ -410,6 +437,9 @@ export class Producer extends EnhancedEventEmitter
 		logger.debug('track "ended" event');
 
 		this.safeEmit('trackended');
+
+		// Emit observer event.
+		this._observer.safeEmit('trackended');
 	}
 
 	private _handleTrack(): void

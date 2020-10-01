@@ -1,3 +1,4 @@
+import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { Transport, TransportOptions } from './Transport';
 import { HandlerFactory } from './handlers/HandlerInterface';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
@@ -27,6 +28,7 @@ export declare class Device {
     private _recvRtpCapabilities?;
     private readonly _canProduceByKind;
     private _sctpCapabilities?;
+    protected readonly _observer: EnhancedEventEmitter;
     /**
      * Create a new Device to connect to mediasoup server.
      *
@@ -53,6 +55,13 @@ export declare class Device {
      * @throws {InvalidStateError} if not loaded.
      */
     get sctpCapabilities(): SctpCapabilities;
+    /**
+     * Observer.
+     *
+     * @emits close
+     * @emits newtransport - (transport: Transport)
+     */
+    get observer(): EnhancedEventEmitter;
     /**
      * Initialize the Device.
      */
