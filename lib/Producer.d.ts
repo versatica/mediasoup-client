@@ -107,6 +107,7 @@ export declare class Producer extends EnhancedEventEmitter {
      * @emits close
      * @emits pause
      * @emits resume
+     * @emits trackended
      */
     get observer(): EnhancedEventEmitter;
     /**

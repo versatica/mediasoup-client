@@ -58,7 +58,6 @@ export declare class Device {
     /**
      * Observer.
      *
-     * @emits close
      * @emits newtransport - (transport: Transport)
      */
     get observer(): EnhancedEventEmitter;
