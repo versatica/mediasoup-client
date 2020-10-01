@@ -220,6 +220,7 @@ export class Producer extends EnhancedEventEmitter
 	 * @emits close
 	 * @emits pause
 	 * @emits resume
+	 * @emits trackended
 	 */
 	get observer(): EnhancedEventEmitter
 	{
@@ -436,6 +437,9 @@ export class Producer extends EnhancedEventEmitter
 		logger.debug('track "ended" event');
 
 		this.safeEmit('trackended');
+
+		// Emit observer event.
+		this._observer.safeEmit('trackended');
 	}
 
 	private _handleTrack(): void
