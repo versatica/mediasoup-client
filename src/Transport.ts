@@ -384,7 +384,8 @@ export class Transport extends EnhancedEventEmitter
 
 		// Enqueue command.
 		return this._awaitQueue.push(
-			async () => this._handler.restartIce(iceParameters));
+			async () => this._handler.restartIce(iceParameters),
+			'transport.restartIce()');
 	}
 
 	/**
@@ -404,7 +405,8 @@ export class Transport extends EnhancedEventEmitter
 
 		// Enqueue command.
 		return this._awaitQueue.push(
-			async () => this._handler.updateIceServers(iceServers));
+			async () => this._handler.updateIceServers(iceServers),
+			'transport.updateIceServers()');
 	}
 
 	/**
@@ -533,7 +535,8 @@ export class Transport extends EnhancedEventEmitter
 
 					throw error;
 				}
-			})
+			},
+			'transport.produce()')
 			// This catch is needed to stop the given track if the command above
 			// failed due to closed Transport.
 			.catch((error: Error) =>
@@ -638,7 +641,8 @@ export class Transport extends EnhancedEventEmitter
 				this._observer.safeEmit('newconsumer', consumer);
 
 				return consumer;
-			});
+			},
+			'transport.consume()');
 	}
 
 	/**
@@ -713,7 +717,8 @@ export class Transport extends EnhancedEventEmitter
 				this._observer.safeEmit('newdataproducer', dataProducer);
 
 				return dataProducer;
-			});
+			},
+			'transport.produceData()');
 	}
 
 	/**
@@ -779,7 +784,8 @@ export class Transport extends EnhancedEventEmitter
 				this._observer.safeEmit('newdataconsumer', dataConsumer);
 
 				return dataConsumer;
-			});
+			},
+			'transport.consumeData()');
 	}
 
 	_handleHandler(): void
@@ -826,14 +832,16 @@ export class Transport extends EnhancedEventEmitter
 				return;
 
 			this._awaitQueue.push(
-				async () => this._handler.stopSending(producer.localId))
+				async () => this._handler.stopSending(producer.localId),
+				'producer @close event')
 				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
 
 		producer.on('@replacetrack', (track, callback, errback) =>
 		{
 			this._awaitQueue.push(
-				async () => this._handler.replaceTrack(producer.localId, track))
+				async () => this._handler.replaceTrack(producer.localId, track),
+				'producer @replacetrack event')
 				.then(callback)
 				.catch(errback);
 		});
@@ -843,7 +851,7 @@ export class Transport extends EnhancedEventEmitter
 			this._awaitQueue.push(
 				async () => (
 					this._handler.setMaxSpatialLayer(producer.localId, spatialLayer)
-				))
+				), 'producer @setmaxspatiallayer event')
 				.then(callback)
 				.catch(errback);
 		});
@@ -853,7 +861,7 @@ export class Transport extends EnhancedEventEmitter
 			this._awaitQueue.push(
 				async () => (
 					this._handler.setRtpEncodingParameters(producer.localId, params)
-				))
+				), 'producer @setrtpencodingparameters event')
 				.then(callback)
 				.catch(errback);
 		});
@@ -879,7 +887,8 @@ export class Transport extends EnhancedEventEmitter
 				return;
 
 			this._awaitQueue.push(
-				async () => this._handler.stopReceiving(consumer.localId))
+				async () => this._handler.stopReceiving(consumer.localId),
+				'consumer @close event')
 				.catch(() => {});
 		});
 
