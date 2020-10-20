@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.6.19",
+  "version": "3.6.20",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -36,7 +36,7 @@
   "dependencies": {
     "@types/debug": "^4.1.5",
     "@types/events": "^3.0.0",
-    "awaitqueue": "^2.3.2",
+    "awaitqueue": "^2.3.3",
     "bowser": "^2.11.0",
     "debug": "^4.2.0",
     "events": "^3.2.0",
