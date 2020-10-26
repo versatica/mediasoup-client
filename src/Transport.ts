@@ -205,7 +205,7 @@ export class Transport extends EnhancedEventEmitter
 			sctpParameters ? sctpParameters.maxMessageSize : null;
 
 		// Clone and sanitize additionalSettings.
-		additionalSettings = utils.clone(additionalSettings);
+		additionalSettings = utils.clone(additionalSettings, {});
 
 		delete additionalSettings.iceServers;
 		delete additionalSettings.iceTransportPolicy;
@@ -566,6 +566,8 @@ export class Transport extends EnhancedEventEmitter
 	{
 		logger.debug('consume()');
 
+		rtpParameters = utils.clone(rtpParameters, undefined);
+
 		if (this._closed)
 			throw new InvalidStateError('closed');
 		else if (this._direction !== 'recv')
@@ -736,6 +738,8 @@ export class Transport extends EnhancedEventEmitter
 	): Promise<DataConsumer>
 	{
 		logger.debug('consumeData()');
+
+		sctpStreamParameters = utils.clone(sctpStreamParameters, undefined);
 
 		if (this._closed)
 			throw new InvalidStateError('closed');

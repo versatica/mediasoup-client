@@ -110,7 +110,7 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 {
 	// Clonse fake router RTP capabilities to make them invalid.
 	const routerRtpCapabilities =
-		utils.clone(fakeParameters.generateRouterRtpCapabilities());
+		utils.clone(fakeParameters.generateRouterRtpCapabilities(), {});
 
 	for (const codec of routerRtpCapabilities.codecs)
 	{

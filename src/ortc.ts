@@ -17,7 +17,7 @@ import {
 	SctpParameters,
 	SctpStreamParameters
 } from './SctpParameters';
-import { clone } from './utils';
+import * as utils from './utils';
 
 const RTP_PROBATOR_MID = 'probator';
 const RTP_PROBATOR_SSRC = 1234;
@@ -998,7 +998,7 @@ export function generateProbatorRtpParameters(
 ): RtpParameters
 {
 	// Clone given reference video RTP parameters.
-	videoRtpParameters = clone(videoRtpParameters) as RtpParameters;
+	videoRtpParameters = utils.clone(videoRtpParameters, {}) as RtpParameters;
 
 	// This may throw.
 	validateRtpParameters(videoRtpParameters);

@@ -4,6 +4,7 @@ import * as bowser from 'bowser';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
+import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
@@ -353,6 +354,8 @@ export class Device
 	): Promise<void>
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
+
+		routerRtpCapabilities = utils.clone(routerRtpCapabilities, undefined);
 
 		// Temporal handler to get its capabilities.
 		let handler: HandlerInterface | undefined;

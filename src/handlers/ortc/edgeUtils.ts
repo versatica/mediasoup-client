@@ -8,7 +8,7 @@ import { RtpCapabilities, RtpParameters } from '../../RtpParameters';
 export function getCapabilities(): RtpCapabilities
 {
 	const nativeCaps = (RTCRtpReceiver as any).getCapabilities();
-	const caps = utils.clone(nativeCaps);
+	const caps = utils.clone(nativeCaps, {});
 
 	for (const codec of caps.codecs)
 	{
@@ -47,7 +47,7 @@ export function getCapabilities(): RtpCapabilities
  */
 export function mangleRtpParameters(rtpParameters: RtpParameters): RtpParameters
 {
-	const params = utils.clone(rtpParameters);
+	const params = utils.clone(rtpParameters, {});
 
 	// Rename mid to muxId.
 	if (params.mid)

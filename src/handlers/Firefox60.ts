@@ -313,18 +313,18 @@ export class Firefox60 extends HandlerInterface
 
 			// Clone the encodings and reverse them because Firefox likes them
 			// from high to low.
-			reverseEncodings = utils.clone(encodings).reverse();
+			reverseEncodings = utils.clone(encodings, []).reverse();
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =

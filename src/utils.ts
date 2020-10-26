@@ -1,14 +1,11 @@
 /**
- * Clones the given object/array.
- *
- * @param {Object|Array} obj
- *
- * @returns {Object|Array}
+ * Clones the given data.
  */
-export function clone(data: any): any
+export function clone(data: any, defaultValue: any): any
 {
-	if (typeof data !== 'object')
-		return {};
+
+	if (typeof data === 'undefined')
+		return defaultValue;
 
 	return JSON.parse(JSON.stringify(data));
 }

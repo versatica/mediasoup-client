@@ -205,7 +205,7 @@ export class AnswerMediaSection extends MediaSection
 
 					this._mediaObject.rtp.push(rtp);
 
-					const codecParameters = utils.clone(codec.parameters || {});
+					const codecParameters = utils.clone(codec.parameters, {});
 
 					if (codecOptions)
 					{

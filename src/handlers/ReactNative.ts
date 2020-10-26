@@ -303,13 +303,13 @@ export class ReactNative extends HandlerInterface
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);

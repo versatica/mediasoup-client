@@ -1,11 +1,7 @@
 /**
- * Clones the given object/array.
- *
- * @param {Object|Array} obj
- *
- * @returns {Object|Array}
+ * Clones the given data.
  */
-export declare function clone(data: any): any;
+export declare function clone(data: any, defaultValue: any): any;
 /**
  * Generates a random positive integer.
  */

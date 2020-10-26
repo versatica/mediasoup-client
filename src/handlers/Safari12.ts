@@ -274,14 +274,14 @@ export class Safari12 extends HandlerInterface
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =

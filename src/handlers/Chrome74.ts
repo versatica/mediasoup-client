@@ -289,14 +289,14 @@ export class Chrome74 extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind]);
+			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
