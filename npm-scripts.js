@@ -66,11 +66,15 @@ switch (task)
 
 function taskReplaceVersion()
 {
-	const file = 'lib/index.js';
-	const text = fs.readFileSync(file, { encoding: 'utf8' });
-	const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, version);
+	const files = [ 'lib/index.js', 'lib/index.d.ts' ];
 
-	fs.writeFileSync(file, result, { encoding: 'utf8' });
+	for (const file of files)
+	{
+		const text = fs.readFileSync(file, { encoding: 'utf8' });
+		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, version);
+
+		fs.writeFileSync(file, result, { encoding: 'utf8' });
+	}
 }
 
 function execute(command)
