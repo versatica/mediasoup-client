@@ -304,16 +304,20 @@ export class Firefox60 extends HandlerInterface
 
 		let reverseEncodings;
 
-		if (encodings && encodings.length > 1)
+		if (encodings && encodings.length > 0)
 		{
-			encodings.forEach((encoding, idx) =>
+			reverseEncodings = utils.clone(encodings, []);
+			if (encodings.length > 1)
 			{
-				encoding.rid = `r${idx}`;
-			});
+				encodings.forEach((encoding, idx) =>
+				{
+					encoding.rid = `r${idx}`;
+				});
 
-			// Clone the encodings and reverse them because Firefox likes them
-			// from high to low.
-			reverseEncodings = utils.clone(encodings, []).reverse();
+				// Clone the encodings and reverse them because Firefox likes them
+				// from high to low.
+				reverseEncodings.reverse();
+			}
 		}
 
 		const sendingRtpParameters =
