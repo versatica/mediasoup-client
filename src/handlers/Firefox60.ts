@@ -304,9 +304,10 @@ export class Firefox60 extends HandlerInterface
 
 		let reverseEncodings;
 
-		if (encodings && encodings.length > 0)
+		if (encodings)
 		{
 			reverseEncodings = utils.clone(encodings, []);
+
 			if (encodings.length > 1)
 			{
 				encodings.forEach((encoding, idx) =>
