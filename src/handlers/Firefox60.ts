@@ -302,22 +302,20 @@ export class Firefox60 extends HandlerInterface
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		let reverseEncodings;
-
 		if (encodings)
 		{
-			reverseEncodings = utils.clone(encodings, []);
+			encodings = utils.clone(encodings, []);
 
-			if (encodings.length > 1)
+			if (encodings!.length > 1)
 			{
-				encodings.forEach((encoding, idx) =>
+				encodings!.forEach((encoding, idx) =>
 				{
 					encoding.rid = `r${idx}`;
 				});
 
 				// Clone the encodings and reverse them because Firefox likes them
 				// from high to low.
-				reverseEncodings.reverse();
+				encodings!.reverse();
 			}
 		}
 
@@ -345,11 +343,11 @@ export class Firefox60 extends HandlerInterface
 
 		// NOTE: This is not spec compliants. Encodings should be given in addTransceiver
 		// second argument, but Firefox does not support it.
-		if (reverseEncodings)
+		if (encodings)
 		{
 			const parameters = transceiver.sender.getParameters();
 
-			parameters.encodings = reverseEncodings;
+			parameters.encodings = encodings;
 			await transceiver.sender.setParameters(parameters);
 		}
 
