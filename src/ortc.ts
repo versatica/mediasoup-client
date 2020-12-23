@@ -1107,9 +1107,15 @@ function matchCodecs(
 				if (modify)
 				{
 					if (selectedProfileLevelId)
+					{
 						aCodec.parameters['profile-level-id'] = selectedProfileLevelId;
+						bCodec.parameters['profile-level-id'] = selectedProfileLevelId;
+					}
 					else
+					{
 						delete aCodec.parameters['profile-level-id'];
+						delete bCodec.parameters['profile-level-id'];
+					}
 				}
 			}
 
