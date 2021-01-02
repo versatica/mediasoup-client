@@ -404,18 +404,20 @@ export class Firefox60 extends HandlerInterface
 
 		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
 		// each encoding.
-		if (
-			sendingRtpParameters.encodings.length > 1 &&
+		if (sendingRtpParameters.encodings.length > 1)
+		{
+			if
 			(
 				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
 				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264'
 			)
-		)
-		{
-			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T3';
+				for (const encoding of sendingRtpParameters.encodings)
+				{
+					encoding.scalabilityMode = 'S1T3';
+				}
 			}
+			sendingRtpParameters.encodings.reverse();
 		}
 
 		this._remoteSdp!.send(
