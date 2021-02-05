@@ -27,6 +27,7 @@ export type ProducerCodecOptions =
 	opusFec?: boolean;
 	opusDtx?: boolean;
 	opusMaxPlaybackRate?: number;
+	opusMaxAverageBitrate?: number;
 	opusPtime?: number;
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;

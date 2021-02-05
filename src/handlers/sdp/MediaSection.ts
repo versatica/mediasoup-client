@@ -214,6 +214,7 @@ export class AnswerMediaSection extends MediaSection
 							opusFec,
 							opusDtx,
 							opusMaxPlaybackRate,
+							opusMaxAverageBitrate,
 							opusPtime,
 							videoGoogleStartBitrate,
 							videoGoogleMaxBitrate,
@@ -250,6 +251,11 @@ export class AnswerMediaSection extends MediaSection
 								if (opusMaxPlaybackRate !== undefined)
 								{
 									codecParameters.maxplaybackrate = opusMaxPlaybackRate;
+								}
+
+								if (opusMaxAverageBitrate !== undefined)
+								{
+									codecParameters.maxaveragebitrate = opusMaxAverageBitrate;
 								}
 
 								if (opusPtime !== undefined)
