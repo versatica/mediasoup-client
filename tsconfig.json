@@ -10,7 +10,8 @@
 		"strict": true,
 		"outDir": "lib",
 		"declaration": true,
-		"declarationMap": true
+		"declarationMap": true,
+    "isolatedModules": true
 	},
 	"include": [ "src" ]
 }

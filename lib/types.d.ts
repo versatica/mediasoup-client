@@ -8,5 +8,5 @@ export * from './RtpParameters';
 export * from './SctpParameters';
 export * from './handlers/HandlerInterface';
 export * from './errors';
-export { ScalabilityMode } from './scalabilityModes';
+export type { ScalabilityMode } from './scalabilityModes';
 //# sourceMappingURL=types.d.ts.map
