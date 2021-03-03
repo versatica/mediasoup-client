@@ -56,7 +56,7 @@
     "jest-tobetype": "^1.2.3",
     "open-cli": "^6.0.1",
     "tsc-watch": "^4.2.9",
-    "typescript": "~3.7.5",
+    "typescript": "^3.8",
     "uuid": "^3.4.0"
   }
 }

@@ -7,6 +7,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
+		"isolatedModules": true,
 		"strict": true,
 		"outDir": "lib",
 		"declaration": true,
