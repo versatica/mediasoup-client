@@ -47,8 +47,8 @@
   "devDependencies": {
     "@types/sdp-transform": "^2.4.4",
     "@types/uuid": "^3.4.9",
-    "@typescript-eslint/eslint-plugin": "^4.21.0",
-    "@typescript-eslint/parser": "^4.21.0",
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
     "eslint": "^7.24.0",
     "eslint-plugin-jest": "^24.3.5",
     "fake-mediastreamtrack": "^1.1.6",
