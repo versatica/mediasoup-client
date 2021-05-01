@@ -80,6 +80,13 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const browser = Bowser.getParser(ua);
 		const engine = browser.getEngine();
 
+    const browserInfo = Bowser.parse(window.navigator.userAgent)
+    const [major, minor, patch] = browserInfo?.os?.version?.split(".") || []
+    const isIOSWebKit =
+    browserInfo?.os?.name?.toLocaleLowerCase() === "ios" &&
+      +major >= 14 &&
+      +minor >= 3
+ 
 		// Chrome and Chromium.
 		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
 		{
@@ -104,7 +111,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		}
 		// Safari with Unified-Plan support enabled.
 		else if (
-			browser.satisfies({ safari: '>=12.0' }) &&
+			(isIOSWebKit || browser.satisfies({ safari: '>=12.0' })) &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
 		)
