@@ -421,7 +421,8 @@ export class Transport extends EnhancedEventEmitter
 			stopTracks = true,
 			disableTrackOnPause = true,
 			zeroRtpOnPause = false,
-			appData = {}
+			appData = {},
+			localDtlsRole
 		}: ProducerOptions = {}
 	): Promise<Producer>
 	{
@@ -491,7 +492,8 @@ export class Transport extends EnhancedEventEmitter
 						track,
 						encodings : normalizedEncodings,
 						codecOptions,
-						codec
+						codec,
+						localDtlsRole
 					});
 
 				try
@@ -560,7 +562,8 @@ export class Transport extends EnhancedEventEmitter
 			producerId,
 			kind,
 			rtpParameters,
-			appData = {}
+			appData = {},
+			localDtlsRole,
 		}: ConsumerOptions
 	): Promise<Consumer>
 	{
@@ -595,7 +598,7 @@ export class Transport extends EnhancedEventEmitter
 					throw new UnsupportedError('cannot consume this Producer');
 
 				const { localId, rtpReceiver, track } =
-					await this._handler.receive({ trackId: id, kind, rtpParameters });
+					await this._handler.receive({ trackId: id, kind, rtpParameters, localDtlsRole });
 
 				const consumer = new Consumer(
 					{
@@ -624,7 +627,8 @@ export class Transport extends EnhancedEventEmitter
 							{
 								trackId       : 'probator',
 								kind          : 'video',
-								rtpParameters : probatorRtpParameters
+								rtpParameters : probatorRtpParameters,
+								localDtlsRole
 							});
 
 						logger.debug('consume() | Consumer for RTP probation created');
@@ -658,7 +662,8 @@ export class Transport extends EnhancedEventEmitter
 			priority = 'low',
 			label = '',
 			protocol = '',
-			appData = {}
+			appData = {},
+			localDtlsRole
 		}: DataProducerOptions = {}
 	): Promise<DataProducer>
 	{
@@ -694,7 +699,8 @@ export class Transport extends EnhancedEventEmitter
 						maxRetransmits,
 						priority,
 						label,
-						protocol
+						protocol,
+						localDtlsRole
 					});
 
 				// This will fill sctpStreamParameters's missing fields with default values.
@@ -733,7 +739,8 @@ export class Transport extends EnhancedEventEmitter
 			sctpStreamParameters,
 			label = '',
 			protocol = '',
-			appData = {}
+			appData = {},
+			localDtlsRole
 		}: DataConsumerOptions
 	): Promise<DataConsumer>
 	{
@@ -769,7 +776,8 @@ export class Transport extends EnhancedEventEmitter
 					{
 						sctpStreamParameters,
 						label,
-						protocol
+						protocol,
+						localDtlsRole
 					});
 
 				const dataConsumer = new DataConsumer(

@@ -1,3 +1,5 @@
+import { DtlsRole } from "./Transport"
+
 export type SctpCapabilities =
 {
   numStreams: NumSctpStreams;
@@ -75,4 +77,8 @@ export type SctpStreamParameters =
 	 * Name of the sub-protocol used by this DataChannel.
 	 */
 	protocol?: string;
+	/**
+	 * Override for the local DtlsRole
+	 */
+	localDtlsRole?: DtlsRole;
 }

@@ -1,6 +1,7 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
+import { DtlsRole } from './Transport';
 
 export type DataConsumerOptions =
 {
@@ -10,6 +11,7 @@ export type DataConsumerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: any;
+	localDtlsRole?: DtlsRole;
 }
 
 const logger = new Logger('DataConsumer');

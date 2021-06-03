@@ -2,6 +2,7 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { SctpStreamParameters } from './SctpParameters';
+import { DtlsRole } from './Transport';
 
 export type DataProducerOptions =
 {
@@ -12,6 +13,7 @@ export type DataProducerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: any;
+	localDtlsRole?: DtlsRole;
 }
 
 const logger = new Logger('DataProducer');

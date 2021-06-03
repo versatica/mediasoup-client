@@ -199,13 +199,13 @@ export class FakeHandler extends HandlerInterface
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec, localDtlsRole }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'server' });
 
 		const rtpParameters =
 			utils.clone(this._rtpParametersByKind![track.kind], {});
@@ -297,12 +297,13 @@ export class FakeHandler extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority
+			priority,
+			localDtlsRole
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'server' });
 
 		logger.debug('sendDataChannel()');
 
@@ -331,11 +332,11 @@ export class FakeHandler extends HandlerInterface
 
 	async receive(
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+		{ trackId, kind, rtpParameters, localDtlsRole }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client' });
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -361,11 +362,11 @@ export class FakeHandler extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol, localDtlsRole }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client' });
 
 		logger.debug('receiveDataChannel()');
 

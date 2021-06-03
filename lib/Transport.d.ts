@@ -187,19 +187,19 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Create a Producer.
      */
-    produce({ track, encodings, codecOptions, codec, stopTracks, disableTrackOnPause, zeroRtpOnPause, appData }?: ProducerOptions): Promise<Producer>;
+    produce({ track, encodings, codecOptions, codec, stopTracks, disableTrackOnPause, zeroRtpOnPause, appData, localDtlsRole }?: ProducerOptions): Promise<Producer>;
     /**
      * Create a Consumer to consume a remote Producer.
      */
-    consume({ id, producerId, kind, rtpParameters, appData }: ConsumerOptions): Promise<Consumer>;
+    consume({ id, producerId, kind, rtpParameters, appData, localDtlsRole, }: ConsumerOptions): Promise<Consumer>;
     /**
      * Create a DataProducer
      */
-    produceData({ ordered, maxPacketLifeTime, maxRetransmits, priority, label, protocol, appData }?: DataProducerOptions): Promise<DataProducer>;
+    produceData({ ordered, maxPacketLifeTime, maxRetransmits, priority, label, protocol, appData, localDtlsRole }?: DataProducerOptions): Promise<DataProducer>;
     /**
      * Create a DataConsumer
      */
-    consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData }: DataConsumerOptions): Promise<DataConsumer>;
+    consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData, localDtlsRole }: DataConsumerOptions): Promise<DataConsumer>;
     _handleHandler(): void;
     _handleProducer(producer: Producer): void;
     _handleConsumer(consumer: Consumer): void;

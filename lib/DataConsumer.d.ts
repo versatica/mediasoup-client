@@ -1,5 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
+import { DtlsRole } from './Transport';
 export declare type DataConsumerOptions = {
     id?: string;
     dataProducerId?: string;
@@ -7,6 +8,7 @@ export declare type DataConsumerOptions = {
     label?: string;
     protocol?: string;
     appData?: any;
+    localDtlsRole?: DtlsRole;
 };
 export declare class DataConsumer extends EnhancedEventEmitter {
     private readonly _id;

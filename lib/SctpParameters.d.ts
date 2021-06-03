@@ -1,3 +1,4 @@
+import { DtlsRole } from "./Transport";
 export declare type SctpCapabilities = {
     numStreams: NumSctpStreams;
 };
@@ -68,5 +69,9 @@ export declare type SctpStreamParameters = {
      * Name of the sub-protocol used by this DataChannel.
      */
     protocol?: string;
+    /**
+     * Override for the local DtlsRole
+     */
+    localDtlsRole?: DtlsRole;
 };
 //# sourceMappingURL=SctpParameters.d.ts.map

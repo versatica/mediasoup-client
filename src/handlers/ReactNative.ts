@@ -282,7 +282,7 @@ export class ReactNative extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec, localDtlsRole }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
@@ -315,7 +315,7 @@ export class ReactNative extends HandlerInterface
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'server', localSdpObject });
 
 		if (track.kind === 'video' && encodings && encodings.length > 1)
 		{
@@ -494,7 +494,8 @@ export class ReactNative extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority
+			priority,
+			localDtlsRole
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -530,7 +531,7 @@ export class ReactNative extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'server', localSdpObject });
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -563,7 +564,7 @@ export class ReactNative extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+		{ trackId, kind, rtpParameters, localDtlsRole }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
 		this._assertRecvDirection();
@@ -616,7 +617,7 @@ export class ReactNative extends HandlerInterface
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -675,7 +676,7 @@ export class ReactNative extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol, localDtlsRole }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		this._assertRecvDirection();
@@ -722,7 +723,7 @@ export class ReactNative extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 			}
 
 			logger.debug(

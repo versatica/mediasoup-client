@@ -2,6 +2,7 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { RtpParameters } from './RtpParameters';
+import { DtlsRole } from './Transport';
 
 export type ConsumerOptions =
 {
@@ -10,6 +11,7 @@ export type ConsumerOptions =
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	appData?: any;
+	localDtlsRole?: DtlsRole;
 }
 
 const logger = new Logger('Consumer');

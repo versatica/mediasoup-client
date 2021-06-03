@@ -1,11 +1,13 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpParameters } from './RtpParameters';
+import { DtlsRole } from './Transport';
 export declare type ConsumerOptions = {
     id?: string;
     producerId?: string;
     kind?: 'audio' | 'video';
     rtpParameters: RtpParameters;
     appData?: any;
+    localDtlsRole?: DtlsRole;
 };
 export declare class Consumer extends EnhancedEventEmitter {
     private readonly _id;
