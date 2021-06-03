@@ -1,5 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { RtpCodecCapability, RtpParameters, RtpEncodingParameters } from './RtpParameters';
+import { DtlsRole } from './Transport';
 export declare type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RtpEncodingParameters[];
@@ -9,6 +10,7 @@ export declare type ProducerOptions = {
     disableTrackOnPause?: boolean;
     zeroRtpOnPause?: boolean;
     appData?: any;
+    localDtlsRole?: DtlsRole;
 };
 export declare type ProducerCodecOptions = {
     opusStereo?: boolean;

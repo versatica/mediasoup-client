@@ -3,7 +3,8 @@ import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
 	IceCandidate,
-	DtlsParameters
+	DtlsParameters,
+	DtlsRole
 } from '../Transport';
 import {
 	RtpCapabilities,
@@ -39,6 +40,7 @@ export type HandlerSendOptions =
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	codec?: RtpCodecCapability;
+	localDtlsRole?: DtlsRole;
 };
 
 export type HandlerSendResult =
@@ -53,6 +55,7 @@ export type HandlerReceiveOptions =
 	trackId: string;
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
+	localDtlsRole?: DtlsRole;
 };
 
 export type HandlerReceiveResult =
@@ -75,6 +78,7 @@ export type HandlerReceiveDataChannelOptions =
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
+	localDtlsRole?: DtlsRole;
 }
 
 export type HandlerReceiveDataChannelResult =

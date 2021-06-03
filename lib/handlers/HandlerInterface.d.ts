@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { ProducerCodecOptions } from '../Producer';
-import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 export declare type HandlerFactory = () => HandlerInterface;
@@ -21,6 +21,7 @@ export declare type HandlerSendOptions = {
     encodings?: RtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
     codec?: RtpCodecCapability;
+    localDtlsRole?: DtlsRole;
 };
 export declare type HandlerSendResult = {
     localId: string;
@@ -31,6 +32,7 @@ export declare type HandlerReceiveOptions = {
     trackId: string;
     kind: 'audio' | 'video';
     rtpParameters: RtpParameters;
+    localDtlsRole?: DtlsRole;
 };
 export declare type HandlerReceiveResult = {
     localId: string;
@@ -46,6 +48,7 @@ export declare type HandlerReceiveDataChannelOptions = {
     sctpStreamParameters: SctpStreamParameters;
     label?: string;
     protocol?: string;
+    localDtlsRole?: DtlsRole;
 };
 export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;

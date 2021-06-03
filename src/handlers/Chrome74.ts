@@ -273,7 +273,7 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec, localDtlsRole }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
@@ -315,7 +315,7 @@ export class Chrome74 extends HandlerInterface
 		let offerMediaObject;
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'server', localSdpObject });
 
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
@@ -559,7 +559,8 @@ export class Chrome74 extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority
+			priority,
+			localDtlsRole
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -594,7 +595,7 @@ export class Chrome74 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'server', localSdpObject });
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -627,7 +628,7 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+		{ trackId, kind, rtpParameters, localDtlsRole }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
 		this._assertRecvDirection();
@@ -669,7 +670,7 @@ export class Chrome74 extends HandlerInterface
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -736,7 +737,7 @@ export class Chrome74 extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol, localDtlsRole }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		this._assertRecvDirection();
@@ -782,7 +783,7 @@ export class Chrome74 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 			}
 
 			logger.debug(

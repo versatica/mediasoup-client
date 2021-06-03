@@ -295,7 +295,7 @@ export class Firefox60 extends HandlerInterface
 	}
 
 	async send(
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec, localDtlsRole }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
@@ -357,7 +357,7 @@ export class Firefox60 extends HandlerInterface
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 
 		logger.debug(
 			'send() | calling pc.setLocalDescription() [offer:%o]',
@@ -575,7 +575,8 @@ export class Firefox60 extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority
+			priority,
+			localDtlsRole
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -610,7 +611,7 @@ export class Firefox60 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'server', localSdpObject });
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -643,7 +644,7 @@ export class Firefox60 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+		{ trackId, kind, rtpParameters, localDtlsRole }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
 		this._assertRecvDirection();
@@ -685,7 +686,7 @@ export class Firefox60 extends HandlerInterface
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -752,7 +753,7 @@ export class Firefox60 extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol, localDtlsRole }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		this._assertRecvDirection();
@@ -798,7 +799,7 @@ export class Firefox60 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport({ localDtlsRole: localDtlsRole || 'client', localSdpObject });
 			}
 
 			logger.debug(

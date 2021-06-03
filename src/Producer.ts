@@ -7,6 +7,7 @@ import {
 	RtpParameters,
 	RtpEncodingParameters
 } from './RtpParameters';
+import { DtlsRole } from './Transport';
 
 export type ProducerOptions =
 {
@@ -18,6 +19,7 @@ export type ProducerOptions =
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
 	appData?: any;
+	localDtlsRole? : DtlsRole
 }
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions

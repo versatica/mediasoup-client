@@ -1,5 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
+import { DtlsRole } from './Transport';
 export declare type DataProducerOptions = {
     ordered?: boolean;
     maxPacketLifeTime?: number;
@@ -8,6 +9,7 @@ export declare type DataProducerOptions = {
     label?: string;
     protocol?: string;
     appData?: any;
+    localDtlsRole?: DtlsRole;
 };
 export declare class DataProducer extends EnhancedEventEmitter {
     private readonly _id;
