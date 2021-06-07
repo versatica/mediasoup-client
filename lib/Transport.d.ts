@@ -195,7 +195,7 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * Create a DataProducer
      */
-    produceData({ ordered, maxPacketLifeTime, maxRetransmits, priority, label, protocol, appData }?: DataProducerOptions): Promise<DataProducer>;
+    produceData({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, appData }?: DataProducerOptions): Promise<DataProducer>;
     /**
      * Create a DataConsumer
      */

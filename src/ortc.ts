@@ -542,10 +542,6 @@ export function validateSctpStreamParameters(params: SctpStreamParameters): void
 		params.ordered = false;
 	}
 
-	// priority is optional.
-	if (params.priority && typeof params.priority !== 'string')
-		throw new TypeError('invalid params.priority');
-
 	// label is optional.
 	if (params.label && typeof params.label !== 'string')
 		throw new TypeError('invalid params.label');

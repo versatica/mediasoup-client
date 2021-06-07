@@ -571,8 +571,7 @@ export class Chrome70 extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -586,8 +585,7 @@ export class Chrome70 extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
-			protocol,
-			priority
+			protocol
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);

@@ -655,7 +655,6 @@ export class Transport extends EnhancedEventEmitter
 			ordered = true,
 			maxPacketLifeTime,
 			maxRetransmits,
-			priority = 'low',
 			label = '',
 			protocol = '',
 			appData = {}
@@ -668,8 +667,6 @@ export class Transport extends EnhancedEventEmitter
 			throw new UnsupportedError('not a sending Transport');
 		else if (!this._maxSctpMessageSize)
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
-		else if (![ 'very-low', 'low', 'medium', 'high' ].includes(priority))
-			throw new TypeError('wrong priority');
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
 			throw new TypeError('no "connect" listener set into this transport');
 		else if (this.listenerCount('producedata') === 0)
@@ -692,7 +689,6 @@ export class Transport extends EnhancedEventEmitter
 						ordered,
 						maxPacketLifeTime,
 						maxRetransmits,
-						priority,
 						label,
 						protocol
 					});

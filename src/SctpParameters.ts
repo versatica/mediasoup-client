@@ -64,10 +64,6 @@ export type SctpStreamParameters =
 	 */
 	maxRetransmits?: number;
 	/**
-	 * DataChannel priority.
-	 */
-	priority?: RTCPriorityType;
-	/**
 	 * A label which can be used to distinguish this DataChannel from others.
 	 */
 	label?: string;

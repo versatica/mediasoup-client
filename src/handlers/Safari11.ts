@@ -562,8 +562,7 @@ export class Safari11 extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -576,8 +575,7 @@ export class Safari11 extends HandlerInterface
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
-			protocol,
-			priority
+			protocol
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);

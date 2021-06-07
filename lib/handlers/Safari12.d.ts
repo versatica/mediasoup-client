@@ -32,7 +32,7 @@ export declare class Safari12 extends HandlerInterface {
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     getSenderStats(localId: string): Promise<RTCStatsReport>;
-    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
+    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
