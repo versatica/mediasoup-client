@@ -167,11 +167,8 @@ export function validateRtpHeaderExtension(ext: RtpHeaderExtension): void
 	if (typeof ext !== 'object')
 		throw new TypeError('ext is not an object');
 
-	// kind is optional. If unset set it to an empty string.
-	if (!ext.kind || typeof ext.kind !== 'string')
-		ext.kind = '';
-
-	if (ext.kind !== '' && ext.kind !== 'audio' && ext.kind !== 'video')
+	// kind is mandatory.
+	if (ext.kind !== 'audio' && ext.kind !== 'video')
 		throw new TypeError('invalid ext.kind');
 
 	// uri is mandatory.

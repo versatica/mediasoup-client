@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.6.31",
+  "version": "3.6.32",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -47,8 +47,8 @@
   "devDependencies": {
     "@types/sdp-transform": "^2.4.4",
     "@types/uuid": "^3.4.9",
-    "@typescript-eslint/eslint-plugin": "^4.26.0",
-    "@typescript-eslint/parser": "^4.26.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.1",
+    "@typescript-eslint/parser": "^4.26.1",
     "eslint": "^7.28.0",
     "eslint-plugin-jest": "^24.3.6",
     "fake-mediastreamtrack": "^1.1.6",

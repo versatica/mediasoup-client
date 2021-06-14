@@ -175,8 +175,7 @@ exports.generateRouterRtpCapabilities = function()
 				preferredEncrypt : false,
 				direction        : 'sendrecv'
 			}
-		],
-		fecMechanisms : []
+		]
 	};
 };
 
@@ -307,8 +306,7 @@ exports.generateNativeRtpCapabilities = function()
 				uri         : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
 				preferredId : 10
 			}
-		],
-		fecMechanisms : []
+		]
 	};
 };
 
