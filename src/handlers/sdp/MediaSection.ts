@@ -800,6 +800,10 @@ export class OfferMediaSection extends MediaSection
 
 		this._mediaObject.rtp = this._mediaObject.rtp.filter((rtp: any) => !payloads.includes(rtp.payload));
 
+		this._mediaObject.rtcpFb = this._mediaObject.rtcpFb.filter((rtcpFb: any) => !payloads.includes(rtcpFb.payload));
+
+		this._mediaObject.fmtp = this._mediaObject.fmtp.filter((fmtp: any) => !payloads.includes(fmtp.payload));
+
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
 
