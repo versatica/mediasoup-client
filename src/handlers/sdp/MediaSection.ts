@@ -691,6 +691,52 @@ export class OfferMediaSection extends MediaSection
 			? encoding.rtx.ssrc
 			: undefined;
 
+		for (const codec of offerRtpParameters!.codecs)
+		{
+			const rtp: any =
+				{
+					payload : codec.payloadType,
+					codec   : getCodecName(codec),
+					rate    : codec.clockRate
+				};
+
+			if (codec.channels! > 1)
+				rtp.encoding = codec.channels;
+
+			this._mediaObject.rtp.push(rtp);
+
+			const fmtp =
+				{
+					payload : codec.payloadType,
+					config  : ''
+				};
+
+			for (const key of Object.keys(codec.parameters))
+			{
+				if (fmtp.config)
+					fmtp.config += ';';
+
+				fmtp.config += `${key}=${codec.parameters[key]}`;
+			}
+
+			if (fmtp.config)
+				this._mediaObject.fmtp.push(fmtp);
+
+			for (const fb of codec.rtcpFeedback!)
+			{
+				this._mediaObject.rtcpFb.push(
+					{
+						payload : codec.payloadType,
+						type    : fb.type,
+						subtype : fb.parameter
+					});
+			}
+		}
+
+		this._mediaObject.payloads += ' '+ offerRtpParameters!.codecs
+		.map((codec: RtpCodecParameters) => codec.payloadType)
+		.join(' ');
+
 		if (offerRtpParameters.rtcp!.cname)
 		{
 			this._mediaObject.ssrcs.push(
