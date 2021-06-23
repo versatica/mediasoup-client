@@ -791,6 +791,14 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
+		const payloads = offerRtpParameters!.codecs
+			.map((codec: RtpCodecParameters) => codec.payloadType);
+
+		this._mediaObject.payloads = this._mediaObject.payloads.split(' ')
+			.filter((payload: any) => !payloads.includes(Number(payload)))
+			.join(' ');
+
+		this._mediaObject.rtp = this._mediaObject.rtp.filter((rtp: any) => !payloads.includes(rtp.payload));
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
