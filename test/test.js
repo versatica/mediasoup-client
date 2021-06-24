@@ -1526,13 +1526,14 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 
 	const remoteSdp = new RemoteSdp({ planB: true });
 
-	await remoteSdp.receive({
-		mid                : 'video',
-		kind               : 'video',
-		offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' }).rtpParameters,
-		streamId           : 'streamId-1',
-		trackId            : 'trackId-1'
-	});
+	await remoteSdp.receive(
+		{
+			mid                : 'video',
+			kind               : 'video',
+			offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' }).rtpParameters,
+			streamId           : 'streamId-1',
+			trackId            : 'trackId-1'
+		});
 
 	sdp = remoteSdp.getSdp();
 	sdpObject = sdpTransform.parse(sdp);
@@ -1546,13 +1547,14 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs.length).toBe(4);
 
-	await remoteSdp.receive({
-		mid                : 'video',
-		kind               : 'video',
-		offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
-		streamId           : 'streamId-2',
-		trackId            : 'trackId-2'
-	});
+	await remoteSdp.receive(
+		{
+			mid                : 'video',
+			kind               : 'video',
+			offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
+			streamId           : 'streamId-2',
+			trackId            : 'trackId-2'
+		});
 
 	sdp = remoteSdp.getSdp();
 	sdpObject = sdpTransform.parse(sdp);
@@ -1570,12 +1572,13 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs.length).toBe(8);
 
-	await remoteSdp.planBStopReceiving({
-		mid                : 'video',
-		offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
-		streamId           : 'streamId-2',
-		trackId            : 'trackId-2'
-	});
+	await remoteSdp.planBStopReceiving(
+		{
+			mid                : 'video',
+			offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
+			streamId           : 'streamId-2',
+			trackId            : 'trackId-2'
+		});
 
 	sdp = remoteSdp.getSdp();
 	sdpObject = sdpTransform.parse(sdp);
