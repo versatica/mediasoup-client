@@ -691,14 +691,14 @@ export class OfferMediaSection extends MediaSection
 			? encoding.rtx.ssrc
 			: undefined;
 
-		for (const codec of offerRtpParameters!.codecs)
+		for (const codec of offerRtpParameters.codecs)
 		{
 			const rtp: any =
-				{
-					payload : codec.payloadType,
-					codec   : getCodecName(codec),
-					rate    : codec.clockRate
-				};
+			{
+				payload : codec.payloadType,
+				codec   : getCodecName(codec),
+				rate    : codec.clockRate
+			};
 
 			if (codec.channels! > 1)
 				rtp.encoding = codec.channels;
@@ -706,10 +706,10 @@ export class OfferMediaSection extends MediaSection
 			this._mediaObject.rtp.push(rtp);
 
 			const fmtp =
-				{
-					payload : codec.payloadType,
-					config  : ''
-				};
+			{
+				payload : codec.payloadType,
+				config  : ''
+			};
 
 			for (const key of Object.keys(codec.parameters))
 			{
@@ -733,9 +733,10 @@ export class OfferMediaSection extends MediaSection
 			}
 		}
 
-		this._mediaObject.payloads += ' '+ offerRtpParameters!.codecs
-		.map((codec: RtpCodecParameters) => codec.payloadType)
-		.join(' ');
+		this._mediaObject.payloads += ` ${offerRtpParameters
+			.codecs
+			.map((codec: RtpCodecParameters) => codec.payloadType)
+			.join(' ')}`;
 
 		if (offerRtpParameters.rtcp!.cname)
 		{
@@ -798,11 +799,14 @@ export class OfferMediaSection extends MediaSection
 			.filter((payload: any) => !payloads.includes(Number(payload)))
 			.join(' ');
 
-		this._mediaObject.rtp = this._mediaObject.rtp.filter((rtp: any) => !payloads.includes(rtp.payload));
+		this._mediaObject.rtp = this._mediaObject.rtp
+			.filter((rtp: any) => !payloads.includes(rtp.payload));
 
-		this._mediaObject.rtcpFb = this._mediaObject.rtcpFb.filter((rtcpFb: any) => !payloads.includes(rtcpFb.payload));
+		this._mediaObject.rtcpFb = this._mediaObject.rtcpFb
+			.filter((rtcpFb: any) => !payloads.includes(rtcpFb.payload));
 
-		this._mediaObject.fmtp = this._mediaObject.fmtp.filter((fmtp: any) => !payloads.includes(fmtp.payload));
+		this._mediaObject.fmtp = this._mediaObject.fmtp
+			.filter((fmtp: any) => !payloads.includes(fmtp.payload));
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);

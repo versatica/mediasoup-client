@@ -618,12 +618,12 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 							}
 						},
 						{
-							mimeType             : 'video/rtx',
-							kind                 : 'video',
-							payloadType : 104,
-							clockRate            : 90000,
-							rtcpFeedback         : [],
-							parameters           :
+							mimeType     : 'video/rtx',
+							kind         : 'video',
+							payloadType  : 104,
+							clockRate    : 90000,
+							rtcpFeedback : [],
+							parameters   :
 							{
 								apt : 103
 							}
