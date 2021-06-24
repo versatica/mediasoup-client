@@ -3,6 +3,7 @@
  * FakeHandler device is used.
  */
 
+const sdpTransform = require('sdp-transform');
 const { toBeType } = require('jest-tobetype');
 const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
 const pkg = require('../package.json');
@@ -10,6 +11,7 @@ const mediasoupClient = require('../');
 const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupClient.types;
 const utils = require('../lib/utils');
+const { RemoteSdp } = require('../lib/handlers/sdp/RemoteSdp');
 const { FakeHandler } = require('../lib/handlers/FakeHandler');
 const fakeParameters = require('./fakeParameters');
 
@@ -1515,6 +1517,78 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners('connectionstatechange');
+}, 500);
+
+test('RemoteSdp properly handles multiple streams of the same type in planB', async () =>
+{
+	let remoteSdp = new RemoteSdp({ planB: true });
+	let sdp = undefined;
+	let sdpObject = undefined;
+
+	await remoteSdp.receive({
+		mid: 'video',
+		kind: 'video',
+		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' }).rtpParameters,
+		streamId: 'streamId-1',
+		trackId: 'trackId-1',
+	});
+
+	sdp = remoteSdp.getSdp();
+	sdpObject = sdpTransform.parse(sdp);
+
+	expect(sdpObject.media.length).toBe(1);
+	expect(sdpObject.media[0].payloads).toBe('101 102');
+	expect(sdpObject.media[0].rtp.length).toBe(2);
+	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
+	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
+	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
+	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
+	expect(sdpObject.media[0].ssrcs.length).toBe(4);
+
+	await remoteSdp.receive({
+		mid: 'video',
+		kind: 'video',
+		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
+		streamId: 'streamId-2',
+		trackId: 'trackId-2',
+	});
+
+	sdp = remoteSdp.getSdp();
+	sdpObject = sdpTransform.parse(sdp);
+
+	expect(sdpObject.media.length).toBe(1);
+	expect(sdpObject.media[0].payloads).toBe('101 102 103 104');
+	expect(sdpObject.media[0].rtp.length).toBe(4);
+	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
+	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
+	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
+	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
+	expect(sdpObject.media[0].rtp[2].payload).toBe(103);
+	expect(sdpObject.media[0].rtp[2].codec).toBe('H264');
+	expect(sdpObject.media[0].rtp[3].payload).toBe(104);
+	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
+	expect(sdpObject.media[0].ssrcs.length).toBe(8);
+
+
+	await remoteSdp.planBStopReceiving({
+		mid: 'video',
+		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/H264' }).rtpParameters,
+		streamId: 'streamId-2',
+		trackId: 'trackId-2',
+	});
+
+	sdp = remoteSdp.getSdp();
+	sdpObject = sdpTransform.parse(sdp);
+
+	expect(sdpObject.media.length).toBe(1);
+	expect(sdpObject.media[0].payloads).toBe('101 102');
+	expect(sdpObject.media[0].rtp.length).toBe(2);
+	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
+	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
+	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
+	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
+	expect(sdpObject.media[0].ssrcs.length).toBe(4);
+
 }, 500);
 
 test('parseScalabilityMode() works', () =>
