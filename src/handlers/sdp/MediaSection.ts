@@ -691,6 +691,53 @@ export class OfferMediaSection extends MediaSection
 			? encoding.rtx.ssrc
 			: undefined;
 
+		for (const codec of offerRtpParameters.codecs)
+		{
+			const rtp: any =
+			{
+				payload : codec.payloadType,
+				codec   : getCodecName(codec),
+				rate    : codec.clockRate
+			};
+
+			if (codec.channels! > 1)
+				rtp.encoding = codec.channels;
+
+			this._mediaObject.rtp.push(rtp);
+
+			const fmtp =
+			{
+				payload : codec.payloadType,
+				config  : ''
+			};
+
+			for (const key of Object.keys(codec.parameters))
+			{
+				if (fmtp.config)
+					fmtp.config += ';';
+
+				fmtp.config += `${key}=${codec.parameters[key]}`;
+			}
+
+			if (fmtp.config)
+				this._mediaObject.fmtp.push(fmtp);
+
+			for (const fb of codec.rtcpFeedback!)
+			{
+				this._mediaObject.rtcpFb.push(
+					{
+						payload : codec.payloadType,
+						type    : fb.type,
+						subtype : fb.parameter
+					});
+			}
+		}
+
+		this._mediaObject.payloads += ` ${offerRtpParameters
+			.codecs
+			.map((codec: RtpCodecParameters) => codec.payloadType)
+			.join(' ')}`;
+
 		if (offerRtpParameters.rtcp!.cname)
 		{
 			this._mediaObject.ssrcs.push(
@@ -745,6 +792,21 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
+		const payloads = offerRtpParameters!.codecs
+			.map((codec: RtpCodecParameters) => codec.payloadType);
+
+		this._mediaObject.payloads = this._mediaObject.payloads.split(' ')
+			.filter((payload: any) => !payloads.includes(Number(payload)))
+			.join(' ');
+
+		this._mediaObject.rtp = this._mediaObject.rtp
+			.filter((rtp: any) => !payloads.includes(rtp.payload));
+
+		this._mediaObject.rtcpFb = this._mediaObject.rtcpFb
+			.filter((rtcpFb: any) => !payloads.includes(rtcpFb.payload));
+
+		this._mediaObject.fmtp = this._mediaObject.fmtp
+			.filter((fmtp: any) => !payloads.includes(fmtp.payload));
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
