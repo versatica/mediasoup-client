@@ -1,3 +1,4 @@
+import debug from 'debug';
 import { Device, detectDevice } from './Device';
 import * as types from './types';
 /**
@@ -16,4 +17,8 @@ export { Device, detectDevice };
  * Expose parseScalabilityMode() function.
  */
 export { parse as parseScalabilityMode } from './scalabilityModes';
+/**
+ * Expose the debug module.
+ */
+export { debug };
 //# sourceMappingURL=index.d.ts.map

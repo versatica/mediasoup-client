@@ -8,7 +8,13 @@ const { toBeType } = require('jest-tobetype');
 const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
 const pkg = require('../package.json');
 const mediasoupClient = require('../');
-const { version, Device, detectDevice, parseScalabilityMode } = mediasoupClient;
+const {
+	version,
+	Device,
+	detectDevice,
+	parseScalabilityMode,
+	debug
+} = mediasoupClient;
 const { UnsupportedError, InvalidStateError } = mediasoupClient.types;
 const utils = require('../lib/utils');
 const { RemoteSdp } = require('../lib/handlers/sdp/RemoteSdp');
@@ -31,6 +37,11 @@ test('mediasoup-client exposes a version property', () =>
 {
 	expect(version).toBeType('string');
 	expect(version).toBe(pkg.version);
+}, 500);
+
+test('mediasoup-client exposes debug dependency', () =>
+{
+	expect(debug).toBeType('function');
 }, 500);
 
 test('detectDevice() returns nothing in Node', () =>
