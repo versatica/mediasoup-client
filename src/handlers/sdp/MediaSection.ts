@@ -694,7 +694,8 @@ export class OfferMediaSection extends MediaSection
 
 		for (const codec of offerRtpParameters.codecs)
 		{
-			if (payloads.includes(String(codec.payloadType))) {
+			if (payloads.includes(String(codec.payloadType)))
+			{
 				continue;
 			}
 
@@ -740,7 +741,8 @@ export class OfferMediaSection extends MediaSection
 
 		this._mediaObject.payloads += ` ${offerRtpParameters
 			.codecs
-			.filter((codec: RtpCodecParameters) => !this._mediaObject.payloads.includes(codec.payloadType))
+			.filter((codec: RtpCodecParameters) =>
+				!this._mediaObject.payloads.includes(codec.payloadType))
 			.map((codec: RtpCodecParameters) => codec.payloadType)
 			.join(' ')}`;
 
@@ -800,8 +802,6 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
-		const payloads = offerRtpParameters!.codecs
-			.map((codec: RtpCodecParameters) => codec.payloadType);
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
