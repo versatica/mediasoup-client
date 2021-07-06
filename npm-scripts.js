@@ -58,6 +58,19 @@ switch (task)
 		break;
 	}
 
+	case 'release':
+	{
+		execute('npm run typescript:build');
+		execute('npm run lint');
+		execute('npm run test');
+		execute(`git commit -am '${version}'`);
+		execute(`git tag -a ${version} -m '${version}'`);
+		execute(`git push origin v${MAYOR_VERSION} && git push origin --tags`);
+		execute('npm publish');
+
+		break;
+	}
+
 	default:
 	{
 		throw new TypeError(`unknown task "${task}"`);

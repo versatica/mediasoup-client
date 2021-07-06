@@ -26,7 +26,8 @@
     "typescript:watch": "node npm-scripts.js typescript:watch",
     "lint": "node npm-scripts.js lint",
     "test": "node npm-scripts.js test",
-    "coverage": "node npm-scripts.js coverage"
+    "coverage": "node npm-scripts.js coverage",
+    "release": "node npm-scripts.js release"
   },
   "jest": {
     "verbose": true,
