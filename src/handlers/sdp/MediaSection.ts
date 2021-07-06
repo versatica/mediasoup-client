@@ -690,9 +690,14 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
+		const payloads = this._mediaObject.payloads.split(' ');
 
 		for (const codec of offerRtpParameters.codecs)
 		{
+			if (payloads.includes(String(codec.payloadType))) {
+				continue;
+			}
+
 			const rtp: any =
 			{
 				payload : codec.payloadType,
