@@ -690,9 +690,14 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
+		const payloads = this._mediaObject.payloads.split(' ');
 
 		for (const codec of offerRtpParameters.codecs)
 		{
+			if (payloads.includes(String(codec.payloadType))) {
+				continue;
+			}
+
 			const rtp: any =
 			{
 				payload : codec.payloadType,
@@ -735,8 +740,11 @@ export class OfferMediaSection extends MediaSection
 
 		this._mediaObject.payloads += ` ${offerRtpParameters
 			.codecs
+			.filter((codec: RtpCodecParameters) => !this._mediaObject.payloads.includes(codec.payloadType))
 			.map((codec: RtpCodecParameters) => codec.payloadType)
 			.join(' ')}`;
+
+		this._mediaObject.payloads = this._mediaObject.payloads.trim();
 
 		if (offerRtpParameters.rtcp!.cname)
 		{
@@ -794,19 +802,6 @@ export class OfferMediaSection extends MediaSection
 			: undefined;
 		const payloads = offerRtpParameters!.codecs
 			.map((codec: RtpCodecParameters) => codec.payloadType);
-
-		this._mediaObject.payloads = this._mediaObject.payloads.split(' ')
-			.filter((payload: any) => !payloads.includes(Number(payload)))
-			.join(' ');
-
-		this._mediaObject.rtp = this._mediaObject.rtp
-			.filter((rtp: any) => !payloads.includes(rtp.payload));
-
-		this._mediaObject.rtcpFb = this._mediaObject.rtcpFb
-			.filter((rtcpFb: any) => !payloads.includes(rtcpFb.payload));
-
-		this._mediaObject.fmtp = this._mediaObject.fmtp
-			.filter((fmtp: any) => !payloads.includes(fmtp.payload));
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs
 			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);

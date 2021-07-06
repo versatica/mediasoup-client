@@ -1595,6 +1595,39 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
+	expect(sdpObject.media[0].payloads).toBe('101 102 103 104');
+	expect(sdpObject.media[0].rtp.length).toBe(4);
+	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
+	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
+	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
+	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
+	expect(sdpObject.media[0].rtp[2].payload).toBe(103);
+	expect(sdpObject.media[0].rtp[2].codec).toBe('H264');
+	expect(sdpObject.media[0].rtp[3].payload).toBe(104);
+	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
+	expect(sdpObject.media[0].ssrcs.length).toBe(4);
+}, 500);
+
+test('RemoteSdp does not duplicate codec descriptions', async () =>
+{
+	let sdp = undefined;
+	let sdpObject = undefined;
+
+	const remoteSdp = new RemoteSdp({ planB: true });
+
+	await remoteSdp.receive(
+		{
+			mid                : 'video',
+			kind               : 'video',
+			offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' }).rtpParameters,
+			streamId           : 'streamId-1',
+			trackId            : 'trackId-1'
+		});
+
+	sdp = remoteSdp.getSdp();
+	sdpObject = sdpTransform.parse(sdp);
+
+	expect(sdpObject.media.length).toBe(1);
 	expect(sdpObject.media[0].payloads).toBe('101 102');
 	expect(sdpObject.media[0].rtp.length).toBe(2);
 	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
@@ -1603,6 +1636,26 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs.length).toBe(4);
 
+	await remoteSdp.receive(
+		{
+			mid                : 'video',
+			kind               : 'video',
+			offerRtpParameters : fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' }).rtpParameters,
+			streamId           : 'streamId-1',
+			trackId            : 'trackId-1'
+		});
+
+	sdp = remoteSdp.getSdp();
+	sdpObject = sdpTransform.parse(sdp);
+
+	expect(sdpObject.media.length).toBe(1);
+	expect(sdpObject.media[0].payloads).toBe('101 102');
+	expect(sdpObject.media[0].rtp.length).toBe(2);
+	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
+	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
+	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
+	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
+	expect(sdpObject.media[0].ssrcs.length).toBe(8);
 }, 500);
 
 test('parseScalabilityMode() works', () =>
