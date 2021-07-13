@@ -422,7 +422,8 @@ export class Producer extends EnhancedEventEmitter
 	 * Sets the DSCP value.
 	 */
 	async setRtpEncodingParameters(
-		params: RTCRtpEncodingParameters
+		params: RTCRtpEncodingParameters,
+		idx?: number
 	): Promise<void>
 	{
 		if (this._closed)
@@ -430,7 +431,7 @@ export class Producer extends EnhancedEventEmitter
 		else if (typeof params !== 'object')
 			throw new TypeError('invalid params');
 
-		await this.safeEmitAsPromise('@setrtpencodingparameters', params);
+		await this.safeEmitAsPromise('@setrtpencodingparameters', params, idx);
 	}
 
 	private _onTrackEnded(): void

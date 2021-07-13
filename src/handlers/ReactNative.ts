@@ -476,7 +476,7 @@ export class ReactNative extends HandlerInterface
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>
 	{
 		throw new UnsupportedError('not implemented');
 	}

@@ -273,7 +273,7 @@ export class FakeHandler extends HandlerInterface
 			localId, spatialLayer);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>
 	{
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',

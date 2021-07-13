@@ -36,7 +36,7 @@ export declare class Edge11 extends HandlerInterface {
     stopSending(localId: string): Promise<void>;
     replaceTrack(localId: string, track: MediaStreamTrack | null): Promise<void>;
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
-    setRtpEncodingParameters(localId: string, params: any): Promise<void>;
+    setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>;
     getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;

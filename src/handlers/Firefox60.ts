@@ -533,7 +533,7 @@ export class Firefox60 extends HandlerInterface
 		await transceiver.sender.setParameters(parameters);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>
 	{
 		this._assertSendDirection();
 
@@ -548,10 +548,14 @@ export class Firefox60 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
-		{
-			parameters.encodings[idx] = { ...encoding, ...params };
-		});
+		if (idx == null) {
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params };
+			});
+		} else {
+			parameters.encodings[idx] = { ...parameters.encodings[idx], ...params };
+		}
 
 		await transceiver.sender.setParameters(parameters);
 	}

@@ -72,7 +72,7 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     abstract stopSending(localId: string): Promise<void>;
     abstract replaceTrack(localId: string, track: MediaStreamTrack | null): Promise<void>;
     abstract setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
-    abstract setRtpEncodingParameters(localId: string, params: any): Promise<void>;
+    abstract setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>;
     abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
     abstract sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     abstract receive(options: HandlerReceiveOptions): Promise<HandlerReceiveResult>;

@@ -521,7 +521,7 @@ export class Safari11 extends HandlerInterface
 		await rtpSender.setParameters(parameters);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>
 	{
 		this._assertSendDirection();
 
@@ -536,10 +536,14 @@ export class Safari11 extends HandlerInterface
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
-		{
-			parameters.encodings[idx] = { ...encoding, ...params };
-		});
+		if (idx == null) {
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params };
+			});
+		} else {
+			parameters.encodings[idx] = { ...parameters.encodings[idx], ...params };
+		}
 
 		await rtpSender.setParameters(parameters);
 	}

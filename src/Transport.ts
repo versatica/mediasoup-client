@@ -856,11 +856,11 @@ export class Transport extends EnhancedEventEmitter
 				.catch(errback);
 		});
 
-		producer.on('@setrtpencodingparameters', (params, callback, errback) =>
+		producer.on('@setrtpencodingparameters', (params, idx, callback, errback) =>
 		{
 			this._awaitQueue.push(
 				async () => (
-					this._handler.setRtpEncodingParameters(producer.localId, params)
+					this._handler.setRtpEncodingParameters(producer.localId, params, idx)
 				), 'producer @setrtpencodingparameters event')
 				.then(callback)
 				.catch(errback);

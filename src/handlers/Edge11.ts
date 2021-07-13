@@ -321,7 +321,7 @@ export class Edge11 extends HandlerInterface
 		await rtpSender.setParameters(parameters);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
+	async setRtpEncodingParameters(localId: string, params: any, idx?: number): Promise<void>
 	{
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
@@ -334,10 +334,14 @@ export class Edge11 extends HandlerInterface
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
-		{
-			parameters.encodings[idx] = { ...encoding, ...params };
-		});
+		if (idx == null) {
+			parameters.encodings.forEach((encoding: any, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params };
+			});
+		} else {
+			parameters.encodings[idx] = { ...parameters.encodings[idx], ...params };
+		}
 
 		await rtpSender.setParameters(parameters);
 	}
