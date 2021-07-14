@@ -536,10 +536,20 @@ export class Safari11 extends HandlerInterface
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+		if (Array.isArray(params)) 
 		{
-			parameters.encodings[idx] = { ...encoding, ...params };
-		});
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params[idx] };
+			});
+		}
+		else 
+		{
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params };
+			});
+		}
 
 		await rtpSender.setParameters(parameters);
 	}
