@@ -554,6 +554,8 @@ export class Firefox60 extends HandlerInterface
 				parameters.encodings[idx] = { ...encoding, ...params };
 			});
 		} else {
+			// NOTE: We require encodings given from low to high, however Firefox requires them in reverse order.
+			idx = parameters.encodings.length - 1 - idx
 			parameters.encodings[idx] = { ...parameters.encodings[idx], ...params };
 		}
 
