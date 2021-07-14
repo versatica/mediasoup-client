@@ -1235,6 +1235,15 @@ test('producer.setRtpEncodingParameters() succeeds', async () =>
 	expect(videoProducer.maxSpatialLayer).toBe(0);
 }, 500);
 
+test('producer.setRtpEncodingParameters() with array succeeds', async () =>
+{
+	await expect(videoProducer.setRtpEncodingParameters([ { foo: 'bar1' }, { foo: 'bar2' } ]))
+		.resolves
+		.toBe(undefined);
+
+	expect(videoProducer.maxSpatialLayer).toBe(0);
+}, 500);
+
 test('producer.getStats() succeeds', async () =>
 {
 	await expect(videoProducer.getStats())
