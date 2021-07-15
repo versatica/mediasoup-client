@@ -269,6 +269,7 @@ export type RtpEncodingParameters =
 	adaptivePtime?: boolean;
 	priority?: 'very-low' | 'low' | 'medium' | 'high';
 	networkPriority?: 'very-low' | 'low' | 'medium' | 'high';
+	active?: boolean;
 }
 
 /**

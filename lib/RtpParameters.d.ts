@@ -252,6 +252,7 @@ export declare type RtpEncodingParameters = {
     adaptivePtime?: boolean;
     priority?: 'very-low' | 'low' | 'medium' | 'high';
     networkPriority?: 'very-low' | 'low' | 'medium' | 'high';
+    active?: boolean;
 };
 /**
  * Defines a RTP header extension within the RTP parameters. The list of RTP
