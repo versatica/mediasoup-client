@@ -85,6 +85,10 @@ export class ReactNative extends HandlerInterface
 	{
 		logger.debug('close()');
 
+		// Free/dispose native stream and tracks.
+		// @ts-ignore (proprietary API in react-native-webrtc).
+		this._sendStream.release();
+
 		// Close RTCPeerConnection.
 		if (this._pc)
 		{
