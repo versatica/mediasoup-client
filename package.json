@@ -35,7 +35,7 @@
     "testRegex": "test/test.*\\.js"
   },
   "dependencies": {
-    "@types/debug": "^4.1.6",
+    "@types/debug": "^4.1.7",
     "@types/events": "^3.0.0",
     "awaitqueue": "^2.3.3",
     "bowser": "^2.11.0",
@@ -47,12 +47,12 @@
     "supports-color": "^8.1.1"
   },
   "devDependencies": {
-    "@types/sdp-transform": "^2.4.4",
+    "@types/sdp-transform": "^2.4.5",
     "@types/uuid": "^3.4.9",
-    "@typescript-eslint/eslint-plugin": "^4.26.1",
-    "@typescript-eslint/parser": "^4.26.1",
-    "eslint": "^7.30.0",
-    "eslint-plugin-jest": "^24.3.6",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-jest": "^24.4.0",
     "jest": "^27.0.6",
     "jest-tobetype": "^1.2.3",
     "open-cli": "^6.0.1",

@@ -65,7 +65,7 @@ switch (task)
 		execute('npm run test');
 		execute(`git commit -am '${version}'`);
 		execute(`git tag -a ${version} -m '${version}'`);
-		execute(`git push origin v${MAYOR_VERSION} && git push origin --tags`);
+		execute('git push origin v3 && git push origin --tags');
 		execute('npm publish');
 
 		break;
