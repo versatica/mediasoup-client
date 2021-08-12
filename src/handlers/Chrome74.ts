@@ -27,11 +27,11 @@ import {
 } from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
-const logger = new Logger('Chrome92');
+const logger = new Logger('Chrome74');
 
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-export class Chrome92 extends HandlerInterface
+export class Chrome74 extends HandlerInterface
 {
 	// Handler direction.
 	private _direction?: 'send' | 'recv';
@@ -64,7 +64,7 @@ export class Chrome92 extends HandlerInterface
 	 */
 	static createFactory(): HandlerFactory
 	{
-		return (): Chrome92 => new Chrome92();
+		return (): Chrome74 => new Chrome74();
 	}
 
 	constructor()
@@ -74,7 +74,7 @@ export class Chrome92 extends HandlerInterface
 
 	get name(): string
 	{
-		return 'Chrome92';
+		return 'Chrome74';
 	}
 
 	get concurrentOperationsSupported(): boolean
@@ -647,8 +647,6 @@ export class Chrome92 extends HandlerInterface
 		// TBD Clean this map
 		this._mapMidTransceiver.set(localId, null)
 
-		// console.log(`${Date.now()} ggb begin ${trackId} ${localId}`);
-
 		this._remoteSdp!.receive(
 			{
 				mid                : localId,
@@ -663,7 +661,6 @@ export class Chrome92 extends HandlerInterface
 		}
 
 		if (!this._negotiationOwner) {
-			// console.log(`${Date.now()} ggb start negotiation ${trackId}`)
 			this._negotiationOwner = localId;
 			let resolve: any = null;
 			let reject: any = null;
@@ -716,27 +713,23 @@ export class Chrome92 extends HandlerInterface
 				this._negotiationInProgress = null
 				if (reject) reject(error)
 			}
-			// console.log(`${Date.now()} ggb finish negotiation ${trackId}`)
 		}
 		else
 		{
 			await this._negotiationInProgress;
 		}
 
-		// console.log(`${Date.now()} ggb complete ${trackId}`)
 		const transceiver = this._pc.getTransceivers()
 			.find((t: RTCRtpTransceiver) => t.mid === localId);
 
 		if (!transceiver)
 		{
-			// console.log(`${Date.now()} ggb transceiver not found ${trackId}`)
 			throw new Error('new RTCRtpTransceiver not found');
 		}
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
 
-		// console.log(`${Date.now()} ggb end ${trackId} ${localId}`)
 		return {
 			localId,
 			track       : transceiver.receiver.track,
