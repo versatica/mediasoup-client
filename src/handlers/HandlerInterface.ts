@@ -150,4 +150,9 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	abstract receiveDataChannel(
 		options: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>;
+
+	get concurrentOperationsSupported(): boolean
+    {
+		return false
+	}
 }
