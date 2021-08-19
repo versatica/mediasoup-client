@@ -101,49 +101,49 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 
 	abstract close(): void;
 
-	abstract async getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+	abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
 
-	abstract async getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+	abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 
 	abstract run(options: HandlerRunOptions): void;
 
-	abstract async updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
+	abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
 
-	abstract async restartIce(iceParameters: IceParameters): Promise<void>;
+	abstract restartIce(iceParameters: IceParameters): Promise<void>;
 
-	abstract async getTransportStats(): Promise<RTCStatsReport>;
+	abstract getTransportStats(): Promise<RTCStatsReport>;
 
-	abstract async send(options: HandlerSendOptions): Promise<HandlerSendResult>;
+	abstract send(options: HandlerSendOptions): Promise<HandlerSendResult>;
 
-	abstract async stopSending(localId: string): Promise<void>;
+	abstract stopSending(localId: string): Promise<void>;
 
-	abstract async replaceTrack(
+	abstract replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>;
 
-	abstract async setMaxSpatialLayer(
+	abstract setMaxSpatialLayer(
 		localId: string, spatialLayer: number
 	): Promise<void>;
 
-	abstract async setRtpEncodingParameters(
+	abstract setRtpEncodingParameters(
 		localId: string, params: any
 	): Promise<void>;
 
-	abstract async getSenderStats(localId: string): Promise<RTCStatsReport>;
+	abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
 
-	abstract async sendDataChannel(
+	abstract sendDataChannel(
 		options: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>;
 
-	abstract async receive(
+	abstract receive(
 		options: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>;
 
-	abstract async stopReceiving(localId: string): Promise<void>;
+	abstract stopReceiving(localId: string): Promise<void>;
 
-	abstract async getReceiverStats(localId: string): Promise<RTCStatsReport>;
+	abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
 
-	abstract async receiveDataChannel(
+	abstract receiveDataChannel(
 		options: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>;
 }

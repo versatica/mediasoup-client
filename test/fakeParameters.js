@@ -175,8 +175,7 @@ exports.generateRouterRtpCapabilities = function()
 				preferredEncrypt : false,
 				direction        : 'sendrecv'
 			}
-		],
-		fecMechanisms : []
+		]
 	};
 };
 
@@ -307,8 +306,7 @@ exports.generateNativeRtpCapabilities = function()
 				uri         : 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
 				preferredId : 10
 			}
-		],
-		fecMechanisms : []
+		]
 	};
 };
 
@@ -554,6 +552,90 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 							rtx  :
 							{
 								ssrc : 99991112
+							}
+						}
+					],
+					headerExtensions :
+					[
+						{
+							uri : 'urn:ietf:params:rtp-hdrext:sdes:mid',
+							id  : 1
+						},
+						{
+							uri : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+							id  : 4
+						},
+						{
+							uri : 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+							id  : 5
+						},
+						{
+							uri : 'urn:3gpp:video-orientation',
+							id  : 11
+						},
+						{
+							uri : 'urn:ietf:params:rtp-hdrext:toffset',
+							id  : 12
+						}
+					],
+					rtcp :
+					{
+						cname       : 'wB4Ql4lrsxYLjzuN',
+						reducedSize : true,
+						mux         : true
+					}
+				}
+			};
+		}
+
+		case 'video/H264':
+		{
+			return {
+				id            : id || uuidv4(),
+				producerId    : uuidv4(),
+				kind          : 'video',
+				rtpParameters :
+				{
+					codecs :
+					[
+						{
+							mimeType     : 'video/H264',
+							payloadType  : 103,
+							clockRate    : 90000,
+							rtcpFeedback :
+							[
+								{ type: 'nack' },
+								{ type: 'nack', parameter: 'pli' },
+								{ type: 'ccm', parameter: 'fir' },
+								{ type: 'goog-remb' },
+								{ type: 'transport-cc' }
+							],
+							parameters :
+							{
+								'level-asymmetry-allowed' : 1,
+								'packetization-mode'      : 1,
+								'profile-level-id'        : '42e01f'
+							}
+						},
+						{
+							mimeType     : 'video/rtx',
+							kind         : 'video',
+							payloadType  : 104,
+							clockRate    : 90000,
+							rtcpFeedback : [],
+							parameters   :
+							{
+								apt : 103
+							}
+						}
+					],
+					encodings :
+					[
+						{
+							ssrc : 99991113,
+							rtx  :
+							{
+								ssrc : 99991114
 							}
 						}
 					],

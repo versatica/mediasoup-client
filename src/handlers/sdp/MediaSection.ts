@@ -214,6 +214,7 @@ export class AnswerMediaSection extends MediaSection
 							opusFec,
 							opusDtx,
 							opusMaxPlaybackRate,
+							opusMaxAverageBitrate,
 							opusPtime,
 							videoGoogleStartBitrate,
 							videoGoogleMaxBitrate,
@@ -250,6 +251,11 @@ export class AnswerMediaSection extends MediaSection
 								if (opusMaxPlaybackRate !== undefined)
 								{
 									codecParameters.maxplaybackrate = opusMaxPlaybackRate;
+								}
+
+								if (opusMaxAverageBitrate !== undefined)
+								{
+									codecParameters.maxaveragebitrate = opusMaxAverageBitrate;
 								}
 
 								if (opusPtime !== undefined)
@@ -684,6 +690,63 @@ export class OfferMediaSection extends MediaSection
 		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
 			? encoding.rtx.ssrc
 			: undefined;
+		const payloads = this._mediaObject.payloads.split(' ');
+
+		for (const codec of offerRtpParameters.codecs)
+		{
+			if (payloads.includes(String(codec.payloadType)))
+			{
+				continue;
+			}
+
+			const rtp: any =
+			{
+				payload : codec.payloadType,
+				codec   : getCodecName(codec),
+				rate    : codec.clockRate
+			};
+
+			if (codec.channels! > 1)
+				rtp.encoding = codec.channels;
+
+			this._mediaObject.rtp.push(rtp);
+
+			const fmtp =
+			{
+				payload : codec.payloadType,
+				config  : ''
+			};
+
+			for (const key of Object.keys(codec.parameters))
+			{
+				if (fmtp.config)
+					fmtp.config += ';';
+
+				fmtp.config += `${key}=${codec.parameters[key]}`;
+			}
+
+			if (fmtp.config)
+				this._mediaObject.fmtp.push(fmtp);
+
+			for (const fb of codec.rtcpFeedback!)
+			{
+				this._mediaObject.rtcpFb.push(
+					{
+						payload : codec.payloadType,
+						type    : fb.type,
+						subtype : fb.parameter
+					});
+			}
+		}
+
+		this._mediaObject.payloads += ` ${offerRtpParameters
+			.codecs
+			.filter((codec: RtpCodecParameters) =>
+				!this._mediaObject.payloads.includes(codec.payloadType))
+			.map((codec: RtpCodecParameters) => codec.payloadType)
+			.join(' ')}`;
+
+		this._mediaObject.payloads = this._mediaObject.payloads.trim();
 
 		if (offerRtpParameters.rtcp!.cname)
 		{

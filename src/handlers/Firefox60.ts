@@ -391,10 +391,11 @@ export class Firefox60 extends HandlerInterface
 
 			sendingRtpParameters.encodings = newEncodings;
 		}
-		// Otherwise if more than 1 encoding are given use them verbatim.
+		// Otherwise if more than 1 encoding are given use them verbatim (but
+		// reverse them back since we reversed them above to satisfy Firefox).
 		else
 		{
-			sendingRtpParameters.encodings = encodings;
+			sendingRtpParameters.encodings = encodings.reverse();
 		}
 
 		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
@@ -566,8 +567,7 @@ export class Firefox60 extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -580,8 +580,7 @@ export class Firefox60 extends HandlerInterface
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
-			protocol,
-			priority
+			protocol
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);

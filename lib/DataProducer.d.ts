@@ -4,7 +4,6 @@ export declare type DataProducerOptions = {
     ordered?: boolean;
     maxPacketLifeTime?: number;
     maxRetransmits?: number;
-    priority?: RTCPriorityType;
     label?: string;
     protocol?: string;
     appData?: any;

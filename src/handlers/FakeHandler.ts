@@ -31,7 +31,6 @@ class FakeDataChannel extends EnhancedEventEmitter
 	ordered?: boolean;
 	maxPacketLifeTime?: number;
 	maxRetransmits?: number;
-	priority?: RTCPriorityType;
 	label?: string;
 	protocol?: string;
 
@@ -41,7 +40,6 @@ class FakeDataChannel extends EnhancedEventEmitter
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
-			priority,
 			label,
 			protocol
 		}: {
@@ -49,7 +47,6 @@ class FakeDataChannel extends EnhancedEventEmitter
 			ordered?: boolean;
 			maxPacketLifeTime?: number;
 			maxRetransmits?: number;
-			priority?: RTCPriorityType;
 			label?: string;
 			protocol?: string;
 		})
@@ -60,7 +57,6 @@ class FakeDataChannel extends EnhancedEventEmitter
 		this.ordered= ordered;
 		this.maxPacketLifeTime = maxPacketLifeTime;
 		this.maxRetransmits = maxRetransmits;
-		this.priority = priority;
 		this.label = label;
 		this.protocol = protocol;
 	}
@@ -296,8 +292,7 @@ export class FakeHandler extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -312,7 +307,6 @@ export class FakeHandler extends HandlerInterface
 				ordered,
 				maxPacketLifeTime,
 				maxRetransmits,
-				priority,
 				label,
 				protocol
 			});

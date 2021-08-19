@@ -85,6 +85,10 @@ export class ReactNative extends HandlerInterface
 	{
 		logger.debug('close()');
 
+		// Free/dispose native stream and tracks.
+		// @ts-ignore (proprietary API in react-native-webrtc).
+		this._sendStream.release();
+
 		// Close RTCPeerConnection.
 		if (this._pc)
 		{
@@ -493,8 +497,7 @@ export class ReactNative extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -508,8 +511,7 @@ export class ReactNative extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
-			protocol,
-			priority
+			protocol
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);

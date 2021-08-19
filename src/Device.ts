@@ -1,6 +1,6 @@
 /* global RTCRtpTransceiver */
 
-import * as bowser from 'bowser';
+import Bowser from 'bowser';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -77,7 +77,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
 	{
 		const ua = navigator.userAgent;
-		const browser = bowser.getParser(ua);
+		const browser = Bowser.getParser(ua);
 		const engine = browser.getEngine();
 
 		// Chrome and Chromium.

@@ -78,7 +78,7 @@ export function extractRtpCapabilities(
 				continue;
 
 			// Specials case to convert parameter value to string.
-			if (parameters && parameters['profile-level-id'])
+			if (parameters && parameters.hasOwnProperty('profile-level-id'))
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
 
 			codec.parameters = parameters;

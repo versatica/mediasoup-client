@@ -89,7 +89,7 @@ export function addLegacySimulcast(
 	if (!ssrcMsidLine)
 		throw new Error('a=ssrc line with msid information not found');
 
-	const [ streamId, trackId ] = ssrcMsidLine.value.split(' ')[0];
+	const [ streamId, trackId ] = ssrcMsidLine.value.split(' ');
 	const firstSsrc = ssrcMsidLine.id;
 	let firstRtxSsrc;
 
