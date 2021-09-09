@@ -85,11 +85,6 @@ export class ReactNative extends HandlerInterface
 	{
 		logger.debug('close()');
 
-		// Free/dispose native MediaStream but DO NOT free/dispose native
-		// MediaStreamTracks (that is parent's business).
-		// @ts-ignore (proprietary API in react-native-webrtc).
-		this._sendStream.release(/* releaseTracks */ false);
-
 		// Close RTCPeerConnection.
 		if (this._pc)
 		{
