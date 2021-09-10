@@ -548,10 +548,21 @@ export class Firefox60 extends HandlerInterface
 
 		const parameters = transceiver.sender.getParameters();
 
-		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+		if (Array.isArray(params)) 
 		{
-			parameters.encodings[idx] = { ...encoding, ...params };
-		});
+			params.reverse(); // reverse encoding order in Firefox
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params[idx] };
+			});
+		}
+		else 
+		{
+			parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
+			{
+				parameters.encodings[idx] = { ...encoding, ...params };
+			});
+		}
 
 		await transceiver.sender.setParameters(parameters);
 	}
