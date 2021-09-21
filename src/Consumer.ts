@@ -42,6 +42,8 @@ export class Consumer extends EnhancedEventEmitter
 	 * @emits trackended
 	 * @emits @getstats
 	 * @emits @close
+	 * @emits @pause
+	 * @emits @resume
 	 */
 	constructor(
 		{
@@ -250,6 +252,8 @@ export class Consumer extends EnhancedEventEmitter
 		this._paused = true;
 		this._track.enabled = false;
 
+		this.emit('@pause');
+
 		// Emit observer event.
 		this._observer.safeEmit('pause');
 	}
@@ -270,6 +274,8 @@ export class Consumer extends EnhancedEventEmitter
 
 		this._paused = false;
 		this._track.enabled = true;
+
+		this.emit('@resume');
 
 		// Emit observer event.
 		this._observer.safeEmit('resume');

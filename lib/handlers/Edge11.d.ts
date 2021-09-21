@@ -41,6 +41,8 @@ export declare class Edge11 extends HandlerInterface {
     sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;
+    pauseReceiving(localId: string): Promise<void>;
+    resumeReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setIceGatherer;

@@ -23,6 +23,8 @@ export declare class Consumer extends EnhancedEventEmitter {
      * @emits trackended
      * @emits @getstats
      * @emits @close
+     * @emits @pause
+     * @emits @resume
      */
     constructor({ id, localId, producerId, rtpReceiver, track, rtpParameters, appData }: {
         id: string;

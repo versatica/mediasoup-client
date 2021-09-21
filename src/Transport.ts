@@ -892,6 +892,22 @@ export class Transport extends EnhancedEventEmitter
 				.catch(() => {});
 		});
 
+		consumer.on('@pause', () =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.pauseReceiving(consumer.localId),
+				'consumer @pause event')
+				.catch(() => {});
+		});
+
+		consumer.on('@resume', () =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.resumeReceiving(consumer.localId),
+				'consumer @resume event')
+				.catch(() => {});
+		});
+
 		consumer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
