@@ -38,6 +38,8 @@ export declare class Safari11 extends HandlerInterface {
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
+    pauseReceiving(localId: string): Promise<void>;
+    resumeReceiving(localId: string): Promise<void>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;
     private _assertSendDirection;

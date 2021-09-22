@@ -671,6 +671,20 @@ export class ReactNative extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 	}
 
+	async pauseReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	async resumeReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{

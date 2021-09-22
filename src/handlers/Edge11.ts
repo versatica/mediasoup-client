@@ -424,6 +424,20 @@ export class Edge11 extends HandlerInterface
 		}
 	}
 
+	async pauseReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	async resumeReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
 		const rtpReceiver = this._rtpReceivers.get(localId);

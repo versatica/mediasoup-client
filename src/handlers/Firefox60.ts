@@ -737,6 +737,66 @@ export class Firefox60 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 	}
 
+	async pauseReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('pauseReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'inactive';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+	}
+
+	async resumeReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('resumeReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'recvonly';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+	}
+
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
 		this._assertRecvDirection();

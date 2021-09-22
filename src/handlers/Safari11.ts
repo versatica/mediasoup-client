@@ -739,6 +739,20 @@ export class Safari11 extends HandlerInterface
 		return rtpReceiver.getStats();
 	}
 
+	async pauseReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	async resumeReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async receiveDataChannel(
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
