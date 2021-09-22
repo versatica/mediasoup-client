@@ -352,14 +352,14 @@ export class FakeHandler extends HandlerInterface
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		localId: string): Promise<void>
 	{
-		// Unimplemented
+		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		localId: string): Promise<void>
 	{
-		// Unimplemented
+		// Unimplemented.
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
