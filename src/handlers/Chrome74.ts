@@ -824,21 +824,7 @@ export class Chrome74 extends HandlerInterface
 
 		transceiver.direction = 'inactive';
 		
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-		logger.debug(
-			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer);
-
-		await this._pc.setRemoteDescription(offer);
-
-		const answer = await this._pc.createAnswer();
-
-		logger.debug(
-			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer);
-
-		await this._pc.setLocalDescription(answer);
+		this.renegotiateReceive();
 	}
 
 	async resumeReceiving(localId: string): Promise<void>
@@ -854,21 +840,7 @@ export class Chrome74 extends HandlerInterface
 
 		transceiver.direction = 'recvonly';
 		
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-		logger.debug(
-			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer);
-
-		await this._pc.setRemoteDescription(offer);
-
-		const answer = await this._pc.createAnswer();
-
-		logger.debug(
-			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer);
-
-		await this._pc.setLocalDescription(answer);
+		this.renegotiateReceive();
 	}
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
