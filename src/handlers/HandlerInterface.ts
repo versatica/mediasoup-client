@@ -152,7 +152,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	): Promise<HandlerReceiveDataChannelResult>;
 
 	get concurrentOperationsSupported(): boolean
-    {
-		return false
+	{
+		return false;
 	}
 }

@@ -443,7 +443,7 @@ export class Transport extends EnhancedEventEmitter
 			throw new TypeError('if given, appData must be an object');
 
 		// Enqueue command.
-		return this._awaitQueue.push(
+		return this.runAsyncOperation(
 			async () =>
 			{
 				let normalizedEncodings;
@@ -555,11 +555,11 @@ export class Transport extends EnhancedEventEmitter
 	{
 		if (this._handler.concurrentOperationsSupported)
 		{
-			return task()
+			return task();
 		}
 		else
 		{
-			return this._awaitQueue.push(task, name)
+			return this._awaitQueue.push(task, name);
 		}
 	}
 
@@ -595,7 +595,7 @@ export class Transport extends EnhancedEventEmitter
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 
-		this.runAsyncOperation(async () =>
+		return this.runAsyncOperation(async () =>
 		{
 			// Ensure the device can consume it.
 			const canConsume = ortc.canReceive(
@@ -653,7 +653,7 @@ export class Transport extends EnhancedEventEmitter
 			this._observer.safeEmit('newconsumer', consumer);
 
 			return consumer;
-		})
+		});
 	}
 
 	/**
@@ -687,7 +687,7 @@ export class Transport extends EnhancedEventEmitter
 			ordered = false;
 
 		// Enqueue command.
-		return this._awaitQueue.push(
+		return this.runAsyncOperation(
 			async () =>
 			{
 				const {
@@ -765,7 +765,7 @@ export class Transport extends EnhancedEventEmitter
 		ortc.validateSctpStreamParameters(sctpStreamParameters);
 
 		// Enqueue command.
-		return this._awaitQueue.push(
+		return this.runAsyncOperation(
 			async () =>
 			{
 				const {

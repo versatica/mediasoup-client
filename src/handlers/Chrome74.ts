@@ -55,9 +55,10 @@ export class Chrome74 extends HandlerInterface
 	private _nextSendSctpStreamId = 0;
 	// Got transport local and remote parameters.
 	private _transportReady = false;
-	// There is one renegotiation in progress
+	// Promise to wait for a renegotiation already in progress.
 	private _negotiationInProgress: Promise<void> | null = null;
-	private _negotiationOwner: string | null = null
+	// List of callbacks for all the queued renegotiations while another one is in progress.
+	private _negotiationsQueued: any[] = []
 
 	/**
 	 * Creates a factory function.
@@ -79,7 +80,7 @@ export class Chrome74 extends HandlerInterface
 
 	get concurrentOperationsSupported(): boolean
 	{
-		return true
+		return true;
 	}
 
 	close(): void
@@ -227,6 +228,177 @@ export class Chrome74 extends HandlerInterface
 		this._pc.setConfiguration(configuration);
 	}
 
+	async renegotiateSend(
+		offerCallback?: (desc: sdpTransform.SessionDescription) => void,
+		setLocalDescriptionCallback?: () => void
+	): Promise<void>
+	{
+		this._negotiationsQueued.push({ offerCallback, setLocalDescriptionCallback });
+
+		if (this._negotiationInProgress) 
+		{
+			logger.debug(
+				'renegotiateSend() | queued while another one is in progress');
+			await this._negotiationInProgress;
+		}
+
+		if (!this._negotiationInProgress)
+		{
+			const negotiationsQueued = this._negotiationsQueued;
+
+			this._negotiationsQueued = [];
+			let resolve: ((value: void | PromiseLike<void>) => void) | undefined;
+			let reject: ((reason?: any) => void) | undefined;
+
+			this._negotiationInProgress = new Promise((res, rej) => 
+			{
+				resolve = res;
+				reject = rej;
+			});
+			logger.debug(
+				'renegotiateSend() | performing negotiation for queued %d items', negotiationsQueued.length);
+
+			let error: any | undefined;
+
+			try
+			{
+				let offer = await this._pc.createOffer({ iceRestart: true });
+				const localSdpObject = sdpTransform.parse(offer.sdp);
+
+				if (!this._transportReady)
+					await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+
+				negotiationsQueued.forEach((item) =>
+				{
+					if (item.offerCallback)
+					{
+						item.offerCallback(localSdpObject);
+					}
+				});
+				offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
+
+				logger.debug(
+					'renegotiateSend() | calling pc.setLocalDescription() [offer:%o]',
+					offer);
+
+				await this._pc.setLocalDescription(offer);
+
+				negotiationsQueued.forEach((item) =>
+				{
+					if (item.setLocalDescriptionCallback)
+					{
+						item.setLocalDescriptionCallback(localSdpObject);
+					}
+				});
+
+				const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+				logger.debug(
+					'renegotiateSend() | calling pc.setRemoteDescription() [answer:%o]',
+					answer);
+
+				await this._pc.setRemoteDescription(answer);
+			}
+			catch (err)
+			{
+				error = err;
+			}
+			finally
+			{
+				this._negotiationInProgress = null;
+				if (error)
+					reject?.call(this, error);
+				else
+					resolve?.call(this);
+			}
+		}
+		else
+		{
+			await this._negotiationInProgress;
+		}
+	}
+
+	async renegotiateReceive(
+		answerCallback?: (desc: sdpTransform.SessionDescription) => void
+	): Promise<void>
+	{
+		this._negotiationsQueued.push({ answerCallback });
+
+		if (this._negotiationInProgress)
+		{
+			logger.debug(
+				'renegotiateReceive() | queued while another one is in progress');
+			await this._negotiationInProgress;
+		}
+
+		if (!this._negotiationInProgress)
+		{
+			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+			const negotiationsQueued = this._negotiationsQueued;
+
+			this._negotiationsQueued = [];
+			let resolve: ((value: void | PromiseLike<void>) => void) | undefined;
+			let reject: ((reason?: any) => void) | undefined;
+
+			this._negotiationInProgress = new Promise((res, rej) => 
+			{
+				resolve = res;
+				reject = rej;
+			});
+			logger.debug(
+				'renegotiateReceive() | performing negotiation for queued %d items', negotiationsQueued.length);
+						
+			let error: any | undefined;
+
+			try
+			{
+				logger.debug(
+					'renegotiateReceive() | calling pc.setRemoteDescription() [offer:%o]',
+					offer);
+				
+				await this._pc.setRemoteDescription(offer);
+
+				let answer = await this._pc.createAnswer();
+				const localSdpObject = sdpTransform.parse(answer.sdp);
+
+				if (!this._transportReady)
+					await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+
+				negotiationsQueued.forEach((item) =>
+				{
+					if (item.answerCallback)
+					{
+						item.answerCallback(localSdpObject);
+					}
+				});
+				answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
+
+				logger.debug(
+					'renegotiateReceive() | calling pc.setLocalDescription() [answer:%o]',
+					answer);
+
+				await this._pc.setLocalDescription(answer);
+			}
+			catch (err)
+			{
+				error = err;
+			}
+			finally
+			{
+				this._negotiationInProgress = null;
+				if (error)
+					reject?.call(this, error);
+				else
+					resolve?.call(this);
+			}
+		}
+		else
+		{
+			await this._negotiationInProgress;
+		}
+	}
+
 	async restartIce(iceParameters: IceParameters): Promise<void>
 	{
 		logger.debug('restartIce()');
@@ -239,39 +411,11 @@ export class Chrome74 extends HandlerInterface
 
 		if (this._direction === 'send')
 		{
-			const offer = await this._pc.createOffer({ iceRestart: true });
-
-			logger.debug(
-				'restartIce() | calling pc.setLocalDescription() [offer:%o]',
-				offer);
-
-			await this._pc.setLocalDescription(offer);
-
-			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
-
-			logger.debug(
-				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
-				answer);
-
-			await this._pc.setRemoteDescription(answer);
+			await this.renegotiateSend();
 		}
 		else
 		{
-			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-			logger.debug(
-				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
-				offer);
-
-			await this._pc.setRemoteDescription(offer);
-
-			const answer = await this._pc.createAnswer();
-
-			logger.debug(
-				'restartIce() | calling pc.setLocalDescription() [answer:%o]',
-				answer);
-
-			await this._pc.setLocalDescription(answer);
+			await this.renegotiateReceive();
 		}
 	}
 
@@ -310,7 +454,6 @@ export class Chrome74 extends HandlerInterface
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
-		const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
 			track,
 			{
@@ -318,126 +461,120 @@ export class Chrome74 extends HandlerInterface
 				streams       : [ this._sendStream ],
 				sendEncodings : encodings
 			});
-		let offer = await this._pc.createOffer();
-		let localSdpObject = sdpTransform.parse(offer.sdp);
-		let offerMediaObject;
-
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
 
-		const layers =
-			parseScalabilityMode((encodings || [ {} ])[0].scalabilityMode);
-
-		if (
-			encodings &&
-			encodings.length === 1 &&
-			layers.spatialLayers > 1 &&
-			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp9'
-		)
+		await this.renegotiateSend((localSdpObject) => 
 		{
-			logger.debug('send() | enabling legacy simulcast for VP9 SVC');
+			logger.debug('send() | before setting local description');
 
-			hackVp9Svc = true;
-			localSdpObject = sdpTransform.parse(offer.sdp);
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+			const layers =
+				parseScalabilityMode((encodings || [ {} ])[0].scalabilityMode);
 
-			sdpUnifiedPlanUtils.addLegacySimulcast(
+			if (
+				encodings &&
+				encodings.length === 1 &&
+				layers.spatialLayers > 1 &&
+				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp9'
+			)
+			{
+				logger.debug('send() | enabling legacy simulcast for VP9 SVC');
+
+				hackVp9Svc = true;
+
+				// Find media section by trackId.  The limitation is that we dont' support
+				// publishing the same track twice in parallel when using hack vp9 svc mode.
+				const offerMediaObject = localSdpObject.media.find(
+					(m) => m.msid?.endsWith(track.id)
+				);
+
+				sdpUnifiedPlanUtils.addLegacySimulcast(
+					{
+						offerMediaObject,
+						numStreams : layers.spatialLayers
+					});
+			}
+		}, () => 
+		{
+			logger.debug('send() | after setting local description [mid=%s]', transceiver.mid);
+		
+			const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
+
+			// We can now get the transceiver.mid.
+			const localId = transceiver.mid;
+
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
+			
+			// Set MID.
+			sendingRtpParameters.mid = localId;
+
+			const localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+
+			// Set RTCP CNAME.
+			sendingRtpParameters.rtcp.cname =
+				sdpCommonUtils.getCname({ offerMediaObject });
+
+			// Set RTP encodings by parsing the SDP offer if no encodings are given.
+			if (!encodings)
+			{
+				sendingRtpParameters.encodings =
+					sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
+			}
+			// Set RTP encodings by parsing the SDP offer and complete them with given
+			// one if just a single encoding has been given.
+			else if (encodings.length === 1)
+			{
+				let newEncodings =
+					sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
+
+				Object.assign(newEncodings[0], encodings[0]);
+
+				// Hack for VP9 SVC.
+				if (hackVp9Svc)
+					newEncodings = [ newEncodings[0] ];
+
+				sendingRtpParameters.encodings = newEncodings;
+			}
+			// Otherwise if more than 1 encoding are given use them verbatim.
+			else
+			{
+				sendingRtpParameters.encodings = encodings;
+			}
+
+			// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
+			// each encoding.
+			if (
+				sendingRtpParameters.encodings.length > 1 &&
+				(
+					sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
+					sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264'
+				)
+			)
+			{
+				for (const encoding of sendingRtpParameters.encodings)
+				{
+					encoding.scalabilityMode = 'S1T3';
+				}
+			}
+
+			logger.debug('send() | modifiying remote sdp [%o]', offerMediaObject);
+
+			this._remoteSdp!.send(
 				{
 					offerMediaObject,
-					numStreams : layers.spatialLayers
+					reuseMid            : mediaSectionIdx.reuseMid,
+					offerRtpParameters  : sendingRtpParameters,
+					answerRtpParameters : sendingRemoteRtpParameters,
+					codecOptions,
+					extmapAllowMixed    : true
 				});
-
-			offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
-		}
-
-		logger.debug(
-			'send() | calling pc.setLocalDescription() [offer:%o]',
-			offer);
-
-		await this._pc.setLocalDescription(offer);
-
-		// We can now get the transceiver.mid.
-		const localId = transceiver.mid;
-
-		// Set MID.
-		sendingRtpParameters.mid = localId;
-
-		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
-		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
-
-		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
-			sdpCommonUtils.getCname({ offerMediaObject });
-
-		// Set RTP encodings by parsing the SDP offer if no encodings are given.
-		if (!encodings)
-		{
-			sendingRtpParameters.encodings =
-				sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
-		}
-		// Set RTP encodings by parsing the SDP offer and complete them with given
-		// one if just a single encoding has been given.
-		else if (encodings.length === 1)
-		{
-			let newEncodings =
-				sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
-
-			Object.assign(newEncodings[0], encodings[0]);
-
-			// Hack for VP9 SVC.
-			if (hackVp9Svc)
-				newEncodings = [ newEncodings[0] ];
-
-			sendingRtpParameters.encodings = newEncodings;
-		}
-		// Otherwise if more than 1 encoding are given use them verbatim.
-		else
-		{
-			sendingRtpParameters.encodings = encodings;
-		}
-
-		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
-		// each encoding.
-		if (
-			sendingRtpParameters.encodings.length > 1 &&
-			(
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264'
-			)
-		)
-		{
-			for (const encoding of sendingRtpParameters.encodings)
-			{
-				encoding.scalabilityMode = 'S1T3';
-			}
-		}
-
-		this._remoteSdp!.send(
-			{
-				offerMediaObject,
-				reuseMid            : mediaSectionIdx.reuseMid,
-				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : sendingRemoteRtpParameters,
-				codecOptions,
-				extmapAllowMixed    : true
-			});
-
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
-
-		logger.debug(
-			'send() | calling pc.setRemoteDescription() [answer:%o]',
-			answer);
-
-		await this._pc.setRemoteDescription(answer);
-
-		// Store in the map.
-		this._mapMidTransceiver.set(localId, transceiver);
+		});
 
 		return {
-			localId,
+			localId       : transceiver.mid,
 			rtpParameters : sendingRtpParameters,
 			rtpSender     : transceiver.sender
 		};
@@ -458,21 +595,7 @@ export class Chrome74 extends HandlerInterface
 		this._pc.removeTrack(transceiver.sender);
 		this._remoteSdp!.closeMediaSection(transceiver.mid!);
 
-		const offer = await this._pc.createOffer();
-
-		logger.debug(
-			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
-			offer);
-
-		await this._pc.setLocalDescription(offer);
-
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
-
-		logger.debug(
-			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
-			answer);
-
-		await this._pc.setRemoteDescription(answer);
+		this.renegotiateSend();
 	}
 
 	async replaceTrack(
@@ -594,31 +717,18 @@ export class Chrome74 extends HandlerInterface
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			const offer = await this._pc.createOffer();
-			const localSdpObject = sdpTransform.parse(offer.sdp);
-			const offerMediaObject = localSdpObject.media
-				.find((m: any) => m.type === 'application');
+			await this.renegotiateSend((localSdpObject) => 
+			{
+				if (!this._hasDataChannelMediaSection) 
+				{
+					const offerMediaObject = localSdpObject.media
+						.find((m: any) => m.type === 'application');
 
-			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+					this._remoteSdp!.sendSctpAssociation({ offerMediaObject });
 
-			logger.debug(
-				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
-				offer);
-
-			await this._pc.setLocalDescription(offer);
-
-			this._remoteSdp!.sendSctpAssociation({ offerMediaObject });
-
-			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
-
-			logger.debug(
-				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer);
-
-			await this._pc.setRemoteDescription(answer);
-
-			this._hasDataChannelMediaSection = true;
+					this._hasDataChannelMediaSection = true;
+				}
+			});
 		}
 
 		const sctpStreamParameters: SctpStreamParameters =
@@ -636,16 +746,13 @@ export class Chrome74 extends HandlerInterface
 		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
 	): Promise<HandlerReceiveResult>
 	{
-		this._assertRecvDirection();
-
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		this._assertReceiveDirection();
 
 		const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
 
 		// Store in the map without a transceiver while in progress so that we
-		// can keep using "this._mapMidTransceiver.size" to assign localIds
-		// TBD Clean this map
-		this._mapMidTransceiver.set(localId, null)
+		// can keep using "this._mapMidTransceiver.size" to assign localIds.
+		this._mapMidTransceiver.set(localId, null);
 
 		this._remoteSdp!.receive(
 			{
@@ -656,68 +763,19 @@ export class Chrome74 extends HandlerInterface
 				trackId
 			});
 
-		if (this._negotiationInProgress) {
-			await this._negotiationInProgress;
-		}
-
-		if (!this._negotiationOwner) {
-			this._negotiationOwner = localId;
-			let resolve: any = null;
-			let reject: any = null;
-			this._negotiationInProgress = new Promise((res, rej) => {
-				resolve = res;
-				reject = rej;
-			})
-			
-			try {
-				const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-				logger.debug(
-					'receive() | calling pc.setRemoteDescription() [offer:%o]',
-					offer);
-
-				await this._pc.setRemoteDescription(offer);
-
-				let answer = await this._pc.createAnswer();
-				const localSdpObject = sdpTransform.parse(answer.sdp);
-				const answerMediaObject = localSdpObject.media
-					.find((m: any) => String(m.mid) === localId);
-
-				// TBD Problem here
-				// May need to modify codec parameters in the answer based on codec
-				// parameters in the offer.
-				sdpCommonUtils.applyCodecParameters(
-					{
-						offerRtpParameters : rtpParameters,
-						answerMediaObject
-					});
-
-				answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
-
-				if (!this._transportReady)
-					await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
-
-				logger.debug(
-					'receive() | calling pc.setLocalDescription() [answer:%o]',
-					answer);
-
-				await this._pc.setLocalDescription(answer);
-
-				this._negotiationOwner = null
-				this._negotiationInProgress = null
-				if (resolve) resolve()
-			}
-			catch (error)
-			{
-				this._negotiationOwner = null
-				this._negotiationInProgress = null
-				if (reject) reject(error)
-			}
-		}
-		else
+		await this.renegotiateReceive((localSdpObject) => 
 		{
-			await this._negotiationInProgress;
-		}
+			logger.debug('receive() | before setting local description');
+
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === localId);
+
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		});
 
 		const transceiver = this._pc.getTransceivers()
 			.find((t: RTCRtpTransceiver) => t.mid === localId);
@@ -739,7 +797,7 @@ export class Chrome74 extends HandlerInterface
 
 	async stopReceiving(localId: string): Promise<void>
 	{
-		this._assertRecvDirection();
+		this._assertReceiveDirection();
 
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
@@ -750,26 +808,12 @@ export class Chrome74 extends HandlerInterface
 
 		this._remoteSdp!.closeMediaSection(transceiver.mid!);
 
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-		logger.debug(
-			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer);
-
-		await this._pc.setRemoteDescription(offer);
-
-		const answer = await this._pc.createAnswer();
-
-		logger.debug(
-			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer);
-
-		await this._pc.setLocalDescription(answer);
+		await this.renegotiateReceive();
 	}
 
 	async pauseReceiving(localId: string): Promise<void>
 	{
-		this._assertRecvDirection();
+		this._assertReceiveDirection();
 
 		logger.debug('pauseReceiving() [localId:%s]', localId);
 
@@ -799,7 +843,7 @@ export class Chrome74 extends HandlerInterface
 
 	async resumeReceiving(localId: string): Promise<void>
 	{
-		this._assertRecvDirection();
+		this._assertReceiveDirection();
 
 		logger.debug('resumeReceiving() [localId:%s]', localId);
 
@@ -829,7 +873,7 @@ export class Chrome74 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertRecvDirection();
+		this._assertReceiveDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -843,7 +887,7 @@ export class Chrome74 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this._assertReceiveDirection();
 
 		const {
 			streamId,
@@ -872,30 +916,9 @@ export class Chrome74 extends HandlerInterface
 		{
 			this._remoteSdp!.receiveSctpAssociation();
 
-			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
-
-			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
-				offer);
-
-			await this._pc.setRemoteDescription(offer);
-
-			const answer = await this._pc.createAnswer();
-
-			if (!this._transportReady)
-			{
-				const localSdpObject = sdpTransform.parse(answer.sdp);
-
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
-			}
-
-			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer);
-
-			await this._pc.setLocalDescription(answer);
-
 			this._hasDataChannelMediaSection = true;
+
+			await this.renegotiateReceive();
 		}
 
 		return { dataChannel };
@@ -941,7 +964,7 @@ export class Chrome74 extends HandlerInterface
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private _assertReceiveDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

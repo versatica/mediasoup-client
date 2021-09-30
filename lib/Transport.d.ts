@@ -1,3 +1,4 @@
+import { AwaitQueueTask } from 'awaitqueue';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
 import { Producer, ProducerOptions } from './Producer';
@@ -188,6 +189,7 @@ export declare class Transport extends EnhancedEventEmitter {
      * Create a Producer.
      */
     produce({ track, encodings, codecOptions, codec, stopTracks, disableTrackOnPause, zeroRtpOnPause, appData }?: ProducerOptions): Promise<Producer>;
+    runAsyncOperation<T>(task: AwaitQueueTask<T>, name?: string): Promise<T>;
     /**
      * Create a Consumer to consume a remote Producer.
      */

@@ -1,3 +1,4 @@
+import * as sdpTransform from 'sdp-transform';
 import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
 import { IceParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
@@ -13,17 +14,22 @@ export declare class Chrome74 extends HandlerInterface {
     private _hasDataChannelMediaSection;
     private _nextSendSctpStreamId;
     private _transportReady;
+    private _negotiationInProgress;
+    private _negotiationsQueued;
     /**
      * Creates a factory function.
      */
     static createFactory(): HandlerFactory;
     constructor();
     get name(): string;
+    get concurrentOperationsSupported(): boolean;
     close(): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
+    renegotiateSend(offerCallback?: (desc: sdpTransform.SessionDescription) => void, setLocalDescriptionCallback?: () => void): Promise<void>;
+    renegotiateReceive(answerCallback?: (desc: sdpTransform.SessionDescription) => void): Promise<void>;
     restartIce(iceParameters: IceParameters): Promise<void>;
     getTransportStats(): Promise<RTCStatsReport>;
     send({ track, encodings, codecOptions, codec }: HandlerSendOptions): Promise<HandlerSendResult>;
@@ -41,6 +47,6 @@ export declare class Chrome74 extends HandlerInterface {
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;
     private _assertSendDirection;
-    private _assertRecvDirection;
+    private _assertReceiveDirection;
 }
 //# sourceMappingURL=Chrome74.d.ts.map

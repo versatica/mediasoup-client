@@ -81,5 +81,6 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     abstract resumeReceiving(localId: string): Promise<void>;
     abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
     abstract receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
+    get concurrentOperationsSupported(): boolean;
 }
 //# sourceMappingURL=HandlerInterface.d.ts.map
