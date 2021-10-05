@@ -477,6 +477,8 @@ export class Firefox60 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
 	}
 
 	async replaceTrack(
@@ -735,6 +737,8 @@ export class Firefox60 extends HandlerInterface
 			answer);
 
 		await this._pc.setLocalDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
 	}
 
 	async pauseReceiving(localId: string): Promise<void>
