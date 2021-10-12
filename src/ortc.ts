@@ -12,7 +12,7 @@ import {
 	RtcpParameters
 } from './RtpParameters';
 import {
-	SctpCapabilities,	
+	SctpCapabilities,
 	NumSctpStreams,
 	SctpParameters,
 	SctpStreamParameters

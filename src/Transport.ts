@@ -530,8 +530,12 @@ export class Transport extends EnhancedEventEmitter
 				}
 				catch (error)
 				{
-					this._handler.stopSending(localId)
-						.catch(() => {});
+					try {
+						
+						await this._handler.stopSending(localId)
+					} catch (error) {
+						
+					}
 
 					throw error;
 				}
@@ -832,7 +836,7 @@ export class Transport extends EnhancedEventEmitter
 				return;
 
 			this._awaitQueue.push(
-				async () => this._handler.stopSending(producer.localId),
+				async () => await this._handler.stopSending(producer.localId),
 				'producer @close event')
 				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
