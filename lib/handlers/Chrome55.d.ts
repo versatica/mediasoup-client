@@ -7,6 +7,7 @@ export declare class Chrome55 extends HandlerInterface {
     private _remoteSdp?;
     private _sendingRtpParametersByKind?;
     private _sendingRemoteRtpParametersByKind?;
+    private _forcedLocalDtlsRole?;
     private _pc;
     private readonly _sendStream;
     private readonly _mapSendLocalIdTrack;

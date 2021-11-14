@@ -80,7 +80,7 @@ export type IceCandidate =
 	 */
 	port: number;
 	/**
-	 * The type of candidate..
+	 * The type of candidate.
 	 */
 	type: 'host' | 'srflx' | 'prflx' | 'relay';
 	/**
@@ -92,11 +92,11 @@ export type IceCandidate =
 export type DtlsParameters =
 {
 	/**
-	 * DTLS role. Default 'auto'.
+	 * Server DTLS role. Default 'auto'.
 	 */
 	role?: DtlsRole;
 	/**
-	 * DTLS fingerprints.
+	 * Server DTLS fingerprints.
 	 */
 	fingerprints: DtlsFingerprint[];
 }

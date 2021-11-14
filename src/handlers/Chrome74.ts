@@ -42,6 +42,9 @@ export class Chrome74 extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	// Initial server side DTLS role. If not 'auto', it will force the opposite
+	// value in client side.
+	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
@@ -171,6 +174,13 @@ export class Chrome74 extends HandlerInterface
 			audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
+
+		if (dtlsParameters.role && dtlsParameters.role !== 'auto')
+		{
+			this._forcedLocalDtlsRole = dtlsParameters.role === 'server'
+				? 'client'
+				: 'server';
+		}
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
@@ -315,7 +325,13 @@ export class Chrome74 extends HandlerInterface
 		let offerMediaObject;
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+					localSdpObject
+				});
+		}
 
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
@@ -594,7 +610,13 @@ export class Chrome74 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			{
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+						localSdpObject
+					});
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -669,7 +691,13 @@ export class Chrome74 extends HandlerInterface
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -844,7 +872,11 @@ export class Chrome74 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
 			}
 
 			logger.debug(
