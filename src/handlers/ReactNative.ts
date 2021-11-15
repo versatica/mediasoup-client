@@ -333,7 +333,7 @@ export class ReactNative extends HandlerInterface
 		{
 			await this._setupTransport(
 				{
-					localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
 				});
 		}
@@ -552,7 +552,7 @@ export class ReactNative extends HandlerInterface
 			{
 				await this._setupTransport(
 					{
-						localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
 					});
 			}

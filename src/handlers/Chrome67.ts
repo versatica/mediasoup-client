@@ -329,7 +329,7 @@ export class Chrome67 extends HandlerInterface
 		{
 			await this._setupTransport(
 				{
-					localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
 				});
 		}
@@ -621,7 +621,7 @@ export class Chrome67 extends HandlerInterface
 			{
 				await this._setupTransport(
 					{
-						localDtlsRole : this._forcedLocalDtlsRole ?? 'server',
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
 					});
 			}
