@@ -80,8 +80,8 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const browser = Bowser.getParser(ua);
 		const engine = browser.getEngine();
 
-		// Chrome and Chromium.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
+		// Chrome, Chromium, and Edge.
+		if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
 		{
 			return 'Chrome74';
 		}
