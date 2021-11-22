@@ -102,6 +102,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		{
 			return 'Firefox60';
 		}
+		// Firefox on iOS.
+		else if (browser.satisfies({ ios: { OS: '>=14.3', firefox: '>=30.0' }}))
+		{
+			return 'Safari12';
+		}
 		// Safari with Unified-Plan support enabled.
 		else if (
 			browser.satisfies({ safari: '>=12.0' }) &&
