@@ -461,6 +461,7 @@ export class Edge11 extends HandlerInterface
 		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
 	): void
 	{
+		// @ts-ignore
 		const iceGatherer = new (RTCIceGatherer as any)(
 			{
 				iceServers   : iceServers || [],
@@ -480,7 +481,8 @@ export class Edge11 extends HandlerInterface
 		catch (error)
 		{
 			logger.debug(
-				'_setIceGatherer() | iceGatherer.gather() failed: %s', error.toString());
+				'_setIceGatherer() | iceGatherer.gather() failed: %s',
+				(error as Error).toString());
 		}
 
 		this._iceGatherer = iceGatherer;

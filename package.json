@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.6.45",
+  "version": "3.6.46",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -44,20 +44,20 @@
     "fake-mediastreamtrack": "^1.1.6",
     "h264-profile-level-id": "^1.0.1",
     "sdp-transform": "^2.14.1",
-    "supports-color": "^8.1.1"
+    "supports-color": "^9.1.0"
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.5",
     "@types/uuid": "^3.4.9",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-jest": "^24.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "eslint-plugin-jest": "^25.3.0",
     "jest": "^27.3.1",
     "jest-tobetype": "^1.2.3",
-    "open-cli": "^6.0.1",
+    "open-cli": "^7.0.1",
     "tsc-watch": "^4.5.0",
-    "typescript": "^3.8",
+    "typescript": "^4.5.2",
     "uuid": "^3.4.0"
   }
 }

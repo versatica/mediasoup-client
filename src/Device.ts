@@ -103,7 +103,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			return 'Firefox60';
 		}
 		// Firefox on iOS.
-		else if (browser.satisfies({ ios: { OS: '>=14.3', firefox: '>=30.0' }}))
+		else if (browser.satisfies({ ios: { OS: '>=14.3', firefox: '>=30.0' } }))
 		{
 			return 'Safari12';
 		}

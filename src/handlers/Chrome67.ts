@@ -462,7 +462,7 @@ export class Chrome67 extends HandlerInterface
 			{
 				logger.warn(
 					'stopSending() | ignoring expected error due no sending tracks: %s',
-					error.toString());
+					(error as Error).toString());
 
 				return;
 			}
