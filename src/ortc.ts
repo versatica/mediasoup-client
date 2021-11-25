@@ -1073,15 +1073,15 @@ function matchCodecs(
 	{
 		case 'video/h264':
 		{
-			const aPacketizationMode = aCodec.parameters['packetization-mode'] || 0;
-			const bPacketizationMode = bCodec.parameters['packetization-mode'] || 0;
-
-			if (aPacketizationMode !== bPacketizationMode)
-				return false;
-
 			// If strict matching check profile-level-id.
 			if (strict)
 			{
+				const aPacketizationMode = aCodec.parameters['packetization-mode'] || 0;
+				const bPacketizationMode = bCodec.parameters['packetization-mode'] || 0;
+
+				if (aPacketizationMode !== bPacketizationMode)
+					return false;
+
 				if (!h264.isSameProfile(aCodec.parameters, bCodec.parameters))
 					return false;
 
