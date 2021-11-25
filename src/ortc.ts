@@ -1073,7 +1073,6 @@ function matchCodecs(
 	{
 		case 'video/h264':
 		{
-			// If strict matching check profile-level-id.
 			if (strict)
 			{
 				const aPacketizationMode = aCodec.parameters['packetization-mode'] || 0;
@@ -1117,7 +1116,6 @@ function matchCodecs(
 
 		case 'video/vp9':
 		{
-			// If strict matching check profile-id.
 			if (strict)
 			{
 				const aProfileId = aCodec.parameters['profile-id'] || 0;
