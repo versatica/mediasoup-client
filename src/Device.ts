@@ -80,8 +80,8 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const browser = Bowser.getParser(ua);
 		const engine = browser.getEngine();
 
-		// Chrome and Chromium.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
+		// Chrome, Chromium, and Edge.
+		if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
 		{
 			return 'Chrome74';
 		}
@@ -101,6 +101,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		else if (browser.satisfies({ firefox: '>=60' }))
 		{
 			return 'Firefox60';
+		}
+		// Firefox on iOS.
+		else if (browser.satisfies({ ios: { OS: '>=14.3', firefox: '>=30.0' } }))
+		{
+			return 'Safari12';
 		}
 		// Safari with Unified-Plan support enabled.
 		else if (

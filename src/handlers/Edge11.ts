@@ -424,6 +424,20 @@ export class Edge11 extends HandlerInterface
 		}
 	}
 
+	async pauseReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	async resumeReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
 		const rtpReceiver = this._rtpReceivers.get(localId);
@@ -447,6 +461,7 @@ export class Edge11 extends HandlerInterface
 		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
 	): void
 	{
+		// @ts-ignore
 		const iceGatherer = new (RTCIceGatherer as any)(
 			{
 				iceServers   : iceServers || [],
@@ -466,7 +481,8 @@ export class Edge11 extends HandlerInterface
 		catch (error)
 		{
 			logger.debug(
-				'_setIceGatherer() | iceGatherer.gather() failed: %s', error.toString());
+				'_setIceGatherer() | iceGatherer.gather() failed: %s',
+				(error as Error).toString());
 		}
 
 		this._iceGatherer = iceGatherer;

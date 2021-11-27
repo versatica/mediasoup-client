@@ -470,6 +470,8 @@ export class Firefox60 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
 	}
 
 	async replaceTrack(
@@ -601,7 +603,7 @@ export class Firefox60 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -725,6 +727,68 @@ export class Firefox60 extends HandlerInterface
 
 		logger.debug(
 			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
+	}
+
+	async pauseReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('pauseReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'inactive';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+	}
+
+	async resumeReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('resumeReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'recvonly';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
 			answer);
 
 		await this._pc.setLocalDescription(answer);

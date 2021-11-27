@@ -37,6 +37,9 @@ export class Safari12 extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	// Initial server side DTLS role. If not 'auto', it will force the opposite
+	// value in client side.
+	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
@@ -165,6 +168,13 @@ export class Safari12 extends HandlerInterface
 			audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
+
+		if (dtlsParameters.role && dtlsParameters.role !== 'auto')
+		{
+			this._forcedLocalDtlsRole = dtlsParameters.role === 'server'
+				? 'client'
+				: 'server';
+		}
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
@@ -295,7 +305,13 @@ export class Safari12 extends HandlerInterface
 		let offerMediaObject;
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		if (encodings && encodings.length > 1)
 		{
@@ -419,6 +435,8 @@ export class Safari12 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
 	}
 
 	async replaceTrack(
@@ -546,7 +564,13 @@ export class Safari12 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			{
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -621,7 +645,13 @@ export class Safari12 extends HandlerInterface
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -670,6 +700,68 @@ export class Safari12 extends HandlerInterface
 
 		logger.debug(
 			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
+	}
+
+	async pauseReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('pauseReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'inactive';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
+	}
+
+	async resumeReceiving(localId: string): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		logger.debug('resumeReceiving() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'recvonly';
+		
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
 			answer);
 
 		await this._pc.setLocalDescription(answer);
@@ -734,7 +826,11 @@ export class Safari12 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
 			}
 
 			logger.debug(
