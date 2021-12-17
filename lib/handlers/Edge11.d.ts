@@ -39,7 +39,7 @@ export declare class Edge11 extends HandlerInterface {
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
-    receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
     stopReceiving(localId: string): Promise<void>;
     pauseReceiving(localId: string): Promise<void>;
     resumeReceiving(localId: string): Promise<void>;

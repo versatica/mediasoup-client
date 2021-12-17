@@ -361,44 +361,58 @@ export class Edge11 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
+
+		for (const options of optionsList)
+		{
+			const { trackId, kind } = options;
+
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		}
 
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server' });
 
-		logger.debug('receive() | calling new RTCRtpReceiver()');
-
-		const rtpReceiver = new (RTCRtpReceiver as any)(this._dtlsTransport, kind);
-
-		rtpReceiver.addEventListener('error', (event: any) =>
+		for (const options of optionsList)
 		{
-			logger.error('rtpReceiver "error" event [event:%o]', event);
-		});
+			const { trackId, kind, rtpParameters } = options;
 
-		// NOTE: Convert our standard RTCRtpParameters into those that Edge
-		// expects.
-		const edgeRtpParameters =
-			edgeUtils.mangleRtpParameters(rtpParameters);
+			logger.debug('receive() | calling new RTCRtpReceiver()');
 
-		logger.debug(
-			'receive() | calling rtpReceiver.receive() [params:%o]',
-			edgeRtpParameters);
+			const rtpReceiver = new (RTCRtpReceiver as any)(this._dtlsTransport, kind);
 
-		await rtpReceiver.receive(edgeRtpParameters);
+			rtpReceiver.addEventListener('error', (event: any) =>
+			{
+				logger.error('rtpReceiver "error" event [event:%o]', event);
+			});
 
-		const localId = trackId;
+			// NOTE: Convert our standard RTCRtpParameters into those that Edge
+			// expects.
+			const edgeRtpParameters =
+				edgeUtils.mangleRtpParameters(rtpParameters);
 
-		// Store it.
-		this._rtpReceivers.set(localId, rtpReceiver);
+			logger.debug(
+				'receive() | calling rtpReceiver.receive() [params:%o]',
+				edgeRtpParameters);
 
-		return {
-			localId,
-			track : rtpReceiver.track,
-			rtpReceiver
-		};
+			await rtpReceiver.receive(edgeRtpParameters);
+
+			const localId = trackId;
+
+			// Store it.
+			this._rtpReceivers.set(localId, rtpReceiver);
+
+			results.push({
+				localId,
+				track : rtpReceiver.track,
+				rtpReceiver
+			});
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>

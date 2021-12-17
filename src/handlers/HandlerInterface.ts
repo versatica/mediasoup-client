@@ -136,8 +136,8 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	): Promise<HandlerSendDataChannelResult>;
 
 	abstract receive(
-		options: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>;
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 
 	abstract stopReceiving(localId: string): Promise<void>;
 
