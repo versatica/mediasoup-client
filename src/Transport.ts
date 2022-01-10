@@ -814,7 +814,6 @@ export class Transport extends EnhancedEventEmitter
 						const task = pendingConsumerTasks[idx];
 						const result = results[idx];
 						const { id, producerId, kind, rtpParameters, appData } = task.consumerOptions;
-
 						const { localId, rtpReceiver, track } = result;
 						const consumer = new Consumer(
 							{
