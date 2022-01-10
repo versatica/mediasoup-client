@@ -324,21 +324,29 @@ export class FakeHandler extends HandlerInterface
 	}
 
 	async receive(
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+		const results: HandlerReceiveResult[] = [];
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		for (const options of optionsList)
+		{
+			const { trackId, kind } = options;
 
-		const localId = this._nextLocalId++;
-		const track = new FakeMediaStreamTrack({ kind });
+			if (!this._transportReady)
+				await this._setupTransport({ localDtlsRole: 'client' });
 
-		this._tracks.set(localId, track);
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		return { localId: String(localId), track };
+			const localId = this._nextLocalId++;
+			const track = new FakeMediaStreamTrack({ kind });
+
+			this._tracks.set(localId, track);
+
+			results.push({ localId: String(localId), track });
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>

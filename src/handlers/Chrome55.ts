@@ -580,25 +580,31 @@ export class Chrome55 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
 
-		const localId = trackId;
-		const mid = kind;
-		const streamId = rtpParameters.rtcp!.cname!;
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		this._remoteSdp!.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const mid = kind;
+			const streamId = rtpParameters.rtcp!.cname!;
+
+			this._remoteSdp!.receive(
+				{
+					mid,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -610,16 +616,22 @@ export class Chrome55 extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === mid);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { kind, rtpParameters } = options;
+			const mid = kind;
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === mid);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
@@ -638,17 +650,26 @@ export class Chrome55 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const stream = this._pc.getRemoteStreams()
-			.find((s: any) => s.id === streamId);
-		const track = stream.getTrackById(localId);
+		for (const options of optionsList)
+		{
+			const { kind, trackId, rtpParameters } = options;
+			const mid = kind;
+			const localId = trackId;
+			const streamId = rtpParameters.rtcp!.cname!;
+			const stream = this._pc.getRemoteStreams()
+				.find((s: any) => s.id === streamId);
+			const track = stream.getTrackById(localId);
 
-		if (!track)
-			throw new Error('remote track not found');
+			if (!track)
+				throw new Error('remote track not found');
 
-		// Insert into the map.
-		this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters });
+			// Insert into the map.
+			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters });
 
-		return { localId, track };
+			results.push({ localId, track });
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>

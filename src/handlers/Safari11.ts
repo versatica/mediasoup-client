@@ -651,24 +651,30 @@ export class Safari11 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
 
-		const localId = trackId;
-		const mid = kind;
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		this._remoteSdp!.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp!.cname!,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const mid = kind;
+
+			this._remoteSdp!.receive(
+				{
+					mid,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : rtpParameters.rtcp!.cname!,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -680,16 +686,22 @@ export class Safari11 extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === mid);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { kind, rtpParameters } = options;
+			const mid = kind;
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === mid);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
@@ -708,20 +720,29 @@ export class Safari11 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const rtpReceiver = this._pc.getReceivers()
-			.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
+		for (const options of optionsList)
+		{
+			const { kind, trackId, rtpParameters } = options;
+			const mid = kind;
+			const localId = trackId;
 
-		if (!rtpReceiver)
-			throw new Error('new RTCRtpReceiver not');
+			const rtpReceiver = this._pc.getReceivers()
+				.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
 
-		// Insert into the map.
-		this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
+			if (!rtpReceiver)
+				throw new Error('new RTCRtpReceiver not');
 
-		return {
-			localId,
-			track : rtpReceiver.track,
-			rtpReceiver
-		};
+			// Insert into the map.
+			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
+
+			results.push({
+				localId,
+				track : rtpReceiver.track,
+				rtpReceiver
+			});
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>
