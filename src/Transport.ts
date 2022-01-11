@@ -846,7 +846,7 @@ export class Transport extends EnhancedEventEmitter
 				{
 					for (const task of pendingConsumerTasks)
 					{
-						task.reject!(error);
+						task.reject!(error as Error);
 					}
 				}
 
