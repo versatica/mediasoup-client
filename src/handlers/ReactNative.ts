@@ -594,6 +594,7 @@ export class ReactNative extends HandlerInterface
 		this._assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
+		const mapStreamId: Map<string, string> = new Map();
 
 		for (const options of optionsList)
 		{
@@ -612,6 +613,8 @@ export class ReactNative extends HandlerInterface
 				'receive() | forcing a random remote streamId to avoid well known bug in react-native-webrtc');
 
 			streamId += `-hack-${utils.generateRandomNumber()}`;
+
+			mapStreamId.set(trackId, streamId);
 
 			this._remoteSdp!.receive(
 				{
@@ -672,7 +675,7 @@ export class ReactNative extends HandlerInterface
 			const { kind, trackId, rtpParameters } = options;
 			const localId = trackId;
 			const mid = kind;
-			const streamId = rtpParameters.rtcp!.cname!;
+			const streamId = mapStreamId.get(trackId);
 			const stream = this._pc.getRemoteStreams()
 				.find((s: MediaStream) => s.id === streamId);
 			const track = stream.getTrackById(localId);
