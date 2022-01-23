@@ -4,7 +4,7 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
-import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
+import { HandlerFactory, HandlerInterface, HandlerReceiveOptions } from './handlers/HandlerInterface';
 import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
@@ -17,6 +17,24 @@ interface InternalTransportOptions extends TransportOptions
 	handlerFactory: HandlerFactory;
 	extendedRtpCapabilities: any;
 	canProduceByKind: CanProduceByKind;
+}
+
+class ConsumerCreationTask
+{
+	consumerOptions: ConsumerOptions;
+	promise: Promise<Consumer>;
+	resolve?: (consumer: Consumer) => void;
+	reject?: (error: Error) => void;
+
+	constructor(consumerOptions: ConsumerOptions)
+	{
+		this.consumerOptions = consumerOptions;
+		this.promise = new Promise((resolve, reject) =>
+		{
+			this.resolve = resolve;
+			this.reject = reject;
+		});
+	}
 }
 
 export type TransportOptions =
@@ -165,6 +183,10 @@ export class Transport extends EnhancedEventEmitter
 	private _probatorConsumerCreated = false;
 	// AwaitQueue instance to make async tasks happen sequentially.
 	private readonly _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
+	// Consumer creation tasks awaiting to be processed.
+	private _pendingConsumerTasks: ConsumerCreationTask[] = [];
+	// Consumer creation in progress flag.
+	private _consumerCreationInProgress = false;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter();
 
@@ -583,68 +605,33 @@ export class Transport extends EnhancedEventEmitter
 		else if (appData && typeof appData !== 'object')
 			throw new TypeError('if given, appData must be an object');
 
-		// Enqueue command.
-		return this._awaitQueue.push(
-			async () =>
+		// Ensure the device can consume it.
+		const canConsume = ortc.canReceive(
+			rtpParameters, this._extendedRtpCapabilities);
+
+		if (!canConsume)
+			throw new UnsupportedError('cannot consume this Producer');
+
+		const consumerCreationTask = new ConsumerCreationTask(
 			{
-				// Ensure the device can consume it.
-				const canConsume = ortc.canReceive(
-					rtpParameters, this._extendedRtpCapabilities);
+				id,
+				producerId,
+				kind,
+				rtpParameters,
+				appData
+			}
+		);
 
-				if (!canConsume)
-					throw new UnsupportedError('cannot consume this Producer');
+		// Store the Consumer creation task.
+		this._pendingConsumerTasks.push(consumerCreationTask);
 
-				const { localId, rtpReceiver, track } =
-					await this._handler.receive({ trackId: id, kind, rtpParameters });
+		// There is no Consumer creation in progress, create it now.
+		if (this._consumerCreationInProgress === false)
+		{
+			this._createPendingConsumers();
+		}
 
-				const consumer = new Consumer(
-					{
-						id,
-						localId,
-						producerId,
-						rtpReceiver,
-						track,
-						rtpParameters,
-						appData
-					});
-
-				this._consumers.set(consumer.id, consumer);
-				this._handleConsumer(consumer);
-
-				// If this is the first video Consumer and the Consumer for RTP probation
-				// has not yet been created, create it now.
-				if (!this._probatorConsumerCreated && kind === 'video')
-				{
-					try
-					{
-						const probatorRtpParameters =
-							ortc.generateProbatorRtpParameters(consumer.rtpParameters);
-
-						await this._handler.receive(
-							{
-								trackId       : 'probator',
-								kind          : 'video',
-								rtpParameters : probatorRtpParameters
-							});
-
-						logger.debug('consume() | Consumer for RTP probation created');
-
-						this._probatorConsumerCreated = true;
-					}
-					catch (error)
-					{
-						logger.error(
-							'consume() | failed to create Consumer for RTP probation:%o',
-							error);
-					}
-				}
-
-				// Emit observer event.
-				this._observer.safeEmit('newconsumer', consumer);
-
-				return consumer;
-			},
-			'transport.consume()');
+		return consumerCreationTask.promise;
 	}
 
 	/**
@@ -786,6 +773,123 @@ export class Transport extends EnhancedEventEmitter
 				return dataConsumer;
 			},
 			'transport.consumeData()');
+	}
+
+	// This method is guaranteed to never throw.
+	async _createPendingConsumers(): Promise<void>
+	{
+		this._awaitQueue.push(
+			async () =>
+			{
+				this._consumerCreationInProgress = true;
+
+				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
+
+				// Clear pending Consumer tasks.
+				this._pendingConsumerTasks = [];
+
+				// Video Consumer in order to create the probator.
+				let videoConsumerForProbator: Consumer | undefined = undefined;
+
+				// Fill options list.
+				const optionsList: HandlerReceiveOptions[] = [];
+
+				for (const task of pendingConsumerTasks)
+				{
+					const { id, kind, rtpParameters } = task.consumerOptions;
+
+					optionsList.push({
+						trackId : id!,
+						kind    : kind as 'audio' | 'video',
+						rtpParameters
+					});
+				}
+
+				try
+				{
+					const results = await this._handler.receive(optionsList);
+
+					for (let idx=0; idx < results.length; idx++)
+					{
+						const task = pendingConsumerTasks[idx];
+						const result = results[idx];
+						const { id, producerId, kind, rtpParameters, appData } = task.consumerOptions;
+						const { localId, rtpReceiver, track } = result;
+						const consumer = new Consumer(
+							{
+								id         : id!,
+								localId,
+								producerId : producerId!,
+								rtpReceiver,
+								track,
+								rtpParameters,
+								appData
+							});
+
+						this._consumers.set(consumer.id, consumer);
+						this._handleConsumer(consumer);
+
+						// If this is the first video Consumer and the Consumer for RTP probation
+						// has not yet been created, it's time to create it.
+						if (!this._probatorConsumerCreated && !videoConsumerForProbator && kind === 'video')
+						{
+							videoConsumerForProbator = consumer;
+						}
+
+						// Emit observer event.
+						this._observer.safeEmit('newconsumer', consumer);
+
+						task.resolve!(consumer);
+					}
+				}
+				catch (error)
+				{
+					for (const task of pendingConsumerTasks)
+					{
+						task.reject!(error as Error);
+					}
+				}
+
+				// If RTP probation must be handled, do it now.
+				if (videoConsumerForProbator)
+				{
+					try
+					{
+						const probatorRtpParameters =
+							ortc.generateProbatorRtpParameters(videoConsumerForProbator!.rtpParameters);
+
+						await this._handler.receive(
+							[ {
+								trackId       : 'probator',
+								kind          : 'video',
+								rtpParameters : probatorRtpParameters
+							} ]);
+
+						logger.debug('_createPendingConsumers() | Consumer for RTP probation created');
+
+						this._probatorConsumerCreated = true;
+					}
+					catch (error)
+					{
+						logger.error(
+							'_createPendingConsumers() | failed to create Consumer for RTP probation:%o',
+							error);
+					}
+				}
+
+				this._consumerCreationInProgress = false;
+			},
+			'transport._createPendingConsumers()')
+			.then(() =>
+			{
+				// There are pending Consumer tasks, enqueue their creation.
+				if (this._pendingConsumerTasks.length > 0)
+				{
+					this._createPendingConsumers();
+				}
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => {});
 	}
 
 	_handleHandler(): void

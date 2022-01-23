@@ -603,23 +603,30 @@ export class Safari12 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
 
-		const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		this._remoteSdp!.receive(
-			{
-				mid                : localId,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp!.cname!,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+
+			this._remoteSdp!.receive(
+				{
+					mid                : localId,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : rtpParameters.rtcp!.cname!,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -631,16 +638,22 @@ export class Safari12 extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === localId);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { rtpParameters } = options;
+			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === localId);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
@@ -659,20 +672,27 @@ export class Safari12 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const transceiver = this._pc.getTransceivers()
-			.find((t: RTCRtpTransceiver) => t.mid === localId);
+		for (const options of optionsList)
+		{
+			const { rtpParameters } = options;
+			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const transceiver = this._pc.getTransceivers()
+				.find((t: RTCRtpTransceiver) => t.mid === localId);
 
-		if (!transceiver)
-			throw new Error('new RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('new RTCRtpTransceiver not found');
 
-		// Store in the map.
-		this._mapMidTransceiver.set(localId, transceiver);
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
 
-		return {
-			localId,
-			track       : transceiver.receiver.track,
-			rtpReceiver : transceiver.receiver
-		};
+			results.push({
+				localId,
+				track       : transceiver.receiver.track,
+				rtpReceiver : transceiver.receiver
+			});
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>
