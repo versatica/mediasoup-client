@@ -230,7 +230,7 @@ export class RemoteSdp
 			mediaSection = this._mediaSections[idx] as OfferMediaSection;
 
 		// Unified-Plan or different media kind.
-		if (!mediaSection)
+		if (!mediaSection || (!this._planB && mediaSection.closed))
 		{
 			mediaSection = new OfferMediaSection(
 				{
@@ -246,9 +246,18 @@ export class RemoteSdp
 					trackId
 				});
 
-			// Let's try to recycle a closed media section (if any).
-			// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
-			const oldMediaSection = this._mediaSections.find((m) => (m.closed));
+			let oldMediaSection;
+			
+			if (mediaSection && mediaSection.closed)
+			{
+				oldMediaSection = mediaSection;
+			}
+			else 
+			{
+				// Let's try to recycle a closed media section (if any).
+				// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
+				oldMediaSection = this._mediaSections.find((m) => (m.closed));
+			}
 
 			if (oldMediaSection)
 			{
