@@ -650,6 +650,7 @@ export class Firefox60 extends HandlerInterface
 		this._assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
+		const mapLocalId: Map<string, string> = new Map();
 
 		for (const options of optionsList)
 		{
@@ -658,6 +659,8 @@ export class Firefox60 extends HandlerInterface
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+
+			mapLocalId.set(trackId, localId);
 
 			this._remoteSdp!.receive(
 				{
@@ -682,8 +685,8 @@ export class Firefox60 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { rtpParameters } = options;
-			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const { trackId, rtpParameters } = options;
+			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media
 				.find((m: any) => String(m.mid) === localId);
 
@@ -709,8 +712,8 @@ export class Firefox60 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { rtpParameters } = options;
-			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const { trackId } = options;
+			const localId = mapLocalId.get(trackId)!;
 			const transceiver = this._pc.getTransceivers()
 				.find((t: RTCRtpTransceiver) => t.mid === localId);
 
