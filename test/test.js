@@ -20,6 +20,9 @@ const utils = require('../lib/utils');
 const { RemoteSdp } = require('../lib/handlers/sdp/RemoteSdp');
 const { FakeHandler } = require('../lib/handlers/FakeHandler');
 const fakeParameters = require('./fakeParameters');
+const uuidv4 = require('uuid/v4');
+
+const ortc = require('../lib/ortc');
 
 expect.extend({ toBeType });
 
@@ -873,6 +876,180 @@ test('transport.consume() with a non object appData rejects with TypeError', asy
 	await expect(recvTransport.consume({ consumerRemoteParameters, appData: true }))
 		.rejects
 		.toThrow(TypeError);
+}, 500);
+
+test('transport.consume() with mutiple video and single audio(fix mid exception)', () =>
+{
+	const {
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters
+	} = fakeParameters.generateTransportRemoteParameters();
+
+	const remoteSdp = new RemoteSdp(
+		{
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters
+		});
+
+	const mapMidTransceiver = new Map();
+
+	// consume audio
+	{
+		const { kind, rtpParameters } =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'audio/opus' });
+	
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : uuidv4()
+			});
+
+		mapMidTransceiver.set(localId, localId);
+	}
+	
+	let localIdV1;
+
+	// consume video(v1)
+	{
+		const { kind, rtpParameters } =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+	
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+
+		localIdV1 = localId;
+
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : uuidv4()
+			});
+
+		mapMidTransceiver.set(localId, localId);
+	}
+
+	// consume video(probator)
+	{
+		const { kind, rtpParameters:srcRtpParameters } =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+
+		const rtpParameters = ortc.generateProbatorRtpParameters(srcRtpParameters);
+	
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : 'probator'
+			});
+
+		mapMidTransceiver.set(localId, localId);
+	}
+
+	// close consume video(v1)
+	{
+		const mid = mapMidTransceiver.get(localIdV1);
+
+		remoteSdp.closeMediaSection(mid);
+
+		mapMidTransceiver.delete(localIdV1);
+	}
+
+	// consume video(v2)
+	{
+		const { kind, rtpParameters } =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+	
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : uuidv4()
+			});
+
+		mapMidTransceiver.set(localId, localId);
+	}
+
+	// consume video(v1)
+	{
+		const { kind, rtpParameters } =
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+		
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+	
+		localIdV1 = localId;
+	
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : uuidv4()
+			});
+	
+		mapMidTransceiver.set(localId, localId);
+	}
+
+	// close consume video(v1)
+	{
+		const mid = mapMidTransceiver.get(localIdV1);
+
+		remoteSdp.closeMediaSection(mid);
+
+		mapMidTransceiver.delete(localIdV1);
+	}
+
+	// consume video(v1)
+	{
+		const { kind, rtpParameters } =
+			fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+		
+		// const localId = rtpParameters.mid || String(mapMidTransceiver.size);  // throw exception
+		const nextMSid = remoteSdp.getNextMediaSectionIdx();
+		const localId = rtpParameters.mid || nextMSid.reuseMid || String(nextMSid.idx);
+	
+		localIdV1 = localId;
+	
+		remoteSdp.receive(
+			{
+				mid                : localId,
+				kind,
+				offerRtpParameters : rtpParameters,
+				streamId           : rtpParameters.rtcp.cname,
+				trackId            : uuidv4()
+			});
+	
+		mapMidTransceiver.set(localId, localId);
+	}
 }, 500);
 
 test('transport.produceData() succeeds', async () =>
