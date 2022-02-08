@@ -3,6 +3,7 @@
  * FakeHandler device is used.
  */
 
+const uuidv4 = require('uuid/v4');
 const sdpTransform = require('sdp-transform');
 const { toBeType } = require('jest-tobetype');
 const { FakeMediaStreamTrack } = require('fake-mediastreamtrack');
@@ -20,8 +21,6 @@ const utils = require('../lib/utils');
 const { RemoteSdp } = require('../lib/handlers/sdp/RemoteSdp');
 const { FakeHandler } = require('../lib/handlers/FakeHandler');
 const fakeParameters = require('./fakeParameters');
-const uuidv4 = require('uuid/v4');
-
 const ortc = require('../lib/ortc');
 
 expect.extend({ toBeType });
