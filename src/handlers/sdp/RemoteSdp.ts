@@ -452,21 +452,21 @@ export class RemoteSdp
 		if (!this._firstMid)
 			this._firstMid = newMediaSection.mid;
 
-		// Append new section to the existing vector and the SDP object
+		// Append new section to the existing vector and the SDP object.
 		let idx = this._mediaSections.length;
 		this._mediaSections.push(newMediaSection);
 		this._sdpObject.media.push(newMediaSection.getObject());
 
-		// Add it to the map
+		// Add it to the map.
 		this._midToIndex.set(newMediaSection.mid, idx);
 
-		// Copy data to the temporary collections
+		// Copy data to the temporary collections.
 		const mediaSections = this._mediaSections.slice(), media = this._sdpObject.media.slice();
-		// Clean up existing collections
-                this._mediaSections.length = this._sdpObject.media.length = 0;
+		// Clean up existing collections.
+		this._mediaSections.length = this._sdpObject.media.length = 0;
 
 		// Refill media sections vector and SDP object media
-		// using the order of sections in the local SDP offer
+		// using the order of sections in the local SDP offer.
 		for (const mediaSection of localSdpMedia)
 		{
 			const i = this._midToIndex.get(String(mediaSection.mid));
@@ -477,10 +477,12 @@ export class RemoteSdp
 			}
 		}
 
-		// Recreate map
+		// Recreate map.
 		this._midToIndex.clear();
 		for (idx = 0; idx < this._mediaSections.length; ++idx)
+		{
 			this._midToIndex.set(this._mediaSections[idx].mid, idx);
+		}
 
 		// Regenerate BUNDLE mids.
 		this._regenerateBundleMids();
