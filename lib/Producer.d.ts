@@ -21,7 +21,17 @@ export declare type ProducerCodecOptions = {
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
 };
-export declare class Producer extends EnhancedEventEmitter {
+export declare type ProducerEvents = {
+    transportclose: [];
+    trackended: [];
+};
+export declare type ProducerObserverEvents = {
+    close: [];
+    pause: [];
+    resume: [];
+    trackended: [];
+};
+export declare class Producer extends EnhancedEventEmitter<ProducerEvents> {
     private readonly _id;
     private readonly _localId;
     private _closed;
@@ -35,7 +45,9 @@ export declare class Producer extends EnhancedEventEmitter {
     private _disableTrackOnPause;
     private _zeroRtpOnPause;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<ProducerObserverEvents, ProducerObserverEvents & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * @emits transportclose
      * @emits trackended
@@ -110,7 +122,7 @@ export declare class Producer extends EnhancedEventEmitter {
      * @emits resume
      * @emits trackended
      */
-    get observer(): EnhancedEventEmitter;
+    get observer(): EnhancedEventEmitter<ProducerObserverEvents>;
     /**
      * Closes the Producer.
      */

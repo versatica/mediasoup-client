@@ -9,7 +9,8 @@ import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { SctpParameters } from './SctpParameters';
+import { SctpParameters, SctpStreamParameters } from './SctpParameters';
+import { MediaKind, RtpParameters } from './RtpParameters';
 
 interface InternalTransportOptions extends TransportOptions
 {
@@ -148,9 +149,41 @@ export type PlainRtpParameters =
 	port: number;
 };
 
+export type TransportProduceParameters<AppData = unknown> =
+{
+	kind: MediaKind;
+	rtpParameters: RtpParameters;
+	appData: AppData;
+}
+
+export type TransportProduceDataParameters<AppData = unknown> =
+{
+	sctpStreamParameters: SctpStreamParameters;
+	label: string;
+	protocol: string;
+	appData: AppData;
+}
+
+export type TransportEvents = 
+{
+	connect: [{ dtlsParameters: DtlsParameters }, Function, Function];
+	produce: [TransportProduceParameters, Function, Function];
+	producedata: [TransportProduceDataParameters, Function, Function];
+	connectionstatechange: [ConnectionState];
+}
+
+export type TransportObserverEvents = 
+{
+	close: [];
+	newproducer: [Producer];
+	newconsumer: [Consumer];
+	newdataproducer: [DataProducer];
+	newdataconsumer: [DataConsumer];
+}
+
 const logger = new Logger('Transport');
 
-export class Transport extends EnhancedEventEmitter
+export class Transport extends EnhancedEventEmitter<TransportEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -196,7 +229,7 @@ export class Transport extends EnhancedEventEmitter
 	// Consumer resume in progress flag.
 	private _consumerResumeInProgress = false;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<TransportObserverEvents>();
 
 	/**
 	 * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
@@ -330,7 +363,7 @@ export class Transport extends EnhancedEventEmitter
 	 * @emits newdataproducer - (dataProducer: DataProducer)
 	 * @emits newdataconsumer - (dataProducer: DataProducer)
 	 */
-	get observer(): EnhancedEventEmitter
+	get observer(): EnhancedEventEmitter<TransportObserverEvents>
 	{
 		return this._observer;
 	}
@@ -533,7 +566,7 @@ export class Transport extends EnhancedEventEmitter
 					const { id } = await this.safeEmitAsPromise(
 						'produce',
 						{
-							kind : track.kind,
+							kind : track.kind as MediaKind,
 							rtpParameters,
 							appData
 						});

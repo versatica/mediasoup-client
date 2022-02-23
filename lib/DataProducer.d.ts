@@ -8,13 +8,25 @@ export declare type DataProducerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare class DataProducer extends EnhancedEventEmitter {
+export declare type DataProducerEvents = {
+    transportclose: [];
+    open: [];
+    error: [Error];
+    close: [];
+    bufferedamountlow: [];
+};
+export declare type DataProducerObserverEvents = {
+    close: [];
+};
+export declare class DataProducer extends EnhancedEventEmitter<DataProducerEvents> {
     private readonly _id;
     private readonly _dataChannel;
     private _closed;
     private readonly _sctpStreamParameters;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<DataProducerObserverEvents, DataProducerObserverEvents & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * @emits transportclose
      * @emits open
@@ -78,7 +90,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
      *
      * @emits close
      */
-    get observer(): EnhancedEventEmitter;
+    get observer(): EnhancedEventEmitter<DataProducerObserverEvents>;
     /**
      * Closes the DataProducer.
      */

@@ -34,9 +34,23 @@ export type ProducerCodecOptions =
 	videoGoogleMinBitrate?: number;
 }
 
+export type ProducerEvents = 
+{
+	transportclose: [];
+	trackended: [];
+}
+
+export type ProducerObserverEvents = 
+{
+	close: [];
+	pause: [];
+	resume: [];
+	trackended: [];
+}
+
 const logger = new Logger('Producer');
 
-export class Producer extends EnhancedEventEmitter
+export class Producer extends EnhancedEventEmitter<ProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -65,7 +79,7 @@ export class Producer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<ProducerObserverEvents>();
 
 	/**
 	 * @emits transportclose
@@ -224,7 +238,7 @@ export class Producer extends EnhancedEventEmitter
 	 * @emits resume
 	 * @emits trackended
 	 */
-	get observer(): EnhancedEventEmitter
+	get observer(): EnhancedEventEmitter<ProducerObserverEvents>
 	{
 		return this._observer;
 	}

@@ -7,7 +7,17 @@ export declare type ConsumerOptions = {
     rtpParameters: RtpParameters;
     appData?: Record<string, unknown>;
 };
-export declare class Consumer extends EnhancedEventEmitter {
+export declare type ConsumerEvents = {
+    transportclose: [];
+    trackended: [];
+};
+export declare type ConsumerObserverEvents = {
+    close: [];
+    pause: [];
+    resume: [];
+    trackended: [];
+};
+export declare class Consumer extends EnhancedEventEmitter<ConsumerEvents> {
     private readonly _id;
     private readonly _localId;
     private readonly _producerId;
@@ -17,7 +27,9 @@ export declare class Consumer extends EnhancedEventEmitter {
     private readonly _rtpParameters;
     private _paused;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<ConsumerObserverEvents, ConsumerObserverEvents & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * @emits transportclose
      * @emits trackended
@@ -87,7 +99,7 @@ export declare class Consumer extends EnhancedEventEmitter {
      * @emits resume
      * @emits trackended
      */
-    get observer(): EnhancedEventEmitter;
+    get observer(): EnhancedEventEmitter<ConsumerObserverEvents>;
     /**
      * Closes the Consumer.
      */

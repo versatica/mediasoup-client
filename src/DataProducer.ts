@@ -13,9 +13,23 @@ export type DataProducerOptions =
 	appData?: Record<string, unknown>;
 }
 
+export type DataProducerEvents =
+{
+	transportclose: [];
+	open: [];
+	error: [Error];
+	close: [];
+	bufferedamountlow: [];
+}
+
+export type DataProducerObserverEvents =
+{
+	close: [];
+}
+
 const logger = new Logger('DataProducer');
 
-export class DataProducer extends EnhancedEventEmitter
+export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -28,7 +42,7 @@ export class DataProducer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DataProducerObserverEvents>();
 
 	/**
 	 * @emits transportclose
@@ -159,7 +173,7 @@ export class DataProducer extends EnhancedEventEmitter
 	 *
 	 * @emits close
 	 */
-	get observer(): EnhancedEventEmitter
+	get observer(): EnhancedEventEmitter<DataProducerObserverEvents>
 	{
 		return this._observer;
 	}

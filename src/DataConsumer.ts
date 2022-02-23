@@ -12,9 +12,23 @@ export type DataConsumerOptions =
 	appData?: Record<string, unknown>;
 }
 
+export type DataConsumerEvents =
+{
+	transportclose: [];
+	open: [];
+	error: [Error];
+	close: [];
+	message: [string|Blob|ArrayBuffer];
+}
+
+export type DataConsumerObserverEvents =
+{
+	close: [];
+}
+
 const logger = new Logger('DataConsumer');
 
-export class DataConsumer extends EnhancedEventEmitter
+export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -29,7 +43,7 @@ export class DataConsumer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DataConsumerObserverEvents>();
 
 	/**
 	 * @emits transportclose
@@ -163,7 +177,7 @@ export class DataConsumer extends EnhancedEventEmitter
 	 *
 	 * @emits close
 	 */
-	get observer(): EnhancedEventEmitter
+	get observer(): EnhancedEventEmitter<DataConsumerObserverEvents>
 	{
 		return this._observer;
 	}

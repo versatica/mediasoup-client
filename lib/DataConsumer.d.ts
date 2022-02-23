@@ -8,14 +8,26 @@ export declare type DataConsumerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare class DataConsumer extends EnhancedEventEmitter {
+export declare type DataConsumerEvents = {
+    transportclose: [];
+    open: [];
+    error: [Error];
+    close: [];
+    message: [string | Blob | ArrayBuffer];
+};
+export declare type DataConsumerObserverEvents = {
+    close: [];
+};
+export declare class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents> {
     private readonly _id;
     private readonly _dataProducerId;
     private readonly _dataChannel;
     private _closed;
     private readonly _sctpStreamParameters;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<DataConsumerObserverEvents, DataConsumerObserverEvents & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * @emits transportclose
      * @emits open
@@ -80,7 +92,7 @@ export declare class DataConsumer extends EnhancedEventEmitter {
      *
      * @emits close
      */
-    get observer(): EnhancedEventEmitter;
+    get observer(): EnhancedEventEmitter<DataConsumerObserverEvents>;
     /**
      * Closes the DataConsumer.
      */

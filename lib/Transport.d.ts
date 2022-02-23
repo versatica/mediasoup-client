@@ -4,7 +4,8 @@ import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { SctpParameters } from './SctpParameters';
+import { SctpParameters, SctpStreamParameters } from './SctpParameters';
+import { MediaKind, RtpParameters } from './RtpParameters';
 interface InternalTransportOptions extends TransportOptions {
     direction: 'send' | 'recv';
     handlerFactory: HandlerFactory;
@@ -100,7 +101,33 @@ export declare type PlainRtpParameters = {
     ipVersion: 4 | 6;
     port: number;
 };
-export declare class Transport extends EnhancedEventEmitter {
+export declare type TransportProduceParameters<AppData = unknown> = {
+    kind: MediaKind;
+    rtpParameters: RtpParameters;
+    appData: AppData;
+};
+export declare type TransportProduceDataParameters<AppData = unknown> = {
+    sctpStreamParameters: SctpStreamParameters;
+    label: string;
+    protocol: string;
+    appData: AppData;
+};
+export declare type TransportEvents = {
+    connect: [{
+        dtlsParameters: DtlsParameters;
+    }, Function, Function];
+    produce: [TransportProduceParameters, Function, Function];
+    producedata: [TransportProduceDataParameters, Function, Function];
+    connectionstatechange: [ConnectionState];
+};
+export declare type TransportObserverEvents = {
+    close: [];
+    newproducer: [Producer];
+    newconsumer: [Consumer];
+    newdataproducer: [DataProducer];
+    newdataconsumer: [DataConsumer];
+};
+export declare class Transport extends EnhancedEventEmitter<TransportEvents> {
     private readonly _id;
     private _closed;
     private readonly _direction;
@@ -122,7 +149,9 @@ export declare class Transport extends EnhancedEventEmitter {
     private _consumerPauseInProgress;
     private _pendingResumeConsumers;
     private _consumerResumeInProgress;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<TransportObserverEvents, TransportObserverEvents & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
      * @emits connectionstatechange - (connectionState: ConnectionState)
@@ -167,7 +196,7 @@ export declare class Transport extends EnhancedEventEmitter {
      * @emits newdataproducer - (dataProducer: DataProducer)
      * @emits newdataconsumer - (dataProducer: DataProducer)
      */
-    get observer(): EnhancedEventEmitter;
+    get observer(): EnhancedEventEmitter<TransportObserverEvents>;
     /**
      * Close the Transport.
      */

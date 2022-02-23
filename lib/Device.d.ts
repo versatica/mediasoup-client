@@ -28,7 +28,13 @@ export declare class Device {
     private _recvRtpCapabilities?;
     private readonly _canProduceByKind;
     private _sctpCapabilities?;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<{
+        [x: string]: any[];
+    }, {
+        [x: string]: any[];
+    } & {
+        [x: `@${string}`]: any[];
+    }>;
     /**
      * Create a new Device to connect to mediasoup server.
      *

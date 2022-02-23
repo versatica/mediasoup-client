@@ -12,9 +12,23 @@ export type ConsumerOptions =
 	appData?: Record<string, unknown>;
 }
 
+export type ConsumerEvents = 
+{
+	transportclose: [];
+	trackended: [];
+}
+
+export type ConsumerObserverEvents = 
+{
+	close: [];
+	pause: [];
+	resume: [];
+	trackended: [];
+}
+
 const logger = new Logger('Consumer');
 
-export class Consumer extends EnhancedEventEmitter
+export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -35,7 +49,7 @@ export class Consumer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<ConsumerObserverEvents>();
 
 	/**
 	 * @emits transportclose
@@ -180,7 +194,7 @@ export class Consumer extends EnhancedEventEmitter
 	 * @emits resume
 	 * @emits trackended
 	 */
-	get observer(): EnhancedEventEmitter
+	get observer(): EnhancedEventEmitter<ConsumerObserverEvents>
 	{
 		return this._observer;
 	}
