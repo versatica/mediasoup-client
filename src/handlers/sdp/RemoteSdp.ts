@@ -277,6 +277,69 @@ export class RemoteSdp
 		}
 	}
 
+	// TODO: older receive method(just for test, delete in the future ), incorrectly judge to use PlanB
+	receiveDeprecated(
+		{
+			mid,
+			kind,
+			offerRtpParameters,
+			streamId,
+			trackId
+		}:
+		{
+			mid: string;
+			kind: MediaKind;
+			offerRtpParameters: RtpParameters;
+			streamId: string;
+			trackId: string;
+		}
+	): void
+	{
+		const idx = this._midToIndex.get(mid);
+		let mediaSection: OfferMediaSection | undefined;
+
+		if (idx !== undefined)
+			mediaSection = this._mediaSections[idx] as OfferMediaSection;
+
+		// Unified-Plan or different media kind.
+		if (!mediaSection)
+		{
+			mediaSection = new OfferMediaSection(
+				{
+					iceParameters      : this._iceParameters,
+					iceCandidates      : this._iceCandidates,
+					dtlsParameters     : this._dtlsParameters,
+					plainRtpParameters : this._plainRtpParameters,
+					planB              : this._planB,
+					mid,
+					kind,
+					offerRtpParameters,
+					streamId,
+					trackId
+				});
+
+			// Let's try to recycle a closed media section (if any).
+			// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
+			const oldMediaSection = this._mediaSections.find((m) => (m.closed));
+
+			if (oldMediaSection)
+			{
+				this._replaceMediaSection(mediaSection, oldMediaSection.mid);
+			}
+			else
+			{
+				this._addMediaSection(mediaSection);
+			}
+		}
+		// Plan-B.
+		else
+		{
+			mediaSection.planBReceive({ offerRtpParameters, streamId, trackId });
+
+			this._replaceMediaSection(mediaSection);
+		}
+	}
+
 	disableMediaSection(mid: string): void
 	{
 		const idx = this._midToIndex.get(mid);
