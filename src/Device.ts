@@ -107,6 +107,10 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		{
 			return 'Safari12';
 		}
+		// WeChat inline browser on iOS.
+		else if (browser.satisfies({ ios: { OS: '>=14.3', wechat: '>=0' } })) {
+		    return 'Safari12';
+		}
 		// Safari with Unified-Plan support enabled.
 		else if (
 			browser.satisfies({ safari: '>=12.0' }) &&
