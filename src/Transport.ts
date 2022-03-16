@@ -1072,7 +1072,6 @@ export class Transport extends EnhancedEventEmitter
 			if (this._pendingResumeConsumers.has(consumer.id))
 			{
 				this._pendingResumeConsumers.delete(consumer.id);
-
 			}
 
 			// Store the Consumer into the pending list.
@@ -1091,7 +1090,6 @@ export class Transport extends EnhancedEventEmitter
 			if (this._pendingPauseConsumers.has(consumer.id))
 			{
 				this._pendingPauseConsumers.delete(consumer.id);
-
 			}
 
 			// Store the Consumer into the pending list.
