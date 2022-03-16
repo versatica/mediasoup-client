@@ -730,19 +730,22 @@ export class Safari12 extends HandlerInterface
 		this._mapMidTransceiver.delete(localId);
 	}
 
-	async pauseReceiving(localId: string): Promise<void>
+	async pauseReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('pauseReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('pauseReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		transceiver.direction = 'inactive';
-		
+			transceiver.direction = 'inactive';
+		}
+
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
@@ -760,19 +763,22 @@ export class Safari12 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 	}
 
-	async resumeReceiving(localId: string): Promise<void>
+	async resumeReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('resumeReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('resumeReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		transceiver.direction = 'recvonly';
-		
+			transceiver.direction = 'recvonly';
+		}
+
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
