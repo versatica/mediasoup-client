@@ -1,5 +1,5 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
-import { RtpCodecCapability, RtpParameters, RtpEncodingParameters } from './RtpParameters';
+import { MediaKind, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from './RtpParameters';
 export declare type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RtpEncodingParameters[];
@@ -71,7 +71,7 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * Media kind.
      */
-    get kind(): string;
+    get kind(): MediaKind;
     /**
      * Associated RTCRtpSender.
      */

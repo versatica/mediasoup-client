@@ -1,7 +1,7 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
-import { RtpParameters } from './RtpParameters';
+import { MediaKind, RtpParameters } from './RtpParameters';
 
 export type ConsumerOptions =
 {
@@ -118,9 +118,9 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * Media kind.
 	 */
-	get kind(): string
+	get kind(): MediaKind
 	{
-		return this._track.kind;
+		return this._track.kind as MediaKind;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
-import { RtpParameters } from './RtpParameters';
+import { MediaKind, RtpParameters } from './RtpParameters';
 export declare type ConsumerOptions = {
     id?: string;
     producerId?: string;
@@ -54,7 +54,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     /**
      * Media kind.
      */
-    get kind(): string;
+    get kind(): MediaKind;
     /**
      * Associated RTCRtpReceiver.
      */
