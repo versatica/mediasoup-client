@@ -118,6 +118,10 @@ export declare class Transport extends EnhancedEventEmitter {
     private readonly _awaitQueue;
     private _pendingConsumerTasks;
     private _consumerCreationInProgress;
+    private _pendingPauseConsumers;
+    private _consumerPauseInProgress;
+    private _pendingResumeConsumers;
+    private _consumerResumeInProgress;
     protected readonly _observer: EnhancedEventEmitter;
     /**
      * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
@@ -203,6 +207,8 @@ export declare class Transport extends EnhancedEventEmitter {
      */
     consumeData({ id, dataProducerId, sctpStreamParameters, label, protocol, appData }: DataConsumerOptions): Promise<DataConsumer>;
     _createPendingConsumers(): Promise<void>;
+    _pausePendingConsumers(): void;
+    _resumePendingConsumers(): void;
     _handleHandler(): void;
     _handleProducer(producer: Producer): void;
     _handleConsumer(consumer: Consumer): void;
