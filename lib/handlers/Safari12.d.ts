@@ -36,8 +36,8 @@ export declare class Safari12 extends HandlerInterface {
     sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
     stopReceiving(localId: string): Promise<void>;
-    pauseReceiving(localId: string): Promise<void>;
-    resumeReceiving(localId: string): Promise<void>;
+    pauseReceiving(localIds: string[]): Promise<void>;
+    resumeReceiving(localIds: string[]): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;

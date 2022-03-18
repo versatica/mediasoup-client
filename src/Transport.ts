@@ -187,6 +187,14 @@ export class Transport extends EnhancedEventEmitter
 	private _pendingConsumerTasks: ConsumerCreationTask[] = [];
 	// Consumer creation in progress flag.
 	private _consumerCreationInProgress = false;
+	// Consumers pending to be paused.
+	private _pendingPauseConsumers: Map<string, Consumer> = new Map();
+	// Consumer pause in progress flag.
+	private _consumerPauseInProgress = false;
+	// Consumers pending to be resumed.
+	private _pendingResumeConsumers: Map<string, Consumer> = new Map();
+	// Consumer resume in progress flag.
+	private _consumerResumeInProgress = false;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter();
 
@@ -892,6 +900,66 @@ export class Transport extends EnhancedEventEmitter
 			.catch(() => {});
 	}
 
+	_pausePendingConsumers()
+	{
+		this._awaitQueue.push(
+			async () =>
+			{
+				this._consumerPauseInProgress = true;
+
+				const pendingPauseConsumers = Array.from(this._pendingPauseConsumers.values());
+
+				// Clear pending pause Consumer map.
+				this._pendingPauseConsumers.clear();
+
+				await this._handler.pauseReceiving(
+					pendingPauseConsumers.map((consumer) => consumer.localId)
+				);
+			},
+			'consumer @pause event')
+			.catch(() => { })
+			.finally(() =>
+			{
+				this._consumerPauseInProgress = false;
+
+				// There are pending Consumers to be paused, do it.
+				if (this._pendingPauseConsumers.size > 0)
+				{
+					this._pausePendingConsumers();
+				}
+			});
+	}
+
+	_resumePendingConsumers()
+	{
+		this._awaitQueue.push(
+			async () =>
+			{
+				this._consumerResumeInProgress = true;
+
+				const pendingResumeConsumers = Array.from(this._pendingResumeConsumers.values());
+
+				// Clear pending resume Consumer map.
+				this._pendingResumeConsumers.clear();
+
+				await this._handler.resumeReceiving(
+					pendingResumeConsumers.map((consumer) => consumer.localId)
+				);
+			},
+			'consumer @resume event')
+			.catch(() => { })
+			.finally(() =>
+			{
+				this._consumerResumeInProgress = false;
+
+				// There are pending Consumer to be resumed, do it.
+				if (this._pendingResumeConsumers.size > 0)
+				{
+					this._resumePendingConsumers();
+				}
+			});
+	}
+
 	_handleHandler(): void
 	{
 		const handler = this._handler;
@@ -986,6 +1054,8 @@ export class Transport extends EnhancedEventEmitter
 		consumer.on('@close', () =>
 		{
 			this._consumers.delete(consumer.id);
+			this._pendingPauseConsumers.delete(consumer.id);
+			this._pendingResumeConsumers.delete(consumer.id);
 
 			if (this._closed)
 				return;
@@ -998,18 +1068,38 @@ export class Transport extends EnhancedEventEmitter
 
 		consumer.on('@pause', () =>
 		{
-			this._awaitQueue.push(
-				async () => this._handler.pauseReceiving(consumer.localId),
-				'consumer @pause event')
-				.catch(() => {});
+			// If Consumer is pending to be resumed, remove from pending resume list.
+			if (this._pendingResumeConsumers.has(consumer.id))
+			{
+				this._pendingResumeConsumers.delete(consumer.id);
+			}
+
+			// Store the Consumer into the pending list.
+			this._pendingPauseConsumers.set(consumer.id, consumer);
+
+			// There is no Consumer pause in progress, do it now.
+			if (this._consumerPauseInProgress === false)
+			{
+				this._pausePendingConsumers();
+			}
 		});
 
 		consumer.on('@resume', () =>
 		{
-			this._awaitQueue.push(
-				async () => this._handler.resumeReceiving(consumer.localId),
-				'consumer @resume event')
-				.catch(() => {});
+			// If Consumer is pending to be paused, remove from pending pause list.
+			if (this._pendingPauseConsumers.has(consumer.id))
+			{
+				this._pendingPauseConsumers.delete(consumer.id);
+			}
+
+			// Store the Consumer into the pending list.
+			this._pendingResumeConsumers.set(consumer.id, consumer);
+
+			// There is no Consumer resume in progress, do it now.
+			if (this._consumerResumeInProgress === false)
+			{
+				this._resumePendingConsumers();
+			}
 		});
 
 		consumer.on('@getstats', (callback, errback) =>
