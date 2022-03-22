@@ -136,14 +136,14 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 	): Promise<HandlerSendDataChannelResult>;
 
 	abstract receive(
-		options: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>;
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 
 	abstract stopReceiving(localId: string): Promise<void>;
 
-	abstract pauseReceiving(localId: string): Promise<void>;
+	abstract pauseReceiving(localIds: string[]): Promise<void>;
 
-	abstract resumeReceiving(localId: string): Promise<void>;
+	abstract resumeReceiving(localIds: string[]): Promise<void>;
 
 	abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
 

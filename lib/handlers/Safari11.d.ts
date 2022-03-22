@@ -7,6 +7,7 @@ export declare class Safari11 extends HandlerInterface {
     private _remoteSdp?;
     private _sendingRtpParametersByKind?;
     private _sendingRemoteRtpParametersByKind?;
+    private _forcedLocalDtlsRole?;
     private _pc;
     private readonly _sendStream;
     private readonly _mapSendLocalIdRtpSender;
@@ -35,11 +36,11 @@ export declare class Safari11 extends HandlerInterface {
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
-    receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;
-    pauseReceiving(localId: string): Promise<void>;
-    resumeReceiving(localId: string): Promise<void>;
+    pauseReceiving(localIds: string[]): Promise<void>;
+    resumeReceiving(localIds: string[]): Promise<void>;
     receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;
     private _assertSendDirection;

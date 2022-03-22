@@ -37,6 +37,9 @@ export class Safari11 extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	// Initial server side DTLS role. If not 'auto', it will force the opposite
+	// value in client side.
+	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Local stream for sending.
@@ -182,6 +185,13 @@ export class Safari11 extends HandlerInterface
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
 
+		if (dtlsParameters.role && dtlsParameters.role !== 'auto')
+		{
+			this._forcedLocalDtlsRole = dtlsParameters.role === 'server'
+				? 'client'
+				: 'server';
+		}
+
 		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
@@ -315,7 +325,13 @@ export class Safari11 extends HandlerInterface
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		if (track.kind === 'video' && encodings && encodings.length > 1)
 		{
@@ -441,7 +457,7 @@ export class Safari11 extends HandlerInterface
 			{
 				logger.warn(
 					'stopSending() | ignoring expected error due no sending tracks: %s',
-					error.toString());
+					(error as Error).toString());
 
 				return;
 			}
@@ -596,7 +612,13 @@ export class Safari11 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			{
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -629,24 +651,30 @@ export class Safari11 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
 
-		const localId = trackId;
-		const mid = kind;
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		this._remoteSdp!.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp!.cname!,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const mid = kind;
+
+			this._remoteSdp!.receive(
+				{
+					mid,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : rtpParameters.rtcp!.cname!,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -658,21 +686,33 @@ export class Safari11 extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === mid);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { kind, rtpParameters } = options;
+			const mid = kind;
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === mid);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -680,20 +720,29 @@ export class Safari11 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const rtpReceiver = this._pc.getReceivers()
-			.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
+		for (const options of optionsList)
+		{
+			const { kind, trackId, rtpParameters } = options;
+			const mid = kind;
+			const localId = trackId;
 
-		if (!rtpReceiver)
-			throw new Error('new RTCRtpReceiver not');
+			const rtpReceiver = this._pc.getReceivers()
+				.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
 
-		// Insert into the map.
-		this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
+			if (!rtpReceiver)
+				throw new Error('new RTCRtpReceiver not');
 
-		return {
-			localId,
-			track : rtpReceiver.track,
-			rtpReceiver
-		};
+			// Insert into the map.
+			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
+
+			results.push({
+				localId,
+				track : rtpReceiver.track,
+				rtpReceiver
+			});
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>
@@ -741,14 +790,14 @@ export class Safari11 extends HandlerInterface
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localId: string): Promise<void>
+		localIds: string[]): Promise<void>
 	{
 		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localId: string): Promise<void>
+		localIds: string[]): Promise<void>
 	{
 		// Unimplemented.
 	}
@@ -800,7 +849,11 @@ export class Safari11 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
 			}
 
 			logger.debug(

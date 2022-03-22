@@ -38,6 +38,9 @@ export class ReactNative extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	// Initial server side DTLS role. If not 'auto', it will force the opposite
+	// value in client side.
+	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Local stream for sending.
@@ -186,6 +189,13 @@ export class ReactNative extends HandlerInterface
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
 
+		if (dtlsParameters.role && dtlsParameters.role !== 'auto')
+		{
+			this._forcedLocalDtlsRole = dtlsParameters.role === 'server'
+				? 'client'
+				: 'server';
+		}
+
 		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
@@ -320,7 +330,13 @@ export class ReactNative extends HandlerInterface
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		if (track.kind === 'video' && encodings && encodings.length > 1)
 		{
@@ -446,7 +462,7 @@ export class ReactNative extends HandlerInterface
 			{
 				logger.warn(
 					'stopSending() | ignoring expected error due no sending tracks: %s',
-					error.toString());
+					(error as Error).toString());
 
 				return;
 			}
@@ -533,7 +549,13 @@ export class ReactNative extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			{
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -566,34 +588,43 @@ export class ReactNative extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
+		const mapStreamId: Map<string, string> = new Map();
 
-		const localId = trackId;
-		const mid = kind;
-		let streamId = rtpParameters.rtcp!.cname!;
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		// NOTE: In React-Native we cannot reuse the same remote MediaStream for new
-		// remote tracks. This is because react-native-webrtc does not react on new
-		// tracks generated within already existing streams, so force the streamId
-		// to be different.
-		logger.debug(
-			'receive() | forcing a random remote streamId to avoid well known bug in react-native-webrtc');
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		streamId += `-hack-${utils.generateRandomNumber()}`;
+			const mid = kind;
+			let streamId = rtpParameters.rtcp!.cname!;
 
-		this._remoteSdp!.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId,
-				trackId
-			});
+			// NOTE: In React-Native we cannot reuse the same remote MediaStream for new
+			// remote tracks. This is because react-native-webrtc does not react on new
+			// tracks generated within already existing streams, so force the streamId
+			// to be different.
+			logger.debug(
+				'receive() | forcing a random remote streamId to avoid well known bug in react-native-webrtc');
+
+			streamId += `-hack-${utils.generateRandomNumber()}`;
+
+			mapStreamId.set(trackId, streamId);
+
+			this._remoteSdp!.receive(
+				{
+					mid,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -605,21 +636,33 @@ export class ReactNative extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === mid);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { kind, rtpParameters } = options;
+			const mid = kind;
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === mid);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		{
+			await this._setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -627,17 +670,26 @@ export class ReactNative extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const stream = this._pc.getRemoteStreams()
-			.find((s: MediaStream) => s.id === streamId);
-		const track = stream.getTrackById(localId);
+		for (const options of optionsList)
+		{
+			const { kind, trackId, rtpParameters } = options;
+			const localId = trackId;
+			const mid = kind;
+			const streamId = mapStreamId.get(trackId);
+			const stream = this._pc.getRemoteStreams()
+				.find((s: MediaStream) => s.id === streamId);
+			const track = stream.getTrackById(localId);
 
-		if (!track)
-			throw new Error('remote track not found');
+			if (!track)
+				throw new Error('remote track not found');
 
-		// Insert into the map.
-		this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters });
+			// Insert into the map.
+			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters });
 
-		return { localId, track };
+			results.push({ localId, track });
+		}
+
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>
@@ -673,14 +725,14 @@ export class ReactNative extends HandlerInterface
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localId: string): Promise<void>
+		localIds: string[]): Promise<void>
 	{
 		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localId: string): Promise<void>
+		localIds: string[]): Promise<void>
 	{
 		// Unimplemented.
 	}
@@ -739,7 +791,11 @@ export class ReactNative extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this._setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
 			}
 
 			logger.debug(

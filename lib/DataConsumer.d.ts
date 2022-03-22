@@ -62,11 +62,11 @@ export declare class DataConsumer extends EnhancedEventEmitter {
     /**
      * DataChannel binaryType.
      */
-    get binaryType(): string;
+    get binaryType(): BinaryType;
     /**
      * Set DataChannel binaryType.
      */
-    set binaryType(binaryType: string);
+    set binaryType(binaryType: BinaryType);
     /**
      * App custom data.
      */

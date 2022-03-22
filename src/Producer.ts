@@ -152,7 +152,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Media kind.
 	 */
-	get kind(): string
+	get kind(): MediaKind
 	{
 		return this._kind;
 	}

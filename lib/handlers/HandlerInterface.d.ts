@@ -75,10 +75,10 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     abstract setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
     abstract sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
-    abstract receive(options: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
+    abstract receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
     abstract stopReceiving(localId: string): Promise<void>;
-    abstract pauseReceiving(localId: string): Promise<void>;
-    abstract resumeReceiving(localId: string): Promise<void>;
+    abstract pauseReceiving(localIds: string[]): Promise<void>;
+    abstract resumeReceiving(localIds: string[]): Promise<void>;
     abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
     abstract receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
 }
