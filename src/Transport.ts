@@ -560,12 +560,11 @@ export class Transport extends EnhancedEventEmitter
 				}
 				catch (error)
 				{
-					try {
-						
-						await this._handler.stopSending(localId)
-					} catch (error) {
-						
+					try
+					{
+						await this._handler.stopSending(localId);
 					}
+					catch (error2) {}
 
 					throw error;
 				}
