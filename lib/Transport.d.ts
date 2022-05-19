@@ -21,7 +21,7 @@ export declare type TransportOptions = {
     iceTransportPolicy?: RTCIceTransportPolicy;
     additionalSettings?: any;
     proprietaryConstraints?: any;
-    appData?: any;
+    appData?: Record<string, unknown>;
 };
 export declare type CanProduceByKind = {
     audio: boolean;
@@ -153,11 +153,11 @@ export declare class Transport extends EnhancedEventEmitter {
     /**
      * App custom data.
      */
-    get appData(): any;
+    get appData(): Record<string, unknown>;
     /**
      * Invalid setter.
      */
-    set appData(appData: any);
+    set appData(appData: Record<string, unknown>);
     /**
      * Observer.
      *

@@ -10,7 +10,7 @@ export type DataProducerOptions =
 	maxRetransmits?: number;
 	label?: string;
 	protocol?: string;
-	appData?: any;
+	appData?: Record<string, unknown>;
 }
 
 const logger = new Logger('DataProducer');
@@ -26,7 +26,7 @@ export class DataProducer extends EnhancedEventEmitter
 	// SCTP stream parameters.
 	private readonly _sctpStreamParameters: SctpStreamParameters;
 	// App custom data.
-	private readonly _appData: any;
+	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter();
 
@@ -49,7 +49,7 @@ export class DataProducer extends EnhancedEventEmitter
 			id: string;
 			dataChannel: RTCDataChannel;
 			sctpStreamParameters: SctpStreamParameters;
-			appData: any;
+			appData?: Record<string, unknown>;
 		}
 	)
 	{
@@ -60,7 +60,7 @@ export class DataProducer extends EnhancedEventEmitter
 		this._id = id;
 		this._dataChannel = dataChannel;
 		this._sctpStreamParameters = sctpStreamParameters;
-		this._appData = appData;
+		this._appData = appData || {};
 
 		this._handleDataChannel();
 	}
@@ -140,7 +140,7 @@ export class DataProducer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): any
+	get appData(): Record<string, unknown>
 	{
 		return this._appData;
 	}
@@ -148,7 +148,8 @@ export class DataProducer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: any) // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	set appData(appData: Record<string, unknown>)
 	{
 		throw new Error('cannot override appData object');
 	}
