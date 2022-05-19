@@ -912,22 +912,30 @@ export class Transport extends EnhancedEventEmitter
 				// Clear pending pause Consumer map.
 				this._pendingPauseConsumers.clear();
 
-				await this._handler.pauseReceiving(
-					pendingPauseConsumers.map((consumer) => consumer.localId)
-				);
+				try
+				{
+					await this._handler.pauseReceiving(
+						pendingPauseConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_pausePendingConsumers() | failed to pause Consumers', error);
+				}
+
+				this._consumerPauseInProgress = false;
 			},
 			'consumer @pause event')
-			.catch(() => { })
-			.finally(() =>
+			.then(() =>
 			{
-				this._consumerPauseInProgress = false;
-
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
 					this._pausePendingConsumers();
 				}
-			});
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
 	}
 
 	_resumePendingConsumers()
@@ -942,13 +950,19 @@ export class Transport extends EnhancedEventEmitter
 				// Clear pending resume Consumer map.
 				this._pendingResumeConsumers.clear();
 
-				await this._handler.resumeReceiving(
-					pendingResumeConsumers.map((consumer) => consumer.localId)
-				);
+				try
+				{
+					await this._handler.resumeReceiving(
+						pendingResumeConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_resumePendingConsumers() | failed to resume Consumers', error);
+				}
 			},
 			'consumer @resume event')
-			.catch(() => { })
-			.finally(() =>
+			.then(() =>
 			{
 				this._consumerResumeInProgress = false;
 
@@ -957,7 +971,9 @@ export class Transport extends EnhancedEventEmitter
 				{
 					this._resumePendingConsumers();
 				}
-			});
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
 	}
 
 	_handleHandler(): void
