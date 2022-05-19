@@ -920,7 +920,7 @@ export class Transport extends EnhancedEventEmitter
 				}
 				catch (error)
 				{
-					logger.error('_pausePendingConsumers() | failed to pause Consumers', error);
+					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
 				}
 
 				this._consumerPauseInProgress = false;
@@ -958,7 +958,7 @@ export class Transport extends EnhancedEventEmitter
 				}
 				catch (error)
 				{
-					logger.error('_resumePendingConsumers() | failed to resume Consumers', error);
+					logger.error('_resumePendingConsumers() | failed to resume Consumers:', error);
 				}
 			},
 			'consumer @resume event')
