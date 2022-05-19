@@ -9,7 +9,7 @@ export type ConsumerOptions =
 	producerId?: string;
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
-	appData?: any;
+	appData?: Record<string, unknown>;
 }
 
 const logger = new Logger('Consumer');
@@ -33,7 +33,7 @@ export class Consumer extends EnhancedEventEmitter
 	// Paused flag.
 	private _paused: boolean;
 	// App custom data.
-	private readonly _appData: any;
+	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter();
 
@@ -62,7 +62,7 @@ export class Consumer extends EnhancedEventEmitter
 			rtpReceiver?: RTCRtpReceiver;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
-			appData: any;
+			appData?: Record<string, unknown>;
 		}
 	)
 	{
@@ -77,7 +77,7 @@ export class Consumer extends EnhancedEventEmitter
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
-		this._appData = appData;
+		this._appData = appData || {};
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
 		this._handleTrack();
@@ -158,7 +158,7 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): any
+	get appData(): Record<string, unknown>
 	{
 		return this._appData;
 	}
@@ -166,7 +166,8 @@ export class Consumer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData) // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	set appData(appData: Record<string, unknown>)
 	{
 		throw new Error('cannot override appData object');
 	}

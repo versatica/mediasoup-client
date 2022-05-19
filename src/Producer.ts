@@ -17,7 +17,7 @@ export type ProducerOptions =
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
-	appData?: any;
+	appData?: Record<string, unknown>;
 }
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
@@ -63,7 +63,7 @@ export class Producer extends EnhancedEventEmitter
 	// Whether we should replace the RTCRtpSender.track with null when paused.
 	private _zeroRtpOnPause: boolean;
 	// App custom data.
-	private readonly _appData: any;
+	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter();
 
@@ -97,7 +97,7 @@ export class Producer extends EnhancedEventEmitter
 			stopTracks: boolean;
 			disableTrackOnPause: boolean;
 			zeroRtpOnPause: boolean;
-			appData: any;
+			appData?: Record<string, unknown>;
 		}
 	)
 	{
@@ -116,7 +116,7 @@ export class Producer extends EnhancedEventEmitter
 		this._stopTracks = stopTracks;
 		this._disableTrackOnPause = disableTrackOnPause;
 		this._zeroRtpOnPause = zeroRtpOnPause;
-		this._appData = appData;
+		this._appData = appData || {};
 		this._onTrackEnded = this._onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
@@ -202,7 +202,7 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): any
+	get appData(): Record<string, unknown>
 	{
 		return this._appData;
 	}
@@ -210,7 +210,8 @@ export class Producer extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData) // eslint-disable-line @typescript-eslint/no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	set appData(appData: Record<string, unknown>)
 	{
 		throw new Error('cannot override appData object');
 	}
