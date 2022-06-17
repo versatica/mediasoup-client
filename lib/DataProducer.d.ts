@@ -6,7 +6,7 @@ export declare type DataProducerOptions = {
     maxRetransmits?: number;
     label?: string;
     protocol?: string;
-    appData?: any;
+    appData?: Record<string, unknown>;
 };
 export declare class DataProducer extends EnhancedEventEmitter {
     private readonly _id;
@@ -27,7 +27,7 @@ export declare class DataProducer extends EnhancedEventEmitter {
         id: string;
         dataChannel: RTCDataChannel;
         sctpStreamParameters: SctpStreamParameters;
-        appData: any;
+        appData?: Record<string, unknown>;
     });
     /**
      * DataProducer id.
@@ -68,11 +68,11 @@ export declare class DataProducer extends EnhancedEventEmitter {
     /**
      * App custom data.
      */
-    get appData(): any;
+    get appData(): Record<string, unknown>;
     /**
      * Invalid setter.
      */
-    set appData(appData: any);
+    set appData(appData: Record<string, unknown>);
     /**
      * Observer.
      *

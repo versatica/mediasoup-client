@@ -48,7 +48,7 @@ export type TransportOptions =
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
-	appData?: any;
+	appData?: Record<string, unknown>;
 }
 
 export type CanProduceByKind =
@@ -170,7 +170,7 @@ export class Transport extends EnhancedEventEmitter
 	// Transport connection state.
 	private _connectionState: ConnectionState = 'new';
 	// App custom data.
-	private readonly _appData: any;
+	private readonly _appData: Record<string, unknown>;
 	// Map of Producers indexed by id.
 	private readonly _producers: Map<string, Producer> = new Map();
 	// Map of Consumers indexed by id.
@@ -259,7 +259,7 @@ export class Transport extends EnhancedEventEmitter
 				extendedRtpCapabilities
 			});
 
-		this._appData = appData;
+		this._appData = appData || {};
 
 		this._handleHandler();
 	}
@@ -307,7 +307,7 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * App custom data.
 	 */
-	get appData(): any
+	get appData(): Record<string, unknown>
 	{
 		return this._appData;
 	}
@@ -315,7 +315,8 @@ export class Transport extends EnhancedEventEmitter
 	/**
 	 * Invalid setter.
 	 */
-	set appData(appData: any) // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	set appData(appData: Record<string, unknown>)
 	{
 		throw new Error('cannot override appData object');
 	}
@@ -912,22 +913,30 @@ export class Transport extends EnhancedEventEmitter
 				// Clear pending pause Consumer map.
 				this._pendingPauseConsumers.clear();
 
-				await this._handler.pauseReceiving(
-					pendingPauseConsumers.map((consumer) => consumer.localId)
-				);
+				try
+				{
+					await this._handler.pauseReceiving(
+						pendingPauseConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
+				}
+
+				this._consumerPauseInProgress = false;
 			},
 			'consumer @pause event')
-			.catch(() => { })
-			.finally(() =>
+			.then(() =>
 			{
-				this._consumerPauseInProgress = false;
-
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
 					this._pausePendingConsumers();
 				}
-			});
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
 	}
 
 	_resumePendingConsumers()
@@ -942,13 +951,19 @@ export class Transport extends EnhancedEventEmitter
 				// Clear pending resume Consumer map.
 				this._pendingResumeConsumers.clear();
 
-				await this._handler.resumeReceiving(
-					pendingResumeConsumers.map((consumer) => consumer.localId)
-				);
+				try
+				{
+					await this._handler.resumeReceiving(
+						pendingResumeConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_resumePendingConsumers() | failed to resume Consumers:', error);
+				}
 			},
 			'consumer @resume event')
-			.catch(() => { })
-			.finally(() =>
+			.then(() =>
 			{
 				this._consumerResumeInProgress = false;
 
@@ -957,7 +972,9 @@ export class Transport extends EnhancedEventEmitter
 				{
 					this._resumePendingConsumers();
 				}
-			});
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
 	}
 
 	_handleHandler(): void

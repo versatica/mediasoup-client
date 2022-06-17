@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.6.51",
+  "version": "3.6.52",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -37,27 +37,27 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/events": "^3.0.0",
-    "awaitqueue": "^2.3.3",
+    "awaitqueue": "^2.4.0",
     "bowser": "^2.11.0",
-    "debug": "^4.3.3",
+    "debug": "^4.3.4",
     "events": "^3.3.0",
     "fake-mediastreamtrack": "^1.1.6",
     "h264-profile-level-id": "^1.0.1",
     "sdp-transform": "^2.14.1",
-    "supports-color": "^9.2.1"
+    "supports-color": "^9.2.2"
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.5",
     "@types/uuid": "^3.4.9",
-    "@typescript-eslint/eslint-plugin": "^5.9.1",
-    "@typescript-eslint/parser": "^5.9.1",
-    "eslint": "^8.6.0",
-    "eslint-plugin-jest": "^25.3.4",
-    "jest": "^27.4.7",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.15.0",
+    "eslint-plugin-jest": "^26.2.2",
+    "jest": "^28.1.0",
     "jest-tobetype": "^1.2.3",
     "open-cli": "^7.0.1",
-    "tsc-watch": "^4.6.0",
-    "typescript": "^4.5.4",
+    "tsc-watch": "^5.0.3",
+    "typescript": "^4.6.4",
     "uuid": "^3.4.0"
   }
 }

@@ -465,7 +465,7 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: TransportOptions
 	): Transport
 	{
@@ -504,7 +504,7 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: TransportOptions
 	): Transport
 	{
@@ -538,7 +538,7 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: InternalTransportOptions
 	): Transport
 	{

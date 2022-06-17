@@ -8,7 +8,7 @@ export declare type ProducerOptions = {
     stopTracks?: boolean;
     disableTrackOnPause?: boolean;
     zeroRtpOnPause?: boolean;
-    appData?: any;
+    appData?: Record<string, unknown>;
 };
 export declare type ProducerCodecOptions = {
     opusStereo?: boolean;
@@ -54,7 +54,7 @@ export declare class Producer extends EnhancedEventEmitter {
         stopTracks: boolean;
         disableTrackOnPause: boolean;
         zeroRtpOnPause: boolean;
-        appData: any;
+        appData?: Record<string, unknown>;
     });
     /**
      * Producer id.
@@ -97,11 +97,11 @@ export declare class Producer extends EnhancedEventEmitter {
     /**
      * App custom data.
      */
-    get appData(): any;
+    get appData(): Record<string, unknown>;
     /**
      * Invalid setter.
      */
-    set appData(appData: any);
+    set appData(appData: Record<string, unknown>);
     /**
      * Observer.
      *

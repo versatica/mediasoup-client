@@ -5,7 +5,7 @@ export declare type ConsumerOptions = {
     producerId?: string;
     kind?: 'audio' | 'video';
     rtpParameters: RtpParameters;
-    appData?: any;
+    appData?: Record<string, unknown>;
 };
 export declare class Consumer extends EnhancedEventEmitter {
     private readonly _id;
@@ -33,7 +33,7 @@ export declare class Consumer extends EnhancedEventEmitter {
         rtpReceiver?: RTCRtpReceiver;
         track: MediaStreamTrack;
         rtpParameters: RtpParameters;
-        appData: any;
+        appData?: Record<string, unknown>;
     });
     /**
      * Consumer id.
@@ -74,11 +74,11 @@ export declare class Consumer extends EnhancedEventEmitter {
     /**
      * App custom data.
      */
-    get appData(): any;
+    get appData(): Record<string, unknown>;
     /**
      * Invalid setter.
      */
-    set appData(appData: any);
+    set appData(appData: Record<string, unknown>);
     /**
      * Observer.
      *
