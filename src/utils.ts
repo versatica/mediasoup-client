@@ -3,7 +3,6 @@
  */
 export function clone(data: any, defaultValue: any): any
 {
-
 	if (typeof data === 'undefined')
 		return defaultValue;
 
