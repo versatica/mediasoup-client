@@ -18,7 +18,8 @@ import {
 import {
 	IceParameters,
 	DtlsParameters,
-	DtlsRole
+	DtlsRole,
+	ConnectionState
 } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
@@ -126,7 +127,7 @@ export class FakeHandler extends HandlerInterface
 	}
 
 	// NOTE: Custom method for simulation purposes.
-	setConnectionState(connectionState: string): void
+	setConnectionState(connectionState: ConnectionState): void
 	{
 		this.emit('@connectionstatechange', connectionState);
 	}
@@ -422,7 +423,7 @@ export class FakeHandler extends HandlerInterface
 		this.emit('@connectionstatechange', 'connecting');
 
 		// Need to tell the remote transport about our parameters.
-		await new Promise((resolve, reject) => (
+		await new Promise<void>((resolve, reject) => (
 			this.emit('@connect', { dtlsParameters }, resolve, reject)
 		));
 

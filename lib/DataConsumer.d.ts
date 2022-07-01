@@ -8,22 +8,25 @@ export declare type DataConsumerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare class DataConsumer extends EnhancedEventEmitter {
+export declare type DataConsumerEvents = {
+    transportclose: [];
+    open: [];
+    error: [Error];
+    close: [];
+    message: [any];
+    '@close': [];
+};
+export declare type DataConsumerObserverEvents = {
+    close: [];
+};
+export declare class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents> {
     private readonly _id;
     private readonly _dataProducerId;
     private readonly _dataChannel;
     private _closed;
     private readonly _sctpStreamParameters;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
-    /**
-     * @emits transportclose
-     * @emits open
-     * @emits error - (error: Error)
-     * @emits close
-     * @emits message - (message: any)
-     * @emits @close
-     */
+    protected readonly _observer: EnhancedEventEmitter<DataConsumerObserverEvents>;
     constructor({ id, dataProducerId, dataChannel, sctpStreamParameters, appData }: {
         id: string;
         dataProducerId: string;
@@ -75,11 +78,6 @@ export declare class DataConsumer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: Record<string, unknown>);
-    /**
-     * Observer.
-     *
-     * @emits close
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Closes the DataConsumer.

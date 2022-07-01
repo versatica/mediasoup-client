@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { ProducerCodecOptions } from '../Producer';
-import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, ConnectionState } from '../Transport';
 import { RtpCapabilities, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 export declare type HandlerFactory = () => HandlerInterface;
@@ -50,15 +50,17 @@ export declare type HandlerReceiveDataChannelOptions = {
 export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;
 };
-export declare abstract class HandlerInterface extends EnhancedEventEmitter {
-    /**
-     * @emits @connect - (
-     *     { dtlsParameters: DtlsParameters },
-     *     callback: Function,
-     *     errback: Function
-     *   )
-     * @emits @connectionstatechange - (connectionState: ConnectionState)
-     */
+export declare type HandlerEvents = {
+    '@connect': [
+        {
+            dtlsParameters: DtlsParameters;
+        },
+        () => void,
+        (error: Error) => void
+    ];
+    '@connectionstatechange': [ConnectionState];
+};
+export declare abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents> {
     constructor();
     abstract get name(): string;
     abstract close(): void;
