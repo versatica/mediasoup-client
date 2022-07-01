@@ -3,7 +3,8 @@ import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
 	IceCandidate,
-	DtlsParameters
+	DtlsParameters,
+	ConnectionState
 } from '../Transport';
 import {
 	RtpCapabilities,
@@ -82,16 +83,19 @@ export type HandlerReceiveDataChannelResult =
 	dataChannel: RTCDataChannel;
 }
 
-export abstract class HandlerInterface extends EnhancedEventEmitter
+export type HandlerEvents =
 {
-	/**
-	 * @emits @connect - (
-	 *     { dtlsParameters: DtlsParameters },
-	 *     callback: Function,
-	 *     errback: Function
-	 *   )
-	 * @emits @connectionstatechange - (connectionState: ConnectionState)
-	 */
+	'@connect':
+	[
+		{ dtlsParameters: DtlsParameters },
+		() => void,
+		(error: Error) => void
+	];
+	'@connectionstatechange': [ConnectionState];
+}
+
+export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents>
+{
 	constructor()
 	{
 		super();

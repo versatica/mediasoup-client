@@ -7,7 +7,21 @@ export declare type ConsumerOptions = {
     rtpParameters: RtpParameters;
     appData?: Record<string, unknown>;
 };
-export declare class Consumer extends EnhancedEventEmitter {
+export declare type ConsumerEvents = {
+    transportclose: [];
+    trackended: [];
+    '@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
+    '@close': [];
+    '@pause': [];
+    '@resume': [];
+};
+export declare type ConsumerObserverEvents = {
+    close: [];
+    pause: [];
+    resume: [];
+    trackended: [];
+};
+export declare class Consumer extends EnhancedEventEmitter<ConsumerEvents> {
     private readonly _id;
     private readonly _localId;
     private readonly _producerId;
@@ -17,15 +31,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     private readonly _rtpParameters;
     private _paused;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
-    /**
-     * @emits transportclose
-     * @emits trackended
-     * @emits @getstats
-     * @emits @close
-     * @emits @pause
-     * @emits @resume
-     */
+    protected readonly _observer: EnhancedEventEmitter<ConsumerObserverEvents>;
     constructor({ id, localId, producerId, rtpReceiver, track, rtpParameters, appData }: {
         id: string;
         localId: string;
@@ -79,14 +85,6 @@ export declare class Consumer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: Record<string, unknown>);
-    /**
-     * Observer.
-     *
-     * @emits close
-     * @emits pause
-     * @emits resume
-     * @emits trackended
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Closes the Consumer.

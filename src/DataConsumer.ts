@@ -2,6 +2,8 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
 
+const logger = new Logger('DataConsumer');
+
 export type DataConsumerOptions =
 {
 	id?: string;
@@ -12,9 +14,23 @@ export type DataConsumerOptions =
 	appData?: Record<string, unknown>;
 }
 
-const logger = new Logger('DataConsumer');
+export type DataConsumerEvents =
+{
+	transportclose: [];
+	open: [];
+	error: [Error];
+	close: [];
+	message: [any];
+	// Private events.
+	'@close': [];
+}
 
-export class DataConsumer extends EnhancedEventEmitter
+export type DataConsumerObserverEvents =
+{
+	close: [];
+}
+
+export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -29,16 +45,8 @@ export class DataConsumer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DataConsumerObserverEvents>();
 
-	/**
-	 * @emits transportclose
-	 * @emits open
-	 * @emits error - (error: Error)
-	 * @emits close
-	 * @emits message - (message: any)
-	 * @emits @close
-	 */
 	constructor(
 		{
 			id,
@@ -158,11 +166,6 @@ export class DataConsumer extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;

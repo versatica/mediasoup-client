@@ -8,21 +8,24 @@ export declare type DataProducerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare class DataProducer extends EnhancedEventEmitter {
+export declare type DataProducerEvents = {
+    transportclose: [];
+    open: [];
+    error: [Error];
+    close: [];
+    bufferedamountlow: [];
+    '@close': [];
+};
+export declare type DataProducerObserverEvents = {
+    close: [];
+};
+export declare class DataProducer extends EnhancedEventEmitter<DataProducerEvents> {
     private readonly _id;
     private readonly _dataChannel;
     private _closed;
     private readonly _sctpStreamParameters;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
-    /**
-     * @emits transportclose
-     * @emits open
-     * @emits error - (error: Error)
-     * @emits close
-     * @emits bufferedamountlow
-     * @emits @close
-     */
+    protected readonly _observer: EnhancedEventEmitter<DataProducerObserverEvents>;
     constructor({ id, dataChannel, sctpStreamParameters, appData }: {
         id: string;
         dataChannel: RTCDataChannel;
@@ -73,11 +76,6 @@ export declare class DataProducer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: Record<string, unknown>);
-    /**
-     * Observer.
-     *
-     * @emits close
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Closes the DataProducer.

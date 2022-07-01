@@ -894,7 +894,15 @@ export class Safari11 extends HandlerInterface
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		this._transportReady = true;
 	}

@@ -9,7 +9,10 @@ import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { SctpParameters } from './SctpParameters';
+import { RtpParameters, MediaKind } from './RtpParameters';
+import { SctpParameters, SctpStreamParameters } from './SctpParameters';
+
+const logger = new Logger('Transport');
 
 interface InternalTransportOptions extends TransportOptions
 {
@@ -29,7 +32,7 @@ class ConsumerCreationTask
 	constructor(consumerOptions: ConsumerOptions)
 	{
 		this.consumerOptions = consumerOptions;
-		this.promise = new Promise((resolve, reject) =>
+		this.promise = new Promise<Consumer>((resolve, reject) =>
 		{
 			this.resolve = resolve;
 			this.reject = reject;
@@ -148,9 +151,43 @@ export type PlainRtpParameters =
 	port: number;
 };
 
-const logger = new Logger('Transport');
+export type TransportEvents =
+{
+	connect: [{ dtlsParameters: DtlsParameters }, () => void, (error: Error) => void];
+	connectionstatechange: [ConnectionState];
+	produce:
+	[
+		{
+			kind: MediaKind;
+			rtpParameters: RtpParameters;
+			appData: Record<string, unknown>;
+		},
+		({ id }: { id: string }) => void,
+		(error: Error) => void
+	];
+	producedata:
+	[
+		{
+			sctpStreamParameters: SctpStreamParameters;
+			label?: string;
+			protocol?: string;
+			appData: Record<string, unknown>;
+		},
+		({ id }: { id: string }) => void,
+		(error: Error) => void
+	];
+};
 
-export class Transport extends EnhancedEventEmitter
+export type TransportObserverEvents =
+{
+	close: [];
+	newproducer: [Producer];
+	newconsumer: [Consumer];
+	newdataproducer: [DataProducer];
+	newdataconsumer: [DataConsumer];
+};
+
+export class Transport extends EnhancedEventEmitter<TransportEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -196,14 +233,8 @@ export class Transport extends EnhancedEventEmitter
 	// Consumer resume in progress flag.
 	private _consumerResumeInProgress = false;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<TransportObserverEvents>();
 
-	/**
-	 * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
-	 * @emits connectionstatechange - (connectionState: ConnectionState)
-	 * @emits produce - (producerLocalParameters: any, callback: Function, errback: Function)
-	 * @emits producedata - (dataProducerLocalParameters: any, callback: Function, errback: Function)
-	 */
 	constructor(
 		{
 			direction,
@@ -321,15 +352,6 @@ export class Transport extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 * @emits newproducer - (producer: Producer)
-	 * @emits newconsumer - (producer: Producer)
-	 * @emits newdataproducer - (dataProducer: DataProducer)
-	 * @emits newdataconsumer - (dataProducer: DataProducer)
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;
@@ -530,13 +552,19 @@ export class Transport extends EnhancedEventEmitter
 					// This will fill rtpParameters's missing fields with default values.
 					ortc.validateRtpParameters(rtpParameters);
 
-					const { id } = await this.safeEmitAsPromise(
-						'produce',
-						{
-							kind : track.kind,
-							rtpParameters,
-							appData
-						});
+					const { id } = await new Promise<{ id: string }>((resolve, reject) =>
+					{
+						this.safeEmit(
+							'produce',
+							{
+								kind : track.kind as MediaKind,
+								rtpParameters,
+								appData
+							},
+							resolve,
+							reject
+						);
+					});
 
 					const producer = new Producer(
 						{
@@ -692,14 +720,20 @@ export class Transport extends EnhancedEventEmitter
 				// This will fill sctpStreamParameters's missing fields with default values.
 				ortc.validateSctpStreamParameters(sctpStreamParameters);
 
-				const { id } = await this.safeEmitAsPromise(
-					'producedata',
-					{
-						sctpStreamParameters,
-						label,
-						protocol,
-						appData
-					});
+				const { id } = await new Promise<{ id: string }>((resolve, reject) =>
+				{
+					this.safeEmit(
+						'producedata',
+						{
+							sctpStreamParameters,
+							label,
+							protocol,
+							appData
+						},
+						resolve,
+						reject
+					);
+				});
 
 				const dataProducer =
 					new DataProducer({ id, dataChannel, sctpStreamParameters, appData });
@@ -983,8 +1017,8 @@ export class Transport extends EnhancedEventEmitter
 
 		handler.on('@connect', (
 			{ dtlsParameters }: { dtlsParameters: DtlsParameters },
-			callback: Function,
-			errback: Function
+			callback: () => void,
+			errback: (error: Error) => void
 		) =>
 		{
 			if (this._closed)
@@ -1058,7 +1092,7 @@ export class Transport extends EnhancedEventEmitter
 		producer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
-				return errback(new InvalidStateError('closed'));
+				return errback!(new InvalidStateError('closed'));
 
 			this._handler.getSenderStats(producer.localId)
 				.then(callback)
@@ -1122,7 +1156,7 @@ export class Transport extends EnhancedEventEmitter
 		consumer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
-				return errback(new InvalidStateError('closed'));
+				return errback!(new InvalidStateError('closed'));
 
 			this._handler.getReceiverStats(consumer.localId)
 				.then(callback)

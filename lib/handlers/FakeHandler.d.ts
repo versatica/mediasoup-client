@@ -1,5 +1,5 @@
 import { HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
-import { IceParameters, DtlsParameters } from '../Transport';
+import { IceParameters, DtlsParameters, ConnectionState } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 export declare type FakeParameters = {
@@ -22,7 +22,7 @@ export declare class FakeHandler extends HandlerInterface {
     constructor(fakeParameters: any);
     get name(): string;
     close(): void;
-    setConnectionState(connectionState: string): void;
+    setConnectionState(connectionState: ConnectionState): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;

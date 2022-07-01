@@ -605,7 +605,15 @@ export class Edge11 extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		// Start the RTCIceTransport.
 		this._iceTransport.start(
