@@ -295,15 +295,14 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		if (this._closed)
 			throw new InvalidStateError('closed');
 
-		return new Promise<RTCStatsReport>(
-			(resolve: (stats: RTCStatsReport) => void, reject) =>
-			{
-				this.safeEmit(
-					'@getstats',
-					resolve,
-					reject
-				);
-			});
+		return new Promise<RTCStatsReport>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@getstats',
+				resolve,
+				reject
+			);
+		});
 	}
 
 	/**

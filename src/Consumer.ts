@@ -236,7 +236,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		if (this._closed)
 			throw new InvalidStateError('closed');
 
-		return new Promise((resolve, reject) =>
+		return new Promise<RTCStatsReport>((resolve, reject) =>
 		{
 			this.safeEmit(
 				'@getstats',

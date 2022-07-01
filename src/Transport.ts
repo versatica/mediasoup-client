@@ -32,7 +32,7 @@ class ConsumerCreationTask
 	constructor(consumerOptions: ConsumerOptions)
 	{
 		this.consumerOptions = consumerOptions;
-		this.promise = new Promise((resolve, reject) =>
+		this.promise = new Promise<Consumer>((resolve, reject) =>
 		{
 			this.resolve = resolve;
 			this.reject = reject;
