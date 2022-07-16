@@ -821,11 +821,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	// This method is guaranteed to never throw.
 	async _createPendingConsumers(): Promise<void>
 	{
+		this._consumerCreationInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerCreationInProgress = true;
-
 				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
 
 				// Clear pending Consumer tasks.
