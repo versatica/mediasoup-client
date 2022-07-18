@@ -848,6 +848,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 					});
 				}
 
+				if (optionsList.length === 0)
+				{
+					logger.debug('_createPendingConsumers() | There is no consumer to be created');
+
+					return;
+				}
+
 				try
 				{
 					const results = await this._handler.receive(optionsList);
@@ -919,12 +926,12 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 							error);
 					}
 				}
-
-				this._consumerCreationInProgress = false;
 			},
 			'transport._createPendingConsumers()')
 			.then(() =>
 			{
+				this._consumerCreationInProgress = false;
+
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0)
 				{
@@ -947,22 +954,31 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				// Clear pending pause Consumer map.
 				this._pendingPauseConsumers.clear();
 
+				const localIds = pendingPauseConsumers
+					.filter((consumer) => !consumer.paused)
+					.map((consumer) => consumer.localId);
+
+				if (localIds.length === 0)
+				{
+					logger.debug('_pausePendingConsumers() | There is no consumer to be paused');
+
+					return;
+				}
+
 				try
 				{
-					await this._handler.pauseReceiving(
-						pendingPauseConsumers.map((consumer) => consumer.localId)
-					);
+					await this._handler.pauseReceiving(localIds);
 				}
 				catch (error)
 				{
 					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
 				}
-
-				this._consumerPauseInProgress = false;
 			},
 			'consumer @pause event')
 			.then(() =>
 			{
+				this._consumerPauseInProgress = false;
+
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
@@ -984,6 +1000,17 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				// Clear pending resume Consumer map.
 				this._pendingResumeConsumers.clear();
+
+				const localIds = pendingResumeConsumers
+					.filter((consumer) => consumer.paused)
+					.map((consumer) => consumer.localId);
+
+				if (localIds.length === 0)
+				{
+					logger.debug('_resumePendingConsumers() | There is no consumer to be resumed');
+
+					return;
+				}
 
 				try
 				{
