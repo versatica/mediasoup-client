@@ -821,11 +821,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	// This method is guaranteed to never throw.
 	async _createPendingConsumers(): Promise<void>
 	{
+		this._consumerCreationInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerCreationInProgress = true;
-
 				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
 
 				// Clear pending Consumer tasks.
@@ -937,11 +937,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 	_pausePendingConsumers()
 	{
+		this._consumerPauseInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerPauseInProgress = true;
-
 				const pendingPauseConsumers = Array.from(this._pendingPauseConsumers.values());
 
 				// Clear pending pause Consumer map.
@@ -975,11 +975,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 	_resumePendingConsumers()
 	{
+		this._consumerResumeInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerResumeInProgress = true;
-
 				const pendingResumeConsumers = Array.from(this._pendingResumeConsumers.values());
 
 				// Clear pending resume Consumer map.
