@@ -260,7 +260,8 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 			return;
 		}
 
-		if (this._paused) {
+		if (this._paused)
+		{
 			logger.debug('pause() | Consumer is already paused');
 
 			return;
@@ -289,7 +290,8 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 			return;
 		}
 
-		if (!this._paused) {
+		if (!this._paused)
+		{
 			logger.debug('pause() | Consumer is already resumed');
 
 			return;
