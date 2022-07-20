@@ -955,7 +955,6 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				this._pendingPauseConsumers.clear();
 
 				const localIds = pendingPauseConsumers
-					.filter((consumer) => !consumer.paused)
 					.map((consumer) => consumer.localId);
 
 				if (localIds.length === 0)
@@ -1002,7 +1001,6 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				this._pendingResumeConsumers.clear();
 
 				const localIds = pendingResumeConsumers
-					.filter((consumer) => consumer.paused)
 					.map((consumer) => consumer.localId);
 
 				if (localIds.length === 0)
