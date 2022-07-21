@@ -40,7 +40,7 @@ export declare class Edge11 extends HandlerInterface {
     getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
-    stopReceiving(localId: string): Promise<void>;
+    stopReceiving(localIds: string[]): Promise<void>;
     pauseReceiving(localIds: string[]): Promise<void>;
     resumeReceiving(localIds: string[]): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;

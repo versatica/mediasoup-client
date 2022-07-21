@@ -143,7 +143,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 
-	abstract stopReceiving(localId: string): Promise<void>;
+	abstract stopReceiving(localIds: string[]): Promise<void>;
 
 	abstract pauseReceiving(localIds: string[]): Promise<void>;
 
