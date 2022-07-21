@@ -292,7 +292,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 
 		if (!this._paused)
 		{
-			logger.debug('pause() | Consumer is already resumed');
+			logger.debug('resume() | Consumer is already resumed');
 
 			return;
 		}

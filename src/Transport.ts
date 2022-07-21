@@ -850,7 +850,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				if (optionsList.length === 0)
 				{
-					logger.debug('_createPendingConsumers() | There is no consumer to be created');
+					logger.debug('_createPendingConsumers() | there is no consumer to be created');
 
 					return;
 				}
@@ -959,7 +959,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				if (localIds.length === 0)
 				{
-					logger.debug('_pausePendingConsumers() | There is no consumer to be paused');
+					logger.debug('_pausePendingConsumers() | there is no consumer to be paused');
 
 					return;
 				}
@@ -1005,7 +1005,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				if (localIds.length === 0)
 				{
-					logger.debug('_resumePendingConsumers() | There is no consumer to be resumed');
+					logger.debug('_resumePendingConsumers() | there is no consumer to be resumed');
 
 					return;
 				}
