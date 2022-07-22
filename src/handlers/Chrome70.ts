@@ -758,18 +758,21 @@ export class Chrome70 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		this._remoteSdp!.closeMediaSection(transceiver.mid!);
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -787,7 +790,10 @@ export class Chrome70 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		this._mapMidTransceiver.delete(localId);
+		for (const localId of localIds)
+		{
+			this._mapMidTransceiver.delete(localId);
+		}
 	}
 
 	async pauseReceiving(

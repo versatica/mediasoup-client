@@ -415,26 +415,29 @@ export class Edge11 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
-
-		const rtpReceiver = this._rtpReceivers.get(localId);
-
-		if (!rtpReceiver)
-			throw new Error('RTCRtpReceiver not found');
-
-		this._rtpReceivers.delete(localId);
-
-		try
+		for (const localId of localIds)
 		{
-			logger.debug('stopReceiving() | calling rtpReceiver.stop()');
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-			(rtpReceiver as any).stop();
-		}
-		catch (error)
-		{
-			logger.warn('stopReceiving() | rtpReceiver.stop() failed:%o', error);
+			const rtpReceiver = this._rtpReceivers.get(localId);
+
+			if (!rtpReceiver)
+				throw new Error('RTCRtpReceiver not found');
+
+			this._rtpReceivers.delete(localId);
+
+			try
+			{
+				logger.debug('stopReceiving() | calling rtpReceiver.stop()');
+
+				(rtpReceiver as any).stop();
+			}
+			catch (error)
+			{
+				logger.warn('stopReceiving() | rtpReceiver.stop() failed:%o', error);
+			}
 		}
 	}
 
