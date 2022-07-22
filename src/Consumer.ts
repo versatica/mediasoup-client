@@ -260,6 +260,13 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 			return;
 		}
 
+		if (this._paused)
+		{
+			logger.debug('pause() | Consumer is already paused');
+
+			return;
+		}
+
 		this._paused = true;
 		this._track.enabled = false;
 
@@ -279,6 +286,13 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		if (this._closed)
 		{
 			logger.error('resume() | Consumer closed');
+
+			return;
+		}
+
+		if (!this._paused)
+		{
+			logger.debug('resume() | Consumer is already resumed');
 
 			return;
 		}

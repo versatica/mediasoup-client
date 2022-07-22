@@ -830,6 +830,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingConsumerTasks.length === 0)
+				{
+					logger.debug('_createPendingConsumers() | there is no Consumer to be created');
+
+					return;
+				}
+
 				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
 
 				// Clear pending Consumer tasks.
@@ -923,12 +930,12 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 							error);
 					}
 				}
-
-				this._consumerCreationInProgress = false;
 			},
 			'transport._createPendingConsumers()')
 			.then(() =>
 			{
+				this._consumerCreationInProgress = false;
+
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0)
 				{
@@ -946,6 +953,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingPauseConsumers.size === 0)
+				{
+					logger.debug('_pausePendingConsumers() | there is no Consumer to be paused');
+
+					return;
+				}
+
 				const pendingPauseConsumers = Array.from(this._pendingPauseConsumers.values());
 
 				// Clear pending pause Consumer map.
@@ -953,20 +967,21 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				try
 				{
-					await this._handler.pauseReceiving(
-						pendingPauseConsumers.map((consumer) => consumer.localId)
-					);
+					const localIds = pendingPauseConsumers
+						.map((consumer) => consumer.localId);
+
+					await this._handler.pauseReceiving(localIds);
 				}
 				catch (error)
 				{
 					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
 				}
-
-				this._consumerPauseInProgress = false;
 			},
 			'transport._pausePendingConsumers')
 			.then(() =>
 			{
+				this._consumerPauseInProgress = false;
+
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
@@ -984,6 +999,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingResumeConsumers.size === 0)
+				{
+					logger.debug('_resumePendingConsumers() | there is no Consumer to be resumed');
+					
+					return;
+				}
+
 				const pendingResumeConsumers = Array.from(this._pendingResumeConsumers.values());
 
 				// Clear pending resume Consumer map.
@@ -991,9 +1013,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				try
 				{
-					await this._handler.resumeReceiving(
-						pendingResumeConsumers.map((consumer) => consumer.localId)
-					);
+					const localIds = pendingResumeConsumers
+						.map((consumer) => consumer.localId);
+
+					await this._handler.resumeReceiving(localIds);
 				}
 				catch (error)
 				{
@@ -1022,6 +1045,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingCloseConsumers.size === 0)
+				{
+					logger.debug('_closePendingConsumers() | there is no Consumer to be closed');
+					
+					return;
+				}
+
 				const pendingCloseConsumers = Array.from(this._pendingCloseConsumers.values());
 
 				// Clear pending close Consumer map.
