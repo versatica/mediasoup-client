@@ -826,6 +826,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingConsumerTasks.length === 0)
+				{
+					logger.debug('_createPendingConsumers() | there is no Consumer to be created');
+
+					return;
+				}
+
 				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
 
 				// Clear pending Consumer tasks.
@@ -846,13 +853,6 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 						kind    : kind as 'audio' | 'video',
 						rtpParameters
 					});
-				}
-
-				if (optionsList.length === 0)
-				{
-					logger.debug('_createPendingConsumers() | there is no consumer to be created');
-
-					return;
 				}
 
 				try
