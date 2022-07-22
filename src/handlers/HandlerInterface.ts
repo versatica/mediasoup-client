@@ -121,6 +121,10 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract stopSending(localId: string): Promise<void>;
 
+	abstract pauseSending(localId: string): Promise<void>;
+
+	abstract resumeSending(localId: string): Promise<void>;
+
 	abstract replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>;

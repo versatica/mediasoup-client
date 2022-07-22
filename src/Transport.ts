@@ -1131,6 +1131,24 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
 
+		producer.on('@pause', (callback, errback) =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.pauseSending(producer.localId),
+				'producer @pause event')
+				.then(callback)
+				.catch(errback);
+		});
+
+		producer.on('@resume', (callback, errback) =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.resumeSending(producer.localId),
+				'producer @resume event')
+				.then(callback)
+				.catch(errback);
+		});
+
 		producer.on('@replacetrack', (track, callback, errback) =>
 		{
 			this._awaitQueue.push(
