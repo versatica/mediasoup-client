@@ -1045,6 +1045,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._awaitQueue.push(
 			async () =>
 			{
+				if (this._pendingCloseConsumers.size === 0)
+				{
+					logger.debug('_closePendingConsumers() | there is no Consumer to be closed');
+					
+					return;
+				}
+
 				const pendingCloseConsumers = Array.from(this._pendingCloseConsumers.values());
 
 				// Clear pending close Consumer map.
