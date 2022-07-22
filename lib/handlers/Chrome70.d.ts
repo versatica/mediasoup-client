@@ -35,7 +35,7 @@ export declare class Chrome70 extends HandlerInterface {
     getSenderStats(localId: string): Promise<RTCStatsReport>;
     sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
-    stopReceiving(localId: string): Promise<void>;
+    stopReceiving(localIds: string[]): Promise<void>;
     pauseReceiving(localIds: string[]): Promise<void>;
     resumeReceiving(localIds: string[]): Promise<void>;
     getReceiverStats(localId: string): Promise<RTCStatsReport>;

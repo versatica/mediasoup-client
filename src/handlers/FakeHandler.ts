@@ -350,11 +350,14 @@ export class FakeHandler extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		this._tracks.delete(Number(localId));
+			this._tracks.delete(Number(localId));
+		}
 	}
 
 	async pauseReceiving(

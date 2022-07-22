@@ -232,6 +232,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	private _pendingResumeConsumers: Map<string, Consumer> = new Map();
 	// Consumer resume in progress flag.
 	private _consumerResumeInProgress = false;
+	// Consumers pending to be closed.
+	private _pendingCloseConsumers: Map<string, Consumer> = new Map();
+	// Consumer close in progress flag.
+	private _consumerCloseInProgress = false;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter<TransportObserverEvents>();
 
@@ -973,7 +977,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
 				}
 			},
-			'consumer @pause event')
+			'transport._pausePendingConsumers')
 			.then(() =>
 			{
 				this._consumerPauseInProgress = false;
@@ -1019,7 +1023,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 					logger.error('_resumePendingConsumers() | failed to resume Consumers:', error);
 				}
 			},
-			'consumer @resume event')
+			'transport._resumePendingConsumers')
 			.then(() =>
 			{
 				this._consumerResumeInProgress = false;
@@ -1034,6 +1038,43 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			.catch(() => { });
 	}
 
+	_closePendingConsumers()
+	{
+		this._consumerCloseInProgress = true;
+
+		this._awaitQueue.push(
+			async () =>
+			{
+				const pendingCloseConsumers = Array.from(this._pendingCloseConsumers.values());
+
+				// Clear pending close Consumer map.
+				this._pendingCloseConsumers.clear();
+
+				try
+				{
+					await this._handler.stopReceiving(
+						pendingCloseConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_closePendingConsumers() | failed to close Consumers:', error);
+				}
+			},
+			'transport._closePendingConsumers')
+			.then(() =>
+			{
+				this._consumerCloseInProgress = false;
+
+				// There are pending Consumer to be resumed, do it.
+				if (this._pendingCloseConsumers.size > 0)
+				{
+					this._closePendingConsumers();
+				}
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
+	}
 	_handleHandler(): void
 	{
 		const handler = this._handler;
@@ -1134,10 +1175,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			if (this._closed)
 				return;
 
-			this._awaitQueue.push(
-				async () => this._handler.stopReceiving(consumer.localId),
-				'consumer @close event')
-				.catch(() => {});
+			// Store the Consumer into the close list.
+			this._pendingCloseConsumers.set(consumer.id, consumer);
+
+			// There is no Consumer close in progress, do it now.
+			if (this._consumerCloseInProgress === false)
+			{
+				this._closePendingConsumers();
+			}
 		});
 
 		consumer.on('@pause', () =>

@@ -751,19 +751,22 @@ export class Chrome67 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
+			const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
 
-		// Remove from the map.
-		this._mapRecvLocalIdInfo.delete(localId);
+			// Remove from the map.
+			this._mapRecvLocalIdInfo.delete(localId);
 
-		this._remoteSdp!.planBStopReceiving(
-			{ mid: mid!, offerRtpParameters: rtpParameters! });
+			this._remoteSdp!.planBStopReceiving(
+				{ mid: mid!, offerRtpParameters: rtpParameters! });
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 

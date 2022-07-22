@@ -159,6 +159,8 @@ export declare class Transport extends EnhancedEventEmitter<TransportEvents> {
     private _consumerPauseInProgress;
     private _pendingResumeConsumers;
     private _consumerResumeInProgress;
+    private _pendingCloseConsumers;
+    private _consumerCloseInProgress;
     protected readonly _observer: EnhancedEventEmitter<TransportObserverEvents>;
     constructor({ direction, id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData, handlerFactory, extendedRtpCapabilities, canProduceByKind }: InternalTransportOptions);
     /**
@@ -231,6 +233,7 @@ export declare class Transport extends EnhancedEventEmitter<TransportEvents> {
     _createPendingConsumers(): Promise<void>;
     _pausePendingConsumers(): void;
     _resumePendingConsumers(): void;
+    _closePendingConsumers(): void;
     _handleHandler(): void;
     _handleProducer(producer: Producer): void;
     _handleConsumer(consumer: Consumer): void;
