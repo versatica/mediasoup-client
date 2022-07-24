@@ -138,7 +138,7 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 	 */
 	get binaryType(): BinaryType
 	{
-		return this._dataChannel.binaryType;
+		return this._dataChannel.binaryType as BinaryType;
 	}
 
 	/**
