@@ -339,18 +339,6 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 			new Promise<void>((resolve, reject) =>
 			{
 				this.safeEmit(
-					'@replacetrack',
-					null,
-					resolve,
-					reject
-				);
-			}).catch(() => {});
-		}
-		else
-		{
-			new Promise<void>((resolve, reject) =>
-			{
-				this.safeEmit(
 					'@pause',
 					resolve,
 					reject
@@ -384,18 +372,6 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		}
 
 		if (this._zeroRtpOnPause)
-		{
-			new Promise<void>((resolve, reject) =>
-			{
-				this.safeEmit(
-					'@replacetrack',
-					this._track,
-					resolve,
-					reject
-				);
-			}).catch(() => {});
-		}
-		else
 		{
 			new Promise<void>((resolve, reject) =>
 			{
