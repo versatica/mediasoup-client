@@ -41,6 +41,14 @@ export type ProducerEvents =
 	transportclose: [];
 	trackended: [];
 	// Private events.
+	'@pause': [
+		() => void,
+		(error: Error) => void
+	];
+	'@resume': [
+		() => void,
+		(error: Error) => void
+	];
 	'@replacetrack':
 	[
 		MediaStreamTrack | null,
@@ -331,8 +339,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 			new Promise<void>((resolve, reject) =>
 			{
 				this.safeEmit(
-					'@replacetrack',
-					null,
+					'@pause',
 					resolve,
 					reject
 				);
@@ -369,8 +376,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 			new Promise<void>((resolve, reject) =>
 			{
 				this.safeEmit(
-					'@replacetrack',
-					this._track,
+					'@resume',
 					resolve,
 					reject
 				);

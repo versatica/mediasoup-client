@@ -24,6 +24,14 @@ export declare type ProducerCodecOptions = {
 export declare type ProducerEvents = {
     transportclose: [];
     trackended: [];
+    '@pause': [
+        () => void,
+        (error: Error) => void
+    ];
+    '@resume': [
+        () => void,
+        (error: Error) => void
+    ];
     '@replacetrack': [
         MediaStreamTrack | null,
         () => void,
