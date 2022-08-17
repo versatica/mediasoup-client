@@ -51,6 +51,7 @@ export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;
 };
 export declare type HandlerEvents = {
+    '@close': [];
     '@connect': [
         {
             dtlsParameters: DtlsParameters;

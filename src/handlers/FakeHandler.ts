@@ -65,6 +65,7 @@ class FakeDataChannel extends EnhancedEventEmitter
 	close(): void
 	{
 		this.safeEmit('close');
+		this.emit('@close');
 	}
 
 	send(data: any): void

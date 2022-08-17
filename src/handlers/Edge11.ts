@@ -102,6 +102,8 @@ export class Edge11 extends HandlerInterface
 			try { (rtpReceiver as any).stop(); }
 			catch (error) {}
 		}
+
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
