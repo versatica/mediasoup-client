@@ -419,18 +419,15 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 			return;
 		}
 
-		if (!this._zeroRtpOnPause || !this._paused)
+		await new Promise<void>((resolve, reject) =>
 		{
-			await new Promise<void>((resolve, reject) =>
-			{
-				this.safeEmit(
-					'@replacetrack',
-					track,
-					resolve,
-					reject
-				);
-			});
-		}
+			this.safeEmit(
+				'@replacetrack',
+				track,
+				resolve,
+				reject
+			);
+		});
 
 		// Destroy the previous track.
 		this._destroyTrack();
