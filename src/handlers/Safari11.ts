@@ -95,6 +95,8 @@ export class Safari11 extends HandlerInterface
 			try { this._pc.close(); }
 			catch (error) {}
 		}
+
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
@@ -477,6 +479,18 @@ export class Safari11 extends HandlerInterface
 		await this._pc.setRemoteDescription(answer);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
@@ -745,19 +759,22 @@ export class Safari11 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
+			const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
 
-		// Remove from the map.
-		this._mapRecvLocalIdInfo.delete(localId);
+			// Remove from the map.
+			this._mapRecvLocalIdInfo.delete(localId);
 
-		this._remoteSdp!.planBStopReceiving(
-			{ mid: mid!, offerRtpParameters: rtpParameters! });
+			this._remoteSdp!.planBStopReceiving(
+				{ mid: mid!, offerRtpParameters: rtpParameters! });
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -894,7 +911,15 @@ export class Safari11 extends HandlerInterface
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		this._transportReady = true;
 	}

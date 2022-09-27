@@ -3,6 +3,8 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { SctpStreamParameters } from './SctpParameters';
 
+const logger = new Logger('DataProducer');
+
 export type DataProducerOptions =
 {
 	ordered?: boolean;
@@ -13,9 +15,23 @@ export type DataProducerOptions =
 	appData?: Record<string, unknown>;
 }
 
-const logger = new Logger('DataProducer');
+export type DataProducerEvents =
+{
+	transportclose: [];
+	open: [];
+	error: [Error];
+	close: [];
+	bufferedamountlow: [];
+	// Private events.
+	'@close': [];
+}
 
-export class DataProducer extends EnhancedEventEmitter
+export type DataProducerObserverEvents =
+{
+	close: [];
+}
+
+export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -28,16 +44,8 @@ export class DataProducer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DataProducerObserverEvents>();
 
-	/**
-	 * @emits transportclose
-	 * @emits open
-	 * @emits error - (error: Error)
-	 * @emits close
-	 * @emits bufferedamountlow
-	 * @emits @close
-	 */
 	constructor(
 		{
 			id,
@@ -154,11 +162,6 @@ export class DataProducer extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;

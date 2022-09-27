@@ -83,6 +83,8 @@ export class Chrome70 extends HandlerInterface
 			try { this._pc.close(); }
 			catch (error) {}
 		}
+
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
@@ -498,6 +500,18 @@ export class Chrome70 extends HandlerInterface
 		this._mapMidTransceiver.delete(localId);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
@@ -758,18 +772,21 @@ export class Chrome70 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		this._remoteSdp!.closeMediaSection(transceiver.mid!);
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -787,7 +804,10 @@ export class Chrome70 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		this._mapMidTransceiver.delete(localId);
+		for (const localId of localIds)
+		{
+			this._mapMidTransceiver.delete(localId);
+		}
 	}
 
 	async pauseReceiving(
@@ -909,7 +929,15 @@ export class Chrome70 extends HandlerInterface
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		this._transportReady = true;
 	}

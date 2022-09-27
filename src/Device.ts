@@ -179,6 +179,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 	}
 }
 
+export type DeviceObserverEvents =
+{
+	newtransport: [Transport];
+}
+
 export class Device
 {
 	// RTC handler factory.
@@ -197,7 +202,7 @@ export class Device
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DeviceObserverEvents>();
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
@@ -340,11 +345,6 @@ export class Device
 		return this._sctpCapabilities!;
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits newtransport - (transport: Transport)
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;

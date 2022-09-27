@@ -8,6 +8,8 @@ import {
 	RtpEncodingParameters
 } from './RtpParameters';
 
+const logger = new Logger('Producer');
+
 export type ProducerOptions =
 {
 	track?: MediaStreamTrack;
@@ -34,9 +36,50 @@ export type ProducerCodecOptions =
 	videoGoogleMinBitrate?: number;
 }
 
-const logger = new Logger('Producer');
+export type ProducerEvents =
+{
+	transportclose: [];
+	trackended: [];
+	// Private events.
+	'@pause': [
+		() => void,
+		(error: Error) => void
+	];
+	'@resume': [
+		() => void,
+		(error: Error) => void
+	];
+	'@replacetrack':
+	[
+		MediaStreamTrack | null,
+		() => void,
+		(error: Error) => void
+	];
+	'@setmaxspatiallayer':
+	[
+		number,
+		() => void,
+		(error: Error) => void
+	];
+	'@setrtpencodingparameters':
+	[
+		RTCRtpEncodingParameters,
+		() => void,
+		(error: Error) => void
+	];
+	'@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
+	'@close': [];
+}
 
-export class Producer extends EnhancedEventEmitter
+export type ProducerObserverEvents =
+{
+	close: [];
+	pause: [];
+	resume: [];
+	trackended: [];
+}
+
+export class Producer extends EnhancedEventEmitter<ProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -65,17 +108,8 @@ export class Producer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<ProducerObserverEvents>();
 
-	/**
-	 * @emits transportclose
-	 * @emits trackended
-	 * @emits @replacetrack - (track: MediaStreamTrack | null)
-	 * @emits @setmaxspatiallayer - (spatialLayer: string)
-	 * @emits @setrtpencodingparameters - (params: any)
-	 * @emits @getstats
-	 * @emits @close
-	 */
 	constructor(
 		{
 			id,
@@ -216,14 +250,6 @@ export class Producer extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 * @emits pause
-	 * @emits resume
-	 * @emits trackended
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;
@@ -277,7 +303,14 @@ export class Producer extends EnhancedEventEmitter
 		if (this._closed)
 			throw new InvalidStateError('closed');
 
-		return this.safeEmitAsPromise('@getstats');
+		return new Promise<RTCStatsReport>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@getstats',
+				resolve,
+				reject
+			);
+		});
 	}
 
 	/**
@@ -303,8 +336,14 @@ export class Producer extends EnhancedEventEmitter
 
 		if (this._zeroRtpOnPause)
 		{
-			this.safeEmitAsPromise('@replacetrack', null)
-				.catch(() => {});
+			new Promise<void>((resolve, reject) =>
+			{
+				this.safeEmit(
+					'@pause',
+					resolve,
+					reject
+				);
+			}).catch(() => {});
 		}
 
 		// Emit observer event.
@@ -334,8 +373,14 @@ export class Producer extends EnhancedEventEmitter
 
 		if (this._zeroRtpOnPause)
 		{
-			this.safeEmitAsPromise('@replacetrack', this._track)
-				.catch(() => {});
+			new Promise<void>((resolve, reject) =>
+			{
+				this.safeEmit(
+					'@resume',
+					resolve,
+					reject
+				);
+			}).catch(() => {});
 		}
 
 		// Emit observer event.
@@ -374,10 +419,15 @@ export class Producer extends EnhancedEventEmitter
 			return;
 		}
 
-		if (!this._zeroRtpOnPause || !this._paused)
+		await new Promise<void>((resolve, reject) =>
 		{
-			await this.safeEmitAsPromise('@replacetrack', track);
-		}
+			this.safeEmit(
+				'@replacetrack',
+				track,
+				resolve,
+				reject
+			);
+		});
 
 		// Destroy the previous track.
 		this._destroyTrack();
@@ -414,14 +464,19 @@ export class Producer extends EnhancedEventEmitter
 		if (spatialLayer === this._maxSpatialLayer)
 			return;
 
-		await this.safeEmitAsPromise('@setmaxspatiallayer', spatialLayer);
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@setmaxspatiallayer',
+				spatialLayer,
+				resolve,
+				reject
+			);
+		}).catch(() => {});
 
 		this._maxSpatialLayer = spatialLayer;
 	}
 
-	/**
-	 * Sets the DSCP value.
-	 */
 	async setRtpEncodingParameters(
 		params: RTCRtpEncodingParameters
 	): Promise<void>
@@ -431,7 +486,15 @@ export class Producer extends EnhancedEventEmitter
 		else if (typeof params !== 'object')
 			throw new TypeError('invalid params');
 
-		await this.safeEmitAsPromise('@setrtpencodingparameters', params);
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@setrtpencodingparameters',
+				params,
+				resolve,
+				reject
+			);
+		});
 	}
 
 	private _onTrackEnded(): void

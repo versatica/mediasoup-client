@@ -3,6 +3,8 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { MediaKind, RtpParameters } from './RtpParameters';
 
+const logger = new Logger('Consumer');
+
 export type ConsumerOptions =
 {
 	id?: string;
@@ -12,9 +14,26 @@ export type ConsumerOptions =
 	appData?: Record<string, unknown>;
 }
 
-const logger = new Logger('Consumer');
+export type ConsumerEvents =
+{
+	transportclose: [];
+	trackended: [];
+	// Private events.
+	'@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
+	'@close': [];
+	'@pause': [];
+	'@resume': [];
+}
 
-export class Consumer extends EnhancedEventEmitter
+export type ConsumerObserverEvents =
+{
+	close: [];
+	pause: [];
+	resume: [];
+	trackended: [];
+}
+
+export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -35,16 +54,8 @@ export class Consumer extends EnhancedEventEmitter
 	// App custom data.
 	private readonly _appData: Record<string, unknown>;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<ConsumerObserverEvents>();
 
-	/**
-	 * @emits transportclose
-	 * @emits trackended
-	 * @emits @getstats
-	 * @emits @close
-	 * @emits @pause
-	 * @emits @resume
-	 */
 	constructor(
 		{
 			id,
@@ -172,14 +183,6 @@ export class Consumer extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 * @emits pause
-	 * @emits resume
-	 * @emits trackended
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;
@@ -233,7 +236,14 @@ export class Consumer extends EnhancedEventEmitter
 		if (this._closed)
 			throw new InvalidStateError('closed');
 
-		return this.safeEmitAsPromise('@getstats');
+		return new Promise<RTCStatsReport>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@getstats',
+				resolve,
+				reject
+			);
+		});
 	}
 
 	/**
@@ -246,6 +256,13 @@ export class Consumer extends EnhancedEventEmitter
 		if (this._closed)
 		{
 			logger.error('pause() | Consumer closed');
+
+			return;
+		}
+
+		if (this._paused)
+		{
+			logger.debug('pause() | Consumer is already paused');
 
 			return;
 		}
@@ -269,6 +286,13 @@ export class Consumer extends EnhancedEventEmitter
 		if (this._closed)
 		{
 			logger.error('resume() | Consumer closed');
+
+			return;
+		}
+
+		if (!this._paused)
+		{
+			logger.debug('resume() | Consumer is already resumed');
 
 			return;
 		}

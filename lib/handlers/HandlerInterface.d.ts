@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
 import { ProducerCodecOptions } from '../Producer';
-import { IceParameters, IceCandidate, DtlsParameters } from '../Transport';
+import { IceParameters, IceCandidate, DtlsParameters, ConnectionState } from '../Transport';
 import { RtpCapabilities, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 export declare type HandlerFactory = () => HandlerInterface;
@@ -50,15 +50,18 @@ export declare type HandlerReceiveDataChannelOptions = {
 export declare type HandlerReceiveDataChannelResult = {
     dataChannel: RTCDataChannel;
 };
-export declare abstract class HandlerInterface extends EnhancedEventEmitter {
-    /**
-     * @emits @connect - (
-     *     { dtlsParameters: DtlsParameters },
-     *     callback: Function,
-     *     errback: Function
-     *   )
-     * @emits @connectionstatechange - (connectionState: ConnectionState)
-     */
+export declare type HandlerEvents = {
+    '@close': [];
+    '@connect': [
+        {
+            dtlsParameters: DtlsParameters;
+        },
+        () => void,
+        (error: Error) => void
+    ];
+    '@connectionstatechange': [ConnectionState];
+};
+export declare abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents> {
     constructor();
     abstract get name(): string;
     abstract close(): void;
@@ -70,13 +73,15 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter {
     abstract getTransportStats(): Promise<RTCStatsReport>;
     abstract send(options: HandlerSendOptions): Promise<HandlerSendResult>;
     abstract stopSending(localId: string): Promise<void>;
+    abstract pauseSending(localId: string): Promise<void>;
+    abstract resumeSending(localId: string): Promise<void>;
     abstract replaceTrack(localId: string, track: MediaStreamTrack | null): Promise<void>;
     abstract setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
     abstract setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
     abstract sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     abstract receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>;
-    abstract stopReceiving(localId: string): Promise<void>;
+    abstract stopReceiving(localIds: string[]): Promise<void>;
     abstract pauseReceiving(localIds: string[]): Promise<void>;
     abstract resumeReceiving(localIds: string[]): Promise<void>;
     abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;

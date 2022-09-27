@@ -3,7 +3,8 @@ import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
 	IceCandidate,
-	DtlsParameters
+	DtlsParameters,
+	ConnectionState
 } from '../Transport';
 import {
 	RtpCapabilities,
@@ -82,16 +83,20 @@ export type HandlerReceiveDataChannelResult =
 	dataChannel: RTCDataChannel;
 }
 
-export abstract class HandlerInterface extends EnhancedEventEmitter
+export type HandlerEvents =
 {
-	/**
-	 * @emits @connect - (
-	 *     { dtlsParameters: DtlsParameters },
-	 *     callback: Function,
-	 *     errback: Function
-	 *   )
-	 * @emits @connectionstatechange - (connectionState: ConnectionState)
-	 */
+	'@close': [];
+	'@connect':
+	[
+		{ dtlsParameters: DtlsParameters },
+		() => void,
+		(error: Error) => void
+	];
+	'@connectionstatechange': [ConnectionState];
+}
+
+export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents>
+{
 	constructor()
 	{
 		super();
@@ -117,6 +122,10 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 
 	abstract stopSending(localId: string): Promise<void>;
 
+	abstract pauseSending(localId: string): Promise<void>;
+
+	abstract resumeSending(localId: string): Promise<void>;
+
 	abstract replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>;
@@ -139,7 +148,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 
-	abstract stopReceiving(localId: string): Promise<void>;
+	abstract stopReceiving(localIds: string[]): Promise<void>;
 
 	abstract pauseReceiving(localIds: string[]): Promise<void>;
 

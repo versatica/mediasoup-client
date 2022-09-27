@@ -20,6 +20,9 @@ export declare type DeviceOptions = {
     Handler?: string;
 };
 export declare function detectDevice(): BuiltinHandlerName | undefined;
+export declare type DeviceObserverEvents = {
+    newtransport: [Transport];
+};
 export declare class Device {
     private readonly _handlerFactory;
     private readonly _handlerName;
@@ -28,7 +31,7 @@ export declare class Device {
     private _recvRtpCapabilities?;
     private readonly _canProduceByKind;
     private _sctpCapabilities?;
-    protected readonly _observer: EnhancedEventEmitter;
+    protected readonly _observer: EnhancedEventEmitter<DeviceObserverEvents>;
     /**
      * Create a new Device to connect to mediasoup server.
      *
@@ -55,11 +58,6 @@ export declare class Device {
      * @throws {InvalidStateError} if not loaded.
      */
     get sctpCapabilities(): SctpCapabilities;
-    /**
-     * Observer.
-     *
-     * @emits newtransport - (transport: Transport)
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Initialize the Device.

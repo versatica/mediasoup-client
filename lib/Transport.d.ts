@@ -4,7 +4,8 @@ import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { SctpParameters } from './SctpParameters';
+import { RtpParameters, MediaKind } from './RtpParameters';
+import { SctpParameters, SctpStreamParameters } from './SctpParameters';
 interface InternalTransportOptions extends TransportOptions {
     direction: 'send' | 'recv';
     handlerFactory: HandlerFactory;
@@ -100,7 +101,43 @@ export declare type PlainRtpParameters = {
     ipVersion: 4 | 6;
     port: number;
 };
-export declare class Transport extends EnhancedEventEmitter {
+export declare type TransportEvents = {
+    connect: [{
+        dtlsParameters: DtlsParameters;
+    }, () => void, (error: Error) => void];
+    connectionstatechange: [ConnectionState];
+    produce: [
+        {
+            kind: MediaKind;
+            rtpParameters: RtpParameters;
+            appData: Record<string, unknown>;
+        },
+        ({ id }: {
+            id: string;
+        }) => void,
+        (error: Error) => void
+    ];
+    producedata: [
+        {
+            sctpStreamParameters: SctpStreamParameters;
+            label?: string;
+            protocol?: string;
+            appData: Record<string, unknown>;
+        },
+        ({ id }: {
+            id: string;
+        }) => void,
+        (error: Error) => void
+    ];
+};
+export declare type TransportObserverEvents = {
+    close: [];
+    newproducer: [Producer];
+    newconsumer: [Consumer];
+    newdataproducer: [DataProducer];
+    newdataconsumer: [DataConsumer];
+};
+export declare class Transport extends EnhancedEventEmitter<TransportEvents> {
     private readonly _id;
     private _closed;
     private readonly _direction;
@@ -122,13 +159,9 @@ export declare class Transport extends EnhancedEventEmitter {
     private _consumerPauseInProgress;
     private _pendingResumeConsumers;
     private _consumerResumeInProgress;
-    protected readonly _observer: EnhancedEventEmitter;
-    /**
-     * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
-     * @emits connectionstatechange - (connectionState: ConnectionState)
-     * @emits produce - (producerLocalParameters: any, callback: Function, errback: Function)
-     * @emits producedata - (dataProducerLocalParameters: any, callback: Function, errback: Function)
-     */
+    private _pendingCloseConsumers;
+    private _consumerCloseInProgress;
+    protected readonly _observer: EnhancedEventEmitter<TransportObserverEvents>;
     constructor({ direction, id, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, appData, handlerFactory, extendedRtpCapabilities, canProduceByKind }: InternalTransportOptions);
     /**
      * Transport id.
@@ -158,15 +191,6 @@ export declare class Transport extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: Record<string, unknown>);
-    /**
-     * Observer.
-     *
-     * @emits close
-     * @emits newproducer - (producer: Producer)
-     * @emits newconsumer - (producer: Producer)
-     * @emits newdataproducer - (dataProducer: DataProducer)
-     * @emits newdataconsumer - (dataProducer: DataProducer)
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Close the Transport.
@@ -209,6 +233,7 @@ export declare class Transport extends EnhancedEventEmitter {
     _createPendingConsumers(): Promise<void>;
     _pausePendingConsumers(): void;
     _resumePendingConsumers(): void;
+    _closePendingConsumers(): void;
     _handleHandler(): void;
     _handleProducer(producer: Producer): void;
     _handleConsumer(consumer: Consumer): void;

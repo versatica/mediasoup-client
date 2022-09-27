@@ -9,7 +9,10 @@ import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { SctpParameters } from './SctpParameters';
+import { RtpParameters, MediaKind } from './RtpParameters';
+import { SctpParameters, SctpStreamParameters } from './SctpParameters';
+
+const logger = new Logger('Transport');
 
 interface InternalTransportOptions extends TransportOptions
 {
@@ -29,7 +32,7 @@ class ConsumerCreationTask
 	constructor(consumerOptions: ConsumerOptions)
 	{
 		this.consumerOptions = consumerOptions;
-		this.promise = new Promise((resolve, reject) =>
+		this.promise = new Promise<Consumer>((resolve, reject) =>
 		{
 			this.resolve = resolve;
 			this.reject = reject;
@@ -148,9 +151,43 @@ export type PlainRtpParameters =
 	port: number;
 };
 
-const logger = new Logger('Transport');
+export type TransportEvents =
+{
+	connect: [{ dtlsParameters: DtlsParameters }, () => void, (error: Error) => void];
+	connectionstatechange: [ConnectionState];
+	produce:
+	[
+		{
+			kind: MediaKind;
+			rtpParameters: RtpParameters;
+			appData: Record<string, unknown>;
+		},
+		({ id }: { id: string }) => void,
+		(error: Error) => void
+	];
+	producedata:
+	[
+		{
+			sctpStreamParameters: SctpStreamParameters;
+			label?: string;
+			protocol?: string;
+			appData: Record<string, unknown>;
+		},
+		({ id }: { id: string }) => void,
+		(error: Error) => void
+	];
+};
 
-export class Transport extends EnhancedEventEmitter
+export type TransportObserverEvents =
+{
+	close: [];
+	newproducer: [Producer];
+	newconsumer: [Consumer];
+	newdataproducer: [DataProducer];
+	newdataconsumer: [DataConsumer];
+};
+
+export class Transport extends EnhancedEventEmitter<TransportEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -195,15 +232,13 @@ export class Transport extends EnhancedEventEmitter
 	private _pendingResumeConsumers: Map<string, Consumer> = new Map();
 	// Consumer resume in progress flag.
 	private _consumerResumeInProgress = false;
+	// Consumers pending to be closed.
+	private _pendingCloseConsumers: Map<string, Consumer> = new Map();
+	// Consumer close in progress flag.
+	private _consumerCloseInProgress = false;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<TransportObserverEvents>();
 
-	/**
-	 * @emits connect - (transportLocalParameters: any, callback: Function, errback: Function)
-	 * @emits connectionstatechange - (connectionState: ConnectionState)
-	 * @emits produce - (producerLocalParameters: any, callback: Function, errback: Function)
-	 * @emits producedata - (dataProducerLocalParameters: any, callback: Function, errback: Function)
-	 */
 	constructor(
 		{
 			direction,
@@ -321,15 +356,6 @@ export class Transport extends EnhancedEventEmitter
 		throw new Error('cannot override appData object');
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 * @emits newproducer - (producer: Producer)
-	 * @emits newconsumer - (producer: Producer)
-	 * @emits newdataproducer - (dataProducer: DataProducer)
-	 * @emits newdataconsumer - (dataProducer: DataProducer)
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;
@@ -530,13 +556,19 @@ export class Transport extends EnhancedEventEmitter
 					// This will fill rtpParameters's missing fields with default values.
 					ortc.validateRtpParameters(rtpParameters);
 
-					const { id } = await this.safeEmitAsPromise(
-						'produce',
-						{
-							kind : track.kind,
-							rtpParameters,
-							appData
-						});
+					const { id } = await new Promise<{ id: string }>((resolve, reject) =>
+					{
+						this.safeEmit(
+							'produce',
+							{
+								kind : track.kind as MediaKind,
+								rtpParameters,
+								appData
+							},
+							resolve,
+							reject
+						);
+					});
 
 					const producer = new Producer(
 						{
@@ -692,14 +724,20 @@ export class Transport extends EnhancedEventEmitter
 				// This will fill sctpStreamParameters's missing fields with default values.
 				ortc.validateSctpStreamParameters(sctpStreamParameters);
 
-				const { id } = await this.safeEmitAsPromise(
-					'producedata',
-					{
-						sctpStreamParameters,
-						label,
-						protocol,
-						appData
-					});
+				const { id } = await new Promise<{ id: string }>((resolve, reject) =>
+				{
+					this.safeEmit(
+						'producedata',
+						{
+							sctpStreamParameters,
+							label,
+							protocol,
+							appData
+						},
+						resolve,
+						reject
+					);
+				});
 
 				const dataProducer =
 					new DataProducer({ id, dataChannel, sctpStreamParameters, appData });
@@ -787,10 +825,17 @@ export class Transport extends EnhancedEventEmitter
 	// This method is guaranteed to never throw.
 	async _createPendingConsumers(): Promise<void>
 	{
+		this._consumerCreationInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerCreationInProgress = true;
+				if (this._pendingConsumerTasks.length === 0)
+				{
+					logger.debug('_createPendingConsumers() | there is no Consumer to be created');
+
+					return;
+				}
 
 				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
 
@@ -885,12 +930,12 @@ export class Transport extends EnhancedEventEmitter
 							error);
 					}
 				}
-
-				this._consumerCreationInProgress = false;
 			},
 			'transport._createPendingConsumers()')
 			.then(() =>
 			{
+				this._consumerCreationInProgress = false;
+
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0)
 				{
@@ -903,10 +948,17 @@ export class Transport extends EnhancedEventEmitter
 
 	_pausePendingConsumers()
 	{
+		this._consumerPauseInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerPauseInProgress = true;
+				if (this._pendingPauseConsumers.size === 0)
+				{
+					logger.debug('_pausePendingConsumers() | there is no Consumer to be paused');
+
+					return;
+				}
 
 				const pendingPauseConsumers = Array.from(this._pendingPauseConsumers.values());
 
@@ -915,20 +967,21 @@ export class Transport extends EnhancedEventEmitter
 
 				try
 				{
-					await this._handler.pauseReceiving(
-						pendingPauseConsumers.map((consumer) => consumer.localId)
-					);
+					const localIds = pendingPauseConsumers
+						.map((consumer) => consumer.localId);
+
+					await this._handler.pauseReceiving(localIds);
 				}
 				catch (error)
 				{
 					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
 				}
-
-				this._consumerPauseInProgress = false;
 			},
-			'consumer @pause event')
+			'transport._pausePendingConsumers')
 			.then(() =>
 			{
+				this._consumerPauseInProgress = false;
+
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
@@ -941,10 +994,17 @@ export class Transport extends EnhancedEventEmitter
 
 	_resumePendingConsumers()
 	{
+		this._consumerResumeInProgress = true;
+
 		this._awaitQueue.push(
 			async () =>
 			{
-				this._consumerResumeInProgress = true;
+				if (this._pendingResumeConsumers.size === 0)
+				{
+					logger.debug('_resumePendingConsumers() | there is no Consumer to be resumed');
+					
+					return;
+				}
 
 				const pendingResumeConsumers = Array.from(this._pendingResumeConsumers.values());
 
@@ -953,16 +1013,17 @@ export class Transport extends EnhancedEventEmitter
 
 				try
 				{
-					await this._handler.resumeReceiving(
-						pendingResumeConsumers.map((consumer) => consumer.localId)
-					);
+					const localIds = pendingResumeConsumers
+						.map((consumer) => consumer.localId);
+
+					await this._handler.resumeReceiving(localIds);
 				}
 				catch (error)
 				{
 					logger.error('_resumePendingConsumers() | failed to resume Consumers:', error);
 				}
 			},
-			'consumer @resume event')
+			'transport._resumePendingConsumers')
 			.then(() =>
 			{
 				this._consumerResumeInProgress = false;
@@ -977,14 +1038,58 @@ export class Transport extends EnhancedEventEmitter
 			.catch(() => { });
 	}
 
+	_closePendingConsumers()
+	{
+		this._consumerCloseInProgress = true;
+
+		this._awaitQueue.push(
+			async () =>
+			{
+				if (this._pendingCloseConsumers.size === 0)
+				{
+					logger.debug('_closePendingConsumers() | there is no Consumer to be closed');
+					
+					return;
+				}
+
+				const pendingCloseConsumers = Array.from(this._pendingCloseConsumers.values());
+
+				// Clear pending close Consumer map.
+				this._pendingCloseConsumers.clear();
+
+				try
+				{
+					await this._handler.stopReceiving(
+						pendingCloseConsumers.map((consumer) => consumer.localId)
+					);
+				}
+				catch (error)
+				{
+					logger.error('_closePendingConsumers() | failed to close Consumers:', error);
+				}
+			},
+			'transport._closePendingConsumers')
+			.then(() =>
+			{
+				this._consumerCloseInProgress = false;
+
+				// There are pending Consumer to be resumed, do it.
+				if (this._pendingCloseConsumers.size > 0)
+				{
+					this._closePendingConsumers();
+				}
+			})
+			// NOTE: We only get here when the await queue is closed.
+			.catch(() => { });
+	}
 	_handleHandler(): void
 	{
 		const handler = this._handler;
 
 		handler.on('@connect', (
 			{ dtlsParameters }: { dtlsParameters: DtlsParameters },
-			callback: Function,
-			errback: Function
+			callback: () => void,
+			errback: (error: Error) => void
 		) =>
 		{
 			if (this._closed)
@@ -1026,6 +1131,24 @@ export class Transport extends EnhancedEventEmitter
 				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
 
+		producer.on('@pause', (callback, errback) =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.pauseSending(producer.localId),
+				'producer @pause event')
+				.then(callback)
+				.catch(errback);
+		});
+
+		producer.on('@resume', (callback, errback) =>
+		{
+			this._awaitQueue.push(
+				async () => this._handler.resumeSending(producer.localId),
+				'producer @resume event')
+				.then(callback)
+				.catch(errback);
+		});
+
 		producer.on('@replacetrack', (track, callback, errback) =>
 		{
 			this._awaitQueue.push(
@@ -1058,7 +1181,7 @@ export class Transport extends EnhancedEventEmitter
 		producer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
-				return errback(new InvalidStateError('closed'));
+				return errback!(new InvalidStateError('closed'));
 
 			this._handler.getSenderStats(producer.localId)
 				.then(callback)
@@ -1077,10 +1200,14 @@ export class Transport extends EnhancedEventEmitter
 			if (this._closed)
 				return;
 
-			this._awaitQueue.push(
-				async () => this._handler.stopReceiving(consumer.localId),
-				'consumer @close event')
-				.catch(() => {});
+			// Store the Consumer into the close list.
+			this._pendingCloseConsumers.set(consumer.id, consumer);
+
+			// There is no Consumer close in progress, do it now.
+			if (this._consumerCloseInProgress === false)
+			{
+				this._closePendingConsumers();
+			}
 		});
 
 		consumer.on('@pause', () =>
@@ -1122,7 +1249,7 @@ export class Transport extends EnhancedEventEmitter
 		consumer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
-				return errback(new InvalidStateError('closed'));
+				return errback!(new InvalidStateError('closed'));
 
 			this._handler.getReceiverStats(consumer.localId)
 				.then(callback)

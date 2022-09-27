@@ -21,7 +21,42 @@ export declare type ProducerCodecOptions = {
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
 };
-export declare class Producer extends EnhancedEventEmitter {
+export declare type ProducerEvents = {
+    transportclose: [];
+    trackended: [];
+    '@pause': [
+        () => void,
+        (error: Error) => void
+    ];
+    '@resume': [
+        () => void,
+        (error: Error) => void
+    ];
+    '@replacetrack': [
+        MediaStreamTrack | null,
+        () => void,
+        (error: Error) => void
+    ];
+    '@setmaxspatiallayer': [
+        number,
+        () => void,
+        (error: Error) => void
+    ];
+    '@setrtpencodingparameters': [
+        RTCRtpEncodingParameters,
+        () => void,
+        (error: Error) => void
+    ];
+    '@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
+    '@close': [];
+};
+export declare type ProducerObserverEvents = {
+    close: [];
+    pause: [];
+    resume: [];
+    trackended: [];
+};
+export declare class Producer extends EnhancedEventEmitter<ProducerEvents> {
     private readonly _id;
     private readonly _localId;
     private _closed;
@@ -35,16 +70,7 @@ export declare class Producer extends EnhancedEventEmitter {
     private _disableTrackOnPause;
     private _zeroRtpOnPause;
     private readonly _appData;
-    protected readonly _observer: EnhancedEventEmitter;
-    /**
-     * @emits transportclose
-     * @emits trackended
-     * @emits @replacetrack - (track: MediaStreamTrack | null)
-     * @emits @setmaxspatiallayer - (spatialLayer: string)
-     * @emits @setrtpencodingparameters - (params: any)
-     * @emits @getstats
-     * @emits @close
-     */
+    protected readonly _observer: EnhancedEventEmitter<ProducerObserverEvents>;
     constructor({ id, localId, rtpSender, track, rtpParameters, stopTracks, disableTrackOnPause, zeroRtpOnPause, appData }: {
         id: string;
         localId: string;
@@ -102,14 +128,6 @@ export declare class Producer extends EnhancedEventEmitter {
      * Invalid setter.
      */
     set appData(appData: Record<string, unknown>);
-    /**
-     * Observer.
-     *
-     * @emits close
-     * @emits pause
-     * @emits resume
-     * @emits trackended
-     */
     get observer(): EnhancedEventEmitter;
     /**
      * Closes the Producer.
@@ -141,9 +159,6 @@ export declare class Producer extends EnhancedEventEmitter {
      * Sets the video max spatial layer to be sent.
      */
     setMaxSpatialLayer(spatialLayer: number): Promise<void>;
-    /**
-     * Sets the DSCP value.
-     */
     setRtpEncodingParameters(params: RTCRtpEncodingParameters): Promise<void>;
     private _onTrackEnded;
     private _handleTrack;

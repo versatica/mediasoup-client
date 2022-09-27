@@ -18,7 +18,8 @@ import {
 import {
 	IceParameters,
 	DtlsParameters,
-	DtlsRole
+	DtlsRole,
+	ConnectionState
 } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
@@ -64,6 +65,7 @@ class FakeDataChannel extends EnhancedEventEmitter
 	close(): void
 	{
 		this.safeEmit('close');
+		this.emit('@close');
 	}
 
 	send(data: any): void
@@ -126,7 +128,7 @@ export class FakeHandler extends HandlerInterface
 	}
 
 	// NOTE: Custom method for simulation purposes.
-	setConnectionState(connectionState: string): void
+	setConnectionState(connectionState: ConnectionState): void
 	{
 		this.emit('@connectionstatechange', connectionState);
 	}
@@ -248,6 +250,18 @@ export class FakeHandler extends HandlerInterface
 		this._tracks.delete(Number(localId));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
@@ -349,11 +363,14 @@ export class FakeHandler extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		this._tracks.delete(Number(localId));
+			this._tracks.delete(Number(localId));
+		}
 	}
 
 	async pauseReceiving(
@@ -422,7 +439,7 @@ export class FakeHandler extends HandlerInterface
 		this.emit('@connectionstatechange', 'connecting');
 
 		// Need to tell the remote transport about our parameters.
-		await new Promise((resolve, reject) => (
+		await new Promise<void>((resolve, reject) => (
 			this.emit('@connect', { dtlsParameters }, resolve, reject)
 		));
 

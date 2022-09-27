@@ -102,6 +102,8 @@ export class Edge11 extends HandlerInterface
 			try { (rtpReceiver as any).stop(); }
 			catch (error) {}
 		}
+
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
@@ -274,6 +276,18 @@ export class Edge11 extends HandlerInterface
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
@@ -415,26 +429,29 @@ export class Edge11 extends HandlerInterface
 		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
-
-		const rtpReceiver = this._rtpReceivers.get(localId);
-
-		if (!rtpReceiver)
-			throw new Error('RTCRtpReceiver not found');
-
-		this._rtpReceivers.delete(localId);
-
-		try
+		for (const localId of localIds)
 		{
-			logger.debug('stopReceiving() | calling rtpReceiver.stop()');
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-			(rtpReceiver as any).stop();
-		}
-		catch (error)
-		{
-			logger.warn('stopReceiving() | rtpReceiver.stop() failed:%o', error);
+			const rtpReceiver = this._rtpReceivers.get(localId);
+
+			if (!rtpReceiver)
+				throw new Error('RTCRtpReceiver not found');
+
+			this._rtpReceivers.delete(localId);
+
+			try
+			{
+				logger.debug('stopReceiving() | calling rtpReceiver.stop()');
+
+				(rtpReceiver as any).stop();
+			}
+			catch (error)
+			{
+				logger.warn('stopReceiving() | rtpReceiver.stop() failed:%o', error);
+			}
 		}
 	}
 
@@ -605,7 +622,15 @@ export class Edge11 extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		// Start the RTCIceTransport.
 		this._iceTransport.start(
