@@ -1,5 +1,5 @@
 import { DtlsParameters } from '../../Transport';
-import { RtpCapabilities, RtpHeaderExtensionDirection, RtpHeaderExtensionParameters, RtpParameters } from '../../RtpParameters';
+import { RtpCapabilities, RtpHeaderExtensionParameters, RtpParameters } from '../../RtpParameters';
 export declare function extractRtpCapabilities({ sdpObject }: {
     sdpObject: any;
 }): RtpCapabilities;
@@ -27,17 +27,6 @@ export declare function addRtpExtensionToMediaObject({ mediaObject, uri }: {
     mediaObject: any;
     uri: string;
 }): RtpHeaderExtensionParameters | undefined;
-/**
- * Adds the given RTP extension to the given RTP capabilities.
- * If the extension is already present, this function doesn't add anything.
- */
-export declare function addRtpExtensionToRtpCapabilities({ rtpCapabilities, uri, audio, video, direction }: {
-    rtpCapabilities: RtpCapabilities;
-    uri: string;
-    audio: boolean;
-    video: boolean;
-    direction: RtpHeaderExtensionDirection;
-}): void;
 /**
  * Adds the given RTP extension to the given RTP parameters.
  * If the extension is already present (with same id), this function doesn't

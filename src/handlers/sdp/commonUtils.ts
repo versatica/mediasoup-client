@@ -302,76 +302,6 @@ export function addRtpExtensionToMediaObject(
 }
 
 /**
- * Adds the given RTP extension to the given RTP capabilities.
- * If the extension is already present, this function doesn't add anything.
- */
-export function addRtpExtensionToRtpCapabilities(
-	{
-		rtpCapabilities,
-		uri,
-		audio,
-		video,
-		direction
-	}:
-	{
-		rtpCapabilities: RtpCapabilities;
-		uri: string;
-		audio: boolean;
-		video: boolean;
-		direction: RtpHeaderExtensionDirection;
-	}
-): void
-{
-	let preferredId = 1;
-
-	if (!Array.isArray(rtpCapabilities.headerExtensions))
-	{
-		rtpCapabilities.headerExtensions = [];
-	}
-
-	for (const exten of rtpCapabilities.headerExtensions)
-	{
-		// If extension uri is already present, don't do anything.
-		if (exten.uri === uri)
-		{
-			preferredId = 0;
-
-			break;
-		}
-
-		if (exten.preferredId >= preferredId)
-			preferredId = exten.preferredId + 1;
-	}
-
-	if (preferredId > 0)
-	{
-		if (audio)
-		{
-			rtpCapabilities.headerExtensions.push(
-				{
-					kind             : 'audio',
-					uri,
-					preferredId,
-					preferredEncrypt : false,
-					direction
-				});
-		}
-
-		if (video)
-		{
-			rtpCapabilities.headerExtensions.push(
-				{
-					kind             : 'video',
-					uri,
-					preferredId,
-					preferredEncrypt : false,
-					direction
-				});
-		}
-	}
-}
-
-/**
  * Adds the given RTP extension to the given RTP parameters.
  * If the extension is already present (with same id), this function doesn't
  * add anything. If the extension is present with a different id, then existing
@@ -399,12 +329,10 @@ export function addRtpExtensionToRtpParameters(
 	{
 		if (exten.uri === extension.uri && exten.id === extension.id)
 		{
-			console.warn('--- addRtpExtensionToRtpParameters() EXTEN ALREADY EXISTS');
 			return;
 		}
 		else if (exten.uri === extension.uri && exten.id !== extension.id)
 		{
-			console.warn('--- addRtpExtensionToRtpParameters() REPLACING EXTEN ID');
 			exten.id = extension.id;
 
 			replaced = true;
@@ -413,7 +341,6 @@ export function addRtpExtensionToRtpParameters(
 
 	if (!replaced)
 	{
-		console.warn('--- addRtpExtensionToRtpParameters() adding exten');
 		rtpParameters.headerExtensions.push(extension);
 	}
 }

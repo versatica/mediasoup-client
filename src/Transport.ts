@@ -631,8 +631,6 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 		rtpParameters = utils.clone(rtpParameters, undefined);
 
-		console.warn('--- consume() rtpParameters:', rtpParameters);
-
 		if (this._closed)
 			throw new InvalidStateError('closed');
 		else if (this._direction !== 'recv')

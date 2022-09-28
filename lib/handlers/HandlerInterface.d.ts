@@ -4,9 +4,6 @@ import { IceParameters, IceCandidate, DtlsParameters, ConnectionState } from '..
 import { RtpCapabilities, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpParameters, SctpStreamParameters } from '../SctpParameters';
 export declare type HandlerFactory = () => HandlerInterface;
-export declare type HandlerGetNativeRtpCapabilitiesOptions = {
-    forceAbsCaptureTimeRtpHeaderExtension?: boolean;
-};
 export declare type HandlerRunOptions = {
     direction: 'send' | 'recv';
     iceParameters: IceParameters;
@@ -68,7 +65,7 @@ export declare abstract class HandlerInterface extends EnhancedEventEmitter<Hand
     constructor();
     abstract get name(): string;
     abstract close(): void;
-    abstract getNativeRtpCapabilities(options?: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities>;
+    abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     abstract run(options: HandlerRunOptions): void;
     abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;

@@ -1,4 +1,4 @@
-import { HandlerFactory, HandlerGetNativeRtpCapabilitiesOptions, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
+import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from './HandlerInterface';
 import { IceParameters } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
@@ -21,7 +21,7 @@ export declare class Chrome74 extends HandlerInterface {
     constructor();
     get name(): string;
     close(): void;
-    getNativeRtpCapabilities({ forceAbsCaptureTimeRtpHeaderExtension }: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities>;
+    getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;
     run({ direction, iceParameters, iceCandidates, dtlsParameters, sctpParameters, iceServers, iceTransportPolicy, additionalSettings, proprietaryConstraints, extendedRtpCapabilities }: HandlerRunOptions): void;
     updateIceServers(iceServers: RTCIceServer[]): Promise<void>;

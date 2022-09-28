@@ -6,7 +6,6 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import {
 	HandlerFactory,
-	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerInterface,
 	HandlerRunOptions,
 	HandlerSendOptions,
@@ -92,11 +91,7 @@ export class Chrome74 extends HandlerInterface
 		this.emit('@close');
 	}
 
-	async getNativeRtpCapabilities(
-		{
-			forceAbsCaptureTimeRtpHeaderExtension
-		}: HandlerGetNativeRtpCapabilitiesOptions
-	): Promise<RtpCapabilities>
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
@@ -122,19 +117,6 @@ export class Chrome74 extends HandlerInterface
 			const sdpObject = sdpTransform.parse(offer.sdp);
 			const nativeRtpCapabilities =
 				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-			if (forceAbsCaptureTimeRtpHeaderExtension)
-			{
-				console.warn('---- Chrome74.getNativeRtpCapabilities() | adding  abs-capture');
-				sdpCommonUtils.addRtpExtensionToRtpCapabilities(
-					{
-						rtpCapabilities : nativeRtpCapabilities,
-						uri             : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-						audio           : true,
-						video           : true,
-						direction       : 'sendrecv'
-					});
-			}
 
 			return nativeRtpCapabilities;
 		}
@@ -370,12 +352,6 @@ export class Chrome74 extends HandlerInterface
 						rtpParameters : sendingRemoteRtpParameters,
 						extension     : exten
 					});
-
-				console.warn('--- exten:', exten);
-				console.warn('--- offerMediaObject.ext:', offerMediaObject.ext);
-				console.warn('--- offer.sdp:', offer.sdp);
-				console.warn('--- sendingRtpParameters:', sendingRtpParameters);
-				console.warn('--- sendingRemoteRtpParameters:', sendingRemoteRtpParameters);
 			}
 		}
 
@@ -421,8 +397,6 @@ export class Chrome74 extends HandlerInterface
 			offer);
 
 		await this._pc.setLocalDescription(offer);
-
-		console.warn('--- this._pc.localDescription.sdp:', this._pc.localDescription.sdp);
 
 		// We can now get the transceiver.mid.
 		const localId = transceiver.mid;
@@ -497,8 +471,6 @@ export class Chrome74 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
-
-		console.warn('--- this._pc.remoteDescription.sdp:', this._pc.remoteDescription.sdp);
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);

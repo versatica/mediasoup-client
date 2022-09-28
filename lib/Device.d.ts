@@ -19,20 +19,6 @@ export declare type DeviceOptions = {
      */
     Handler?: string;
 };
-export declare type DeviceLoadOptions = {
-    /**
-     * RTP capabilities of the mediasoup Router.
-     */
-    routerRtpCapabilities: RtpCapabilities;
-    /**
-     * Force negotiation of abs-capture-time RTP extension for receiving in all
-     * Consumers created in the Transports of this Device.
-     * NOTE: Rationale for this option is that libwebrtc implements this RTP
-     * extension but lacks support for enabling it via API so SDP munging is
-     * needed.
-     */
-    forceAbsCaptureTimeRtpHeaderExtension?: boolean;
-};
 export declare function detectDevice(): BuiltinHandlerName | undefined;
 export declare type DeviceObserverEvents = {
     newtransport: [Transport];
@@ -76,7 +62,9 @@ export declare class Device {
     /**
      * Initialize the Device.
      */
-    load({ routerRtpCapabilities, forceAbsCaptureTimeRtpHeaderExtension }: DeviceLoadOptions): Promise<void>;
+    load({ routerRtpCapabilities }: {
+        routerRtpCapabilities: RtpCapabilities;
+    }): Promise<void>;
     /**
      * Whether we can produce audio/video.
      *
