@@ -34,14 +34,6 @@ export type ProducerCodecOptions =
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;
 	videoGoogleMinBitrate?: number;
-	/**
-	 * Force negotiation of abs-capture-time RTP extension for sending in this
-	 * Producer.
-	 * NOTE: Rationale for this option is that libwebrtc implements this RTP
-	 * extension but lacks support for enabling it via API so SDP munging is
-	 * needed.
-	 */
-	forceAbsCaptureTimeExten?: boolean;
 }
 
 export type ProducerEvents =

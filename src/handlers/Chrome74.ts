@@ -324,13 +324,10 @@ export class Chrome74 extends HandlerInterface
 			});
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
-		let offerMediaObject;
+		let offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
-		// May force abs-capture-time RTP extension.
-		if (codecOptions?.forceAbsCaptureTimeExten)
+		// May force abs-capture-time RTP extension negotiation.
 		{
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
-
 			const exten = sdpCommonUtils.addRtpExtensionToMediaObject(
 				{
 					mediaObject : offerMediaObject,
