@@ -324,7 +324,33 @@ export class Chrome74 extends HandlerInterface
 			});
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
-		let offerMediaObject;
+		let offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+
+		// May force abs-capture-time RTP extension negotiation.
+		{
+			const exten = sdpCommonUtils.addRtpExtensionToMediaObject(
+				{
+					mediaObject : offerMediaObject,
+					uri         : 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
+				});
+
+			if (exten)
+			{
+				offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
+
+				sdpCommonUtils.addRtpExtensionToRtpParameters(
+					{
+						rtpParameters : sendingRtpParameters,
+						extension     : exten
+					});
+
+				sdpCommonUtils.addRtpExtensionToRtpParameters(
+					{
+						rtpParameters : sendingRemoteRtpParameters,
+						extension     : exten
+					});
+			}
+		}
 
 		if (!this._transportReady)
 		{

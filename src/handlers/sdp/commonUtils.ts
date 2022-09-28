@@ -4,6 +4,7 @@ import {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpHeaderExtension,
+	RtpHeaderExtensionParameters,
 	RtpParameters,
 	RtcpFeedback
 } from '../../RtpParameters';
@@ -255,5 +256,90 @@ export function applyCodecParameters(
 
 			fmtp.config += `${key}=${parameters[key]}`;
 		}
+	}
+}
+
+/**
+ * Adds the given RTP extension to the given SDP media object and returns a
+ * RtpHeaderExtensionParameters object.
+ * If the extension is already present, this function doesn't add anything and
+ * doesn't return anything.
+ */
+export function addRtpExtensionToMediaObject(
+	{ mediaObject, uri }:
+	{ mediaObject: any; uri: string }
+): RtpHeaderExtensionParameters | undefined
+{
+	if (!Array.isArray(mediaObject.ext))
+	{
+		mediaObject.ext = [];
+	}
+
+	let id = 1;
+
+	for (const exten of mediaObject.ext)
+	{
+		// If extension uri is already present, don't do anything.
+		if (exten.uri === uri)
+		{
+			id = 0;
+
+			break;
+		}
+
+		if (exten.value >= id)
+			id = exten.value + 1;
+	}
+
+	if (id > 0)
+	{
+		mediaObject.ext.push({ value: id, uri });
+
+		// NOTE: No support for encrypt/parameters fields.
+		return { uri,	id };
+	}
+}
+
+/**
+ * Adds the given RTP extension to the given RTP parameters.
+ * If the extension is already present (with same id), this function doesn't
+ * add anything. If the extension is present with a different id, then existing
+ * one is removed and the new one is added.
+ */
+export function addRtpExtensionToRtpParameters(
+	{
+		rtpParameters,
+		extension
+	}:
+	{
+		rtpParameters: RtpParameters;
+		extension: RtpHeaderExtensionParameters;
+	}
+): void
+{
+	if (!Array.isArray(rtpParameters.headerExtensions))
+	{
+		rtpParameters.headerExtensions = [];
+	}
+
+	let replaced = false;
+
+	for (const exten of rtpParameters.headerExtensions)
+	{
+		if (exten.uri === extension.uri && exten.id === extension.id)
+		{
+			return;
+		}
+		else if (exten.uri === extension.uri && exten.id !== extension.id)
+		{
+			exten.id = extension.id;
+
+			replaced = true;
+		}
+	}
+
+	if (!replaced)
+	{
+		rtpParameters.headerExtensions.push(extension);
 	}
 }
