@@ -4,7 +4,6 @@ import {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpHeaderExtension,
-	RtpHeaderExtensionDirection,
 	RtpHeaderExtensionParameters,
 	RtpParameters,
 	RtcpFeedback
