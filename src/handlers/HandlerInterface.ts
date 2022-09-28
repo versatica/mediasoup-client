@@ -20,6 +20,11 @@ import {
 
 export type HandlerFactory = () => HandlerInterface;
 
+export type HandlerGetNativeRtpCapabilitiesOptions =
+{
+	forceAbsCaptureTimeRtpHeaderExtension?: boolean;
+};
+
 export type HandlerRunOptions =
 {
 	direction: 'send' | 'recv';
@@ -106,7 +111,9 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract close(): void;
 
-	abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+	abstract getNativeRtpCapabilities(
+		options?: HandlerGetNativeRtpCapabilitiesOptions
+	): Promise<RtpCapabilities>;
 
 	abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 

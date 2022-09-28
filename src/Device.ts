@@ -50,6 +50,22 @@ export type DeviceOptions =
 	Handler?: string;
 };
 
+export type DeviceLoadOptions =
+{
+	/**
+	 * RTP capabilities of the mediasoup Router.
+	 */
+	routerRtpCapabilities: RtpCapabilities;
+	/**
+	 * Force negotiation of abs-capture-time RTP extension for receiving in all
+	 * Consumers created in the Transports of this Device.
+	 * NOTE: Rationale for this option is that libwebrtc implements this RTP
+	 * extension but lacks support for enabling it via API so SDP munging is
+	 * needed.
+	 */
+	forceAbsCaptureTimeRtpHeaderExtension?: boolean;
+};
+
 interface InternalTransportOptions extends TransportOptions
 {
 	direction: 'send' | 'recv';
@@ -209,7 +225,12 @@ export class Device
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {})
+	constructor(
+		{
+			handlerName,
+			handlerFactory,
+			Handler
+		}: DeviceOptions = {})
 	{
 		logger.debug('constructor()');
 
@@ -354,8 +375,10 @@ export class Device
 	 * Initialize the Device.
 	 */
 	async load(
-		{ routerRtpCapabilities }:
-		{ routerRtpCapabilities: RtpCapabilities }
+		{
+			routerRtpCapabilities,
+			forceAbsCaptureTimeRtpHeaderExtension
+		}: DeviceLoadOptions
 	): Promise<void>
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
@@ -375,7 +398,10 @@ export class Device
 
 			handler = this._handlerFactory();
 
-			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities();
+			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities(
+				{
+					forceAbsCaptureTimeRtpHeaderExtension
+				});
 
 			logger.debug(
 				'load() | got native RTP capabilities:%o', nativeRtpCapabilities);
@@ -386,6 +412,8 @@ export class Device
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
 				nativeRtpCapabilities, routerRtpCapabilities);
+
+			console.warn('--- Device this._extendedRtpCapabilities:', this._extendedRtpCapabilities);
 
 			logger.debug(
 				'load() | got extended RTP capabilities:%o',
