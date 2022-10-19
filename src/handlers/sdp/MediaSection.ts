@@ -101,23 +101,16 @@ export abstract class MediaSection
 		this._mediaObject.icePwd = iceParameters.password;
 	}
 
-	disable(): void
+	pause(): void
 	{
 		this._mediaObject.direction = 'inactive';
-
-		delete this._mediaObject.ext;
-		delete this._mediaObject.ssrcs;
-		delete this._mediaObject.ssrcGroups;
-		delete this._mediaObject.simulcast;
-		delete this._mediaObject.simulcast_03;
-		delete this._mediaObject.rids;
 	}
 
-	close(): void
-	{
-		this._mediaObject.direction = 'inactive';
+	abstract resume(): void;
 
-		this._mediaObject.port = 0;
+	disable(): void
+	{
+		this.pause();
 
 		delete this._mediaObject.ext;
 		delete this._mediaObject.ssrcs;
@@ -126,6 +119,13 @@ export abstract class MediaSection
 		delete this._mediaObject.simulcast_03;
 		delete this._mediaObject.rids;
 		delete this._mediaObject.extmapAllowMixed;
+	}
+
+	close(): void
+	{
+		this.disable();
+
+		this._mediaObject.port = 0;
 	}
 }
 
@@ -442,6 +442,11 @@ export class AnswerMediaSection extends MediaSection
 				break;
 		}
 	}
+
+	resume(): void
+	{
+		this._mediaObject.direction = 'recvonly';
+	}
 }
 
 export class OfferMediaSection extends MediaSection
@@ -670,6 +675,11 @@ export class OfferMediaSection extends MediaSection
 	{
 		// Always 'actpass'.
 		this._mediaObject.setup = 'actpass';
+	}
+
+	resume(): void
+	{
+		this._mediaObject.direction = 'sendonly';
 	}
 
 	planBReceive(

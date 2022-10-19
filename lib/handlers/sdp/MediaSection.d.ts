@@ -16,6 +16,8 @@ export declare abstract class MediaSection {
     get closed(): boolean;
     getObject(): object;
     setIceParameters(iceParameters: IceParameters): void;
+    pause(): void;
+    abstract resume(): void;
     disable(): void;
     close(): void;
 }
@@ -34,6 +36,7 @@ export declare class AnswerMediaSection extends MediaSection {
         extmapAllowMixed?: boolean;
     });
     setDtlsRole(role: DtlsRole): void;
+    resume(): void;
 }
 export declare class OfferMediaSection extends MediaSection {
     constructor({ iceParameters, iceCandidates, dtlsParameters, sctpParameters, plainRtpParameters, planB, mid, kind, offerRtpParameters, streamId, trackId, oldDataChannelSpec }: {
@@ -51,6 +54,7 @@ export declare class OfferMediaSection extends MediaSection {
         oldDataChannelSpec?: boolean;
     });
     setDtlsRole(role: DtlsRole): void;
+    resume(): void;
     planBReceive({ offerRtpParameters, streamId, trackId }: {
         offerRtpParameters: RtpParameters;
         streamId: string;
