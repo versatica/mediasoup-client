@@ -271,24 +271,28 @@ export class RemoteSdp
 	pauseMediaSection(mid: string): void
 	{
 		const mediaSection = this._findMediaSection(mid);
+
 		mediaSection.pause();
 	}
 
 	resumeSendingMediaSection(mid: string): void
 	{
 		const mediaSection = this._findMediaSection(mid);
+
 		mediaSection.resume();
 	}
 
 	resumeReceivingMediaSection(mid: string): void
 	{
 		const mediaSection = this._findMediaSection(mid);
+
 		mediaSection.resume();
 	}
 
 	disableMediaSection(mid: string): void
 	{
 		const mediaSection = this._findMediaSection(mid);
+
 		mediaSection.disable();
 	}
 
@@ -445,7 +449,8 @@ export class RemoteSdp
 		}
 	}
 
-	_findMediaSection(mid: string): MediaSection {
+	_findMediaSection(mid: string): MediaSection
+	{
 		const idx = this._midToIndex.get(mid);
 
 		if (idx === undefined)

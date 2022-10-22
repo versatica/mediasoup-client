@@ -525,6 +525,7 @@ export class Chrome74 extends HandlerInterface
 		logger.debug('resumeSending() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
+
 		this._remoteSdp!.resumeSendingMediaSection(localId);
 
 		if (!transceiver)
