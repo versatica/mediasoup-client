@@ -454,6 +454,7 @@ export class Safari12 extends HandlerInterface
 			throw new Error('associated RTCRtpTransceiver not found');
 
 		transceiver.direction = 'inactive';
+		this._remoteSdp!.pauseMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -485,6 +486,7 @@ export class Safari12 extends HandlerInterface
 			throw new Error('associated RTCRtpTransceiver not found');
 
 		transceiver.direction = 'sendonly';
+		this._remoteSdp!.resumeSendingMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -814,6 +816,7 @@ export class Safari12 extends HandlerInterface
 				throw new Error('associated RTCRtpTransceiver not found');
 
 			transceiver.direction = 'inactive';
+			this._remoteSdp!.pauseMediaSection(localId);
 		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
@@ -847,6 +850,7 @@ export class Safari12 extends HandlerInterface
 				throw new Error('associated RTCRtpTransceiver not found');
 
 			transceiver.direction = 'recvonly';
+			this._remoteSdp!.resumeReceivingMediaSection(localId);
 		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };

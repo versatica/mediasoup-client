@@ -268,30 +268,33 @@ export class RemoteSdp
 		}
 	}
 
+	pauseMediaSection(mid: string): void
+	{
+		const mediaSection = this._findMediaSection(mid);
+		mediaSection.pause();
+	}
+
+	resumeSendingMediaSection(mid: string): void
+	{
+		const mediaSection = this._findMediaSection(mid);
+		mediaSection.resume();
+	}
+
+	resumeReceivingMediaSection(mid: string): void
+	{
+		const mediaSection = this._findMediaSection(mid);
+		mediaSection.resume();
+	}
+
 	disableMediaSection(mid: string): void
 	{
-		const idx = this._midToIndex.get(mid);
-
-		if (idx === undefined)
-		{
-			throw new Error(`no media section found with mid '${mid}'`);
-		}
-
-		const mediaSection = this._mediaSections[idx];
-
+		const mediaSection = this._findMediaSection(mid);
 		mediaSection.disable();
 	}
 
 	closeMediaSection(mid: string): void
 	{
-		const idx = this._midToIndex.get(mid);
-
-		if (idx === undefined)
-		{
-			throw new Error(`no media section found with mid '${mid}'`);
-		}
-
-		const mediaSection = this._mediaSections[idx];
+		const mediaSection = this._findMediaSection(mid);
 
 		// NOTE: Closing the first m section is a pain since it invalidates the
 		// bundled transport, so let's avoid it.
@@ -440,6 +443,17 @@ export class RemoteSdp
 			// Update the SDP object.
 			this._sdpObject.media[idx] = newMediaSection.getObject();
 		}
+	}
+
+	_findMediaSection(mid: string): MediaSection {
+		const idx = this._midToIndex.get(mid);
+
+		if (idx === undefined)
+		{
+			throw new Error(`no media section found with mid '${mid}'`);
+		}
+
+		return this._mediaSections[idx];
 	}
 
 	_regenerateBundleMids(): void

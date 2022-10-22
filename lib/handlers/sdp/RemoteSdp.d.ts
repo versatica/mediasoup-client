@@ -43,6 +43,9 @@ export declare class RemoteSdp {
         streamId: string;
         trackId: string;
     }): void;
+    pauseMediaSection(mid: string): void;
+    resumeSendingMediaSection(mid: string): void;
+    resumeReceivingMediaSection(mid: string): void;
     disableMediaSection(mid: string): void;
     closeMediaSection(mid: string): void;
     planBStopReceiving({ mid, offerRtpParameters }: {
@@ -58,6 +61,7 @@ export declare class RemoteSdp {
     getSdp(): string;
     _addMediaSection(newMediaSection: MediaSection): void;
     _replaceMediaSection(newMediaSection: MediaSection, reuseMid?: string): void;
+    _findMediaSection(mid: string): MediaSection;
     _regenerateBundleMids(): void;
 }
 //# sourceMappingURL=RemoteSdp.d.ts.map

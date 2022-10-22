@@ -499,6 +499,7 @@ export class Chrome74 extends HandlerInterface
 			throw new Error('associated RTCRtpTransceiver not found');
 
 		transceiver.direction = 'inactive';
+		this._remoteSdp!.pauseMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -524,6 +525,7 @@ export class Chrome74 extends HandlerInterface
 		logger.debug('resumeSending() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
+		this._remoteSdp!.resumeSendingMediaSection(localId);
 
 		if (!transceiver)
 			throw new Error('associated RTCRtpTransceiver not found');
@@ -862,6 +864,7 @@ export class Chrome74 extends HandlerInterface
 				throw new Error('associated RTCRtpTransceiver not found');
 
 			transceiver.direction = 'inactive';
+			this._remoteSdp!.pauseMediaSection(localId);
 		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
@@ -895,6 +898,7 @@ export class Chrome74 extends HandlerInterface
 				throw new Error('associated RTCRtpTransceiver not found');
 
 			transceiver.direction = 'recvonly';
+			this._remoteSdp!.resumeReceivingMediaSection(localId);
 		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
