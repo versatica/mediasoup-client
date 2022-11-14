@@ -458,6 +458,8 @@ export class Firefox60 extends HandlerInterface
 			throw new Error('associated transceiver not found');
 
 		transceiver.sender.replaceTrack(null);
+		transceiver.stop();
+
 		this._pc.removeTrack(transceiver.sender);
 		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
 		// method.
