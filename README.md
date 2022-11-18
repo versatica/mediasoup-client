@@ -179,13 +179,8 @@ You can support mediasoup by [sponsoring][sponsor] it. Thanks!
 [mediasoup-discourse]: https://mediasoup.discourse.group
 [npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg
 [npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
-
 [github-actions-shield-mediasoup-client]: https://github.com/versatica/mediasoup/actions/workflows/mediasoup-client.yaml/badge.svg
 [github-actions-mediasoup-client]: https://github.com/versatica/mediasoup/actions/workflows/mediasoup-client.yaml
-
-[travis-ci-shield-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client.svg?branch=master
-[travis-ci-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client
-
 [opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
 [opencollective-mediasoup]: https://opencollective.com/mediasoup/
 [sponsor]: https://mediasoup.org/sponsor/
