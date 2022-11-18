@@ -125,16 +125,6 @@ function replaceVersion()
 	}
 }
 
-function installDeps()
-{
-	console.log('npm-scripts.js [INFO] installDeps()');
-
-	// Install/update deps.
-	executeCmd('npm ci --ignore-scripts');
-	// Update package-lock.json.
-	executeCmd('npm install --package-lock-only --ignore-scripts');
-}
-
 function deleteLib()
 {
 	if (!fs.existsSync('lib'))
@@ -182,6 +172,16 @@ function test()
 	console.log('npm-scripts.js [INFO] test()');
 
 	executeCmd('jest');
+}
+
+function installDeps()
+{
+	console.log('npm-scripts.js [INFO] installDeps()');
+
+	// Install/update deps.
+	executeCmd('npm ci --ignore-scripts');
+	// Update package-lock.json.
+	executeCmd('npm install --package-lock-only --ignore-scripts');
 }
 
 function executeCmd(command, exitOnError = true)
