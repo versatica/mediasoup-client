@@ -1,33 +1,55 @@
+/* eslint-disable no-console */
+
 const process = require('process');
+const os = require('os');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const { version } = require('./package.json');
 
+const isWindows = os.platform() === 'win32';
 const task = process.argv.slice(2).join(' ');
 
-// eslint-disable-next-line no-console
+// mediasoup mayor version.
+const MAYOR_VERSION = version.split('.')[0];
+
 console.log(`npm-scripts.js [INFO] running task "${task}"`);
 
 switch (task)
 {
+	// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
+	// `prepare` script:
+	//
+	// - Runs BEFORE the package is packed, i.e. during `npm publish` and `npm pack`.
+	// - Runs on local `npm install` without any arguments.
+	// - NOTE: If a package being installed through git contains a `prepare` script,
+	//   its dependencies and devDependencies will be installed, and the `prepare`
+	//   script will be run, before the package is packaged and installed.
+	//
+	// So here we compile TypeScript to JavaScript.
+	case 'prepare':
+	{
+		buildTypescript(/* force */ false);
+
+		break;
+	}
+
 	case 'typescript:build':
 	{
-		execute('rm -rf lib');
-		execute('tsc');
-		taskReplaceVersion();
+		installDeps();
+		buildTypescript(/* force */ true);
+		replaceVersion();
 
 		break;
 	}
 
 	case 'typescript:watch':
 	{
+		deleteLib();
+
 		const TscWatchClient = require('tsc-watch/client');
-
-		execute('rm -rf lib');
-
 		const watch = new TscWatchClient();
 
-		watch.on('success', taskReplaceVersion);
+		watch.on('success', replaceVersion);
 		watch.start('--pretty');
 
 		break;
@@ -35,38 +57,49 @@ switch (task)
 
 	case 'lint':
 	{
-		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/');
-		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
+		lint();
 
 		break;
 	}
 
 	case 'test':
 	{
-		taskReplaceVersion();
-		execute('jest');
+		buildTypescript(/* force */ false);
+		replaceVersion();
+		test();
 
 		break;
 	}
 
 	case 'coverage':
 	{
-		taskReplaceVersion();
-		execute('jest --coverage');
-		execute('open-cli coverage/lcov-report/index.html');
+		buildTypescript(/* force */ false);
+		replaceVersion();
+		executeCmd('jest --coverage');
+		executeCmd('open-cli coverage/lcov-report/index.html');
+
+		break;
+	}
+
+	case 'install-deps':
+	{
+		installDeps();
 
 		break;
 	}
 
 	case 'release':
 	{
-		execute('npm run typescript:build');
-		execute('npm run lint');
-		execute('npm run test');
-		execute(`git commit -am '${version}'`);
-		execute(`git tag -a ${version} -m '${version}'`);
-		execute('git push origin v3 && git push origin --tags');
-		execute('npm publish');
+		installDeps();
+		buildTypescript(/* force */ true);
+		replaceVersion();
+		lint();
+		test();
+		executeCmd(`git commit -am '${version}'`);
+		executeCmd(`git tag -a ${version} -m '${version}'`);
+		executeCmd(`git push origin v${MAYOR_VERSION}`);
+		executeCmd(`git push origin '${version}'`);
+		executeCmd('npm publish');
 
 		break;
 	}
@@ -77,8 +110,10 @@ switch (task)
 	}
 }
 
-function taskReplaceVersion()
+function replaceVersion()
 {
+	console.log('npm-scripts.js [INFO] replaceVersion()');
+
 	const files = [ 'lib/index.js', 'lib/index.d.ts' ];
 
 	for (const file of files)
@@ -90,17 +125,78 @@ function taskReplaceVersion()
 	}
 }
 
-function execute(command)
+function installDeps()
 {
-	// eslint-disable-next-line no-console
-	console.log(`npm-scripts.js [INFO] executing command: ${command}`);
+	console.log('npm-scripts.js [INFO] installDeps()');
+
+	// Install/update deps.
+	executeCmd('npm ci --ignore-scripts');
+	// Update package-lock.json.
+	executeCmd('npm install --package-lock-only --ignore-scripts');
+}
+
+function deleteLib()
+{
+	if (!fs.existsSync('lib'))
+	{
+		return;
+	}
+
+	console.log('npm-scripts.js [INFO] deleteLib()');
+
+	if (!isWindows)
+	{
+		executeCmd('rm -rf lib');
+	}
+	else
+	{
+		// NOTE: This command fails in Windows if the dir doesn't exist.
+		executeCmd('rmdir /s /q "lib"', /* exitOnError */ false);
+	}
+}
+
+function buildTypescript(force = false)
+{
+	if (!force && fs.existsSync('lib'))
+	{
+		return;
+	}
+
+	console.log('npm-scripts.js [INFO] buildTypescript()');
+
+	deleteLib();
+
+	executeCmd('tsc');
+}
+
+function lint()
+{
+	console.log('npm-scripts.js [INFO] lint()');
+
+	executeCmd('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src');
+	executeCmd('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test');
+}
+
+function test()
+{
+	console.log('npm-scripts.js [INFO] test()');
+
+	executeCmd('jest');
+}
+
+function executeCmd(command, exitOnError = true)
+{
+	console.log(`npm-scripts.js [INFO] executeCmd(): ${command}`);
 
 	try
 	{
-		execSync(command,	{ stdio: [ 'ignore', process.stdout, process.stderr ] });
+		execSync(command, { stdio: [ 'ignore', process.stdout, process.stderr ] });
 	}
 	catch (error)
 	{
-		process.exit(1);
+		if (exitOnError)
+		{
+			process.exit(1);
+		}
 	}
 }

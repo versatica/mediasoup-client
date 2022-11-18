@@ -18,15 +18,27 @@
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": [
+    "npm-scripts.js",
+    "node/lib"
+  ],
+  "keywords": [
+    "webrtc",
+    "ortc",
+    "browser",
+    "nodejs"
+  ],
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "scripts": {
+    "prepare": "node npm-scripts.js prepare",
     "typescript:build": "node npm-scripts.js typescript:build",
     "typescript:watch": "node npm-scripts.js typescript:watch",
     "lint": "node npm-scripts.js lint",
     "test": "node npm-scripts.js test",
     "coverage": "node npm-scripts.js coverage",
+    "install-deps": "node npm-scripts.js install-deps",
     "release": "node npm-scripts.js release"
   },
   "jest": {
