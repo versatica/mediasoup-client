@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
-export declare type DataConsumerOptions = {
+export type DataConsumerOptions = {
     id?: string;
     dataProducerId?: string;
     sctpStreamParameters: SctpStreamParameters;
@@ -8,7 +8,7 @@ export declare type DataConsumerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare type DataConsumerEvents = {
+export type DataConsumerEvents = {
     transportclose: [];
     open: [];
     error: [Error];
@@ -16,7 +16,7 @@ export declare type DataConsumerEvents = {
     message: [any];
     '@close': [];
 };
-export declare type DataConsumerObserverEvents = {
+export type DataConsumerObserverEvents = {
     close: [];
 };
 export declare class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents> {

@@ -3,8 +3,8 @@ import { Transport, TransportOptions } from './Transport';
 import { HandlerFactory } from './handlers/HandlerInterface';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
-export declare type BuiltinHandlerName = 'Chrome74' | 'Chrome70' | 'Chrome67' | 'Chrome55' | 'Firefox60' | 'Safari12' | 'Safari11' | 'Edge11' | 'ReactNative';
-export declare type DeviceOptions = {
+export type BuiltinHandlerName = 'Chrome74' | 'Chrome70' | 'Chrome67' | 'Chrome55' | 'Firefox60' | 'Safari12' | 'Safari11' | 'Edge11' | 'ReactNative';
+export type DeviceOptions = {
     /**
      * The name of one of the builtin handlers.
      */
@@ -20,7 +20,7 @@ export declare type DeviceOptions = {
     Handler?: string;
 };
 export declare function detectDevice(): BuiltinHandlerName | undefined;
-export declare type DeviceObserverEvents = {
+export type DeviceObserverEvents = {
     newtransport: [Transport];
 };
 export declare class Device {

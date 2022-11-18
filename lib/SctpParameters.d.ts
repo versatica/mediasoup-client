@@ -1,7 +1,7 @@
-export declare type SctpCapabilities = {
+export type SctpCapabilities = {
     numStreams: NumSctpStreams;
 };
-export declare type NumSctpStreams = {
+export type NumSctpStreams = {
     /**
      * Initially requested number of outgoing SCTP streams.
      */
@@ -11,7 +11,7 @@ export declare type NumSctpStreams = {
      */
     MIS: number;
 };
-export declare type SctpParameters = {
+export type SctpParameters = {
     /**
      * Must always equal 5000.
      */
@@ -36,7 +36,7 @@ export declare type SctpParameters = {
  * If ordered if false, only one of maxPacketLifeTime or maxRetransmits
  * can be true.
  */
-export declare type SctpStreamParameters = {
+export type SctpStreamParameters = {
     /**
      * SCTP stream id.
      */

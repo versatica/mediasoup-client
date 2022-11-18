@@ -2,7 +2,7 @@ import { HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendRes
 import { IceParameters, DtlsParameters, ConnectionState } from '../Transport';
 import { RtpCapabilities } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
-export declare type FakeParameters = {
+export type FakeParameters = {
     generateNativeRtpCapabilities: () => RtpCapabilities;
     generateNativeSctpCapabilities: () => SctpCapabilities;
     generateLocalDtlsParameters: () => DtlsParameters;

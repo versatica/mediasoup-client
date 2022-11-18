@@ -1,13 +1,13 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { MediaKind, RtpParameters } from './RtpParameters';
-export declare type ConsumerOptions = {
+export type ConsumerOptions = {
     id?: string;
     producerId?: string;
     kind?: 'audio' | 'video';
     rtpParameters: RtpParameters;
     appData?: Record<string, unknown>;
 };
-export declare type ConsumerEvents = {
+export type ConsumerEvents = {
     transportclose: [];
     trackended: [];
     '@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
@@ -15,7 +15,7 @@ export declare type ConsumerEvents = {
     '@pause': [];
     '@resume': [];
 };
-export declare type ConsumerObserverEvents = {
+export type ConsumerObserverEvents = {
     close: [];
     pause: [];
     resume: [];

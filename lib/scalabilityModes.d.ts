@@ -1,4 +1,4 @@
-export declare type ScalabilityMode = {
+export type ScalabilityMode = {
     spatialLayers: number;
     temporalLayers: number;
 };

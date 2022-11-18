@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
-declare type Events = Record<string, any[]>;
+type Events = Record<string, any[]>;
 export declare class EnhancedEventEmitter<E extends Events = Events> extends EventEmitter {
     constructor();
     emit<K extends keyof E & string>(eventName: K, ...args: E[K]): boolean;

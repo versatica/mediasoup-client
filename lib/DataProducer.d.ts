@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { SctpStreamParameters } from './SctpParameters';
-export declare type DataProducerOptions = {
+export type DataProducerOptions = {
     ordered?: boolean;
     maxPacketLifeTime?: number;
     maxRetransmits?: number;
@@ -8,7 +8,7 @@ export declare type DataProducerOptions = {
     protocol?: string;
     appData?: Record<string, unknown>;
 };
-export declare type DataProducerEvents = {
+export type DataProducerEvents = {
     transportclose: [];
     open: [];
     error: [Error];
@@ -16,7 +16,7 @@ export declare type DataProducerEvents = {
     bufferedamountlow: [];
     '@close': [];
 };
-export declare type DataProducerObserverEvents = {
+export type DataProducerObserverEvents = {
     close: [];
 };
 export declare class DataProducer extends EnhancedEventEmitter<DataProducerEvents> {

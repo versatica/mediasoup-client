@@ -1,6 +1,6 @@
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { MediaKind, RtpCodecCapability, RtpParameters, RtpEncodingParameters } from './RtpParameters';
-export declare type ProducerOptions = {
+export type ProducerOptions = {
     track?: MediaStreamTrack;
     encodings?: RtpEncodingParameters[];
     codecOptions?: ProducerCodecOptions;
@@ -10,7 +10,7 @@ export declare type ProducerOptions = {
     zeroRtpOnPause?: boolean;
     appData?: Record<string, unknown>;
 };
-export declare type ProducerCodecOptions = {
+export type ProducerCodecOptions = {
     opusStereo?: boolean;
     opusFec?: boolean;
     opusDtx?: boolean;
@@ -21,7 +21,7 @@ export declare type ProducerCodecOptions = {
     videoGoogleMaxBitrate?: number;
     videoGoogleMinBitrate?: number;
 };
-export declare type ProducerEvents = {
+export type ProducerEvents = {
     transportclose: [];
     trackended: [];
     '@pause': [
@@ -50,7 +50,7 @@ export declare type ProducerEvents = {
     '@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
     '@close': [];
 };
-export declare type ProducerObserverEvents = {
+export type ProducerObserverEvents = {
     close: [];
     pause: [];
     resume: [];
