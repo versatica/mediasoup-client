@@ -1,12 +1,14 @@
-/node_modules/
-/coverage/
+## Node.
+/node_modules
+/node/lib
 
-# Vim temporal files.
+## Others.
+/coverage
+/NO_GIT
 *.swp
 *.swo
-
-# Mac Stuff.
 .DS_Store
-
 # Vistual Studio Code stuff.
-/.vscode/
+/.vscode
+# JetBrains IDE stuff.
+/.idea
