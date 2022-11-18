@@ -20,7 +20,7 @@
   "types": "lib/index.d.ts",
   "files": [
     "npm-scripts.js",
-    "node/lib"
+    "lib"
   ],
   "keywords": [
     "webrtc",
