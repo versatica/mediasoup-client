@@ -419,7 +419,13 @@ export class Safari12 extends HandlerInterface
 			throw new Error('associated RTCRtpTransceiver not found');
 
 		transceiver.sender.replaceTrack(null);
-		transceiver.stop();
+
+		try
+		{
+			transceiver.stop();
+		}
+		catch (error)
+		{}
 
 		this._pc.removeTrack(transceiver.sender);
 		this._remoteSdp!.closeMediaSection(transceiver.mid!);
