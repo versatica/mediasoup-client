@@ -61,6 +61,7 @@
     "cacheDirectory": ".cache/jest"
   },
   "dependencies": {
+    "@types/debug": "^4.1.7",
     "awaitqueue": "^2.4.0",
     "bowser": "^2.11.0",
     "debug": "^4.3.4",
@@ -72,7 +73,6 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.7",
     "@types/events": "^3.0.0",
     "@types/jest": "^29.2.3",
     "@types/sdp-transform": "^2.4.5",
