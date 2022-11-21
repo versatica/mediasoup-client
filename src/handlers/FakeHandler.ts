@@ -79,11 +79,12 @@ class FakeDataChannel extends EnhancedEventEmitter
 	}
 }
 
-export type FakeParameters = {
+export type FakeParameters =
+{
 	generateNativeRtpCapabilities: () => RtpCapabilities;
 	generateNativeSctpCapabilities: () => SctpCapabilities;
 	generateLocalDtlsParameters: () => DtlsParameters;
-}
+};
 
 export class FakeHandler extends HandlerInterface
 {

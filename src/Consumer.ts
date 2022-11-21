@@ -12,7 +12,7 @@ export type ConsumerOptions =
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type ConsumerEvents =
 {
@@ -23,7 +23,7 @@ export type ConsumerEvents =
 	'@close': [];
 	'@pause': [];
 	'@resume': [];
-}
+};
 
 export type ConsumerObserverEvents =
 {
@@ -31,7 +31,7 @@ export type ConsumerObserverEvents =
 	pause: [];
 	resume: [];
 	trackended: [];
-}
+};
 
 export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 {

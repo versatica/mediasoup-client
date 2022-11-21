@@ -182,7 +182,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 export type DeviceObserverEvents =
 {
 	newtransport: [Transport];
-}
+};
 
 export class Device
 {

@@ -88,13 +88,17 @@ switch (task)
 		break;
 	}
 
+	case 'release:check':
+	{
+		checkRelease();
+
+		break;
+	}
+
 	case 'release':
 	{
-		installDeps();
-		buildTypescript(/* force */ true);
-		replaceVersion();
-		lint();
-		test();
+		checkRelease();
+		executeCmd('git diff --quiet || exit 1');
 		executeCmd(`git commit -am '${version}'`);
 		executeCmd(`git tag -a ${version} -m '${version}'`);
 		executeCmd(`git push origin v${MAYOR_VERSION}`);
@@ -163,8 +167,7 @@ function lint()
 {
 	console.log('npm-scripts.js [INFO] lint()');
 
-	executeCmd('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src');
-	executeCmd('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test');
+	executeCmd('eslint -c .eslintrc.js --max-warnings 0 src .eslintrc.js npm-scripts.js');
 }
 
 function test()
@@ -184,6 +187,17 @@ function installDeps()
 	executeCmd('npm install --package-lock-only --ignore-scripts');
 }
 
+function checkRelease()
+{
+	console.log('npm-scripts.js [INFO] checkRelease()');
+
+	installDeps();
+	buildTypescript(/* force */ true);
+	replaceVersion();
+	lint();
+	test();
+}
+
 function executeCmd(command, exitOnError = true)
 {
 	console.log(`npm-scripts.js [INFO] executeCmd(): ${command}`);
@@ -196,7 +210,13 @@ function executeCmd(command, exitOnError = true)
 	{
 		if (exitOnError)
 		{
+			console.error(`npm-scripts.js [ERROR] executeCmd() failed, exiting: ${error}`);
+
 			process.exit(1);
+		}
+		else
+		{
+			console.log(`npm-scripts.js [INFO] executeCmd() failed, ignoring: ${error}`);
 		}
 	}
 }

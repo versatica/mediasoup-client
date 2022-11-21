@@ -52,14 +52,14 @@ export type TransportOptions =
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type CanProduceByKind =
 {
 	audio: boolean;
 	video: boolean;
 	[key: string]: boolean;
-}
+};
 
 export type IceParameters =
 {
@@ -75,7 +75,7 @@ export type IceParameters =
 	 * ICE Lite.
 	 */
 	iceLite?: boolean;
-}
+};
 
 export type IceCandidate =
 {
@@ -108,7 +108,7 @@ export type IceCandidate =
 	 * The type of TCP candidate.
 	 */
 	tcpType: 'active' | 'passive' | 'so';
-}
+};
 
 export type DtlsParameters =
 {
@@ -120,7 +120,7 @@ export type DtlsParameters =
 	 * Server DTLS fingerprints.
 	 */
 	fingerprints: DtlsFingerprint[];
-}
+};
 
 /**
  * The hash function algorithm (as defined in the "Hash function Textual Names"
@@ -132,7 +132,7 @@ export type DtlsFingerprint =
 {
 	algorithm: string;
 	value: string;
-}
+};
 
 export type DtlsRole = 'auto' | 'client' | 'server';
 

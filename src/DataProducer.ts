@@ -13,7 +13,7 @@ export type DataProducerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type DataProducerEvents =
 {
@@ -24,12 +24,12 @@ export type DataProducerEvents =
 	bufferedamountlow: [];
 	// Private events.
 	'@close': [];
-}
+};
 
 export type DataProducerObserverEvents =
 {
 	close: [];
-}
+};
 
 export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 {

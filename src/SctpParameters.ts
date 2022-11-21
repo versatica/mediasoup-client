@@ -1,7 +1,7 @@
 export type SctpCapabilities =
 {
   numStreams: NumSctpStreams;
-}
+};
 
 export type NumSctpStreams =
 {
@@ -13,7 +13,7 @@ export type NumSctpStreams =
 	 * Maximum number of incoming SCTP streams.
 	 */
 	MIS: number;
-}
+};
 
 export type SctpParameters =
 {
@@ -33,7 +33,7 @@ export type SctpParameters =
 	 * Maximum allowed size for SCTP messages.
 	 */
 	maxMessageSize: number;
-}
+};
 
 /**
  * SCTP stream parameters describe the reliability of a certain SCTP stream.
@@ -71,4 +71,4 @@ export type SctpStreamParameters =
 	 * Name of the sub-protocol used by this DataChannel.
 	 */
 	protocol?: string;
-}
+};

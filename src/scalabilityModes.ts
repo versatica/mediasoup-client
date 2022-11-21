@@ -4,7 +4,7 @@ export type ScalabilityMode =
 {
 	spatialLayers: number;
 	temporalLayers: number;
-}
+};
 
 export function parse(scalabilityMode?: string): ScalabilityMode
 {

@@ -31,7 +31,6 @@ jobs:
           key: ${{ matrix.ci.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ matrix.ci.os }}-node-
-      - run: npm install
+      - run: npm ci
       - run: npm run lint
-      - run: npm run typescript:build
       - run: npm run test

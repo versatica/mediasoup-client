@@ -12,7 +12,7 @@ export type DataConsumerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type DataConsumerEvents =
 {
@@ -23,12 +23,12 @@ export type DataConsumerEvents =
 	message: [any];
 	// Private events.
 	'@close': [];
-}
+};
 
 export type DataConsumerObserverEvents =
 {
 	close: [];
-}
+};
 
 export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 {

@@ -20,7 +20,7 @@ export type ProducerOptions =
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
 	appData?: Record<string, unknown>;
-}
+};
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
 export type ProducerCodecOptions =
@@ -34,7 +34,7 @@ export type ProducerCodecOptions =
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;
 	videoGoogleMinBitrate?: number;
-}
+};
 
 export type ProducerEvents =
 {
@@ -69,7 +69,7 @@ export type ProducerEvents =
 	];
 	'@getstats': [(stats: RTCStatsReport) => void, (error: Error) => void];
 	'@close': [];
-}
+};
 
 export type ProducerObserverEvents =
 {
@@ -77,7 +77,7 @@ export type ProducerObserverEvents =
 	pause: [];
 	resume: [];
 	trackended: [];
-}
+};
 
 export class Producer extends EnhancedEventEmitter<ProducerEvents>
 {

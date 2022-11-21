@@ -76,12 +76,12 @@ export type HandlerReceiveDataChannelOptions =
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
-}
+};
 
 export type HandlerReceiveDataChannelResult =
 {
 	dataChannel: RTCDataChannel;
-}
+};
 
 export type HandlerEvents =
 {
@@ -93,7 +93,7 @@ export type HandlerEvents =
 		(error: Error) => void
 	];
 	'@connectionstatechange': [ConnectionState];
-}
+};
 
 export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents>
 {
@@ -146,7 +146,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract receive(
 		optionsList: HandlerReceiveOptions[]
-	) : Promise<HandlerReceiveResult[]>
+	) : Promise<HandlerReceiveResult[]>;
 
 	abstract stopReceiving(localIds: string[]): Promise<void>;
 
