@@ -314,7 +314,7 @@ export class ReactNative extends HandlerInterface
 		}
 
 		this._sendStream.addTrack(track);
-		this._pc.addStream(this._sendStream);
+		this._pc.addTrack(track, this._sendStream);
 
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
