@@ -16,6 +16,7 @@ import { Firefox60 } from './handlers/Firefox60';
 import { Safari12 } from './handlers/Safari12';
 import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
+import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
@@ -31,6 +32,7 @@ export type BuiltinHandlerName =
 	| 'Safari12'
 	| 'Safari11'
 	| 'Edge11'
+	| 'ReactNativeUnifiedPlan'
 	| 'ReactNative';
 
 export type DeviceOptions =
@@ -59,19 +61,29 @@ export function detectDevice(): BuiltinHandlerName | undefined
 {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
+	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative')
 	{
 		if (typeof RTCPeerConnection === 'undefined')
 		{
 			logger.warn(
-				'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+				'this._detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?');
 
 			return undefined;
 		}
 
-		logger.debug('this._detectDevice() | ReactNative handler chosen');
+		if (typeof RTCRtpTransceiver !== 'undefined')
+		{
+			logger.debug('this._detectDevice() | ReactNative UnifiedPlan handler chosen');
 
-		return 'ReactNative';
+			return 'ReactNativeUnifiedPlan';
+		}
+		else
+		{
+			logger.debug('this._detectDevice() | ReactNative PlanB handler chosen');
+
+			return 'ReactNative';
+		}
 	}
 	// Browser.
 	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
@@ -220,16 +232,19 @@ export class Device
 				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
 
 			if (typeof Handler === 'string')
+			{
 				handlerName = Handler as BuiltinHandlerName;
+			}
 			else
+			{
 				throw new TypeError(
 					'non string Handler option no longer supported, use handlerFactory instead');
+			}
 		}
 
 		if (handlerName && handlerFactory)
 		{
-			throw new TypeError(
-				'just one of handlerName or handlerInterface can be given');
+			throw new TypeError('just one of handlerName or handlerInterface can be given');
 		}
 
 		if (handlerFactory)
@@ -247,9 +262,13 @@ export class Device
 				handlerName = detectDevice();
 
 				if (handlerName)
+				{
 					logger.debug('constructor() | detected handler: %s', handlerName);
+				}
 				else
+				{
 					throw new UnsupportedError('device not supported');
+				}
 			}
 
 			switch (handlerName)
@@ -277,6 +296,9 @@ export class Device
 					break;
 				case 'Edge11':
 					this._handlerFactory = Edge11.createFactory();
+					break;
+				case 'ReactNativeUnifiedPlan':
+					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
 					break;
 				case 'ReactNative':
 					this._handlerFactory = ReactNative.createFactory();
