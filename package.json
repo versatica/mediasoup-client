@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client",
-  "version": "3.6.62",
+  "version": "3.6.63",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
