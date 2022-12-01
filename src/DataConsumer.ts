@@ -258,6 +258,9 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 
 			this.emit('@close');
 			this.safeEmit('close');
+
+			// Emit observer event.
+			this._observer.safeEmit('close');
 		});
 
 		this._dataChannel.addEventListener('message', (event: any) =>

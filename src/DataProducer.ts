@@ -269,6 +269,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 
 			this.emit('@close');
 			this.safeEmit('close');
+
+			// Emit observer event.
+			this._observer.safeEmit('close');
 		});
 
 		this._dataChannel.addEventListener('message', () =>
