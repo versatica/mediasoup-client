@@ -420,15 +420,20 @@ export class Safari12 extends HandlerInterface
 
 		transceiver.sender.replaceTrack(null);
 
-		try
-		{
-			transceiver.stop();
-		}
-		catch (error)
-		{}
-
 		this._pc.removeTrack(transceiver.sender);
-		this._remoteSdp!.closeMediaSection(transceiver.mid!);
+
+		const mediaSectionClosed =
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+
+		if (mediaSectionClosed)
+		{
+			try
+			{
+				transceiver.stop();
+			}
+			catch (error)
+			{}
+		}
 
 		const offer = await this._pc.createOffer();
 

@@ -296,7 +296,14 @@ export class RemoteSdp
 		mediaSection.disable();
 	}
 
-	closeMediaSection(mid: string): void
+	/**
+	 * Closes media section. Returns true if the given MID corresponds to a m
+	 * section that has been indeed closed. False otherwise.
+	 *
+	 * NOTE: Closing the first m section is a pain since it invalidates the bundled
+	 * transport, so instead closing it we just disable it.
+	 */
+	closeMediaSection(mid: string): boolean
 	{
 		const mediaSection = this._findMediaSection(mid);
 
@@ -310,13 +317,15 @@ export class RemoteSdp
 
 			this.disableMediaSection(mid);
 
-			return;
+			return false;
 		}
 
 		mediaSection.close();
 
 		// Regenerate BUNDLE mids.
 		this._regenerateBundleMids();
+
+		return true;
 	}
 
 	planBStopReceiving(
