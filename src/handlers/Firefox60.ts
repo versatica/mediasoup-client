@@ -211,29 +211,41 @@ export class Firefox60 extends HandlerInterface
 			},
 			proprietaryConstraints);
 
-		// Handle RTCPeerConnection connection status.
-		this._pc.addEventListener('iceconnectionstatechange', () =>
+		if (this._pc.connectionState)
 		{
-			switch (this._pc.iceConnectionState)
+			this._pc.addEventListener('connectionstatechange', () =>
 			{
-				case 'checking':
-					this.emit('@connectionstatechange', 'connecting');
-					break;
-				case 'connected':
-				case 'completed':
-					this.emit('@connectionstatechange', 'connected');
-					break;
-				case 'failed':
-					this.emit('@connectionstatechange', 'failed');
-					break;
-				case 'disconnected':
-					this.emit('@connectionstatechange', 'disconnected');
-					break;
-				case 'closed':
-					this.emit('@connectionstatechange', 'closed');
-					break;
-			}
-		});
+				this.emit('@connectionstatechange', this._pc.connectionState);
+			});
+		}
+		else
+		{
+			this._pc.addEventListener('iceconnectionstatechange', () =>
+			{
+				logger.warn(
+					'run() | pc.connectionState not supported, using pc.iceConnectionState');
+
+				switch (this._pc.iceConnectionState)
+				{
+					case 'checking':
+						this.emit('@connectionstatechange', 'connecting');
+						break;
+					case 'connected':
+					case 'completed':
+						this.emit('@connectionstatechange', 'connected');
+						break;
+					case 'failed':
+						this.emit('@connectionstatechange', 'failed');
+						break;
+					case 'disconnected':
+						this.emit('@connectionstatechange', 'disconnected');
+						break;
+					case 'closed':
+						this.emit('@connectionstatechange', 'closed');
+						break;
+				}
+			});
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
