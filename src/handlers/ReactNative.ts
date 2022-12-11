@@ -629,7 +629,7 @@ export class ReactNative extends HandlerInterface
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 			const mid = kind;
-			let streamId = rtpParameters.rtcp!.cname!;
+			let streamId = options.streamId || rtpParameters.rtcp!.cname!;
 
 			// NOTE: In React-Native we cannot reuse the same remote MediaStream for new
 			// remote tracks. This is because react-native-webrtc does not react on new

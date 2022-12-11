@@ -11,6 +11,7 @@ export type ConsumerOptions =
 	producerId?: string;
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
+	streamId?: string;
 	appData?: Record<string, unknown>;
 };
 
