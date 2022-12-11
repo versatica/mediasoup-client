@@ -615,19 +615,18 @@ export class Chrome55 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { trackId, kind, rtpParameters } = options;
+			const { trackId, kind, rtpParameters, streamId } = options;
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 			const mid = kind;
-			const streamId = rtpParameters.rtcp!.cname!;
 
 			this._remoteSdp!.receive(
 				{
 					mid,
 					kind,
 					offerRtpParameters : rtpParameters,
-					streamId,
+					streamId           : streamId || rtpParameters.rtcp!.cname!,
 					trackId
 				});
 		}
@@ -681,7 +680,7 @@ export class Chrome55 extends HandlerInterface
 			const { kind, trackId, rtpParameters } = options;
 			const mid = kind;
 			const localId = trackId;
-			const streamId = rtpParameters.rtcp!.cname!;
+			const streamId = options.streamId || rtpParameters.rtcp!.cname!;
 			const stream = this._pc.getRemoteStreams()
 				.find((s: any) => s.id === streamId);
 			const track = stream.getTrackById(localId);

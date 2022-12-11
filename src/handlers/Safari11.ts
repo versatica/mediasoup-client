@@ -686,7 +686,7 @@ export class Safari11 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { trackId, kind, rtpParameters } = options;
+			const { trackId, kind, rtpParameters, streamId } = options;
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -697,7 +697,7 @@ export class Safari11 extends HandlerInterface
 					mid,
 					kind,
 					offerRtpParameters : rtpParameters,
-					streamId           : rtpParameters.rtcp!.cname!,
+					streamId           : streamId || rtpParameters.rtcp!.cname!,
 					trackId
 				});
 		}

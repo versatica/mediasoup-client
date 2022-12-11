@@ -623,6 +623,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			producerId,
 			kind,
 			rtpParameters,
+			streamId,
 			appData = {}
 		}: ConsumerOptions
 	): Promise<Consumer>
@@ -659,6 +660,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				producerId,
 				kind,
 				rtpParameters,
+				streamId,
 				appData
 			}
 		);
@@ -850,13 +852,15 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				for (const task of pendingConsumerTasks)
 				{
-					const { id, kind, rtpParameters } = task.consumerOptions;
+					const { id, kind, rtpParameters, streamId } = task.consumerOptions;
 
-					optionsList.push({
-						trackId : id!,
-						kind    : kind as 'audio' | 'video',
-						rtpParameters
-					});
+					optionsList.push(
+						{
+							trackId : id!,
+							kind    : kind as MediaKind,
+							rtpParameters,
+							streamId
+						});
 				}
 
 				try
