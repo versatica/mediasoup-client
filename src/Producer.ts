@@ -151,12 +151,12 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		this._disableTrackOnPause = disableTrackOnPause;
 		this._zeroRtpOnPause = zeroRtpOnPause;
 		this._appData = appData || {};
-		this._onTrackEnded = this._onTrackEnded.bind(this);
+		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
 		// '@replacetrack' event here, so RTCRtpSender.track won't be null.
 
-		this._handleTrack();
+		this.handleTrack();
 	}
 
 	/**
@@ -267,7 +267,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 
 		this._closed = true;
 
-		this._destroyTrack();
+		this.destroyTrack();
 
 		this.emit('@close');
 
@@ -287,7 +287,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 
 		this._closed = true;
 
-		this._destroyTrack();
+		this.destroyTrack();
 
 		this.safeEmit('transportclose');
 
@@ -430,7 +430,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		});
 
 		// Destroy the previous track.
-		this._destroyTrack();
+		this.destroyTrack();
 
 		// Set the new track.
 		this._track = track;
@@ -446,7 +446,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		}
 
 		// Handle the effective track.
-		this._handleTrack();
+		this.handleTrack();
 	}
 
 	/**
@@ -497,7 +497,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		});
 	}
 
-	private _onTrackEnded(): void
+	private onTrackEnded(): void
 	{
 		logger.debug('track "ended" event');
 
@@ -507,22 +507,22 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		this._observer.safeEmit('trackended');
 	}
 
-	private _handleTrack(): void
+	private handleTrack(): void
 	{
 		if (!this._track)
 			return;
 
-		this._track.addEventListener('ended', this._onTrackEnded);
+		this._track.addEventListener('ended', this.onTrackEnded);
 	}
 
-	private _destroyTrack(): void
+	private destroyTrack(): void
 	{
 		if (!this._track)
 			return;
 
 		try
 		{
-			this._track.removeEventListener('ended', this._onTrackEnded);
+			this._track.removeEventListener('ended', this.onTrackEnded);
 
 			// Just stop the track unless the app set stopTracks: false.
 			if (this._stopTracks)

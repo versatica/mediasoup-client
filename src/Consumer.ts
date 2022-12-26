@@ -90,9 +90,9 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
 		this._appData = appData || {};
-		this._onTrackEnded = this._onTrackEnded.bind(this);
+		this.onTrackEnded = this.onTrackEnded.bind(this);
 
-		this._handleTrack();
+		this.handleTrack();
 	}
 
 	/**
@@ -201,7 +201,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 
 		this._closed = true;
 
-		this._destroyTrack();
+		this.destroyTrack();
 
 		this.emit('@close');
 
@@ -221,7 +221,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 
 		this._closed = true;
 
-		this._destroyTrack();
+		this.destroyTrack();
 
 		this.safeEmit('transportclose');
 
@@ -307,7 +307,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._observer.safeEmit('resume');
 	}
 
-	private _onTrackEnded(): void
+	private onTrackEnded(): void
 	{
 		logger.debug('track "ended" event');
 
@@ -317,16 +317,16 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._observer.safeEmit('trackended');
 	}
 
-	private _handleTrack(): void
+	private handleTrack(): void
 	{
-		this._track.addEventListener('ended', this._onTrackEnded);
+		this._track.addEventListener('ended', this.onTrackEnded);
 	}
 
-	private _destroyTrack(): void
+	private destroyTrack(): void
 	{
 		try
 		{
-			this._track.removeEventListener('ended', this._onTrackEnded);
+			this._track.removeEventListener('ended', this.onTrackEnded);
 			this._track.stop();
 		}
 		catch (error)

@@ -150,9 +150,9 @@ export class Edge11 extends HandlerInterface
 		this._remoteDtlsParameters = dtlsParameters;
 		this._cname = `CNAME-${utils.generateRandomNumber()}`;
 
-		this._setIceGatherer({ iceServers, iceTransportPolicy });
-		this._setIceTransport();
-		this._setDtlsTransport();
+		this.setIceGatherer({ iceServers, iceTransportPolicy });
+		this.setIceTransport();
+		this.setDtlsTransport();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -197,7 +197,7 @@ export class Edge11 extends HandlerInterface
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this.setupTransport({ localDtlsRole: 'server' });
 
 		logger.debug('send() | calling new RTCRtpSender()');
 
@@ -388,7 +388,7 @@ export class Edge11 extends HandlerInterface
 		}
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this.setupTransport({ localDtlsRole: 'server' });
 
 		for (const options of optionsList)
 		{
@@ -487,7 +487,7 @@ export class Edge11 extends HandlerInterface
 		throw new UnsupportedError('not implemented');
 	}
 
-	private _setIceGatherer(
+	private setIceGatherer(
 		{ iceServers, iceTransportPolicy }:
 		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
 	): void
@@ -512,14 +512,14 @@ export class Edge11 extends HandlerInterface
 		catch (error)
 		{
 			logger.debug(
-				'_setIceGatherer() | iceGatherer.gather() failed: %s',
+				'setIceGatherer() | iceGatherer.gather() failed: %s',
 				(error as Error).toString());
 		}
 
 		this._iceGatherer = iceGatherer;
 	}
 
-	private _setIceTransport(): void
+	private setIceTransport(): void
 	{
 		const iceTransport = new (RTCIceTransport as any)(this._iceGatherer);
 
@@ -580,7 +580,7 @@ export class Edge11 extends HandlerInterface
 		this._iceTransport = iceTransport;
 	}
 
-	private _setDtlsTransport(): void
+	private setDtlsTransport(): void
 	{
 		const dtlsTransport = new (RTCDtlsTransport as any)(this._iceTransport);
 
@@ -609,12 +609,12 @@ export class Edge11 extends HandlerInterface
 		this._dtlsTransport = dtlsTransport;
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{ localDtlsRole }:
 		{ localDtlsRole: DtlsRole }
 	): Promise<void>
 	{
-		logger.debug('_setupTransport()');
+		logger.debug('setupTransport()');
 
 		// Get our local DTLS parameters.
 		const dtlsParameters = this._dtlsTransport.getLocalParameters();

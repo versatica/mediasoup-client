@@ -1,5 +1,3 @@
-/* global RTCRtpTransceiver */
-
 import Bowser from 'bowser';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
@@ -390,7 +388,9 @@ export class Device
 		try
 		{
 			if (this._loaded)
+			{
 				throw new InvalidStateError('already loaded');
+			}
 
 			// This may throw.
 			ortc.validateRtpCapabilities(routerRtpCapabilities);
@@ -493,7 +493,7 @@ export class Device
 	{
 		logger.debug('createSendTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'send',
 				id                     : id,
@@ -532,7 +532,7 @@ export class Device
 	{
 		logger.debug('createRecvTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'recv',
 				id                     : id,
@@ -548,7 +548,7 @@ export class Device
 			});
 	}
 
-	private _createTransport(
+	private createTransport(
 		{
 			direction,
 			id,

@@ -312,7 +312,7 @@ export class Firefox60 extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -371,7 +371,7 @@ export class Firefox60 extends HandlerInterface
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
 			'send() | calling pc.setLocalDescription() [offer:%o]',
@@ -508,7 +508,7 @@ export class Firefox60 extends HandlerInterface
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('pauseSending() [localId:%s]', localId);
 
@@ -540,7 +540,7 @@ export class Firefox60 extends HandlerInterface
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('resumeSending() [localId:%s]', localId);
 
@@ -573,7 +573,7 @@ export class Firefox60 extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		if (track)
 		{
@@ -595,7 +595,7 @@ export class Firefox60 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
@@ -625,7 +625,7 @@ export class Firefox60 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
@@ -648,7 +648,7 @@ export class Firefox60 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -668,7 +668,7 @@ export class Firefox60 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const options =
 		{
@@ -698,7 +698,7 @@ export class Firefox60 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -735,7 +735,7 @@ export class Firefox60 extends HandlerInterface
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
 		const mapLocalId: Map<string, string> = new Map();
@@ -790,7 +790,7 @@ export class Firefox60 extends HandlerInterface
 		}
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -823,7 +823,7 @@ export class Firefox60 extends HandlerInterface
 
 	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
@@ -861,7 +861,7 @@ export class Firefox60 extends HandlerInterface
 
 	async pauseReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
@@ -895,7 +895,7 @@ export class Firefox60 extends HandlerInterface
 
 	async resumeReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
@@ -929,7 +929,7 @@ export class Firefox60 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -943,7 +943,7 @@ export class Firefox60 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const {
 			streamId,
@@ -986,7 +986,7 @@ export class Firefox60 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(
@@ -1001,7 +1001,7 @@ export class Firefox60 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject
@@ -1040,7 +1040,7 @@ export class Firefox60 extends HandlerInterface
 		this._transportReady = true;
 	}
 
-	private _assertSendDirection(): void
+	private assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -1049,7 +1049,7 @@ export class Firefox60 extends HandlerInterface
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

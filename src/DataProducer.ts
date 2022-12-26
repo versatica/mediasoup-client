@@ -70,7 +70,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._sctpStreamParameters = sctpStreamParameters;
 		this._appData = appData || {};
 
-		this._handleDataChannel();
+		this.handleDataChannel();
 	}
 
 	/**
@@ -222,7 +222,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.send(data);
 	}
 
-	private _handleDataChannel(): void
+	private handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{

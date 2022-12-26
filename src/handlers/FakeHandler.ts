@@ -204,7 +204,7 @@ export class FakeHandler extends HandlerInterface
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this.setupTransport({ localDtlsRole: 'server' });
 
 		const rtpParameters =
 			utils.clone(this._rtpParametersByKind![track.kind], {});
@@ -312,7 +312,7 @@ export class FakeHandler extends HandlerInterface
 	): Promise<HandlerSendDataChannelResult>
 	{
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			await this.setupTransport({ localDtlsRole: 'server' });
 
 		logger.debug('sendDataChannel()');
 
@@ -349,7 +349,7 @@ export class FakeHandler extends HandlerInterface
 			const { trackId, kind } = options;
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'client' });
+				await this.setupTransport({ localDtlsRole: 'client' });
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -399,7 +399,7 @@ export class FakeHandler extends HandlerInterface
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+			await this.setupTransport({ localDtlsRole: 'client' });
 
 		logger.debug('receiveDataChannel()');
 
@@ -417,7 +417,7 @@ export class FakeHandler extends HandlerInterface
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars

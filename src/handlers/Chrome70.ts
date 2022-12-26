@@ -296,7 +296,7 @@ export class Chrome70 extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -323,7 +323,7 @@ export class Chrome70 extends HandlerInterface
 
 		if (!this._transportReady)
 		{
-			await this._setupTransport(
+			await this.setupTransport(
 				{
 					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
@@ -480,7 +480,7 @@ export class Chrome70 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -541,7 +541,7 @@ export class Chrome70 extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		if (track)
 		{
@@ -563,7 +563,7 @@ export class Chrome70 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
@@ -589,7 +589,7 @@ export class Chrome70 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
@@ -612,7 +612,7 @@ export class Chrome70 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -632,7 +632,7 @@ export class Chrome70 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const options =
 		{
@@ -664,7 +664,7 @@ export class Chrome70 extends HandlerInterface
 
 			if (!this._transportReady)
 			{
-				await this._setupTransport(
+				await this.setupTransport(
 					{
 						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
@@ -705,7 +705,7 @@ export class Chrome70 extends HandlerInterface
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
 		const mapLocalId: Map<string, string> = new Map();
@@ -761,7 +761,7 @@ export class Chrome70 extends HandlerInterface
 
 		if (!this._transportReady)
 		{
-			await this._setupTransport(
+			await this.setupTransport(
 				{
 					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
@@ -799,7 +799,7 @@ export class Chrome70 extends HandlerInterface
 
 	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
@@ -851,7 +851,7 @@ export class Chrome70 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -865,7 +865,7 @@ export class Chrome70 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const {
 			streamId,
@@ -909,7 +909,7 @@ export class Chrome70 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport(
+				await this.setupTransport(
 					{
 						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
@@ -928,7 +928,7 @@ export class Chrome70 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject
@@ -967,7 +967,7 @@ export class Chrome70 extends HandlerInterface
 		this._transportReady = true;
 	}
 
-	private _assertSendDirection(): void
+	private assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -976,7 +976,7 @@ export class Chrome70 extends HandlerInterface
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

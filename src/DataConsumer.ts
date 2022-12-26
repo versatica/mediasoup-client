@@ -74,7 +74,7 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 		this._sctpStreamParameters = sctpStreamParameters;
 		this._appData = appData || {};
 
-		this._handleDataChannel();
+		this.handleDataChannel();
 	}
 
 	/**
@@ -211,7 +211,7 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 		this._observer.safeEmit('close');
 	}
 
-	private _handleDataChannel(): void
+	private handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{

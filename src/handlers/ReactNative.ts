@@ -314,7 +314,7 @@ export class ReactNative extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -345,7 +345,7 @@ export class ReactNative extends HandlerInterface
 
 		if (!this._transportReady)
 		{
-			await this._setupTransport(
+			await this.setupTransport(
 				{
 					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
@@ -445,7 +445,7 @@ export class ReactNative extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -544,7 +544,7 @@ export class ReactNative extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const options =
 		{
@@ -576,7 +576,7 @@ export class ReactNative extends HandlerInterface
 
 			if (!this._transportReady)
 			{
-				await this._setupTransport(
+				await this.setupTransport(
 					{
 						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
@@ -617,7 +617,7 @@ export class ReactNative extends HandlerInterface
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
 		const mapStreamId: Map<string, string> = new Map();
@@ -684,7 +684,7 @@ export class ReactNative extends HandlerInterface
 
 		if (!this._transportReady)
 		{
-			await this._setupTransport(
+			await this.setupTransport(
 				{
 					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject
@@ -721,7 +721,7 @@ export class ReactNative extends HandlerInterface
 
 	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
@@ -777,7 +777,7 @@ export class ReactNative extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const {
 			streamId,
@@ -821,7 +821,7 @@ export class ReactNative extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport(
+				await this.setupTransport(
 					{
 						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
 						localSdpObject
@@ -840,7 +840,7 @@ export class ReactNative extends HandlerInterface
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject
@@ -879,7 +879,7 @@ export class ReactNative extends HandlerInterface
 		this._transportReady = true;
 	}
 
-	private _assertSendDirection(): void
+	private assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -888,7 +888,7 @@ export class ReactNative extends HandlerInterface
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{
