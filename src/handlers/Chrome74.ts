@@ -421,7 +421,7 @@ export class Chrome74 extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T3';
+				encoding.scalabilityMode = 'S1T2';
 			}
 		}
 
