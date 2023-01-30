@@ -213,6 +213,7 @@ export class AnswerMediaSection extends MediaSection
 							opusStereo,
 							opusFec,
 							opusDtx,
+							opusNack,
 							opusMaxPlaybackRate,
 							opusMaxAverageBitrate,
 							opusPtime,
@@ -246,6 +247,10 @@ export class AnswerMediaSection extends MediaSection
 								{
 									offerCodec!.parameters.usedtx = opusDtx ? 1 : 0;
 									codecParameters.usedtx = opusDtx ? 1 : 0;
+								}
+
+								if (!opusNack) {
+									offerCodec!.rtcpFeedback = offerCodec?.rtcpFeedback?.filter(fb => fb.type !== 'nack')
 								}
 
 								if (opusMaxPlaybackRate !== undefined)

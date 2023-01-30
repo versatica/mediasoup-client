@@ -26,6 +26,7 @@ export type ProducerCodecOptions =
 	opusStereo?: boolean;
 	opusFec?: boolean;
 	opusDtx?: boolean;
+	opusNack?: boolean;
 	opusMaxPlaybackRate?: number;
 	opusMaxAverageBitrate?: number;
 	opusPtime?: number;

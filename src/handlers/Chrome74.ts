@@ -113,6 +113,13 @@ export class Chrome74 extends HandlerInterface
 			const nativeRtpCapabilities =
 				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
 
+			// Chrome supports audio NACK but will not announce it
+			nativeRtpCapabilities.codecs?.forEach(codec => {
+				if (codec.mimeType.toLowerCase() === 'audio/opus' && !codec.rtcpFeedback?.some(({ type }) => type === 'nack')) {
+					codec.rtcpFeedback?.push({ type: 'nack' })
+				}
+			})
+
 			return nativeRtpCapabilities;
 		}
 		catch (error)
