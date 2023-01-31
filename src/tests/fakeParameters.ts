@@ -1,5 +1,10 @@
-import uuidv4 from 'uuid/v4';
 import * as mediasoupClient from '../';
+import * as utils from '../utils';
+
+function generateFakeUuid(): string
+{
+	return String(utils.generateRandomNumber());
+}
 
 export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabilities
 {
@@ -336,7 +341,7 @@ export function generateTransportRemoteParameters():
 	mediasoupClient.types.TransportOptions
 {
 	return {
-		id            : uuidv4(),
+		id            : generateFakeUuid(),
 		iceParameters :
 		{
 			iceLite          : true,
@@ -396,7 +401,7 @@ export function generateTransportRemoteParameters():
 export function generateProducerRemoteParameters(): { id: string }
 {
 	return {
-		id : uuidv4()
+		id : generateFakeUuid()
 	};
 }
 
@@ -410,8 +415,8 @@ export function generateConsumerRemoteParameters(
 		case 'audio/opus':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -467,8 +472,8 @@ export function generateConsumerRemoteParameters(
 		case 'audio/ISAC':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -516,8 +521,8 @@ export function generateConsumerRemoteParameters(
 		case 'video/VP8':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'video',
 				rtpParameters :
 				{
@@ -597,8 +602,8 @@ export function generateConsumerRemoteParameters(
 		case 'video/H264':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'video',
 				rtpParameters :
 				{
@@ -687,7 +692,7 @@ export function generateConsumerRemoteParameters(
 export function generateDataProducerRemoteParameters(): { id: string }
 {
 	return {
-		id : uuidv4()
+		id : generateFakeUuid()
 	};
 }
 
@@ -697,8 +702,8 @@ export function generateDataConsumerRemoteParameters(
 ): mediasoupClient.types.DataConsumerOptions
 {
 	return {
-		id                   : id || uuidv4(),
-		dataProducerId       : uuidv4(),
+		id                   : id || generateFakeUuid(),
+		dataProducerId       : generateFakeUuid(),
 		sctpStreamParameters :
 		{
 			streamId          : 666,
