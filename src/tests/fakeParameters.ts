@@ -1,6 +1,12 @@
-const uuidv4 = require('uuid/v4');
+import * as mediasoupClient from '../';
+import * as utils from '../utils';
 
-exports.generateRouterRtpCapabilities = function()
+function generateFakeUuid(): string
+{
+	return String(utils.generateRandomNumber());
+}
+
+export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabilities
 {
 	return {
 		codecs :
@@ -177,9 +183,9 @@ exports.generateRouterRtpCapabilities = function()
 			}
 		]
 	};
-};
+}
 
-exports.generateNativeRtpCapabilities = function()
+export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabilities
 {
 	return {
 		codecs :
@@ -308,16 +314,16 @@ exports.generateNativeRtpCapabilities = function()
 			}
 		]
 	};
-};
+}
 
-exports.generateNativeSctpCapabilities = function()
+export function generateNativeSctpCapabilities(): mediasoupClient.types.SctpCapabilities
 {
 	return {
 		numStreams : { OS: 2048, MIS: 2048 }
 	};
-};
+}
 
-exports.generateLocalDtlsParameters = function()
+export function generateLocalDtlsParameters(): mediasoupClient.types.DtlsParameters
 {
 	return {
 		fingerprints :
@@ -329,12 +335,13 @@ exports.generateLocalDtlsParameters = function()
 		],
 		role : 'auto'
 	};
-};
+}
 
-exports.generateTransportRemoteParameters = function()
+export function generateTransportRemoteParameters():
+	mediasoupClient.types.TransportOptions
 {
 	return {
-		id            : uuidv4(),
+		id            : generateFakeUuid(),
 		iceParameters :
 		{
 			iceLite          : true,
@@ -344,22 +351,22 @@ exports.generateTransportRemoteParameters = function()
 		iceCandidates :
 		[
 			{
-				family     : 'ipv4',
 				foundation : 'udpcandidate',
 				ip         : '9.9.9.9',
 				port       : 40533,
 				priority   : 1078862079,
 				protocol   : 'udp',
-				type       : 'host'
+				type       : 'host',
+				tcpType    : 'passive'
 			},
 			{
-				family     : 'ipv6',
 				foundation : 'udpcandidate',
 				ip         : '9:9:9:9:9:9',
 				port       : 41333,
 				priority   : 1078862089,
 				protocol   : 'udp',
-				type       : 'host'
+				type       : 'host',
+				tcpType    : 'passive'
 			}
 		],
 		dtlsParameters :
@@ -384,28 +391,32 @@ exports.generateTransportRemoteParameters = function()
 		sctpParameters :
 		{
 			port           : 5000,
-			numStreams     : 2048,
+			OS             : 2048,
+			MIS            : 2048,
 			maxMessageSize : 2000000
 		}
 	};
-};
+}
 
-exports.generateProducerRemoteParameters = function()
+export function generateProducerRemoteParameters(): { id: string }
 {
 	return {
-		id : uuidv4()
+		id : generateFakeUuid()
 	};
-};
+}
 
-exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
+export function generateConsumerRemoteParameters(
+	{ id, codecMimeType }:
+	{ id?: string; codecMimeType?: string } = {}
+): mediasoupClient.types.ConsumerOptions
 {
 	switch (codecMimeType)
 	{
 		case 'audio/opus':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -461,8 +472,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 		case 'audio/ISAC':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'audio',
 				rtpParameters :
 				{
@@ -510,8 +521,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 		case 'video/VP8':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'video',
 				rtpParameters :
 				{
@@ -591,8 +602,8 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 		case 'video/H264':
 		{
 			return {
-				id            : id || uuidv4(),
-				producerId    : uuidv4(),
+				id            : id || generateFakeUuid(),
+				producerId    : generateFakeUuid(),
 				kind          : 'video',
 				rtpParameters :
 				{
@@ -619,7 +630,6 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 						},
 						{
 							mimeType     : 'video/rtx',
-							kind         : 'video',
 							payloadType  : 104,
 							clockRate    : 90000,
 							rtcpFeedback : [],
@@ -677,20 +687,23 @@ exports.generateConsumerRemoteParameters = function({ id, codecMimeType } = {})
 			throw new TypeError(`unknown codecMimeType "${codecMimeType}"`);
 		}
 	}
-};
+}
 
-exports.generateDataProducerRemoteParameters = function()
+export function generateDataProducerRemoteParameters(): { id: string }
 {
 	return {
-		id : uuidv4()
+		id : generateFakeUuid()
 	};
-};
+}
 
-exports.generateDataConsumerRemoteParameters = function({ id } = {})
+export function generateDataConsumerRemoteParameters(
+	{ id }:
+	{ id?: string } = {}
+): mediasoupClient.types.DataConsumerOptions
 {
 	return {
-		id                   : id || uuidv4(),
-		dataProducerId       : uuidv4(),
+		id                   : id || generateFakeUuid(),
+		dataProducerId       : generateFakeUuid(),
 		sctpStreamParameters :
 		{
 			streamId          : 666,
@@ -698,4 +711,4 @@ exports.generateDataConsumerRemoteParameters = function({ id } = {})
 			maxRetransmits    : undefined
 		}
 	};
-};
+}

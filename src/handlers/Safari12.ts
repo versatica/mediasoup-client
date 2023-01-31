@@ -37,6 +37,9 @@ export class Safari12 extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	// Initial server side DTLS role. If not 'auto', it will force the opposite
+	// value in client side.
+	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
@@ -79,6 +82,8 @@ export class Safari12 extends HandlerInterface
 			try { this._pc.close(); }
 			catch (error) {}
 		}
+
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
@@ -173,6 +178,13 @@ export class Safari12 extends HandlerInterface
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
 
+		if (dtlsParameters.role && dtlsParameters.role !== 'auto')
+		{
+			this._forcedLocalDtlsRole = dtlsParameters.role === 'server'
+				? 'client'
+				: 'server';
+		}
+
 		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers         : iceServers || [],
@@ -183,29 +195,41 @@ export class Safari12 extends HandlerInterface
 			},
 			proprietaryConstraints);
 
-		// Handle RTCPeerConnection connection status.
-		this._pc.addEventListener('iceconnectionstatechange', () =>
+		if (this._pc.connectionState)
 		{
-			switch (this._pc.iceConnectionState)
+			this._pc.addEventListener('connectionstatechange', () =>
 			{
-				case 'checking':
-					this.emit('@connectionstatechange', 'connecting');
-					break;
-				case 'connected':
-				case 'completed':
-					this.emit('@connectionstatechange', 'connected');
-					break;
-				case 'failed':
-					this.emit('@connectionstatechange', 'failed');
-					break;
-				case 'disconnected':
-					this.emit('@connectionstatechange', 'disconnected');
-					break;
-				case 'closed':
-					this.emit('@connectionstatechange', 'closed');
-					break;
-			}
-		});
+				this.emit('@connectionstatechange', this._pc.connectionState);
+			});
+		}
+		else
+		{
+			this._pc.addEventListener('iceconnectionstatechange', () =>
+			{
+				logger.warn(
+					'run() | pc.connectionState not supported, using pc.iceConnectionState');
+
+				switch (this._pc.iceConnectionState)
+				{
+					case 'checking':
+						this.emit('@connectionstatechange', 'connecting');
+						break;
+					case 'connected':
+					case 'completed':
+						this.emit('@connectionstatechange', 'connected');
+						break;
+					case 'failed':
+						this.emit('@connectionstatechange', 'failed');
+						break;
+					case 'disconnected':
+						this.emit('@connectionstatechange', 'disconnected');
+						break;
+					case 'closed':
+						this.emit('@connectionstatechange', 'closed');
+						break;
+				}
+			});
+		}
 	}
 
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
@@ -276,7 +300,7 @@ export class Safari12 extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -302,7 +326,13 @@ export class Safari12 extends HandlerInterface
 		let offerMediaObject;
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		{
+			await this.setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		if (encodings && encodings.length > 1)
 		{
@@ -398,7 +428,7 @@ export class Safari12 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -408,8 +438,21 @@ export class Safari12 extends HandlerInterface
 			throw new Error('associated RTCRtpTransceiver not found');
 
 		transceiver.sender.replaceTrack(null);
+
 		this._pc.removeTrack(transceiver.sender);
-		this._remoteSdp!.closeMediaSection(transceiver.mid!);
+
+		const mediaSectionClosed =
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+
+		if (mediaSectionClosed)
+		{
+			try
+			{
+				transceiver.stop();
+			}
+			catch (error)
+			{}
+		}
 
 		const offer = await this._pc.createOffer();
 
@@ -426,13 +469,79 @@ export class Safari12 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		this.assertSendDirection();
+
+		logger.debug('pauseSending() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'inactive';
+		this._remoteSdp!.pauseMediaSection(localId);
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'pauseSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		this.assertSendDirection();
+
+		logger.debug('resumeSending() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'sendonly';
+		this._remoteSdp!.resumeSendingMediaSection(localId);
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'resumeSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
 	}
 
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		if (track)
 		{
@@ -454,7 +563,7 @@ export class Safari12 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
@@ -480,7 +589,7 @@ export class Safari12 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
@@ -503,7 +612,7 @@ export class Safari12 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -523,7 +632,7 @@ export class Safari12 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const options =
 		{
@@ -553,7 +662,13 @@ export class Safari12 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			{
+				await this.setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -586,23 +701,33 @@ export class Safari12 extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+		optionsList: HandlerReceiveOptions[]
+	) : Promise<HandlerReceiveResult[]>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
+		const mapLocalId: Map<string, string> = new Map();
 
-		const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters, streamId } = options;
 
-		this._remoteSdp!.receive(
-			{
-				mid                : localId,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp!.cname!,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+
+			mapLocalId.set(trackId, localId);
+
+			this._remoteSdp!.receive(
+				{
+					mid                : localId,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : streamId || rtpParameters.rtcp!.cname!,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -614,21 +739,33 @@ export class Safari12 extends HandlerInterface
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === localId);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { trackId, rtpParameters } = options;
+			const localId = mapLocalId.get(trackId);
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === localId);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		{
+			await this.setupTransport(
+				{
+					localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject
+				});
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -636,34 +773,44 @@ export class Safari12 extends HandlerInterface
 
 		await this._pc.setLocalDescription(answer);
 
-		const transceiver = this._pc.getTransceivers()
-			.find((t: RTCRtpTransceiver) => t.mid === localId);
+		for (const options of optionsList)
+		{
+			const { trackId } = options;
+			const localId = mapLocalId.get(trackId)!;
+			const transceiver = this._pc.getTransceivers()
+				.find((t: RTCRtpTransceiver) => t.mid === localId);
 
-		if (!transceiver)
-			throw new Error('new RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('new RTCRtpTransceiver not found');
 
-		// Store in the map.
-		this._mapMidTransceiver.set(localId, transceiver);
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
 
-		return {
-			localId,
-			track       : transceiver.receiver.track,
-			rtpReceiver : transceiver.receiver
-		};
+			results.push({
+				localId,
+				track       : transceiver.receiver.track,
+				rtpReceiver : transceiver.receiver
+			});
+		}
+
+		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		this._remoteSdp!.closeMediaSection(transceiver.mid!);
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
@@ -680,21 +827,30 @@ export class Safari12 extends HandlerInterface
 			answer);
 
 		await this._pc.setLocalDescription(answer);
+
+		for (const localId of localIds)
+		{
+			this._mapMidTransceiver.delete(localId);
+		}
 	}
 
-	async pauseReceiving(localId: string): Promise<void>
+	async pauseReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
-		logger.debug('pauseReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('pauseReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		transceiver.direction = 'inactive';
-		
+			transceiver.direction = 'inactive';
+			this._remoteSdp!.pauseMediaSection(localId);
+		}
+
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
@@ -712,19 +868,23 @@ export class Safari12 extends HandlerInterface
 		await this._pc.setLocalDescription(answer);
 	}
 
-	async resumeReceiving(localId: string): Promise<void>
+	async resumeReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
-		logger.debug('resumeReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('resumeReceiving() [localId:%s]', localId);
 
-		const transceiver = this._mapMidTransceiver.get(localId);
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!transceiver)
-			throw new Error('associated RTCRtpTransceiver not found');
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-		transceiver.direction = 'recvonly';
-		
+			transceiver.direction = 'recvonly';
+			this._remoteSdp!.resumeReceivingMediaSection(localId);
+		}
+
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 
 		logger.debug(
@@ -744,7 +904,7 @@ export class Safari12 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -758,7 +918,7 @@ export class Safari12 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const {
 			streamId,
@@ -801,7 +961,11 @@ export class Safari12 extends HandlerInterface
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this.setupTransport(
+					{
+						localDtlsRole : this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject
+					});
 			}
 
 			logger.debug(
@@ -816,7 +980,7 @@ export class Safari12 extends HandlerInterface
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject
@@ -842,12 +1006,20 @@ export class Safari12 extends HandlerInterface
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		this._transportReady = true;
 	}
 
-	private _assertSendDirection(): void
+	private assertSendDirection(): void
 	{
 		if (this._direction !== 'send')
 		{
@@ -856,7 +1028,7 @@ export class Safari12 extends HandlerInterface
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private assertRecvDirection(): void
 	{
 		if (this._direction !== 'recv')
 		{

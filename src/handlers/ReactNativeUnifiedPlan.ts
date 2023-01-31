@@ -3,7 +3,7 @@ import { Logger } from '../Logger';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
-import * as sdpPlanBUtils from './sdp/planBUtils';
+import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -18,15 +18,20 @@ import {
 	HandlerReceiveDataChannelResult
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
+import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
-const logger = new Logger('Chrome67');
+const logger = new Logger('ReactNativeUnifiedPlan');
 
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-export class Chrome67 extends HandlerInterface
+export class ReactNativeUnifiedPlan extends HandlerInterface
 {
 	// Handler direction.
 	private _direction?: 'send' | 'recv';
@@ -42,24 +47,11 @@ export class Chrome67 extends HandlerInterface
 	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
+	// Map of RTCTransceivers indexed by MID.
+	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
+		new Map();
 	// Local stream for sending.
 	private readonly _sendStream = new MediaStream();
-	// Map of RTCRtpSender indexed by localId.
-	private readonly _mapSendLocalIdRtpSender: Map<string, RTCRtpSender> =
-		new Map();
-	// Next sending localId.
-	private _nextSendLocalId = 0;
-	// Map of MID, RTP parameters and RTCRtpReceiver indexed by local id.
-	// Value is an Object with mid, rtpParameters and rtpReceiver.
-	private readonly _mapRecvLocalIdInfo:
-		Map<
-			string,
-			{
-				mid: string;
-				rtpParameters: RtpParameters;
-				rtpReceiver: RTCRtpReceiver;
-			}
-		> = new Map();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
 	// Sending DataChannel id value counter. Incremented for each new DataChannel.
@@ -72,7 +64,7 @@ export class Chrome67 extends HandlerInterface
 	 */
 	static createFactory(): HandlerFactory
 	{
-		return (): Chrome67 => new Chrome67();
+		return (): ReactNativeUnifiedPlan => new ReactNativeUnifiedPlan();
 	}
 
 	constructor()
@@ -82,12 +74,17 @@ export class Chrome67 extends HandlerInterface
 
 	get name(): string
 	{
-		return 'Chrome67';
+		return 'ReactNativeUnifiedPlan';
 	}
 
 	close(): void
 	{
 		logger.debug('close()');
+
+		// Free/dispose native MediaStream but DO NOT free/dispose native
+		// MediaStreamTracks (that is parent's business).
+		// @ts-ignore (proprietary API in react-native-webrtc).
+		this._sendStream.release(/* releaseTracks */ false);
 
 		// Close RTCPeerConnection.
 		if (this._pc)
@@ -109,16 +106,15 @@ export class Chrome67 extends HandlerInterface
 				iceTransportPolicy : 'all',
 				bundlePolicy       : 'max-bundle',
 				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'plan-b'
+				sdpSemantics       : 'unified-plan'
 			});
 
 		try
 		{
-			const offer = await pc.createOffer(
-				{
-					offerToReceiveAudio : true,
-					offerToReceiveVideo : true
-				});
+			pc.addTransceiver('audio');
+			pc.addTransceiver('video');
+
+			const offer = await pc.createOffer();
 
 			try { pc.close(); }
 			catch (error) {}
@@ -171,8 +167,7 @@ export class Chrome67 extends HandlerInterface
 				iceParameters,
 				iceCandidates,
 				dtlsParameters,
-				sctpParameters,
-				planB : true
+				sctpParameters
 			});
 
 		this._sendingRtpParametersByKind =
@@ -200,7 +195,7 @@ export class Chrome67 extends HandlerInterface
 				iceTransportPolicy : iceTransportPolicy || 'all',
 				bundlePolicy       : 'max-bundle',
 				rtcpMuxPolicy      : 'require',
-				sdpSemantics       : 'plan-b',
+				sdpSemantics       : 'unified-plan',
 				...additionalSettings
 			},
 			proprietaryConstraints);
@@ -314,30 +309,39 @@ export class Chrome67 extends HandlerInterface
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		if (codec)
+		if (encodings && encodings.length > 1)
 		{
-			logger.warn(
-				'send() | codec selection is not available in %s handler',
-				this.name);
+			encodings.forEach((encoding: RtpEncodingParameters, idx: number) =>
+			{
+				encoding.rid = `r${idx}`;
+			});
 		}
 
-		this._sendStream.addTrack(track);
-		this._pc.addTrack(track, this._sendStream);
-
-		let offer = await this._pc.createOffer();
-		let localSdpObject = sdpTransform.parse(offer.sdp);
-		let offerMediaObject;
 		const sendingRtpParameters =
 			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
+		// This may throw.
 		sendingRtpParameters.codecs =
-			ortc.reduceCodecs(sendingRtpParameters.codecs);
+			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
 			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
+		// This may throw.
 		sendingRemoteRtpParameters.codecs =
-			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
+			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
+
+		const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
+		const transceiver = this._pc.addTransceiver(
+			track,
+			{
+				direction     : 'sendonly',
+				streams       : [ this._sendStream ],
+				sendEncodings : encodings
+			});
+		let offer = await this._pc.createOffer();
+		let localSdpObject = sdpTransform.parse(offer.sdp);
+		let offerMediaObject;
 
 		if (!this._transportReady)
 		{
@@ -348,19 +352,29 @@ export class Chrome67 extends HandlerInterface
 				});
 		}
 
-		if (track.kind === 'video' && encodings && encodings.length > 1)
+		// Special case for VP9 with SVC.
+		let hackVp9Svc = false;
+
+		const layers =
+			parseScalabilityMode((encodings || [ {} ])[0].scalabilityMode);
+
+		if (
+			encodings &&
+			encodings.length === 1 &&
+			layers.spatialLayers > 1 &&
+			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp9'
+		)
 		{
-			logger.debug('send() | enabling simulcast');
+			logger.debug('send() | enabling legacy simulcast for VP9 SVC');
 
+			hackVp9Svc = true;
 			localSdpObject = sdpTransform.parse(offer.sdp);
-			offerMediaObject = localSdpObject.media
-				.find((m: any) => m.type === 'video');
+			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
-			sdpPlanBUtils.addLegacySimulcast(
+			sdpUnifiedPlanUtils.addLegacySimulcast(
 				{
 					offerMediaObject,
-					track,
-					numStreams : encodings.length
+					numStreams : layers.spatialLayers
 				});
 
 			offer = { type: 'offer', sdp: sdpTransform.write(localSdpObject) };
@@ -372,33 +386,54 @@ export class Chrome67 extends HandlerInterface
 
 		await this._pc.setLocalDescription(offer);
 
+		// We can now get the transceiver.mid.
+		const localId = transceiver.mid;
+
+		// Set MID.
+		sendingRtpParameters.mid = localId;
+
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
-		offerMediaObject = localSdpObject.media
-			.find((m: any) => m.type === track.kind);
+		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
-		// Set RTP encodings.
-		sendingRtpParameters.encodings =
-			sdpPlanBUtils.getRtpEncodings({ offerMediaObject, track });
-
-		// Complete encodings with given values.
-		if (encodings)
+		// Set RTP encodings by parsing the SDP offer if no encodings are given.
+		if (!encodings)
 		{
-			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx)
-			{
-				if (encodings[idx])
-					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
-			}
+			sendingRtpParameters.encodings =
+				sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
+		}
+		// Set RTP encodings by parsing the SDP offer and complete them with given
+		// one if just a single encoding has been given.
+		else if (encodings.length === 1)
+		{
+			let newEncodings =
+				sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
+
+			Object.assign(newEncodings[0], encodings[0]);
+
+			// Hack for VP9 SVC.
+			if (hackVp9Svc)
+				newEncodings = [ newEncodings[0] ];
+
+			sendingRtpParameters.encodings = newEncodings;
+		}
+		// Otherwise if more than 1 encoding are given use them verbatim.
+		else
+		{
+			sendingRtpParameters.encodings = encodings;
 		}
 
-		// If VP8 and there is effective simulcast, add scalabilityMode to each
-		// encoding.
+		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
+		// each encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8'
+			(
+				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264'
+			)
 		)
 		{
 			for (const encoding of sendingRtpParameters.encodings)
@@ -410,9 +445,11 @@ export class Chrome67 extends HandlerInterface
 		this._remoteSdp!.send(
 			{
 				offerMediaObject,
+				reuseMid            : mediaSectionIdx.reuseMid,
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : sendingRemoteRtpParameters,
-				codecOptions
+				codecOptions,
+				extmapAllowMixed    : true
 			});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
@@ -423,20 +460,13 @@ export class Chrome67 extends HandlerInterface
 
 		await this._pc.setRemoteDescription(answer);
 
-		const localId = String(this._nextSendLocalId);
-
-		this._nextSendLocalId++;
-
-		const rtpSender = this._pc.getSenders()
-			.find((s: RTCRtpSender) => s.track === track);
-
-		// Insert into the map.
-		this._mapSendLocalIdRtpSender.set(localId, rtpSender);
+		// Store in the map.
+		this._mapMidTransceiver.set(localId, transceiver);
 
 		return {
-			localId       : localId,
+			localId,
 			rtpParameters : sendingRtpParameters,
-			rtpSender
+			rtpSender     : transceiver.sender
 		};
 	}
 
@@ -446,17 +476,27 @@ export class Chrome67 extends HandlerInterface
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
-		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpSender)
-			throw new Error('associated RTCRtpSender not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		this._pc.removeTrack(rtpSender);
+		transceiver.sender.replaceTrack(null);
 
-		if (rtpSender.track)
-			this._sendStream.removeTrack(rtpSender.track);
+		this._pc.removeTrack(transceiver.sender);
 
-		this._mapSendLocalIdRtpSender.delete(localId);
+		const mediaSectionClosed =
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+
+		if (mediaSectionClosed)
+		{
+			try
+			{
+				transceiver.stop();
+			}
+			catch (error)
+			{}
+		}
 
 		const offer = await this._pc.createOffer();
 
@@ -464,28 +504,7 @@ export class Chrome67 extends HandlerInterface
 			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
 			offer);
 
-		try
-		{
-			await this._pc.setLocalDescription(offer);
-		}
-		catch (error)
-		{
-			// NOTE: If there are no sending tracks, setLocalDescription() will fail with
-			// "Failed to create channels". If so, ignore it.
-			if (this._sendStream.getTracks().length === 0)
-			{
-				logger.warn(
-					'stopSending() | ignoring expected error due no sending tracks: %s',
-					(error as Error).toString());
-
-				return;
-			}
-
-			throw error;
-		}
-
-		if (this._pc.signalingState === 'stable')
-			return;
+		await this._pc.setLocalDescription(offer);
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
@@ -494,18 +513,71 @@ export class Chrome67 extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		this._mapMidTransceiver.delete(localId);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void>
 	{
-		// Unimplemented.
+		this.assertSendDirection();
+
+		logger.debug('pauseSending() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'inactive';
+		this._remoteSdp!.pauseMediaSection(localId);
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'pauseSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void>
 	{
-		// Unimplemented.
+		this.assertSendDirection();
+
+		logger.debug('resumeSending() [localId:%s]', localId);
+
+		const transceiver = this._mapMidTransceiver.get(localId);
+
+		this._remoteSdp!.resumeSendingMediaSection(localId);
+
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
+
+		transceiver.direction = 'sendonly';
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'resumeSending() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeSending() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
 	}
 
 	async replaceTrack(
@@ -524,22 +596,12 @@ export class Chrome67 extends HandlerInterface
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
 		}
 
-		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpSender)
-			throw new Error('associated RTCRtpSender not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		const oldTrack = rtpSender.track;
-
-		await rtpSender.replaceTrack(track);
-
-		// Remove the old track from the local stream.
-		if (oldTrack)
-			this._sendStream.removeTrack(oldTrack);
-
-		// Add the new track to the local stream.
-		if (track)
-			this._sendStream.addTrack(track);
+		await transceiver.sender.replaceTrack(track);
 	}
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
@@ -550,12 +612,12 @@ export class Chrome67 extends HandlerInterface
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId, spatialLayer);
 
-		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpSender)
-			throw new Error('associated RTCRtpSender not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		const parameters = rtpSender.getParameters();
+		const parameters = transceiver.sender.getParameters();
 
 		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
@@ -565,7 +627,7 @@ export class Chrome67 extends HandlerInterface
 				encoding.active = false;
 		});
 
-		await rtpSender.setParameters(parameters);
+		await transceiver.sender.setParameters(parameters);
 	}
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
@@ -576,31 +638,31 @@ export class Chrome67 extends HandlerInterface
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId, params);
 
-		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpSender)
-			throw new Error('associated RTCRtpSender not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		const parameters = rtpSender.getParameters();
+		const parameters = transceiver.sender.getParameters();
 
 		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
 
-		await rtpSender.setParameters(parameters);
+		await transceiver.sender.setParameters(parameters);
 	}
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
 		this.assertSendDirection();
 
-		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpSender)
-			throw new Error('associated RTCRtpSender not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		return rtpSender.getStats();
+		return transceiver.sender.getStats();
 	}
 
 	async sendDataChannel(
@@ -617,11 +679,10 @@ export class Chrome67 extends HandlerInterface
 
 		const options =
 		{
-			negotiated        : true,
-			id                : this._nextSendSctpStreamId,
+			negotiated : true,
+			id         : this._nextSendSctpStreamId,
 			ordered,
 			maxPacketLifeTime,
-			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
 			protocol
 		};
@@ -689,6 +750,7 @@ export class Chrome67 extends HandlerInterface
 		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
+		const mapLocalId: Map<string, string> = new Map();
 
 		for (const options of optionsList)
 		{
@@ -696,11 +758,13 @@ export class Chrome67 extends HandlerInterface
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const mid = kind;
+			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+
+			mapLocalId.set(trackId, localId);
 
 			this._remoteSdp!.receive(
 				{
-					mid,
+					mid                : localId,
 					kind,
 					offerRtpParameters : rtpParameters,
 					streamId           : streamId || rtpParameters.rtcp!.cname!,
@@ -721,10 +785,10 @@ export class Chrome67 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { kind, rtpParameters } = options;
-			const mid = kind;
+			const { trackId, rtpParameters } = options;
+			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media
-				.find((m: any) => String(m.mid) === mid);
+				.find((m: any) => String(m.mid) === localId);
 
 			// May need to modify codec parameters in the answer based on codec
 			// parameters in the offer.
@@ -754,23 +818,26 @@ export class Chrome67 extends HandlerInterface
 
 		for (const options of optionsList)
 		{
-			const { kind, trackId, rtpParameters } = options;
-			const localId = trackId;
-			const mid = kind;
-			const rtpReceiver = this._pc.getReceivers()
-				.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
+			const { trackId } = options;
+			const localId = mapLocalId.get(trackId)!;
+			const transceiver = this._pc.getTransceivers()
+				.find((t: RTCRtpTransceiver) => t.mid === localId);
 
-			if (!rtpReceiver)
-				throw new Error('new RTCRtpReceiver not');
+			if (!transceiver)
+			{
+				throw new Error('new RTCRtpTransceiver not found');
+			}
+			else
+			{
+				// Store in the map.
+				this._mapMidTransceiver.set(localId, transceiver);
 
-			// Insert into the map.
-			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
-
-			results.push({
-				localId,
-				track : rtpReceiver.track,
-				rtpReceiver
-			});
+				results.push({
+					localId,
+					track       : transceiver.receiver.track,
+					rtpReceiver : transceiver.receiver
+				});
+			}
 		}
 
 		return results;
@@ -784,13 +851,12 @@ export class Chrome67 extends HandlerInterface
 		{
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
-			const { mid, rtpParameters } = this._mapRecvLocalIdInfo.get(localId) || {};
+			const transceiver = this._mapMidTransceiver.get(localId);
 
-			// Remove from the map.
-			this._mapRecvLocalIdInfo.delete(localId);
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
 
-			this._remoteSdp!.planBStopReceiving(
-				{ mid: mid!, offerRtpParameters: rtpParameters! });
+			this._remoteSdp!.closeMediaSection(transceiver.mid!);
 		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
@@ -808,32 +874,91 @@ export class Chrome67 extends HandlerInterface
 			answer);
 
 		await this._pc.setLocalDescription(answer);
+
+		for (const localId of localIds)
+		{
+			this._mapMidTransceiver.delete(localId);
+		}
 	}
 
-	async pauseReceiving(
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[]): Promise<void>
+	async pauseReceiving(localIds: string[]): Promise<void>
 	{
-		// Unimplemented.
+		this.assertRecvDirection();
+
+		for (const localId of localIds)
+		{
+			logger.debug('pauseReceiving() [localId:%s]', localId);
+
+			const transceiver = this._mapMidTransceiver.get(localId);
+
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
+
+			transceiver.direction = 'inactive';
+			this._remoteSdp!.pauseMediaSection(localId);
+		}
+
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
 	}
 
-	async resumeReceiving(
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[]): Promise<void>
+	async resumeReceiving(localIds: string[]): Promise<void>
 	{
-		// Unimplemented.
+		this.assertRecvDirection();
+
+		for (const localId of localIds)
+		{
+			logger.debug('resumeReceiving() [localId:%s]', localId);
+
+			const transceiver = this._mapMidTransceiver.get(localId);
+
+			if (!transceiver)
+				throw new Error('associated RTCRtpTransceiver not found');
+
+			transceiver.direction = 'recvonly';
+			this._remoteSdp!.resumeReceivingMediaSection(localId);
+		}
+
+		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setRemoteDescription(offer);
+
+		const answer = await this._pc.createAnswer();
+
+		logger.debug(
+			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setLocalDescription(answer);
 	}
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
 		this.assertRecvDirection();
 
-		const { rtpReceiver } = this._mapRecvLocalIdInfo.get(localId) || {};
+		const transceiver = this._mapMidTransceiver.get(localId);
 
-		if (!rtpReceiver)
-			throw new Error('associated RTCRtpReceiver not found');
+		if (!transceiver)
+			throw new Error('associated RTCRtpTransceiver not found');
 
-		return rtpReceiver.getStats();
+		return transceiver.receiver.getStats();
 	}
 
 	async receiveDataChannel(
@@ -847,15 +972,14 @@ export class Chrome67 extends HandlerInterface
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits
-		} = sctpStreamParameters;
+		}: SctpStreamParameters = sctpStreamParameters;
 
 		const options =
 		{
-			negotiated        : true,
-			id                : streamId,
+			negotiated : true,
+			id         : streamId,
 			ordered,
 			maxPacketLifeTime,
-			maxRetransmitTime : maxPacketLifeTime, // NOTE: Old spec.
 			maxRetransmits,
 			protocol
 		};
@@ -868,7 +992,7 @@ export class Chrome67 extends HandlerInterface
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			this._remoteSdp!.receiveSctpAssociation({ oldDataChannelSpec: true });
+			this._remoteSdp!.receiveSctpAssociation();
 
 			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
 

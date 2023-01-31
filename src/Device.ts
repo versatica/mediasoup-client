@@ -1,5 +1,3 @@
-/* global RTCRtpTransceiver */
-
 import Bowser from 'bowser';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
@@ -16,6 +14,7 @@ import { Firefox60 } from './handlers/Firefox60';
 import { Safari12 } from './handlers/Safari12';
 import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
+import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
@@ -31,6 +30,7 @@ export type BuiltinHandlerName =
 	| 'Safari12'
 	| 'Safari11'
 	| 'Edge11'
+	| 'ReactNativeUnifiedPlan'
 	| 'ReactNative';
 
 export type DeviceOptions =
@@ -59,19 +59,29 @@ export function detectDevice(): BuiltinHandlerName | undefined
 {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
+	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative')
 	{
 		if (typeof RTCPeerConnection === 'undefined')
 		{
 			logger.warn(
-				'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+				'this._detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?');
 
 			return undefined;
 		}
 
-		logger.debug('this._detectDevice() | ReactNative handler chosen');
+		if (typeof RTCRtpTransceiver !== 'undefined')
+		{
+			logger.debug('this._detectDevice() | ReactNative UnifiedPlan handler chosen');
 
-		return 'ReactNative';
+			return 'ReactNativeUnifiedPlan';
+		}
+		else
+		{
+			logger.debug('this._detectDevice() | ReactNative PlanB handler chosen');
+
+			return 'ReactNative';
+		}
 	}
 	// Browser.
 	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
@@ -80,8 +90,8 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const browser = Bowser.getParser(ua);
 		const engine = browser.getEngine();
 
-		// Chrome and Chromium.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
+		// Chrome, Chromium, and Edge.
+		if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
 		{
 			return 'Chrome74';
 		}
@@ -101,6 +111,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		else if (browser.satisfies({ firefox: '>=60' }))
 		{
 			return 'Firefox60';
+		}
+		// Firefox on iOS.
+		else if (browser.satisfies({ ios: { OS: '>=14.3', firefox: '>=30.0' } }))
+		{
+			return 'Safari12';
 		}
 		// Safari with Unified-Plan support enabled.
 		else if (
@@ -174,6 +189,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 	}
 }
 
+export type DeviceObserverEvents =
+{
+	newtransport: [Transport];
+};
+
 export class Device
 {
 	// RTC handler factory.
@@ -192,7 +212,7 @@ export class Device
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer = new EnhancedEventEmitter<DeviceObserverEvents>();
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
@@ -210,16 +230,19 @@ export class Device
 				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
 
 			if (typeof Handler === 'string')
+			{
 				handlerName = Handler as BuiltinHandlerName;
+			}
 			else
+			{
 				throw new TypeError(
 					'non string Handler option no longer supported, use handlerFactory instead');
+			}
 		}
 
 		if (handlerName && handlerFactory)
 		{
-			throw new TypeError(
-				'just one of handlerName or handlerInterface can be given');
+			throw new TypeError('just one of handlerName or handlerInterface can be given');
 		}
 
 		if (handlerFactory)
@@ -237,9 +260,13 @@ export class Device
 				handlerName = detectDevice();
 
 				if (handlerName)
+				{
 					logger.debug('constructor() | detected handler: %s', handlerName);
+				}
 				else
+				{
 					throw new UnsupportedError('device not supported');
+				}
 			}
 
 			switch (handlerName)
@@ -267,6 +294,9 @@ export class Device
 					break;
 				case 'Edge11':
 					this._handlerFactory = Edge11.createFactory();
+					break;
+				case 'ReactNativeUnifiedPlan':
+					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
 					break;
 				case 'ReactNative':
 					this._handlerFactory = ReactNative.createFactory();
@@ -335,11 +365,6 @@ export class Device
 		return this._sctpCapabilities!;
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits newtransport - (transport: Transport)
-	 */
 	get observer(): EnhancedEventEmitter
 	{
 		return this._observer;
@@ -363,7 +388,9 @@ export class Device
 		try
 		{
 			if (this._loaded)
+			{
 				throw new InvalidStateError('already loaded');
+			}
 
 			// This may throw.
 			ortc.validateRtpCapabilities(routerRtpCapabilities);
@@ -460,13 +487,13 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: TransportOptions
 	): Transport
 	{
 		logger.debug('createSendTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'send',
 				id                     : id,
@@ -499,13 +526,13 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: TransportOptions
 	): Transport
 	{
 		logger.debug('createRecvTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'recv',
 				id                     : id,
@@ -521,7 +548,7 @@ export class Device
 			});
 	}
 
-	private _createTransport(
+	private createTransport(
 		{
 			direction,
 			id,
@@ -533,7 +560,7 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
+			appData
 		}: InternalTransportOptions
 	): Transport
 	{
