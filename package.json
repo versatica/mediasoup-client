@@ -66,7 +66,6 @@
     "bowser": "^2.11.0",
     "debug": "^4.3.4",
     "events": "^3.3.0",
-    "fake-mediastreamtrack": "^1.1.6",
     "h264-profile-level-id": "^1.0.1",
     "sdp-transform": "^2.14.1",
     "supports-color": "^9.3.1"
@@ -79,6 +78,7 @@
     "@typescript-eslint/parser": "^5.50.0",
     "eslint": "^8.33.0",
     "eslint-plugin-jest": "^27.2.1",
+    "fake-mediastreamtrack": "^1.1.6",
     "jest": "^29.4.1",
     "open-cli": "^7.1.0",
     "ts-jest": "^29.0.5",
