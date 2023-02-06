@@ -11,6 +11,7 @@ import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 import { RtpParameters, MediaKind } from './RtpParameters';
 import { SctpParameters, SctpStreamParameters } from './SctpParameters';
+import queueMicrotask from 'queue-microtask';
 
 const logger = new Logger('Transport');
 
@@ -671,10 +672,17 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._pendingConsumerTasks.push(consumerCreationTask);
 
 		// There is no Consumer creation in progress, create it now.
-		if (this._consumerCreationInProgress === false)
+		queueMicrotask(() => 
 		{
-			this.createPendingConsumers();
-		}
+			if (this._closed) {
+				throw new InvalidStateError('closed');
+			}
+
+			if (this._consumerCreationInProgress === false)
+			{
+				this.createPendingConsumers();
+			}
+		});
 
 		return consumerCreationTask.promise;
 	}
@@ -1231,10 +1239,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingPauseConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer pause in progress, do it now.
-			if (this._consumerPauseInProgress === false)
+			queueMicrotask(() => 
 			{
-				this.pausePendingConsumers();
-			}
+				if (this._consumerPauseInProgress === false)
+				{
+					this.pausePendingConsumers();
+				}
+			});
 		});
 
 		consumer.on('@resume', () =>
@@ -1249,10 +1260,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingResumeConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer resume in progress, do it now.
-			if (this._consumerResumeInProgress === false)
+			queueMicrotask(() => 
 			{
-				this.resumePendingConsumers();
-			}
+				if (this._consumerResumeInProgress === false)
+				{
+					this.resumePendingConsumers();
+				}
+			});
 		});
 
 		consumer.on('@getstats', (callback, errback) =>

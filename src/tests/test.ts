@@ -11,6 +11,7 @@ import * as utils from '../utils';
 import { RemoteSdp } from '../handlers/sdp/RemoteSdp';
 import { FakeHandler } from '../handlers/FakeHandler';
 import * as fakeParameters from './fakeParameters';
+import { AwaitQueue } from 'awaitqueue';
 
 const {
 	Device,
@@ -785,6 +786,57 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.appData).toEqual({});
 
 	recvTransport.removeAllListeners('connect');
+}, 500);
+
+test('transport.consume() batches consumers created in same macrotask into the same task', async () =>
+{
+	const videoConsumerRemoteParameters1 =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+	const videoConsumerRemoteParameters2 =
+		fakeParameters.generateConsumerRemoteParameters({ codecMimeType: 'video/VP8' });
+
+	const pushSpy = jest.spyOn((recvTransport as unknown as { _awaitQueue: AwaitQueue })._awaitQueue, 'push');
+
+	const waitForConsumer = (id: string | undefined): Promise<void> =>
+	{
+		return new Promise<void>((resolve) =>
+		{
+			recvTransport.observer.on('newconsumer', (consumer) =>
+			{
+				if (consumer.id === id)
+				{
+					resolve();
+				}
+			});
+		});
+	};
+
+	const allConsumersCreated = Promise.all(
+		[
+			waitForConsumer(videoConsumerRemoteParameters1.id),
+			waitForConsumer(videoConsumerRemoteParameters2.id)
+		]);
+
+	await Promise.all([
+		recvTransport.consume(
+			{
+				id            : videoConsumerRemoteParameters1.id,
+				producerId    : videoConsumerRemoteParameters1.producerId,
+				kind          : videoConsumerRemoteParameters1.kind,
+				rtpParameters : videoConsumerRemoteParameters1.rtpParameters
+			}),
+		recvTransport.consume(
+			{
+				id            : videoConsumerRemoteParameters2.id,
+				producerId    : videoConsumerRemoteParameters2.producerId,
+				kind          : videoConsumerRemoteParameters2.kind,
+				rtpParameters : videoConsumerRemoteParameters2.rtpParameters
+			})
+	]);
+
+	await allConsumersCreated;
+
+	expect(pushSpy).toBeCalledTimes(1);
 }, 500);
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () =>

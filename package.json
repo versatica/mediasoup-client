@@ -67,6 +67,7 @@
     "debug": "^4.3.4",
     "events": "^3.3.0",
     "h264-profile-level-id": "^1.0.1",
+    "queue-microtask": "^1.2.3",
     "sdp-transform": "^2.14.1",
     "supports-color": "^9.3.1"
   },
