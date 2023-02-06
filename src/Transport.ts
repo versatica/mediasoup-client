@@ -674,6 +674,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		// There is no Consumer creation in progress, create it now.
 		queueMicrotask(() => 
 		{
+			if (this._closed) {
+				throw new InvalidStateError('closed');
+			}
+
 			if (this._consumerCreationInProgress === false)
 			{
 				this.createPendingConsumers();
