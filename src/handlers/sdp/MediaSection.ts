@@ -1,3 +1,4 @@
+import * as sdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
 import {
 	IceParameters,
@@ -14,6 +15,7 @@ import {
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
+import { SimulcastStream, writeSimulcastStreamList } from '../../Simulcast';
 
 export abstract class MediaSection
 {
@@ -126,6 +128,36 @@ export abstract class MediaSection
 		this.disable();
 
 		this._mediaObject.port = 0;
+	}
+
+	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]) 
+	{
+		if (this._mediaObject.simulcast && this._mediaObject.simulcast.list1) 
+		{
+			const layers: {[rid: string | number]: RTCRtpEncodingParameters} = {};
+
+			encodings.forEach((encoding) => 
+			{
+				if (encoding.rid) 
+				{
+					layers[encoding.rid] = encoding;
+				}
+			});
+
+			const raw = this._mediaObject.simulcast.list1;
+			const parsedList: any = sdpTransform.parseSimulcastStreamList(raw);
+
+			parsedList.forEach((layer : SimulcastStream[]) => 
+			{
+				layer.forEach((formats) => 
+				{
+					formats.paused = !layers[formats.scid]?.active;
+				});
+			});
+
+			// `any` cast required because typings are broken
+			this._mediaObject.simulcast.list1 = writeSimulcastStreamList(parsedList as any);
+		}
 	}
 }
 

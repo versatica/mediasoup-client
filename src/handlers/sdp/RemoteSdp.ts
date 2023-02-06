@@ -328,6 +328,27 @@ export class RemoteSdp
 		return true;
 	}
 
+	muxMediaSectionSimulcast(mid: string, encodings: RTCRtpEncodingParameters[]) 
+	{
+		const idx = this._midToIndex.get(mid);
+
+		if (idx === undefined)
+		{
+			throw new Error(`no media section found with mid '${mid}'`);
+		}
+
+		const mediaSection = this._mediaSections[idx];
+
+		if (mediaSection === undefined) 
+		{
+			throw new Error(`no media section found with idx '${idx}'`);
+		}
+
+		mediaSection.muxSimulcastStreams(encodings);
+
+		this._replaceMediaSection(mediaSection);
+	}
+
 	planBStopReceiving(
 		{
 			mid,

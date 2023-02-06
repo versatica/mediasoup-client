@@ -632,6 +632,24 @@ export class Chrome74 extends HandlerInterface
 		});
 
 		await transceiver.sender.setParameters(parameters);
+
+		this._remoteSdp!.muxMediaSectionSimulcast(localId, parameters.encodings);
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'setMaxSpatialLayer() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'setMaxSpatialLayer() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
 	}
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
@@ -655,6 +673,24 @@ export class Chrome74 extends HandlerInterface
 		});
 
 		await transceiver.sender.setParameters(parameters);
+
+		this._remoteSdp!.muxMediaSectionSimulcast(localId, parameters.encodings);
+
+		const offer = await this._pc.createOffer();
+
+		logger.debug(
+			'setRtpEncodingParameters() | calling pc.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._pc.setLocalDescription(offer);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+
+		logger.debug(
+			'setRtpEncodingParameters() | calling pc.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._pc.setRemoteDescription(answer);
 	}
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
