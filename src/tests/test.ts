@@ -810,10 +810,12 @@ test('transport.consume() batches consumers created in same macrotask into the s
 			});
 		});
 	};
-	const allConsumersCreated = Promise.all([
-		waitForConsumer(videoConsumerRemoteParameters1.id),
-		waitForConsumer(videoConsumerRemoteParameters2.id)
-	]);
+
+	const allConsumersCreated = Promise.all(
+		[
+			waitForConsumer(videoConsumerRemoteParameters1.id),
+			waitForConsumer(videoConsumerRemoteParameters2.id)
+		]);
 
 	await Promise.all([
 		recvTransport.consume(
