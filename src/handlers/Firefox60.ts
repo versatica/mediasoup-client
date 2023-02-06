@@ -19,6 +19,7 @@ import {
 	HandlerReceiveDataChannelResult
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
+import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
@@ -373,6 +374,9 @@ export class Firefox60 extends HandlerInterface
 		if (!this._transportReady)
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 
+		const layers =
+			parseScalabilityMode((encodings || [ {} ])[0].scalabilityMode);
+
 		logger.debug(
 			'send() | calling pc.setLocalDescription() [offer:%o]',
 			offer);
@@ -429,7 +433,15 @@ export class Firefox60 extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T2';
+				if (encoding.scalabilityMode)
+				{
+					encoding.scalabilityMode = `S1T${layers.temporalLayers}`;
+				}
+				else
+				{
+					// By default Firefox enables 2 temporal layers.
+					encoding.scalabilityMode = 'S1T2';
+				}
 			}
 		}
 

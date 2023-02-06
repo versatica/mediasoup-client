@@ -433,7 +433,16 @@ export class Chrome74 extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T2';
+				if (encoding.scalabilityMode)
+				{
+					encoding.scalabilityMode = `S1T${layers.temporalLayers}`;
+				}
+				else
+				{
+					// By default Chrome enables 2 temporal layers (not in all OS but
+					// anyway).
+					encoding.scalabilityMode = 'S1T2';
+				}
 			}
 		}
 
