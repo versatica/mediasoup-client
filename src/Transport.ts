@@ -1,4 +1,5 @@
 import { AwaitQueue } from 'awaitqueue';
+import queueMicrotask from 'queue-microtask';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -11,7 +12,6 @@ import { DataProducer, DataProducerOptions } from './DataProducer';
 import { DataConsumer, DataConsumerOptions } from './DataConsumer';
 import { RtpParameters, MediaKind } from './RtpParameters';
 import { SctpParameters, SctpStreamParameters } from './SctpParameters';
-import queueMicrotask from 'queue-microtask';
 
 const logger = new Logger('Transport');
 
@@ -368,7 +368,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	close(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('close()');
 
@@ -420,7 +422,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 
 		return this._handler.getTransportStats();
 	}
@@ -436,9 +440,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('restartIce()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (!iceParameters)
+		{
 			throw new TypeError('missing iceParameters');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -457,9 +465,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('updateIceServers()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (!Array.isArray(iceServers))
+		{
 			throw new TypeError('missing iceServers');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -486,21 +498,37 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('produce() [track:%o]', track);
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (!track)
+		{
 			throw new TypeError('missing track');
+		}
 		else if (this._direction !== 'send')
+		{
 			throw new UnsupportedError('not a sending Transport');
+		}
 		else if (!this._canProduceByKind[track.kind])
+		{
 			throw new UnsupportedError(`cannot produce ${track.kind}`);
+		}
 		else if (track.readyState === 'ended')
+		{
 			throw new InvalidStateError('track ended');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (this.listenerCount('produce') === 0)
+		{
 			throw new TypeError('no "produce" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -524,23 +552,41 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 							const normalizedEncoding: any = { active: true };
 
 							if (encoding.active === false)
+							{
 								normalizedEncoding.active = false;
+							}
 							if (typeof encoding.dtx === 'boolean')
+							{
 								normalizedEncoding.dtx = encoding.dtx;
+							}
 							if (typeof encoding.scalabilityMode === 'string')
+							{
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
+							}
 							if (typeof encoding.scaleResolutionDownBy === 'number')
+							{
 								normalizedEncoding.scaleResolutionDownBy = encoding.scaleResolutionDownBy;
+							}
 							if (typeof encoding.maxBitrate === 'number')
+							{
 								normalizedEncoding.maxBitrate = encoding.maxBitrate;
+							}
 							if (typeof encoding.maxFramerate === 'number')
+							{
 								normalizedEncoding.maxFramerate = encoding.maxFramerate;
+							}
 							if (typeof encoding.adaptivePtime === 'boolean')
+							{
 								normalizedEncoding.adaptivePtime = encoding.adaptivePtime;
+							}
 							if (typeof encoding.priority === 'string')
+							{
 								normalizedEncoding.priority = encoding.priority;
+							}
 							if (typeof encoding.networkPriority === 'string')
+							{
 								normalizedEncoding.networkPriority = encoding.networkPriority;
+							}
 
 							return normalizedEncoding;
 						});
@@ -636,26 +682,42 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		rtpParameters = utils.clone(rtpParameters, undefined);
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._direction !== 'recv')
+		{
 			throw new UnsupportedError('not a receiving Transport');
+		}
 		else if (typeof id !== 'string')
+		{
 			throw new TypeError('missing id');
+		}
 		else if (typeof producerId !== 'string')
+		{
 			throw new TypeError('missing producerId');
+		}
 		else if (kind !== 'audio' && kind !== 'video')
+		{
 			throw new TypeError(`invalid kind '${kind}'`);
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
 			rtpParameters, this._extendedRtpCapabilities);
 
 		if (!canConsume)
+		{
 			throw new UnsupportedError('cannot consume this Producer');
+		}
 
 		const consumerCreationTask = new ConsumerCreationTask(
 			{
@@ -674,7 +736,8 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		// There is no Consumer creation in progress, create it now.
 		queueMicrotask(() => 
 		{
-			if (this._closed) {
+			if (this._closed)
+			{
 				throw new InvalidStateError('closed');
 			}
 
@@ -704,20 +767,34 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('produceData()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._direction !== 'send')
+		{
 			throw new UnsupportedError('not a sending Transport');
+		}
 		else if (!this._maxSctpMessageSize)
+		{
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (this.listenerCount('producedata') === 0)
+		{
 			throw new TypeError('no "producedata" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		if (maxPacketLifeTime || maxRetransmits)
+		{
 			ordered = false;
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -786,19 +863,33 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		sctpStreamParameters = utils.clone(sctpStreamParameters, undefined);
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._direction !== 'recv')
+		{
 			throw new UnsupportedError('not a receiving Transport');
+		}
 		else if (!this._maxSctpMessageSize)
+		{
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
+		}
 		else if (typeof id !== 'string')
+		{
 			throw new TypeError('missing id');
+		}
 		else if (typeof dataProducerId !== 'string')
+		{
 			throw new TypeError('missing dataProducerId');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// This may throw.
 		ortc.validateSctpStreamParameters(sctpStreamParameters);
@@ -901,7 +992,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 						// If this is the first video Consumer and the Consumer for RTP probation
 						// has not yet been created, it's time to create it.
-						if (!this._probatorConsumerCreated && !videoConsumerForProbator && kind === 'video')
+						if (
+							!this._probatorConsumerCreated &&
+							!videoConsumerForProbator && kind === 'video'
+						)
 						{
 							videoConsumerForProbator = consumer;
 						}
@@ -1122,14 +1216,18 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		handler.on('@connectionstatechange', (connectionState: ConnectionState) =>
 		{
 			if (connectionState === this._connectionState)
+			{
 				return;
+			}
 
 			logger.debug('connection state changed to %s', connectionState);
 
 			this._connectionState = connectionState;
 
 			if (!this._closed)
+			{
 				this.safeEmit('connectionstatechange', connectionState);
+			}
 		});
 	}
 
@@ -1140,7 +1238,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._producers.delete(producer.id);
 
 			if (this._closed)
+			{
 				return;
+			}
 
 			this._awaitQueue.push(
 				async () => this._handler.stopSending(producer.localId),
@@ -1198,7 +1298,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		producer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
+			{
 				return errback!(new InvalidStateError('closed'));
+			}
 
 			this._handler.getSenderStats(producer.localId)
 				.then(callback)
@@ -1215,7 +1317,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingResumeConsumers.delete(consumer.id);
 
 			if (this._closed)
+			{
 				return;
+			}
 
 			// Store the Consumer into the close list.
 			this._pendingCloseConsumers.set(consumer.id, consumer);
@@ -1241,6 +1345,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			// There is no Consumer pause in progress, do it now.
 			queueMicrotask(() => 
 			{
+				if (this._closed)
+				{
+					return;
+				}
+
 				if (this._consumerPauseInProgress === false)
 				{
 					this.pausePendingConsumers();
@@ -1262,6 +1371,11 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			// There is no Consumer resume in progress, do it now.
 			queueMicrotask(() => 
 			{
+				if (this._closed)
+				{
+					return;
+				}
+
 				if (this._consumerResumeInProgress === false)
 				{
 					this.resumePendingConsumers();
@@ -1272,7 +1386,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		consumer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
+			{
 				return errback!(new InvalidStateError('closed'));
+			}
 
 			this._handler.getReceiverStats(consumer.localId)
 				.then(callback)
