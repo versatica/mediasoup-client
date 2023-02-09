@@ -15,7 +15,7 @@ import {
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
-import { SimulcastStream, writeSimulcastStreamList } from '../../Simulcast';
+import { SimulcastStream, writeSimulcastStreamList } from './unifiedPlanUtils';
 
 export abstract class MediaSection
 {
