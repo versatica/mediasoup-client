@@ -15,7 +15,7 @@ import {
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
-import { SimulcastStream, writeSimulcastStreamList } from './unifiedPlanUtils';
+import { SimulcastStream } from './types';
 
 export abstract class MediaSection
 {
@@ -128,36 +128,6 @@ export abstract class MediaSection
 		this.disable();
 
 		this._mediaObject.port = 0;
-	}
-
-	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]) 
-	{
-		if (this._mediaObject.simulcast && this._mediaObject.simulcast.list1) 
-		{
-			const layers: {[rid: string | number]: RTCRtpEncodingParameters} = {};
-
-			encodings.forEach((encoding) => 
-			{
-				if (encoding.rid) 
-				{
-					layers[encoding.rid] = encoding;
-				}
-			});
-
-			const raw = this._mediaObject.simulcast.list1;
-			const parsedList: any = sdpTransform.parseSimulcastStreamList(raw);
-
-			parsedList.forEach((layer : SimulcastStream[]) => 
-			{
-				layer.forEach((formats) => 
-				{
-					formats.paused = !layers[formats.scid]?.active;
-				});
-			});
-
-			// `any` cast required because typings are broken
-			this._mediaObject.simulcast.list1 = writeSimulcastStreamList(parsedList as any);
-		}
 	}
 }
 
@@ -478,6 +448,45 @@ export class AnswerMediaSection extends MediaSection
 	resume(): void
 	{
 		this._mediaObject.direction = 'recvonly';
+	}
+
+	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]): void
+	{
+		if (!this._mediaObject.simulcast || !this._mediaObject.simulcast.list1)
+		{
+			return;
+		}
+
+		const layers: {[rid: string | number]: RTCRtpEncodingParameters} = {};
+
+		for (const encoding of encodings)
+		{
+			if (encoding.rid)
+			{
+				layers[encoding.rid] = encoding;
+			}
+		}
+
+		const raw = this._mediaObject.simulcast.list1;
+		// NOTE: Ignore bug in @types/sdp-transform.
+		// Ongoing PR: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/64119
+		// @ts-ignore
+		const simulcastStreams: SimulcastStream[] =
+			sdpTransform.parseSimulcastStreamList(raw);
+
+		for (const simulcastStream of simulcastStreams)
+		{
+			for (const simulcastFormat of simulcastStream)
+			{
+				simulcastFormat.paused = !layers[simulcastFormat.scid]?.active;
+			}
+		}
+
+		this._mediaObject.simulcast.list1 = simulcastStreams.map((simulcastFormats) =>
+			simulcastFormats.map((f) =>
+				`${f.paused ? '~' : ''}${f.scid}`
+			).join(',')
+		).join(';');
 	}
 }
 

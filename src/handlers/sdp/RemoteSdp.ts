@@ -328,21 +328,11 @@ export class RemoteSdp
 		return true;
 	}
 
-	muxMediaSectionSimulcast(mid: string, encodings: RTCRtpEncodingParameters[]) 
+	muxMediaSectionSimulcast(
+		mid: string, encodings: RTCRtpEncodingParameters[]
+	): void
 	{
-		const idx = this._midToIndex.get(mid);
-
-		if (idx === undefined)
-		{
-			throw new Error(`no media section found with mid '${mid}'`);
-		}
-
-		const mediaSection = this._mediaSections[idx];
-
-		if (mediaSection === undefined) 
-		{
-			throw new Error(`no media section found with idx '${idx}'`);
-		}
+		const mediaSection = this._findMediaSection(mid) as AnswerMediaSection;
 
 		mediaSection.muxSimulcastStreams(encodings);
 
@@ -360,16 +350,10 @@ export class RemoteSdp
 		}
 	): void
 	{
-		const idx = this._midToIndex.get(mid);
-
-		if (idx === undefined)
-		{
-			throw new Error(`no media section found with mid '${mid}'`);
-		}
-
-		const mediaSection = this._mediaSections[idx] as OfferMediaSection;
+		const mediaSection = this._findMediaSection(mid) as OfferMediaSection;
 
 		mediaSection.planBStopReceiving({ offerRtpParameters });
+
 		this._replaceMediaSection(mediaSection);
 	}
 
