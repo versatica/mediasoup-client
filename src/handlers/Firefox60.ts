@@ -435,12 +435,12 @@ export class Firefox60 extends HandlerInterface
 			{
 				if (encoding.scalabilityMode)
 				{
-					encoding.scalabilityMode = `S1T${layers.temporalLayers}`;
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
 				}
 				else
 				{
 					// By default Firefox enables 2 temporal layers.
-					encoding.scalabilityMode = 'S1T2';
+					encoding.scalabilityMode = 'L1T2';
 				}
 			}
 		}

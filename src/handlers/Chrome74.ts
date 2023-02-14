@@ -435,13 +435,13 @@ export class Chrome74 extends HandlerInterface
 			{
 				if (encoding.scalabilityMode)
 				{
-					encoding.scalabilityMode = `S1T${layers.temporalLayers}`;
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
 				}
 				else
 				{
 					// By default Chrome enables 2 temporal layers (not in all OS but
 					// anyway).
-					encoding.scalabilityMode = 'S1T2';
+					encoding.scalabilityMode = 'L1T2';
 				}
 			}
 		}
