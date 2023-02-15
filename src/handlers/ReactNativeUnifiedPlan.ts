@@ -438,7 +438,16 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T3';
+				if (encoding.scalabilityMode)
+				{
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
+				}
+				else
+				{
+					// By default Chrome enables 2 temporal layers (not in all OS but
+					// anyway). Let's assume the same for React-Native.
+					encoding.scalabilityMode = 'L1T2';
+				}
 			}
 		}
 

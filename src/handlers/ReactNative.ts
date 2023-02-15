@@ -410,7 +410,7 @@ export class ReactNative extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T3';
+				encoding.scalabilityMode = 'L1T3';
 			}
 		}
 
