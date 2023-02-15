@@ -281,7 +281,7 @@ export class Device
 
 			switch (handlerName)
 			{
-			case 'Chrome111':
+				case 'Chrome111':
 					this._handlerFactory = Chrome111.createFactory();
 					break;
 				case 'Chrome74':
