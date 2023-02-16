@@ -439,9 +439,7 @@ export class Chrome74 extends HandlerInterface
 				}
 				else
 				{
-					// By default Chrome enables 2 temporal layers (not in all OS but
-					// anyway).
-					encoding.scalabilityMode = 'L1T2';
+					encoding.scalabilityMode = 'L1T3';
 				}
 			}
 		}

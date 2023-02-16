@@ -6,6 +6,7 @@ import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
+import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
 import { Chrome67 } from './handlers/Chrome67';
@@ -22,6 +23,7 @@ import { SctpCapabilities } from './SctpParameters';
 const logger = new Logger('Device');
 
 export type BuiltinHandlerName =
+	| 'Chrome111'
 	| 'Chrome74'
 	| 'Chrome70'
 	| 'Chrome67'
@@ -91,7 +93,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const engine = browser.getEngine();
 
 		// Chrome, Chromium, and Edge.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
+		if (browser.satisfies({ chrome: '>=111', chromium: '>=111', 'microsoft edge': '>=111' }))
+		{
+			return 'Chrome111';
+		}
+		else if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
 		{
 			return 'Chrome74';
 		}
@@ -148,7 +154,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			{
 				const version = Number(match[1]);
 
-				if (version >= 74)
+				if (version >= 111)
+				{
+					return 'Chrome111';
+				}
+				else if (version >= 74)
 				{
 					return 'Chrome74';
 				}
@@ -167,7 +177,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			}
 			else
 			{
-				return 'Chrome74';
+				return 'Chrome111';
 			}
 		}
 		// Unsupported browser.
@@ -271,6 +281,9 @@ export class Device
 
 			switch (handlerName)
 			{
+				case 'Chrome111':
+					this._handlerFactory = Chrome111.createFactory();
+					break;
 				case 'Chrome74':
 					this._handlerFactory = Chrome74.createFactory();
 					break;

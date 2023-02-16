@@ -394,12 +394,11 @@ export class Safari12 extends HandlerInterface
 			{
 				if (encoding.scalabilityMode)
 				{
-					encoding.scalabilityMode = `S1T${layers.temporalLayers}`;
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
 				}
 				else
 				{
-					// By default Safari enables 3 temporal layers.
-					encoding.scalabilityMode = 'S1T3';
+					encoding.scalabilityMode = 'L1T3';
 				}
 			}
 		}

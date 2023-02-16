@@ -438,7 +438,14 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 		{
 			for (const encoding of sendingRtpParameters.encodings)
 			{
-				encoding.scalabilityMode = 'S1T3';
+				if (encoding.scalabilityMode)
+				{
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
+				}
+				else
+				{
+					encoding.scalabilityMode = 'L1T3';
+				}
 			}
 		}
 
