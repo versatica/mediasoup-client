@@ -18,12 +18,9 @@ import {
 	HandlerReceiveDataChannelResult
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
+import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
-import {
-	RtpCapabilities,
-	RtpParameters,
-	RtpEncodingParameters
-} from '../RtpParameters';
+import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome111');
@@ -305,20 +302,47 @@ export class Chrome111 extends HandlerInterface
 
 		if (encodings && encodings.length > 1)
 		{
-			encodings.forEach((encoding: RtpEncodingParameters, idx: number) =>
+			encodings.forEach((encoding, idx: number) =>
 			{
 				encoding.rid = `r${idx}`;
 			});
+
+			// Set rid and verify scalabilityMode in each encoding.
+			// NOTE: Even if WebRTC allows different scalabilityMode (different number
+			// of temporal layers) per simulcast stream, we need that those are the
+			// same in all them, so let's pick up the highest value.
+			// NOTE: If scalabilityMode is not given, Chrome will use L1T3.
+
+			let nextRid = 1;
+			let maxTemporalLayers = 1;
+
+			for (const encoding of encodings)
+			{
+				const temporalLayers = encoding.scalabilityMode
+					? parseScalabilityMode(encoding.scalabilityMode).temporalLayers
+					: 3;
+
+				if (temporalLayers > maxTemporalLayers)
+				{
+					maxTemporalLayers = temporalLayers;
+				}
+			}
+
+			for (const encoding of encodings)
+			{
+				encoding.rid = `r${nextRid++}`;
+				encoding.scalabilityMode = `L1T${maxTemporalLayers}`;
+			}
 		}
 
-		const sendingRtpParameters =
+		const sendingRtpParameters: RtpParameters =
 			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
-		const sendingRemoteRtpParameters =
+		const sendingRemoteRtpParameters: RtpParameters =
 			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
 
 		// This may throw.
@@ -362,7 +386,7 @@ export class Chrome111 extends HandlerInterface
 		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
@@ -386,16 +410,6 @@ export class Chrome111 extends HandlerInterface
 		else
 		{
 			sendingRtpParameters.encodings = encodings;
-
-			// However, if scalabilityMode is not given, Chrome will use L1T3 for
-			// each stream, so signal it properly.
-			for (const encoding of sendingRtpParameters.encodings)
-			{
-				if (!encoding.scalabilityMode)
-				{
-					encoding.scalabilityMode = 'L1T3';
-				}
-			}
 		}
 
 		this._remoteSdp!.send(
