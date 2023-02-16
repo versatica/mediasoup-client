@@ -439,8 +439,7 @@ export class Firefox60 extends HandlerInterface
 				}
 				else
 				{
-					// By default Firefox enables 2 temporal layers.
-					encoding.scalabilityMode = 'L1T2';
+					encoding.scalabilityMode = 'L1T3';
 				}
 			}
 		}

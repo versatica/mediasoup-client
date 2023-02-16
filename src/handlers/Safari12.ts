@@ -398,7 +398,6 @@ export class Safari12 extends HandlerInterface
 				}
 				else
 				{
-					// By default Safari enables 3 temporal layers.
 					encoding.scalabilityMode = 'L1T3';
 				}
 			}

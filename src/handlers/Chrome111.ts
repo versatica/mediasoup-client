@@ -386,6 +386,16 @@ export class Chrome111 extends HandlerInterface
 		else
 		{
 			sendingRtpParameters.encodings = encodings;
+
+			// However, if scalabilityMode is not given, Chrome will use L1T3 for
+			// each stream, so signal it properly.
+			for (const encoding of sendingRtpParameters.encodings)
+			{
+				if (!encoding.scalabilityMode)
+				{
+					encoding.scalabilityMode = 'L1T3';
+				}
+			}
 		}
 
 		this._remoteSdp!.send(

@@ -444,9 +444,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 				}
 				else
 				{
-					// By default Chrome enables 2 temporal layers (not in all OS but
-					// anyway). Let's assume the same for React-Native.
-					encoding.scalabilityMode = 'L1T2';
+					encoding.scalabilityMode = 'L1T3';
 				}
 			}
 		}
