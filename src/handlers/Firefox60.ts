@@ -386,7 +386,8 @@ export class Firefox60 extends HandlerInterface
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 
-		const offerMediaObject = localSdpObject.media[localSdpObject.media.findIndex(s => s.mid == localId)];
+		const offerMediaObject =
+			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp.cname =

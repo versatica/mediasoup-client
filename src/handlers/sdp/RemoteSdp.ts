@@ -475,6 +475,7 @@ export class RemoteSdp
 
 		// Append new section to the existing vector and the SDP object.
 		let idx = this._mediaSections.length;
+
 		this._mediaSections.push(newMediaSection);
 		this._sdpObject.media.push(newMediaSection.getObject());
 
@@ -482,7 +483,9 @@ export class RemoteSdp
 		this._midToIndex.set(newMediaSection.mid, idx);
 
 		// Copy data to the temporary collections.
-		const mediaSections = this._mediaSections.slice(), media = this._sdpObject.media.slice();
+		const mediaSections = this._mediaSections.slice();
+		const media = this._sdpObject.media.slice();
+
 		// Clean up existing collections.
 		this._mediaSections.length = this._sdpObject.media.length = 0;
 
@@ -491,6 +494,7 @@ export class RemoteSdp
 		for (const mediaSection of localSdpMedia)
 		{
 			const i = this._midToIndex.get(String(mediaSection.mid));
+
 			if (i !== undefined)
 			{
 				this._mediaSections.push(mediaSections[i]);
