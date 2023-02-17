@@ -1,5 +1,3 @@
-/* global RTCRtpTransceiver */
-
 import Bowser from 'bowser';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
@@ -8,6 +6,7 @@ import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
+import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
 import { Chrome67 } from './handlers/Chrome67';
@@ -16,6 +15,7 @@ import { Firefox60 } from './handlers/Firefox60';
 import { Safari12 } from './handlers/Safari12';
 import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
+import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
@@ -23,6 +23,7 @@ import { SctpCapabilities } from './SctpParameters';
 const logger = new Logger('Device');
 
 export type BuiltinHandlerName =
+	| 'Chrome111'
 	| 'Chrome74'
 	| 'Chrome70'
 	| 'Chrome67'
@@ -31,6 +32,7 @@ export type BuiltinHandlerName =
 	| 'Safari12'
 	| 'Safari11'
 	| 'Edge11'
+	| 'ReactNativeUnifiedPlan'
 	| 'ReactNative';
 
 export type DeviceOptions =
@@ -59,19 +61,29 @@ export function detectDevice(): BuiltinHandlerName | undefined
 {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
+	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative')
 	{
 		if (typeof RTCPeerConnection === 'undefined')
 		{
 			logger.warn(
-				'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+				'this._detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?');
 
 			return undefined;
 		}
 
-		logger.debug('this._detectDevice() | ReactNative handler chosen');
+		if (typeof RTCRtpTransceiver !== 'undefined')
+		{
+			logger.debug('this._detectDevice() | ReactNative UnifiedPlan handler chosen');
 
-		return 'ReactNative';
+			return 'ReactNativeUnifiedPlan';
+		}
+		else
+		{
+			logger.debug('this._detectDevice() | ReactNative PlanB handler chosen');
+
+			return 'ReactNative';
+		}
 	}
 	// Browser.
 	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
@@ -81,7 +93,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const engine = browser.getEngine();
 
 		// Chrome, Chromium, and Edge.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
+		if (browser.satisfies({ chrome: '>=111', chromium: '>=111', 'microsoft edge': '>=111' }))
+		{
+			return 'Chrome111';
+		}
+		else if (browser.satisfies({ chrome: '>=74', chromium: '>=74', 'microsoft edge': '>=88' }))
 		{
 			return 'Chrome74';
 		}
@@ -138,7 +154,11 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			{
 				const version = Number(match[1]);
 
-				if (version >= 74)
+				if (version >= 111)
+				{
+					return 'Chrome111';
+				}
+				else if (version >= 74)
 				{
 					return 'Chrome74';
 				}
@@ -157,7 +177,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			}
 			else
 			{
-				return 'Chrome74';
+				return 'Chrome111';
 			}
 		}
 		// Unsupported browser.
@@ -182,7 +202,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 export type DeviceObserverEvents =
 {
 	newtransport: [Transport];
-}
+};
 
 export class Device
 {
@@ -220,16 +240,19 @@ export class Device
 				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
 
 			if (typeof Handler === 'string')
+			{
 				handlerName = Handler as BuiltinHandlerName;
+			}
 			else
+			{
 				throw new TypeError(
 					'non string Handler option no longer supported, use handlerFactory instead');
+			}
 		}
 
 		if (handlerName && handlerFactory)
 		{
-			throw new TypeError(
-				'just one of handlerName or handlerInterface can be given');
+			throw new TypeError('just one of handlerName or handlerInterface can be given');
 		}
 
 		if (handlerFactory)
@@ -247,13 +270,20 @@ export class Device
 				handlerName = detectDevice();
 
 				if (handlerName)
+				{
 					logger.debug('constructor() | detected handler: %s', handlerName);
+				}
 				else
+				{
 					throw new UnsupportedError('device not supported');
+				}
 			}
 
 			switch (handlerName)
 			{
+				case 'Chrome111':
+					this._handlerFactory = Chrome111.createFactory();
+					break;
 				case 'Chrome74':
 					this._handlerFactory = Chrome74.createFactory();
 					break;
@@ -277,6 +307,9 @@ export class Device
 					break;
 				case 'Edge11':
 					this._handlerFactory = Edge11.createFactory();
+					break;
+				case 'ReactNativeUnifiedPlan':
+					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
 					break;
 				case 'ReactNative':
 					this._handlerFactory = ReactNative.createFactory();
@@ -368,7 +401,9 @@ export class Device
 		try
 		{
 			if (this._loaded)
+			{
 				throw new InvalidStateError('already loaded');
+			}
 
 			// This may throw.
 			ortc.validateRtpCapabilities(routerRtpCapabilities);
@@ -471,7 +506,7 @@ export class Device
 	{
 		logger.debug('createSendTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'send',
 				id                     : id,
@@ -510,7 +545,7 @@ export class Device
 	{
 		logger.debug('createRecvTransport()');
 
-		return this._createTransport(
+		return this.createTransport(
 			{
 				direction              : 'recv',
 				id                     : id,
@@ -526,7 +561,7 @@ export class Device
 			});
 	}
 
-	private _createTransport(
+	private createTransport(
 		{
 			direction,
 			id,

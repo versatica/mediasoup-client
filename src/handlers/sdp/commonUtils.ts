@@ -8,6 +8,10 @@ import {
 	RtcpFeedback
 } from '../../RtpParameters';
 
+/**
+ * This function must be called with an SDP with 1 m=audio and 1 m=video
+ * sections.
+ */
 export function extractRtpCapabilities(
 	{ sdpObject }:
 	{ sdpObject: any }
@@ -87,11 +91,6 @@ export function extractRtpCapabilities(
 		// Get RTCP feedback for each codec.
 		for (const fb of m.rtcpFb || [])
 		{
-			const codec = codecsMap.get(fb.payload);
-
-			if (!codec)
-				continue;
-
 			const feedback: RtcpFeedback =
 			{
 				type      : fb.type,
@@ -101,7 +100,29 @@ export function extractRtpCapabilities(
 			if (!feedback.parameter)
 				delete feedback.parameter;
 
-			codec.rtcpFeedback!.push(feedback);
+			// rtcp-fb payload is not '*', so just apply it to its corresponding
+			// codec.
+			if (fb.payload !== '*')
+			{
+				const codec = codecsMap.get(fb.payload);
+
+				if (!codec)
+					continue;
+
+				codec.rtcpFeedback!.push(feedback);
+			}
+			// If rtcp-fb payload is '*' it must be applied to all codecs with same
+			// kind (with some exceptions such as RTX codec).
+			else
+			{
+				for (const codec of codecsMap.values())
+				{
+					if (codec.kind === kind && !/.+\/rtx$/i.test(codec.mimeType))
+					{
+						codec.rtcpFeedback!.push(feedback);
+					}
+				}
+			}
 		}
 
 		// Get RTP header extensions.

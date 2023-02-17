@@ -54,6 +54,13 @@ export type HandlerReceiveOptions =
 	trackId: string;
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
+	/**
+	 * Stream id. WebRTC based devices try to synchronize inbound streams with
+	 * same streamId. If not given, the consuming device will be told to
+	 * synchronize all streams produced by the same endpoint. However libwebrtc
+	 * can just synchronize up to one audio stream with one video stream.
+	 */
+	streamId?: string;
 };
 
 export type HandlerReceiveResult =
@@ -76,12 +83,12 @@ export type HandlerReceiveDataChannelOptions =
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
-}
+};
 
 export type HandlerReceiveDataChannelResult =
 {
 	dataChannel: RTCDataChannel;
-}
+};
 
 export type HandlerEvents =
 {
@@ -93,7 +100,7 @@ export type HandlerEvents =
 		(error: Error) => void
 	];
 	'@connectionstatechange': [ConnectionState];
-}
+};
 
 export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents>
 {
@@ -146,7 +153,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract receive(
 		optionsList: HandlerReceiveOptions[]
-	) : Promise<HandlerReceiveResult[]>
+	) : Promise<HandlerReceiveResult[]>;
 
 	abstract stopReceiving(localIds: string[]): Promise<void>;
 

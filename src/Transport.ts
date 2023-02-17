@@ -1,4 +1,5 @@
 import { AwaitQueue } from 'awaitqueue';
+import queueMicrotask from 'queue-microtask';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -52,14 +53,14 @@ export type TransportOptions =
 	additionalSettings?: any;
 	proprietaryConstraints?: any;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type CanProduceByKind =
 {
 	audio: boolean;
 	video: boolean;
 	[key: string]: boolean;
-}
+};
 
 export type IceParameters =
 {
@@ -75,7 +76,7 @@ export type IceParameters =
 	 * ICE Lite.
 	 */
 	iceLite?: boolean;
-}
+};
 
 export type IceCandidate =
 {
@@ -108,7 +109,7 @@ export type IceCandidate =
 	 * The type of TCP candidate.
 	 */
 	tcpType: 'active' | 'passive' | 'so';
-}
+};
 
 export type DtlsParameters =
 {
@@ -120,7 +121,7 @@ export type DtlsParameters =
 	 * Server DTLS fingerprints.
 	 */
 	fingerprints: DtlsFingerprint[];
-}
+};
 
 /**
  * The hash function algorithm (as defined in the "Hash function Textual Names"
@@ -132,7 +133,7 @@ export type DtlsFingerprint =
 {
 	algorithm: string;
 	value: string;
-}
+};
 
 export type DtlsRole = 'auto' | 'client' | 'server';
 
@@ -219,7 +220,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	// Whether the Consumer for RTP probation has been created.
 	private _probatorConsumerCreated = false;
 	// AwaitQueue instance to make async tasks happen sequentially.
-	private readonly _awaitQueue = new AwaitQueue({ ClosedErrorClass: InvalidStateError });
+	private readonly _awaitQueue = new AwaitQueue();
 	// Consumer creation tasks awaiting to be processed.
 	private _pendingConsumerTasks: ConsumerCreationTask[] = [];
 	// Consumer creation in progress flag.
@@ -296,7 +297,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 		this._appData = appData || {};
 
-		this._handleHandler();
+		this.handleHandler();
 	}
 
 	/**
@@ -367,14 +368,16 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	close(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('close()');
 
 		this._closed = true;
 
-		// Close the AwaitQueue.
-		this._awaitQueue.close();
+		// Stop the AwaitQueue.
+		this._awaitQueue.stop();
 
 		// Close the handler.
 		this._handler.close();
@@ -419,7 +422,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 
 		return this._handler.getTransportStats();
 	}
@@ -435,9 +440,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('restartIce()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (!iceParameters)
+		{
 			throw new TypeError('missing iceParameters');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -456,9 +465,13 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		logger.debug('updateIceServers()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (!Array.isArray(iceServers))
+		{
 			throw new TypeError('missing iceServers');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -484,20 +497,38 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	{
 		logger.debug('produce() [track:%o]', track);
 
-		if (!track)
+		if (this._closed)
+		{
+			throw new InvalidStateError('closed');
+		}
+		else if (!track)
+		{
 			throw new TypeError('missing track');
+		}
 		else if (this._direction !== 'send')
+		{
 			throw new UnsupportedError('not a sending Transport');
+		}
 		else if (!this._canProduceByKind[track.kind])
+		{
 			throw new UnsupportedError(`cannot produce ${track.kind}`);
+		}
 		else if (track.readyState === 'ended')
+		{
 			throw new InvalidStateError('track ended');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (this.listenerCount('produce') === 0)
+		{
 			throw new TypeError('no "produce" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -521,23 +552,41 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 							const normalizedEncoding: any = { active: true };
 
 							if (encoding.active === false)
+							{
 								normalizedEncoding.active = false;
+							}
 							if (typeof encoding.dtx === 'boolean')
+							{
 								normalizedEncoding.dtx = encoding.dtx;
+							}
 							if (typeof encoding.scalabilityMode === 'string')
+							{
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
+							}
 							if (typeof encoding.scaleResolutionDownBy === 'number')
+							{
 								normalizedEncoding.scaleResolutionDownBy = encoding.scaleResolutionDownBy;
+							}
 							if (typeof encoding.maxBitrate === 'number')
+							{
 								normalizedEncoding.maxBitrate = encoding.maxBitrate;
+							}
 							if (typeof encoding.maxFramerate === 'number')
+							{
 								normalizedEncoding.maxFramerate = encoding.maxFramerate;
+							}
 							if (typeof encoding.adaptivePtime === 'boolean')
+							{
 								normalizedEncoding.adaptivePtime = encoding.adaptivePtime;
+							}
 							if (typeof encoding.priority === 'string')
+							{
 								normalizedEncoding.priority = encoding.priority;
+							}
 							if (typeof encoding.networkPriority === 'string')
+							{
 								normalizedEncoding.networkPriority = encoding.networkPriority;
+							}
 
 							return normalizedEncoding;
 						});
@@ -584,7 +633,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 						});
 
 					this._producers.set(producer.id, producer);
-					this._handleProducer(producer);
+					this.handleProducer(producer);
 
 					// Emit observer event.
 					this._observer.safeEmit('newproducer', producer);
@@ -623,6 +672,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			producerId,
 			kind,
 			rtpParameters,
+			streamId,
 			appData = {}
 		}: ConsumerOptions
 	): Promise<Consumer>
@@ -632,26 +682,42 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		rtpParameters = utils.clone(rtpParameters, undefined);
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._direction !== 'recv')
+		{
 			throw new UnsupportedError('not a receiving Transport');
+		}
 		else if (typeof id !== 'string')
+		{
 			throw new TypeError('missing id');
+		}
 		else if (typeof producerId !== 'string')
+		{
 			throw new TypeError('missing producerId');
+		}
 		else if (kind !== 'audio' && kind !== 'video')
+		{
 			throw new TypeError(`invalid kind '${kind}'`);
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
 			rtpParameters, this._extendedRtpCapabilities);
 
 		if (!canConsume)
+		{
 			throw new UnsupportedError('cannot consume this Producer');
+		}
 
 		const consumerCreationTask = new ConsumerCreationTask(
 			{
@@ -659,6 +725,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				producerId,
 				kind,
 				rtpParameters,
+				streamId,
 				appData
 			}
 		);
@@ -667,10 +734,18 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		this._pendingConsumerTasks.push(consumerCreationTask);
 
 		// There is no Consumer creation in progress, create it now.
-		if (this._consumerCreationInProgress === false)
+		queueMicrotask(() => 
 		{
-			this._createPendingConsumers();
-		}
+			if (this._closed)
+			{
+				throw new InvalidStateError('closed');
+			}
+
+			if (this._consumerCreationInProgress === false)
+			{
+				this.createPendingConsumers();
+			}
+		});
 
 		return consumerCreationTask.promise;
 	}
@@ -691,19 +766,35 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	{
 		logger.debug('produceData()');
 
-		if (this._direction !== 'send')
+		if (this._closed)
+		{
+			throw new InvalidStateError('closed');
+		}
+		else if (this._direction !== 'send')
+		{
 			throw new UnsupportedError('not a sending Transport');
+		}
 		else if (!this._maxSctpMessageSize)
+		{
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (this.listenerCount('producedata') === 0)
+		{
 			throw new TypeError('no "producedata" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		if (maxPacketLifeTime || maxRetransmits)
+		{
 			ordered = false;
+		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
@@ -743,7 +834,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 					new DataProducer({ id, dataChannel, sctpStreamParameters, appData });
 
 				this._dataProducers.set(dataProducer.id, dataProducer);
-				this._handleDataProducer(dataProducer);
+				this.handleDataProducer(dataProducer);
 
 				// Emit observer event.
 				this._observer.safeEmit('newdataproducer', dataProducer);
@@ -772,19 +863,33 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		sctpStreamParameters = utils.clone(sctpStreamParameters, undefined);
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._direction !== 'recv')
+		{
 			throw new UnsupportedError('not a receiving Transport');
+		}
 		else if (!this._maxSctpMessageSize)
+		{
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
+		}
 		else if (typeof id !== 'string')
+		{
 			throw new TypeError('missing id');
+		}
 		else if (typeof dataProducerId !== 'string')
+		{
 			throw new TypeError('missing dataProducerId');
+		}
 		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
+		{
 			throw new TypeError('no "connect" listener set into this transport');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// This may throw.
 		ortc.validateSctpStreamParameters(sctpStreamParameters);
@@ -812,7 +917,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 					});
 
 				this._dataConsumers.set(dataConsumer.id, dataConsumer);
-				this._handleDataConsumer(dataConsumer);
+				this.handleDataConsumer(dataConsumer);
 
 				// Emit observer event.
 				this._observer.safeEmit('newdataconsumer', dataConsumer);
@@ -823,7 +928,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 	}
 
 	// This method is guaranteed to never throw.
-	async _createPendingConsumers(): Promise<void>
+	private async createPendingConsumers(): Promise<void>
 	{
 		this._consumerCreationInProgress = true;
 
@@ -832,7 +937,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			{
 				if (this._pendingConsumerTasks.length === 0)
 				{
-					logger.debug('_createPendingConsumers() | there is no Consumer to be created');
+					logger.debug('createPendingConsumers() | there is no Consumer to be created');
 
 					return;
 				}
@@ -850,13 +955,15 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 
 				for (const task of pendingConsumerTasks)
 				{
-					const { id, kind, rtpParameters } = task.consumerOptions;
+					const { id, kind, rtpParameters, streamId } = task.consumerOptions;
 
-					optionsList.push({
-						trackId : id!,
-						kind    : kind as 'audio' | 'video',
-						rtpParameters
-					});
+					optionsList.push(
+						{
+							trackId : id!,
+							kind    : kind as MediaKind,
+							rtpParameters,
+							streamId
+						});
 				}
 
 				try
@@ -881,11 +988,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 							});
 
 						this._consumers.set(consumer.id, consumer);
-						this._handleConsumer(consumer);
+						this.handleConsumer(consumer);
 
 						// If this is the first video Consumer and the Consumer for RTP probation
 						// has not yet been created, it's time to create it.
-						if (!this._probatorConsumerCreated && !videoConsumerForProbator && kind === 'video')
+						if (
+							!this._probatorConsumerCreated &&
+							!videoConsumerForProbator && kind === 'video'
+						)
 						{
 							videoConsumerForProbator = consumer;
 						}
@@ -919,19 +1029,19 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 								rtpParameters : probatorRtpParameters
 							} ]);
 
-						logger.debug('_createPendingConsumers() | Consumer for RTP probation created');
+						logger.debug('createPendingConsumers() | Consumer for RTP probation created');
 
 						this._probatorConsumerCreated = true;
 					}
 					catch (error)
 					{
 						logger.error(
-							'_createPendingConsumers() | failed to create Consumer for RTP probation:%o',
+							'createPendingConsumers() | failed to create Consumer for RTP probation:%o',
 							error);
 					}
 				}
 			},
-			'transport._createPendingConsumers()')
+			'transport.createPendingConsumers()')
 			.then(() =>
 			{
 				this._consumerCreationInProgress = false;
@@ -939,14 +1049,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0)
 				{
-					this._createPendingConsumers();
+					this.createPendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
 			.catch(() => {});
 	}
 
-	_pausePendingConsumers()
+	private pausePendingConsumers()
 	{
 		this._consumerPauseInProgress = true;
 
@@ -955,7 +1065,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			{
 				if (this._pendingPauseConsumers.size === 0)
 				{
-					logger.debug('_pausePendingConsumers() | there is no Consumer to be paused');
+					logger.debug('pausePendingConsumers() | there is no Consumer to be paused');
 
 					return;
 				}
@@ -974,10 +1084,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				}
 				catch (error)
 				{
-					logger.error('_pausePendingConsumers() | failed to pause Consumers:', error);
+					logger.error('pausePendingConsumers() | failed to pause Consumers:', error);
 				}
 			},
-			'transport._pausePendingConsumers')
+			'transport.pausePendingConsumers')
 			.then(() =>
 			{
 				this._consumerPauseInProgress = false;
@@ -985,14 +1095,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				// There are pending Consumers to be paused, do it.
 				if (this._pendingPauseConsumers.size > 0)
 				{
-					this._pausePendingConsumers();
+					this.pausePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
 			.catch(() => { });
 	}
 
-	_resumePendingConsumers()
+	private resumePendingConsumers()
 	{
 		this._consumerResumeInProgress = true;
 
@@ -1001,7 +1111,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			{
 				if (this._pendingResumeConsumers.size === 0)
 				{
-					logger.debug('_resumePendingConsumers() | there is no Consumer to be resumed');
+					logger.debug('resumePendingConsumers() | there is no Consumer to be resumed');
 					
 					return;
 				}
@@ -1020,10 +1130,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				}
 				catch (error)
 				{
-					logger.error('_resumePendingConsumers() | failed to resume Consumers:', error);
+					logger.error('resumePendingConsumers() | failed to resume Consumers:', error);
 				}
 			},
-			'transport._resumePendingConsumers')
+			'transport.resumePendingConsumers')
 			.then(() =>
 			{
 				this._consumerResumeInProgress = false;
@@ -1031,14 +1141,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				// There are pending Consumer to be resumed, do it.
 				if (this._pendingResumeConsumers.size > 0)
 				{
-					this._resumePendingConsumers();
+					this.resumePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
 			.catch(() => { });
 	}
 
-	_closePendingConsumers()
+	private closePendingConsumers()
 	{
 		this._consumerCloseInProgress = true;
 
@@ -1047,7 +1157,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			{
 				if (this._pendingCloseConsumers.size === 0)
 				{
-					logger.debug('_closePendingConsumers() | there is no Consumer to be closed');
+					logger.debug('closePendingConsumers() | there is no Consumer to be closed');
 					
 					return;
 				}
@@ -1065,10 +1175,10 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				}
 				catch (error)
 				{
-					logger.error('_closePendingConsumers() | failed to close Consumers:', error);
+					logger.error('closePendingConsumers() | failed to close Consumers:', error);
 				}
 			},
-			'transport._closePendingConsumers')
+			'transport.closePendingConsumers')
 			.then(() =>
 			{
 				this._consumerCloseInProgress = false;
@@ -1076,13 +1186,14 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 				// There are pending Consumer to be resumed, do it.
 				if (this._pendingCloseConsumers.size > 0)
 				{
-					this._closePendingConsumers();
+					this.closePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
 			.catch(() => { });
 	}
-	_handleHandler(): void
+
+	private handleHandler(): void
 	{
 		const handler = this._handler;
 
@@ -1105,25 +1216,31 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		handler.on('@connectionstatechange', (connectionState: ConnectionState) =>
 		{
 			if (connectionState === this._connectionState)
+			{
 				return;
+			}
 
 			logger.debug('connection state changed to %s', connectionState);
 
 			this._connectionState = connectionState;
 
 			if (!this._closed)
+			{
 				this.safeEmit('connectionstatechange', connectionState);
+			}
 		});
 	}
 
-	_handleProducer(producer: Producer): void
+	private handleProducer(producer: Producer): void
 	{
 		producer.on('@close', () =>
 		{
 			this._producers.delete(producer.id);
 
 			if (this._closed)
+			{
 				return;
+			}
 
 			this._awaitQueue.push(
 				async () => this._handler.stopSending(producer.localId),
@@ -1181,7 +1298,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		producer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
+			{
 				return errback!(new InvalidStateError('closed'));
+			}
 
 			this._handler.getSenderStats(producer.localId)
 				.then(callback)
@@ -1189,7 +1308,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		});
 	}
 
-	_handleConsumer(consumer: Consumer): void
+	private handleConsumer(consumer: Consumer): void
 	{
 		consumer.on('@close', () =>
 		{
@@ -1198,7 +1317,9 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingResumeConsumers.delete(consumer.id);
 
 			if (this._closed)
+			{
 				return;
+			}
 
 			// Store the Consumer into the close list.
 			this._pendingCloseConsumers.set(consumer.id, consumer);
@@ -1206,7 +1327,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			// There is no Consumer close in progress, do it now.
 			if (this._consumerCloseInProgress === false)
 			{
-				this._closePendingConsumers();
+				this.closePendingConsumers();
 			}
 		});
 
@@ -1222,10 +1343,18 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingPauseConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer pause in progress, do it now.
-			if (this._consumerPauseInProgress === false)
+			queueMicrotask(() => 
 			{
-				this._pausePendingConsumers();
-			}
+				if (this._closed)
+				{
+					return;
+				}
+
+				if (this._consumerPauseInProgress === false)
+				{
+					this.pausePendingConsumers();
+				}
+			});
 		});
 
 		consumer.on('@resume', () =>
@@ -1240,16 +1369,26 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 			this._pendingResumeConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer resume in progress, do it now.
-			if (this._consumerResumeInProgress === false)
+			queueMicrotask(() => 
 			{
-				this._resumePendingConsumers();
-			}
+				if (this._closed)
+				{
+					return;
+				}
+
+				if (this._consumerResumeInProgress === false)
+				{
+					this.resumePendingConsumers();
+				}
+			});
 		});
 
 		consumer.on('@getstats', (callback, errback) =>
 		{
 			if (this._closed)
+			{
 				return errback!(new InvalidStateError('closed'));
+			}
 
 			this._handler.getReceiverStats(consumer.localId)
 				.then(callback)
@@ -1257,7 +1396,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		});
 	}
 
-	_handleDataProducer(dataProducer: DataProducer): void
+	private handleDataProducer(dataProducer: DataProducer): void
 	{
 		dataProducer.on('@close', () =>
 		{
@@ -1265,7 +1404,7 @@ export class Transport extends EnhancedEventEmitter<TransportEvents>
 		});
 	}
 
-	_handleDataConsumer(dataConsumer: DataConsumer): void
+	private handleDataConsumer(dataConsumer: DataConsumer): void
 	{
 		dataConsumer.on('@close', () =>
 		{

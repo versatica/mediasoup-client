@@ -13,7 +13,7 @@ export type DataProducerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type DataProducerEvents =
 {
@@ -24,12 +24,12 @@ export type DataProducerEvents =
 	bufferedamountlow: [];
 	// Private events.
 	'@close': [];
-}
+};
 
 export type DataProducerObserverEvents =
 {
 	close: [];
-}
+};
 
 export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 {
@@ -70,7 +70,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._sctpStreamParameters = sctpStreamParameters;
 		this._appData = appData || {};
 
-		this._handleDataChannel();
+		this.handleDataChannel();
 	}
 
 	/**
@@ -222,7 +222,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.send(data);
 	}
 
-	private _handleDataChannel(): void
+	private handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{
@@ -269,6 +269,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 
 			this.emit('@close');
 			this.safeEmit('close');
+
+			// Emit observer event.
+			this._observer.safeEmit('close');
 		});
 
 		this._dataChannel.addEventListener('message', () =>

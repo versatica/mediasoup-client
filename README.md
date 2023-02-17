@@ -1,7 +1,8 @@
 # mediasoup-client v3
 
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
-[![][travis-ci-shield-mediasoup-client]][travis-ci-mediasoup-client]
+[![][github-actions-shield-mediasoup-client]][github-actions-mediasoup-client]
+[![][opencollective-shield-mediasoup]][opencollective-mediasoup]
 
 JavaScript client side library for building [mediasoup][mediasoup-website] based applications.
 
@@ -157,6 +158,16 @@ const dataProducer =
 * José Luis Millán [[github](https://github.com/jmillan/)]
 
 
+## Social
+
+* Twitter: [@mediasoup_sfu](https://twitter.com/mediasoup_sfu)
+
+
+## Sponsor
+
+You can support mediasoup by [sponsoring][sponsor] it. Thanks!
+
+
 ## License
 
 [ISC](./LICENSE)
@@ -168,5 +179,8 @@ const dataProducer =
 [mediasoup-discourse]: https://mediasoup.discourse.group
 [npm-shield-mediasoup-client]: https://img.shields.io/npm/v/mediasoup-client.svg
 [npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
-[travis-ci-shield-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client.svg?branch=master
-[travis-ci-mediasoup-client]: https://travis-ci.com/versatica/mediasoup-client
+[github-actions-shield-mediasoup-client]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client.yaml/badge.svg
+[github-actions-mediasoup-client]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client.yaml
+[opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
+[opencollective-mediasoup]: https://opencollective.com/mediasoup/
+[sponsor]: https://mediasoup.org/sponsor/

@@ -32,8 +32,8 @@ export function getRtpEncodings(
 
 		if (ssrcs.has(ssrc))
 		{
-			// Remove both the SSRC and RTX SSRC from the set so later we know that they
-			// are already handled.
+			// Remove both the SSRC and RTX SSRC from the set so later we know
+			// that they are already handled.
 			ssrcs.delete(ssrc);
 			ssrcs.delete(rtxSsrc);
 
@@ -42,8 +42,8 @@ export function getRtpEncodings(
 		}
 	}
 
-	// If the set of SSRCs is not empty it means that RTX is not being used, so take
-	// media SSRCs from there.
+	// If the set of SSRCs is not empty it means that RTX is not being used, so
+	// take media SSRCs from there.
 	for (const ssrc of ssrcs)
 	{
 		// Add to the map.

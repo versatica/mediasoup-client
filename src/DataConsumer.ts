@@ -12,7 +12,7 @@ export type DataConsumerOptions =
 	label?: string;
 	protocol?: string;
 	appData?: Record<string, unknown>;
-}
+};
 
 export type DataConsumerEvents =
 {
@@ -23,12 +23,12 @@ export type DataConsumerEvents =
 	message: [any];
 	// Private events.
 	'@close': [];
-}
+};
 
 export type DataConsumerObserverEvents =
 {
 	close: [];
-}
+};
 
 export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 {
@@ -74,7 +74,7 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 		this._sctpStreamParameters = sctpStreamParameters;
 		this._appData = appData || {};
 
-		this._handleDataChannel();
+		this.handleDataChannel();
 	}
 
 	/**
@@ -211,7 +211,7 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 		this._observer.safeEmit('close');
 	}
 
-	private _handleDataChannel(): void
+	private handleDataChannel(): void
 	{
 		this._dataChannel.addEventListener('open', () =>
 		{
@@ -258,6 +258,9 @@ export class DataConsumer extends EnhancedEventEmitter<DataConsumerEvents>
 
 			this.emit('@close');
 			this.safeEmit('close');
+
+			// Emit observer event.
+			this._observer.safeEmit('close');
 		});
 
 		this._dataChannel.addEventListener('message', (event: any) =>

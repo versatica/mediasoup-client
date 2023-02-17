@@ -1,3 +1,4 @@
+import * as sdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
 import {
 	IceParameters,
@@ -14,6 +15,7 @@ import {
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
+import { SimulcastStream } from './types';
 
 export abstract class MediaSection
 {
@@ -101,23 +103,16 @@ export abstract class MediaSection
 		this._mediaObject.icePwd = iceParameters.password;
 	}
 
-	disable(): void
+	pause(): void
 	{
 		this._mediaObject.direction = 'inactive';
-
-		delete this._mediaObject.ext;
-		delete this._mediaObject.ssrcs;
-		delete this._mediaObject.ssrcGroups;
-		delete this._mediaObject.simulcast;
-		delete this._mediaObject.simulcast_03;
-		delete this._mediaObject.rids;
 	}
 
-	close(): void
-	{
-		this._mediaObject.direction = 'inactive';
+	abstract resume(): void;
 
-		this._mediaObject.port = 0;
+	disable(): void
+	{
+		this.pause();
 
 		delete this._mediaObject.ext;
 		delete this._mediaObject.ssrcs;
@@ -126,6 +121,13 @@ export abstract class MediaSection
 		delete this._mediaObject.simulcast_03;
 		delete this._mediaObject.rids;
 		delete this._mediaObject.extmapAllowMixed;
+	}
+
+	close(): void
+	{
+		this.disable();
+
+		this._mediaObject.port = 0;
 	}
 }
 
@@ -442,6 +444,50 @@ export class AnswerMediaSection extends MediaSection
 				break;
 		}
 	}
+
+	resume(): void
+	{
+		this._mediaObject.direction = 'recvonly';
+	}
+
+	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]): void
+	{
+		if (!this._mediaObject.simulcast || !this._mediaObject.simulcast.list1)
+		{
+			return;
+		}
+
+		const layers: {[rid: string | number]: RTCRtpEncodingParameters} = {};
+
+		for (const encoding of encodings)
+		{
+			if (encoding.rid)
+			{
+				layers[encoding.rid] = encoding;
+			}
+		}
+
+		const raw = this._mediaObject.simulcast.list1;
+		// NOTE: Ignore bug in @types/sdp-transform.
+		// Ongoing PR: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/64119
+		// @ts-ignore
+		const simulcastStreams: SimulcastStream[] =
+			sdpTransform.parseSimulcastStreamList(raw);
+
+		for (const simulcastStream of simulcastStreams)
+		{
+			for (const simulcastFormat of simulcastStream)
+			{
+				simulcastFormat.paused = !layers[simulcastFormat.scid]?.active;
+			}
+		}
+
+		this._mediaObject.simulcast.list1 = simulcastStreams.map((simulcastFormats) =>
+			simulcastFormats.map((f) =>
+				`${f.paused ? '~' : ''}${f.scid}`
+			).join(',')
+		).join(';');
+	}
 }
 
 export class OfferMediaSection extends MediaSection
@@ -670,6 +716,11 @@ export class OfferMediaSection extends MediaSection
 	{
 		// Always 'actpass'.
 		this._mediaObject.setup = 'actpass';
+	}
+
+	resume(): void
+	{
+		this._mediaObject.direction = 'sendonly';
 	}
 
 	planBReceive(
