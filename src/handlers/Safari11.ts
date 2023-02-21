@@ -260,7 +260,9 @@ export class Safari11 extends HandlerInterface
 		this._remoteSdp!.updateIceParameters(iceParameters);
 
 		if (!this._transportReady)
+		{
 			return;
+		}
 
 		if (this._direction === 'send')
 		{
@@ -389,7 +391,9 @@ export class Safari11 extends HandlerInterface
 			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx)
 			{
 				if (encodings[idx])
+				{
 					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
+				}
 			}
 		}
 
@@ -446,10 +450,14 @@ export class Safari11 extends HandlerInterface
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
+		{
 			throw new Error('associated RTCRtpSender not found');
+		}
 
 		if (rtpSender.track)
+		{
 			this._sendStream.removeTrack(rtpSender.track);
+		}
 
 		this._mapSendLocalIdRtpSender.delete(localId);
 
@@ -480,7 +488,9 @@ export class Safari11 extends HandlerInterface
 		}
 
 		if (this._pc.signalingState === 'stable')
+		{
 			return;
+		}
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
 
@@ -522,7 +532,9 @@ export class Safari11 extends HandlerInterface
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
+		{
 			throw new Error('associated RTCRtpSender not found');
+		}
 
 		const oldTrack = rtpSender.track;
 
@@ -530,11 +542,15 @@ export class Safari11 extends HandlerInterface
 
 		// Remove the old track from the local stream.
 		if (oldTrack)
+		{
 			this._sendStream.removeTrack(oldTrack);
+		}
 
 		// Add the new track to the local stream.
 		if (track)
+		{
 			this._sendStream.addTrack(track);
+		}
 	}
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
@@ -548,16 +564,22 @@ export class Safari11 extends HandlerInterface
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
+		{
 			throw new Error('associated RTCRtpSender not found');
+		}
 
 		const parameters = rtpSender.getParameters();
 
 		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx <= spatialLayer)
+			{
 				encoding.active = true;
+			}
 			else
+			{
 				encoding.active = false;
+			}
 		});
 
 		await rtpSender.setParameters(parameters);
@@ -574,7 +596,9 @@ export class Safari11 extends HandlerInterface
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
+		{
 			throw new Error('associated RTCRtpSender not found');
+		}
 
 		const parameters = rtpSender.getParameters();
 
@@ -593,7 +617,9 @@ export class Safari11 extends HandlerInterface
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
 
 		if (!rtpSender)
+		{
 			throw new Error('associated RTCRtpSender not found');
+		}
 
 		return rtpSender.getStats();
 	}
@@ -756,7 +782,9 @@ export class Safari11 extends HandlerInterface
 				.find((r: RTCRtpReceiver) => r.track && r.track.id === localId);
 
 			if (!rtpReceiver)
+			{
 				throw new Error('new RTCRtpReceiver not');
+			}
 
 			// Insert into the map.
 			this._mapRecvLocalIdInfo.set(localId, { mid, rtpParameters, rtpReceiver });
@@ -812,7 +840,9 @@ export class Safari11 extends HandlerInterface
 		const { rtpReceiver } = this._mapRecvLocalIdInfo.get(localId) || {};
 
 		if (!rtpReceiver)
+		{
 			throw new Error('associated RTCRtpReceiver not found');
+		}
 
 		return rtpReceiver.getStats();
 	}
@@ -909,7 +939,9 @@ export class Safari11 extends HandlerInterface
 	): Promise<void>
 	{
 		if (!localSdpObject)
+		{
 			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+		}
 
 		// Get our local DTLS parameters.
 		const dtlsParameters =

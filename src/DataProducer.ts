@@ -173,7 +173,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 	close(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('close()');
 
@@ -193,7 +195,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 	transportClosed(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('transportClosed()');
 
@@ -217,7 +221,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		logger.debug('send()');
 
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 
 		this._dataChannel.send(data);
 	}
@@ -227,7 +233,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.addEventListener('open', () =>
 		{
 			if (this._closed)
+			{
 				return;
+			}
 
 			logger.debug('DataChannel "open" event');
 
@@ -237,12 +245,16 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.addEventListener('error', (event: any) =>
 		{
 			if (this._closed)
+			{
 				return;
+			}
 
 			let { error } = event;
 
 			if (!error)
+			{
 				error = new Error('unknown DataChannel error');
+			}
 
 			if (error.errorDetail === 'sctp-failure')
 			{
@@ -261,7 +273,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.addEventListener('close', () =>
 		{
 			if (this._closed)
+			{
 				return;
+			}
 
 			logger.warn('DataChannel "close" event');
 
@@ -277,7 +291,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.addEventListener('message', () =>
 		{
 			if (this._closed)
+			{
 				return;
+			}
 
 			logger.warn(
 				'DataChannel "message" event in a DataProducer, message discarded');
@@ -286,7 +302,9 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._dataChannel.addEventListener('bufferedamountlow', () =>
 		{
 			if (this._closed)
+			{
 				return;
+			}
 
 			this.safeEmit('bufferedamountlow');
 		});

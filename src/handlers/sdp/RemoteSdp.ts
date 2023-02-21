@@ -149,7 +149,9 @@ export class RemoteSdp
 			const mediaSection = this._mediaSections[idx];
 
 			if (mediaSection.closed)
+			{
 				return { idx, reuseMid: mediaSection.mid };
+			}
 		}
 
 		// If no closed media section is found, return next one.
@@ -227,7 +229,9 @@ export class RemoteSdp
 		let mediaSection: OfferMediaSection | undefined;
 
 		if (idx !== undefined)
+		{
 			mediaSection = this._mediaSections[idx] as OfferMediaSection;
+		}
 
 		// Unified-Plan or different media kind.
 		if (!mediaSection)
@@ -403,7 +407,9 @@ export class RemoteSdp
 	_addMediaSection(newMediaSection: MediaSection): void
 	{
 		if (!this._firstMid)
+		{
 			this._firstMid = newMediaSection.mid;
+		}
 
 		// Add to the vector.
 		this._mediaSections.push(newMediaSection);
@@ -478,7 +484,9 @@ export class RemoteSdp
 	_regenerateBundleMids(): void
 	{
 		if (!this._dtlsParameters)
+		{
 			return;
+		}
 
 		this._sdpObject.groups[0].mids = this._mediaSections
 			.filter((mediaSection: MediaSection) => !mediaSection.closed)

@@ -204,7 +204,9 @@ export class FakeHandler extends HandlerInterface
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (!this._transportReady)
+		{
 			await this.setupTransport({ localDtlsRole: 'server' });
+		}
 
 		const rtpParameters =
 			utils.clone(this._rtpParametersByKind![track.kind], {});
@@ -214,14 +216,18 @@ export class FakeHandler extends HandlerInterface
 		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
 		if (!encodings)
+		{
 			encodings = [ {} ];
+		}
 
 		for (const encoding of encodings)
 		{
 			encoding.ssrc = utils.generateRandomNumber();
 
 			if (useRtx)
+			{
 				encoding.rtx = { ssrc: utils.generateRandomNumber() };
+			}
 		}
 
 		rtpParameters.encodings = encodings;
@@ -246,7 +252,9 @@ export class FakeHandler extends HandlerInterface
 		logger.debug('stopSending() [localId:%s]', localId);
 
 		if (!this._tracks.has(Number(localId)))
+		{
 			throw new Error('local track not found');
+		}
 
 		this._tracks.delete(Number(localId));
 	}
@@ -312,7 +320,9 @@ export class FakeHandler extends HandlerInterface
 	): Promise<HandlerSendDataChannelResult>
 	{
 		if (!this._transportReady)
+		{
 			await this.setupTransport({ localDtlsRole: 'server' });
+		}
 
 		logger.debug('sendDataChannel()');
 
@@ -349,7 +359,9 @@ export class FakeHandler extends HandlerInterface
 			const { trackId, kind } = options;
 
 			if (!this._transportReady)
+			{
 				await this.setupTransport({ localDtlsRole: 'client' });
+			}
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -399,7 +411,9 @@ export class FakeHandler extends HandlerInterface
 	): Promise<HandlerReceiveDataChannelResult>
 	{
 		if (!this._transportReady)
+		{
 			await this.setupTransport({ localDtlsRole: 'client' });
+		}
 
 		logger.debug('receiveDataChannel()');
 
@@ -434,7 +448,9 @@ export class FakeHandler extends HandlerInterface
 
 		// Set our DTLS role.
 		if (localDtlsRole)
+		{
 			dtlsParameters.role = localDtlsRole;
+		}
 
 		// Assume we are connecting now.
 		this.emit('@connectionstatechange', 'connecting');

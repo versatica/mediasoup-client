@@ -15,7 +15,9 @@ export function getRtpEncodings(
 	}
 
 	if (ssrcs.size === 0)
+	{
 		throw new Error('no a=ssrc lines found');
+	}
 
 	const ssrcToRtxSsrc = new Map();
 
@@ -23,7 +25,9 @@ export function getRtpEncodings(
 	for (const line of offerMediaObject.ssrcGroups || [])
 	{
 		if (line.semantics !== 'FID')
+		{
 			continue;
+		}
 
 		let [ ssrc, rtxSsrc ] = line.ssrcs.split(/\s+/);
 
@@ -57,7 +61,9 @@ export function getRtpEncodings(
 		const encoding: RtpEncodingParameters = { ssrc };
 
 		if (rtxSsrc)
+		{
 			encoding.rtx = { ssrc: rtxSsrc };
+		}
 
 		encodings.push(encoding);
 	}
@@ -80,14 +86,18 @@ export function addLegacySimulcast(
 ): void
 {
 	if (numStreams <= 1)
+	{
 		throw new TypeError('numStreams must be greater than 1');
+	}
 
 	// Get the SSRC.
 	const ssrcMsidLine = (offerMediaObject.ssrcs || [])
 		.find((line: any) => line.attribute === 'msid');
 
 	if (!ssrcMsidLine)
+	{
 		throw new Error('a=ssrc line with msid information not found');
+	}
 
 	const [ streamId, trackId ] = ssrcMsidLine.value.split(' ');
 	const firstSsrc = ssrcMsidLine.id;
@@ -98,7 +108,9 @@ export function addLegacySimulcast(
 		.some((line: any) =>
 		{
 			if (line.semantics !== 'FID')
+			{
 				return false;
+			}
 
 			const ssrcs = line.ssrcs.split(/\s+/);
 
@@ -118,7 +130,9 @@ export function addLegacySimulcast(
 		.find((line: any) => line.attribute === 'cname');
 
 	if (!ssrcCnameLine)
+	{
 		throw new Error('a=ssrc line with cname information not found');
+	}
 
 	const cname = ssrcCnameLine.value;
 	const ssrcs = [];
@@ -129,7 +143,9 @@ export function addLegacySimulcast(
 		ssrcs.push(firstSsrc + i);
 
 		if (firstRtxSsrc)
+		{
 			rtxSsrcs.push(firstRtxSsrc + i);
+		}
 	}
 
 	offerMediaObject.ssrcGroups = [];

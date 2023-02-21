@@ -18,7 +18,9 @@ export function getRtpEncodings(
 	for (const line of offerMediaObject.ssrcs || [])
 	{
 		if (line.attribute !== 'msid')
+		{
 			continue;
+		}
 
 		const trackId = line.value.split(' ')[1];
 
@@ -29,12 +31,16 @@ export function getRtpEncodings(
 			ssrcs.add(ssrc);
 
 			if (!firstSsrc)
+			{
 				firstSsrc = ssrc;
+			}
 		}
 	}
 
 	if (ssrcs.size === 0)
+	{
 		throw new Error(`a=ssrc line with msid information not found [track.id:${track.id}]`);
+	}
 
 	const ssrcToRtxSsrc = new Map();
 
@@ -42,7 +48,9 @@ export function getRtpEncodings(
 	for (const line of offerMediaObject.ssrcGroups || [])
 	{
 		if (line.semantics !== 'FID')
+		{
 			continue;
+		}
 
 		let [ ssrc, rtxSsrc ] = line.ssrcs.split(/\s+/);
 
@@ -76,7 +84,9 @@ export function getRtpEncodings(
 		const encoding: any = { ssrc };
 
 		if (rtxSsrc)
+		{
 			encoding.rtx = { ssrc: rtxSsrc };
+		}
 
 		encodings.push(encoding);
 	}
@@ -101,7 +111,9 @@ export function addLegacySimulcast(
 ): void
 {
 	if (numStreams <= 1)
+	{
 		throw new TypeError('numStreams must be greater than 1');
+	}
 
 	let firstSsrc: any;
 	let firstRtxSsrc: any;
@@ -112,7 +124,9 @@ export function addLegacySimulcast(
 		.find((line: any) =>
 		{
 			if (line.attribute !== 'msid')
+			{
 				return false;
+			}
 
 			const trackId = line.value.split(' ')[1];
 
@@ -130,14 +144,18 @@ export function addLegacySimulcast(
 		});
 
 	if (!ssrcMsidLine)
+	{
 		throw new Error(`a=ssrc line with msid information not found [track.id:${track.id}]`);
+	}
 
 	// Get the SSRC for RTX.
 	(offerMediaObject.ssrcGroups || [])
 		.some((line: any) =>
 		{
 			if (line.semantics !== 'FID')
+			{
 				return false;
+			}
 
 			const ssrcs = line.ssrcs.split(/\s+/);
 
@@ -157,7 +175,9 @@ export function addLegacySimulcast(
 		.find((line: any) => (line.attribute === 'cname' && line.id === firstSsrc));
 
 	if (!ssrcCnameLine)
+	{
 		throw new Error(`a=ssrc line with cname information not found [track.id:${track.id}]`);
+	}
 
 	const cname = ssrcCnameLine.value;
 	const ssrcs = [];
@@ -168,7 +188,9 @@ export function addLegacySimulcast(
 		ssrcs.push(firstSsrc + i);
 
 		if (firstRtxSsrc)
+		{
 			rtxSsrcs.push(firstRtxSsrc + i);
+		}
 	}
 
 	offerMediaObject.ssrcGroups = offerMediaObject.ssrcGroups || [];

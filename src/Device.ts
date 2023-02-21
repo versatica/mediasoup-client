@@ -360,7 +360,9 @@ export class Device
 	get rtpCapabilities(): RtpCapabilities
 	{
 		if (!this._loaded)
+		{
 			throw new InvalidStateError('not loaded');
+		}
 
 		return this._recvRtpCapabilities!;
 	}
@@ -373,7 +375,9 @@ export class Device
 	get sctpCapabilities(): SctpCapabilities
 	{
 		if (!this._loaded)
+		{
 			throw new InvalidStateError('not loaded');
+		}
 
 		return this._sctpCapabilities!;
 	}
@@ -461,7 +465,9 @@ export class Device
 		catch (error)
 		{
 			if (handler)
+			{
 				handler.close();
+			}
 
 			throw error;
 		}
@@ -476,9 +482,13 @@ export class Device
 	canProduce(kind: MediaKind): boolean
 	{
 		if (!this._loaded)
+		{
 			throw new InvalidStateError('not loaded');
+		}
 		else if (kind !== 'audio' && kind !== 'video')
+		{
 			throw new TypeError(`invalid kind "${kind}"`);
+		}
 
 		return this._canProduceByKind[kind];
 	}
@@ -578,19 +588,33 @@ export class Device
 	): Transport
 	{
 		if (!this._loaded)
+		{
 			throw new InvalidStateError('not loaded');
+		}
 		else if (typeof id !== 'string')
+		{
 			throw new TypeError('missing id');
+		}
 		else if (typeof iceParameters !== 'object')
+		{
 			throw new TypeError('missing iceParameters');
+		}
 		else if (!Array.isArray(iceCandidates))
+		{
 			throw new TypeError('missing iceCandidates');
+		}
 		else if (typeof dtlsParameters !== 'object')
+		{
 			throw new TypeError('missing dtlsParameters');
+		}
 		else if (sctpParameters && typeof sctpParameters !== 'object')
+		{
 			throw new TypeError('wrong sctpParameters');
+		}
 		else if (appData && typeof appData !== 'object')
+		{
 			throw new TypeError('if given, appData must be an object');
+		}
 
 		// Create a new Transport.
 		const transport = new Transport(

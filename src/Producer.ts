@@ -261,7 +261,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	close(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('close()');
 
@@ -281,7 +283,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	transportClosed(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('transportClosed()');
 
@@ -301,7 +305,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 
 		return new Promise<RTCStatsReport>((resolve, reject) =>
 		{
@@ -440,9 +446,13 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		if (this._track && this._disableTrackOnPause)
 		{
 			if (!this._paused)
+			{
 				this._track.enabled = true;
+			}
 			else if (this._paused)
+			{
 				this._track.enabled = false;
+			}
 		}
 
 		// Handle the effective track.
@@ -455,14 +465,22 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	async setMaxSpatialLayer(spatialLayer: number): Promise<void>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (this._kind !== 'video')
+		{
 			throw new UnsupportedError('not a video Producer');
+		}
 		else if (typeof spatialLayer !== 'number')
+		{
 			throw new TypeError('invalid spatialLayer');
+		}
 
 		if (spatialLayer === this._maxSpatialLayer)
+		{
 			return;
+		}
 
 		await new Promise<void>((resolve, reject) =>
 		{
@@ -482,9 +500,13 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	): Promise<void>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 		else if (typeof params !== 'object')
+		{
 			throw new TypeError('invalid params');
+		}
 
 		await new Promise<void>((resolve, reject) =>
 		{
@@ -510,7 +532,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	private handleTrack(): void
 	{
 		if (!this._track)
+		{
 			return;
+		}
 
 		this._track.addEventListener('ended', this.onTrackEnded);
 	}
@@ -518,7 +542,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	private destroyTrack(): void
 	{
 		if (!this._track)
+		{
 			return;
+		}
 
 		try
 		{
@@ -526,7 +552,9 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 
 			// Just stop the track unless the app set stopTracks: false.
 			if (this._stopTracks)
+			{
 				this._track.stop();
+			}
 		}
 		catch (error)
 		{}
