@@ -521,7 +521,16 @@ export class ReactNative extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
-		throw new UnsupportedError('not implemented');
+		if (track) {
+			logger.debug('replaceTrack() [localId:%s, track.id:%s]', localId, track.id)
+			const mediaStreamTrack = this._mapSendLocalIdTrack.get(localId)
+			if (!mediaStreamTrack) {
+				throw new Error('associated MediaStreamTrack not found')
+			}
+			this._mapSendLocalIdTrack.set(localId, track)
+		} else {
+			logger.debug('replaceTrack() [localId:%s, no track]', localId)
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
