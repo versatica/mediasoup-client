@@ -12,6 +12,7 @@ import {
 	MediaKind,
 	RtpParameters,
 	RtpCodecParameters,
+	RtcpFeedback,
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
@@ -213,6 +214,7 @@ export class AnswerMediaSection extends MediaSection
 					this._mediaObject.rtp.push(rtp);
 
 					const codecParameters = utils.clone(codec.parameters, {});
+					let codecRtcpFeedback: RtcpFeedback[] = utils.clone(codec.rtcpFeedback, []);
 
 					if (codecOptions)
 					{
@@ -223,6 +225,7 @@ export class AnswerMediaSection extends MediaSection
 							opusMaxPlaybackRate,
 							opusMaxAverageBitrate,
 							opusPtime,
+							opusNack,
 							videoGoogleStartBitrate,
 							videoGoogleMaxBitrate,
 							videoGoogleMinBitrate
@@ -236,6 +239,7 @@ export class AnswerMediaSection extends MediaSection
 						switch (codec.mimeType.toLowerCase())
 						{
 							case 'audio/opus':
+							case 'audio/multiopus':
 							{
 								if (opusStereo !== undefined)
 								{
@@ -269,6 +273,19 @@ export class AnswerMediaSection extends MediaSection
 								{
 									offerCodec!.parameters.ptime = opusPtime;
 									codecParameters.ptime = opusPtime;
+								}
+
+								// If opusNack is not set, we must remove NACK support for OPUS.
+								// Otherwise it would be enabled for those handlers that artificially
+								// announce it in their RTP capabilities.
+								if (!opusNack)
+								{
+									offerCodec!.rtcpFeedback = offerCodec!
+										.rtcpFeedback!
+										.filter((fb) => fb.type !== 'nack' || fb.parameter);
+
+									codecRtcpFeedback = codecRtcpFeedback
+										.filter((fb) => fb.type !== 'nack' || fb.parameter);
 								}
 
 								break;
@@ -320,7 +337,7 @@ export class AnswerMediaSection extends MediaSection
 						this._mediaObject.fmtp.push(fmtp);
 					}
 
-					for (const fb of codec.rtcpFeedback!)
+					for (const fb of codecRtcpFeedback)
 					{
 						this._mediaObject.rtcpFb.push(
 							{
