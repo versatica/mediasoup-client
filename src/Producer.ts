@@ -31,6 +31,7 @@ export type ProducerCodecOptions =
 	opusMaxPlaybackRate?: number;
 	opusMaxAverageBitrate?: number;
 	opusPtime?: number;
+	opusNack?: boolean;
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;
 	videoGoogleMinBitrate?: number;

@@ -4,6 +4,7 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import * as ortcUtils from './ortc/utils';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -113,6 +114,9 @@ export class Chrome111 extends HandlerInterface
 			const sdpObject = sdpTransform.parse(offer.sdp);
 			const nativeRtpCapabilities =
 				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+			// libwebrtc supports NACK for OPUS but doesn't announce it.
+			ortcUtils.addNackSuppportForOpus(nativeRtpCapabilities);
 
 			return nativeRtpCapabilities;
 		}
