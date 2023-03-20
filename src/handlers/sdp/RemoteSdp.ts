@@ -202,9 +202,13 @@ export class RemoteSdp
 		else if (!this._midToIndex.has(mediaSection.mid))
 		{
 			if (localSdpMedia)
+			{
 				this._syncMediaWithLocalSdp(localSdpMedia, mediaSection);
+			}
 			else
+			{
 				this._addMediaSection(mediaSection);
+			}
 		}
 		// Plan-B with same media kind.
 		else
@@ -477,7 +481,9 @@ export class RemoteSdp
 	_syncMediaWithLocalSdp(localSdpMedia: any, newMediaSection: MediaSection): void
 	{
 		if (!this._firstMid)
+		{
 			this._firstMid = newMediaSection.mid;
+		}
 
 		// Append new section to the existing vector and the SDP object.
 		let idx = this._mediaSections.length;
