@@ -1,11 +1,15 @@
 {
-  "name": "mediasoup-client",
+  "name": "@livelyvideomobile/mediasoup-client",
   "version": "3.6.82",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)"
   ],
+  "publishConfig": {
+    "always-auth": true,
+    "registry": "https://npm.livelyvideo.tv"
+  },
   "homepage": "https://mediasoup.org",
   "license": "ISC",
   "repository": {
