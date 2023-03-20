@@ -264,7 +264,9 @@ export class Firefox60 extends HandlerInterface
 		this._remoteSdp!.updateIceParameters(iceParameters);
 
 		if (!this._transportReady)
+		{
 			return;
+		}
 
 		if (this._direction === 'send')
 		{
@@ -367,7 +369,9 @@ export class Firefox60 extends HandlerInterface
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady)
+		{
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
+		}
 
 		const layers =
 			parseScalabilityMode((encodings || [ {} ])[0].scalabilityMode);
@@ -475,7 +479,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated transceiver not found');
+		}
 
 		transceiver.sender.replaceTrack(null);
 
@@ -520,7 +526,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		transceiver.direction = 'inactive';
 		this._remoteSdp!.pauseMediaSection(localId);
@@ -552,7 +560,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		transceiver.direction = 'sendonly';
 		this._remoteSdp!.resumeSendingMediaSection(localId);
@@ -593,7 +603,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		await transceiver.sender.replaceTrack(track);
 	}
@@ -609,7 +621,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated transceiver not found');
+		}
 
 		const parameters = transceiver.sender.getParameters();
 
@@ -620,9 +634,13 @@ export class Firefox60 extends HandlerInterface
 		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx >= spatialLayer)
+			{
 				encoding.active = true;
+			}
 			else
+			{
 				encoding.active = false;
+			}
 		});
 
 		await transceiver.sender.setParameters(parameters);
@@ -657,7 +675,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		const parameters = transceiver.sender.getParameters();
 
@@ -694,7 +714,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		return transceiver.sender.getStats();
 	}
@@ -739,7 +761,9 @@ export class Firefox60 extends HandlerInterface
 				.find((m: any) => m.type === 'application');
 
 			if (!this._transportReady)
+			{
 				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
@@ -831,7 +855,9 @@ export class Firefox60 extends HandlerInterface
 		}
 
 		if (!this._transportReady)
+		{
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
+		}
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
@@ -847,7 +873,9 @@ export class Firefox60 extends HandlerInterface
 				.find((t: RTCRtpTransceiver) => t.mid === localId);
 
 			if (!transceiver)
+			{
 				throw new Error('new RTCRtpTransceiver not found');
+			}
 
 			// Store in the map.
 			this._mapMidTransceiver.set(localId, transceiver);
@@ -873,7 +901,9 @@ export class Firefox60 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			this._remoteSdp!.closeMediaSection(transceiver.mid!);
 		}
@@ -911,7 +941,9 @@ export class Firefox60 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			transceiver.direction = 'inactive';
 			this._remoteSdp!.pauseMediaSection(localId);
@@ -945,7 +977,9 @@ export class Firefox60 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			transceiver.direction = 'recvonly';
 			this._remoteSdp!.resumeReceivingMediaSection(localId);
@@ -975,7 +1009,9 @@ export class Firefox60 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		return transceiver.receiver.getStats();
 	}
@@ -1054,7 +1090,9 @@ export class Firefox60 extends HandlerInterface
 	): Promise<void>
 	{
 		if (!localSdpObject)
+		{
 			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+		}
 
 		// Get our local DTLS parameters.
 		const dtlsParameters =

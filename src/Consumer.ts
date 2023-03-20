@@ -195,7 +195,9 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	close(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('close()');
 
@@ -215,7 +217,9 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	transportClosed(): void
 	{
 		if (this._closed)
+		{
 			return;
+		}
 
 		logger.debug('transportClosed()');
 
@@ -235,7 +239,9 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	async getStats(): Promise<RTCStatsReport>
 	{
 		if (this._closed)
+		{
 			throw new InvalidStateError('closed');
+		}
 
 		return new Promise<RTCStatsReport>((resolve, reject) =>
 		{

@@ -4,6 +4,7 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import * as ortcUtils from './ortc/utils';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -113,6 +114,9 @@ export class Chrome111 extends HandlerInterface
 			const sdpObject = sdpTransform.parse(offer.sdp);
 			const nativeRtpCapabilities =
 				sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+			// libwebrtc supports NACK for OPUS but doesn't announce it.
+			ortcUtils.addNackSuppportForOpus(nativeRtpCapabilities);
 
 			return nativeRtpCapabilities;
 		}
@@ -247,7 +251,9 @@ export class Chrome111 extends HandlerInterface
 		this._remoteSdp!.updateIceParameters(iceParameters);
 
 		if (!this._transportReady)
+		{
 			return;
+		}
 
 		if (this._direction === 'send')
 		{
@@ -449,7 +455,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		transceiver.sender.replaceTrack(null);
 
@@ -496,7 +504,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		transceiver.direction = 'inactive';
 		this._remoteSdp!.pauseMediaSection(localId);
@@ -529,7 +539,9 @@ export class Chrome111 extends HandlerInterface
 		this._remoteSdp!.resumeSendingMediaSection(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		transceiver.direction = 'sendonly';
 
@@ -569,7 +581,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		await transceiver.sender.replaceTrack(track);
 	}
@@ -585,16 +599,22 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		const parameters = transceiver.sender.getParameters();
 
 		parameters.encodings.forEach((encoding: RTCRtpEncodingParameters, idx: number) =>
 		{
 			if (idx <= spatialLayer)
+			{
 				encoding.active = true;
+			}
 			else
+			{
 				encoding.active = false;
+			}
 		});
 
 		await transceiver.sender.setParameters(parameters);
@@ -629,7 +649,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		const parameters = transceiver.sender.getParameters();
 
@@ -666,7 +688,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		return transceiver.sender.getStats();
 	}
@@ -860,7 +884,9 @@ export class Chrome111 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			this._remoteSdp!.closeMediaSection(transceiver.mid!);
 		}
@@ -898,7 +924,9 @@ export class Chrome111 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			transceiver.direction = 'inactive';
 			this._remoteSdp!.pauseMediaSection(localId);
@@ -932,7 +960,9 @@ export class Chrome111 extends HandlerInterface
 			const transceiver = this._mapMidTransceiver.get(localId);
 
 			if (!transceiver)
+			{
 				throw new Error('associated RTCRtpTransceiver not found');
+			}
 
 			transceiver.direction = 'recvonly';
 			this._remoteSdp!.resumeReceivingMediaSection(localId);
@@ -962,7 +992,9 @@ export class Chrome111 extends HandlerInterface
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
+		{
 			throw new Error('associated RTCRtpTransceiver not found');
+		}
 
 		return transceiver.receiver.getStats();
 	}
@@ -1045,7 +1077,9 @@ export class Chrome111 extends HandlerInterface
 	): Promise<void>
 	{
 		if (!localSdpObject)
+		{
 			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+		}
 
 		// Get our local DTLS parameters.
 		const dtlsParameters =

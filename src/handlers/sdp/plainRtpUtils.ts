@@ -20,7 +20,9 @@ export function extractPlainRtpParameters(
 		.find((m: any) => m.type === kind);
 
 	if (!mediaObject)
+	{
 		throw new Error(`m=${kind} section not found`);
+	}
 
 	const connectionObject = mediaObject.connection || sdpObject.connection;
 
@@ -46,13 +48,19 @@ export function getRtpEncodings(
 		.find((m: any) => m.type === kind);
 
 	if (!mediaObject)
+	{
 		throw new Error(`m=${kind} section not found`);
+	}
 
 	const ssrcCnameLine = (mediaObject.ssrcs || [])[0];
 	const ssrc = ssrcCnameLine ? ssrcCnameLine.id : null;
 
 	if (ssrc)
+	{
 		return [ { ssrc } ];
+	}
 	else
+	{
 		return [];
+	}
 }

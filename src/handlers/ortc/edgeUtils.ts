@@ -25,17 +25,23 @@ export function getCapabilities(): RtpCapabilities
 			const parameters = codec.parameters;
 
 			if (parameters.apt)
+			{
 				parameters.apt = Number(parameters.apt);
+			}
 
 			if (parameters['packetization-mode'])
+			{
 				parameters['packetization-mode'] = Number(parameters['packetization-mode']);
+			}
 		}
 
 		// Delete emty parameter String in rtcpFeedback.
 		for (const feedback of codec.rtcpFeedback || [])
 		{
 			if (!feedback.parameter)
+			{
 				feedback.parameter = '';
+			}
 		}
 	}
 
@@ -67,7 +73,9 @@ export function mangleRtpParameters(rtpParameters: RtpParameters): RtpParameters
 
 		// Add codec.name (requried by Edge).
 		if (codec.mimeType && !codec.name)
+		{
 			codec.name = codec.mimeType.split('/')[1];
+		}
 
 		// Remove mimeType.
 		delete codec.mimeType;

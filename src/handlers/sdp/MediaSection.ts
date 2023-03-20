@@ -12,6 +12,7 @@ import {
 	MediaKind,
 	RtpParameters,
 	RtpCodecParameters,
+	RtcpFeedback,
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
@@ -64,8 +65,11 @@ export abstract class MediaSection
 				candidateObject.priority = candidate.priority;
 				candidateObject.transport = candidate.protocol;
 				candidateObject.type = candidate.type;
+
 				if (candidate.tcpType)
+				{
 					candidateObject.tcptype = candidate.tcpType;
+				}
 
 				this._mediaObject.candidates.push(candidateObject);
 			}
@@ -203,11 +207,14 @@ export class AnswerMediaSection extends MediaSection
 					};
 
 					if (codec.channels! > 1)
+					{
 						rtp.encoding = codec.channels;
+					}
 
 					this._mediaObject.rtp.push(rtp);
 
 					const codecParameters = utils.clone(codec.parameters, {});
+					let codecRtcpFeedback: RtcpFeedback[] = utils.clone(codec.rtcpFeedback, []);
 
 					if (codecOptions)
 					{
@@ -218,6 +225,7 @@ export class AnswerMediaSection extends MediaSection
 							opusMaxPlaybackRate,
 							opusMaxAverageBitrate,
 							opusPtime,
+							opusNack,
 							videoGoogleStartBitrate,
 							videoGoogleMaxBitrate,
 							videoGoogleMinBitrate
@@ -231,6 +239,7 @@ export class AnswerMediaSection extends MediaSection
 						switch (codec.mimeType.toLowerCase())
 						{
 							case 'audio/opus':
+							case 'audio/multiopus':
 							{
 								if (opusStereo !== undefined)
 								{
@@ -266,6 +275,19 @@ export class AnswerMediaSection extends MediaSection
 									codecParameters.ptime = opusPtime;
 								}
 
+								// If opusNack is not set, we must remove NACK support for OPUS.
+								// Otherwise it would be enabled for those handlers that artificially
+								// announce it in their RTP capabilities.
+								if (!opusNack)
+								{
+									offerCodec!.rtcpFeedback = offerCodec!
+										.rtcpFeedback!
+										.filter((fb) => fb.type !== 'nack' || fb.parameter);
+
+									codecRtcpFeedback = codecRtcpFeedback
+										.filter((fb) => fb.type !== 'nack' || fb.parameter);
+								}
+
 								break;
 							}
 
@@ -275,13 +297,19 @@ export class AnswerMediaSection extends MediaSection
 							case 'video/h265':
 							{
 								if (videoGoogleStartBitrate !== undefined)
+								{
 									codecParameters['x-google-start-bitrate'] = videoGoogleStartBitrate;
+								}
 
 								if (videoGoogleMaxBitrate !== undefined)
+								{
 									codecParameters['x-google-max-bitrate'] = videoGoogleMaxBitrate;
+								}
 
 								if (videoGoogleMinBitrate !== undefined)
+								{
 									codecParameters['x-google-min-bitrate'] = videoGoogleMinBitrate;
+								}
 
 								break;
 							}
@@ -297,15 +325,19 @@ export class AnswerMediaSection extends MediaSection
 					for (const key of Object.keys(codecParameters))
 					{
 						if (fmtp.config)
+						{
 							fmtp.config += ';';
+						}
 
 						fmtp.config += `${key}=${codecParameters[key]}`;
 					}
 
 					if (fmtp.config)
+					{
 						this._mediaObject.fmtp.push(fmtp);
+					}
 
-					for (const fb of codec.rtcpFeedback!)
+					for (const fb of codecRtcpFeedback)
 					{
 						this._mediaObject.rtcpFb.push(
 							{
@@ -329,7 +361,9 @@ export class AnswerMediaSection extends MediaSection
 						.some((localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri);
 
 					if (!found)
+					{
 						continue;
+					}
 
 					this._mediaObject.ext.push(
 						{
@@ -361,7 +395,9 @@ export class AnswerMediaSection extends MediaSection
 					for (const rid of offerMediaObject.rids || [])
 					{
 						if (rid.direction !== 'send')
+						{
 							continue;
+						}
 
 						this._mediaObject.rids.push(
 							{
@@ -384,7 +420,9 @@ export class AnswerMediaSection extends MediaSection
 					for (const rid of offerMediaObject.rids || [])
 					{
 						if (rid.direction !== 'send')
+						{
 							continue;
+						}
 
 						this._mediaObject.rids.push(
 							{
@@ -398,7 +436,9 @@ export class AnswerMediaSection extends MediaSection
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
 				if (this._planB && this._mediaObject.type === 'video')
+				{
 					this._mediaObject.xGoogleFlag = 'conference';
+				}
 
 				break;
 			}
@@ -533,9 +573,13 @@ export class OfferMediaSection extends MediaSection
 			this._mediaObject.connection = { ip: '127.0.0.1', version: 4 };
 
 			if (!sctpParameters)
+			{
 				this._mediaObject.protocol = 'UDP/TLS/RTP/SAVPF';
+			}
 			else
+			{
 				this._mediaObject.protocol = 'UDP/DTLS/SCTP';
+			}
 
 			this._mediaObject.port = 7;
 		}
@@ -561,7 +605,9 @@ export class OfferMediaSection extends MediaSection
 				this._mediaObject.fmtp = [];
 
 				if (!this._planB)
+				{
 					this._mediaObject.msid = `${streamId || '-'} ${trackId}`;
+				}
 
 				for (const codec of offerRtpParameters!.codecs)
 				{
@@ -573,7 +619,9 @@ export class OfferMediaSection extends MediaSection
 					};
 
 					if (codec.channels! > 1)
+					{
 						rtp.encoding = codec.channels;
+					}
 
 					this._mediaObject.rtp.push(rtp);
 
@@ -586,13 +634,17 @@ export class OfferMediaSection extends MediaSection
 					for (const key of Object.keys(codec.parameters))
 					{
 						if (fmtp.config)
+						{
 							fmtp.config += ';';
+						}
 
 						fmtp.config += `${key}=${codec.parameters[key]}`;
 					}
 
 					if (fmtp.config)
+					{
 						this._mediaObject.fmtp.push(fmtp);
+					}
 
 					for (const fb of codec.rtcpFeedback!)
 					{
@@ -758,7 +810,9 @@ export class OfferMediaSection extends MediaSection
 			};
 
 			if (codec.channels! > 1)
+			{
 				rtp.encoding = codec.channels;
+			}
 
 			this._mediaObject.rtp.push(rtp);
 
@@ -771,13 +825,17 @@ export class OfferMediaSection extends MediaSection
 			for (const key of Object.keys(codec.parameters))
 			{
 				if (fmtp.config)
+				{
 					fmtp.config += ';';
+				}
 
 				fmtp.config += `${key}=${codec.parameters[key]}`;
 			}
 
 			if (fmtp.config)
+			{
 				this._mediaObject.fmtp.push(fmtp);
+			}
 
 			for (const fb of codec.rtcpFeedback!)
 			{
@@ -871,7 +929,9 @@ function getCodecName(codec: RtpCodecParameters): string
 	const mimeTypeMatch = MimeTypeRegex.exec(codec.mimeType);
 
 	if (!mimeTypeMatch)
+	{
 		throw new TypeError('invalid codec.mimeType');
+	}
 
 	return mimeTypeMatch[2];
 }
