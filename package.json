@@ -1,5 +1,5 @@
 {
-  "name": "@livelyvideomobile/mediasoup-client",
+  "name": "@livelyvideo/mediasoup-client",
   "version": "3.6.82",
   "description": "mediasoup client side JavaScript library",
   "contributors": [
