@@ -108,7 +108,7 @@ export type IceCandidate =
 	/**
 	 * The type of TCP candidate.
 	 */
-	tcpType: 'active' | 'passive' | 'so';
+	tcpType?: 'active' | 'passive' | 'so';
 };
 
 export type DtlsParameters =
