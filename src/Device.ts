@@ -19,6 +19,7 @@ import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
+import { AppData } from './types';
 
 const logger = new Logger('Device');
 
@@ -51,11 +52,6 @@ export type DeviceOptions =
 	 */
 	Handler?: string;
 };
-
-interface InternalTransportOptions extends TransportOptions
-{
-	direction: 'send' | 'recv';
-}
 
 export function detectDevice(): BuiltinHandlerName | undefined
 {
@@ -499,7 +495,7 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	createSendTransport(
+	createSendTransport<TransportAppData extends AppData = AppData>(
 		{
 			id,
 			iceParameters,
@@ -511,12 +507,12 @@ export class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData
-		}: TransportOptions
-	): Transport
+		}: TransportOptions<TransportAppData>
+	): Transport<TransportAppData>
 	{
 		logger.debug('createSendTransport()');
 
-		return this.createTransport(
+		return this.createTransport<TransportAppData>(
 			{
 				direction              : 'send',
 				id                     : id,
@@ -538,7 +534,7 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	createRecvTransport(
+	createRecvTransport<TransportAppData extends AppData = AppData>(
 		{
 			id,
 			iceParameters,
@@ -550,12 +546,12 @@ export class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData
-		}: TransportOptions
-	): Transport
+		}: TransportOptions<TransportAppData>
+	): Transport<TransportAppData>
 	{
 		logger.debug('createRecvTransport()');
 
-		return this.createTransport(
+		return this.createTransport<TransportAppData>(
 			{
 				direction              : 'recv',
 				id                     : id,
@@ -571,7 +567,7 @@ export class Device
 			});
 	}
 
-	private createTransport(
+	private createTransport<TransportAppData extends AppData>(
 		{
 			direction,
 			id,
@@ -584,8 +580,11 @@ export class Device
 			additionalSettings,
 			proprietaryConstraints,
 			appData
-		}: InternalTransportOptions
-	): Transport
+		}:
+		{
+			direction: 'send' | 'recv';
+		} & TransportOptions<TransportAppData>
+	): Transport<TransportAppData>
 	{
 		if (!this._loaded)
 		{
@@ -617,7 +616,7 @@ export class Device
 		}
 
 		// Create a new Transport.
-		const transport = new Transport(
+		const transport = new Transport<TransportAppData>(
 			{
 				direction,
 				id,

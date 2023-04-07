@@ -2,17 +2,18 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { MediaKind, RtpParameters } from './RtpParameters';
+import { AppData } from './types';
 
 const logger = new Logger('Consumer');
 
-export type ConsumerOptions =
+export type ConsumerOptions<ConsumerAppData extends AppData = AppData> =
 {
 	id?: string;
 	producerId?: string;
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
-	appData?: Record<string, unknown>;
+	appData?: ConsumerAppData;
 };
 
 export type ConsumerEvents =
@@ -34,7 +35,8 @@ export type ConsumerObserverEvents =
 	trackended: [];
 };
 
-export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
+export class Consumer<ConsumerAppData extends AppData = AppData>
+	extends EnhancedEventEmitter<ConsumerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -53,7 +55,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	// Paused flag.
 	private _paused: boolean;
 	// App custom data.
-	private readonly _appData: Record<string, unknown>;
+	private _appData: ConsumerAppData;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter<ConsumerObserverEvents>();
 
@@ -74,7 +76,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 			rtpReceiver?: RTCRtpReceiver;
 			track: MediaStreamTrack;
 			rtpParameters: RtpParameters;
-			appData?: Record<string, unknown>;
+			appData?: ConsumerAppData;
 		}
 	)
 	{
@@ -89,7 +91,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
-		this._appData = appData || {};
+		this._appData = appData || {} as ConsumerAppData;
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		this.handleTrack();
@@ -170,18 +172,17 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	/**
 	 * App custom data.
 	 */
-	get appData(): Record<string, unknown>
+	get appData(): ConsumerAppData
 	{
 		return this._appData;
 	}
 
 	/**
-	 * Invalid setter.
+	 * App custom data setter.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	set appData(appData: Record<string, unknown>)
+	set appData(appData: ConsumerAppData)
 	{
-		throw new Error('cannot override appData object');
+		this._appData = appData;
 	}
 
 	get observer(): EnhancedEventEmitter
