@@ -185,14 +185,14 @@ test('device.createSendTransport() for sending media succeeds', () =>
 		sctpParameters
 	} = fakeParameters.generateTransportRemoteParameters();
 
-	sendTransport = device.createSendTransport(
+	sendTransport = device.createSendTransport<{ foo: number }>(
 		{
 			id,
 			iceParameters,
 			iceCandidates,
 			dtlsParameters,
 			sctpParameters,
-			appData : { baz: 'BAZ' }
+			appData : { foo: 123 }
 		});
 
 	expect(typeof sendTransport).toBe('object');
@@ -202,7 +202,7 @@ test('device.createSendTransport() for sending media succeeds', () =>
 	expect(typeof sendTransport.handler).toBe('object');
 	expect(sendTransport.handler instanceof FakeHandler).toBe(true);
 	expect(sendTransport.connectionState).toBe('new');
-	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
+	expect(sendTransport.appData).toEqual({ foo: 123 });
 }, 500);
 
 test('device.createRecvTransport() for receiving media succeeds', () =>
@@ -360,7 +360,7 @@ test('transport.produce() succeeds', async () =>
 	audioTrack.enabled = false;
 
 	// Use stopTracks: false.
-	audioProducer = await sendTransport.produce(
+	audioProducer = await sendTransport.produce<{ foo: string }>(
 		{ track: audioTrack, stopTracks: false, appData: { foo: 'FOO' } });
 
 	expect(connectEventNumTimesCalled).toBe(1);
@@ -608,7 +608,7 @@ test('transport.consume() succeeds', async () =>
 	let encodings;
 	let rtcp;
 
-	audioConsumer = await recvTransport.consume(
+	audioConsumer = await recvTransport.consume<{ bar: string }>(
 		{
 			id            : audioConsumerRemoteParameters.id,
 			producerId    : audioConsumerRemoteParameters.producerId,
@@ -955,7 +955,7 @@ test('transport.produceData() succeeds', async () =>
 		setTimeout(() => callback({ id }));
 	});
 
-	dataProducer = await sendTransport.produceData(
+	dataProducer = await sendTransport.produceData<{ foo: string }>(
 		{
 			ordered           : false,
 			maxPacketLifeTime : 5555,
@@ -999,7 +999,7 @@ test('transport.consumeData() succeeds', async () =>
 	const dataConsumerRemoteParameters =
 		fakeParameters.generateDataConsumerRemoteParameters();
 
-	dataConsumer = await recvTransport.consumeData(
+	dataConsumer = await recvTransport.consumeData<{ bar: string }>(
 		{
 			id                   : dataConsumerRemoteParameters.id,
 			dataProducerId       : dataConsumerRemoteParameters.dataProducerId,
@@ -1110,23 +1110,6 @@ test('transport.updateIceServers() without iceServers rejects with TypeError', a
 	await expect(sendTransport.updateIceServers({}))
 		.rejects
 		.toThrow(TypeError);
-}, 500);
-
-test('transport.appData cannot be overridden', () =>
-{
-	expect(() => (sendTransport.appData = { lalala: 'LALALA' }))
-		.toThrow(Error);
-
-	expect(sendTransport.appData).toEqual({ baz: 'BAZ' });
-}, 500);
-
-test('transport.appData can be modified', () =>
-{
-	sendTransport.appData.lololo = 'LOLOLO';
-	recvTransport.appData.nanana = 'NANANA';
-
-	expect(sendTransport.appData).toEqual({ baz: 'BAZ', lololo: 'LOLOLO' });
-	expect(recvTransport.appData).toEqual({ nanana: 'NANANA' });
 }, 500);
 
 test('connection state change fires "connectionstatechange" in live Transport', () =>
@@ -1314,14 +1297,6 @@ test('producer.getStats() succeeds', async () =>
 	expect(typeof stats).toBe('object');
 }, 500);
 
-test('producer.appData cannot be overridden', () =>
-{
-	expect(() => (videoProducer.appData = { lalala: 'LALALA' }))
-		.toThrow(Error);
-
-	expect(videoProducer.appData).toEqual({});
-}, 500);
-
 test('consumer.resume() succeeds', () =>
 {
 	videoConsumer.resume();
@@ -1339,30 +1314,6 @@ test('consumer.getStats() succeeds', async () =>
 	const stats = await videoConsumer.getStats();
 
 	expect(typeof stats).toBe('object');
-}, 500);
-
-test('cnosumer.appData cannot be overridden', () =>
-{
-	expect(() => (audioConsumer.appData = { lalala: 'LALALA' }))
-		.toThrow(Error);
-
-	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
-}, 500);
-
-test('dataProducer.appData cannot be overridden', () =>
-{
-	expect(() => (dataProducer.appData = { lalala: 'LALALA' }))
-		.toThrow(Error);
-
-	expect(dataProducer.appData).toEqual({ foo: 'FOO' });
-}, 500);
-
-test('dataConsumer.appData cannot be overridden', () =>
-{
-	expect(() => (dataConsumer.appData = { lalala: 'LALALA' }))
-		.toThrow(Error);
-
-	expect(dataConsumer.appData).toEqual({ bar: 'BAR' });
 }, 500);
 
 test('producer.close() succeed', () =>

@@ -7,10 +7,11 @@ import {
 	RtpParameters,
 	RtpEncodingParameters
 } from './RtpParameters';
+import { AppData } from './types';
 
 const logger = new Logger('Producer');
 
-export type ProducerOptions =
+export type ProducerOptions<ProducerAppData extends AppData = AppData> =
 {
 	track?: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
@@ -19,7 +20,7 @@ export type ProducerOptions =
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
-	appData?: Record<string, unknown>;
+	appData?: ProducerAppData;
 };
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
@@ -80,7 +81,8 @@ export type ProducerObserverEvents =
 	trackended: [];
 };
 
-export class Producer extends EnhancedEventEmitter<ProducerEvents>
+export class Producer<ProducerAppData extends AppData = AppData>
+	extends EnhancedEventEmitter<ProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -107,7 +109,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	// Whether we should replace the RTCRtpSender.track with null when paused.
 	private _zeroRtpOnPause: boolean;
 	// App custom data.
-	private readonly _appData: Record<string, unknown>;
+	private _appData: ProducerAppData;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter<ProducerObserverEvents>();
 
@@ -132,7 +134,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 			stopTracks: boolean;
 			disableTrackOnPause: boolean;
 			zeroRtpOnPause: boolean;
-			appData?: Record<string, unknown>;
+			appData?: ProducerAppData;
 		}
 	)
 	{
@@ -151,7 +153,7 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 		this._stopTracks = stopTracks;
 		this._disableTrackOnPause = disableTrackOnPause;
 		this._zeroRtpOnPause = zeroRtpOnPause;
-		this._appData = appData || {};
+		this._appData = appData || {} as ProducerAppData;
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
@@ -237,18 +239,17 @@ export class Producer extends EnhancedEventEmitter<ProducerEvents>
 	/**
 	 * App custom data.
 	 */
-	get appData(): Record<string, unknown>
+	get appData(): ProducerAppData
 	{
 		return this._appData;
 	}
 
 	/**
-	 * Invalid setter.
+	 * App custom data setter.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	set appData(appData: Record<string, unknown>)
+	set appData(appData: ProducerAppData)
 	{
-		throw new Error('cannot override appData object');
+		this._appData = appData;
 	}
 
 	get observer(): EnhancedEventEmitter

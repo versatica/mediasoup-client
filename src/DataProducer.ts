@@ -2,17 +2,18 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { SctpStreamParameters } from './SctpParameters';
+import { AppData } from './types';
 
 const logger = new Logger('DataProducer');
 
-export type DataProducerOptions =
+export type DataProducerOptions<DataProducerAppData extends AppData = AppData> =
 {
 	ordered?: boolean;
 	maxPacketLifeTime?: number;
 	maxRetransmits?: number;
 	label?: string;
 	protocol?: string;
-	appData?: Record<string, unknown>;
+	appData?: DataProducerAppData;
 };
 
 export type DataProducerEvents =
@@ -31,7 +32,8 @@ export type DataProducerObserverEvents =
 	close: [];
 };
 
-export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
+export class DataProducer<DataProducerAppData extends AppData = AppData>
+	extends EnhancedEventEmitter<DataProducerEvents>
 {
 	// Id.
 	private readonly _id: string;
@@ -42,7 +44,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 	// SCTP stream parameters.
 	private readonly _sctpStreamParameters: SctpStreamParameters;
 	// App custom data.
-	private readonly _appData: Record<string, unknown>;
+	private _appData: DataProducerAppData;
 	// Observer instance.
 	protected readonly _observer = new EnhancedEventEmitter<DataProducerObserverEvents>();
 
@@ -57,7 +59,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 			id: string;
 			dataChannel: RTCDataChannel;
 			sctpStreamParameters: SctpStreamParameters;
-			appData?: Record<string, unknown>;
+			appData?: DataProducerAppData;
 		}
 	)
 	{
@@ -68,7 +70,7 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 		this._id = id;
 		this._dataChannel = dataChannel;
 		this._sctpStreamParameters = sctpStreamParameters;
-		this._appData = appData || {};
+		this._appData = appData || {} as DataProducerAppData;
 
 		this.handleDataChannel();
 	}
@@ -148,18 +150,17 @@ export class DataProducer extends EnhancedEventEmitter<DataProducerEvents>
 	/**
 	 * App custom data.
 	 */
-	get appData(): Record<string, unknown>
+	get appData(): DataProducerAppData
 	{
 		return this._appData;
 	}
 
 	/**
-	 * Invalid setter.
+	 * App custom data setter.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	set appData(appData: Record<string, unknown>)
+	set appData(appData: DataProducerAppData)
 	{
-		throw new Error('cannot override appData object');
+		this._appData = appData;
 	}
 
 	get observer(): EnhancedEventEmitter
