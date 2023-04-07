@@ -609,7 +609,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 						this.safeEmit(
 							'produce',
 							{
-								kind    : track.kind as MediaKind,
+								kind : track.kind as MediaKind,
 								rtpParameters,
 								appData
 							},
