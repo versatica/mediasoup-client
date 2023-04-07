@@ -195,11 +195,6 @@ test('device.createSendTransport() for sending media succeeds', () =>
 			appData : { foo: 123 }
 		});
 
-	console.warn('TODO: THIS SHOULD FAIL AT TS LEVEL BUT IT DOESNT');
-	sendTransport.appData.foo = 'qwe';
-	// Revert for test not to fail (TODO: Remove all this).
-	sendTransport.appData.foo = 123;
-
 	expect(typeof sendTransport).toBe('object');
 	expect(sendTransport.id).toBe(id);
 	expect(sendTransport.closed).toBe(false);
@@ -367,11 +362,6 @@ test('transport.produce() succeeds', async () =>
 	// Use stopTracks: false.
 	audioProducer = await sendTransport.produce<{ foo: string }>(
 		{ track: audioTrack, stopTracks: false, appData: { foo: 'FOO' } });
-
-	console.warn('TODO: THIS SHOULD FAIL AT TS LEVEL BUT IT DOESNT');
-	audioProducer.appData.foo = 123;
-	// Revert for test not to fail (TODO: Remove all this).
-	audioProducer.appData.foo = 'FOO';
 
 	expect(connectEventNumTimesCalled).toBe(1);
 	expect(produceEventNumTimesCalled).toBe(1);
