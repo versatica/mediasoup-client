@@ -167,7 +167,7 @@ function lint()
 {
 	console.log('npm-scripts.js [INFO] lint()');
 
-	executeCmd('eslint -c .eslintrc.js --max-warnings 0 src .eslintrc.js npm-scripts.js');
+	executeCmd('eslint -c .eslintrc.js --max-warnings 0 src .eslintrc.js npm-scripts.js vite.config.js');
 }
 
 function test()
