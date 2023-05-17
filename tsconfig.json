@@ -4,14 +4,15 @@
 	{
 		"lib": [ "es2018", "dom" ],
 		"target": "es2018",
-		"module": "commonjs",
+		"module": "esnext",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"strict": true,
 		"outDir": "lib",
 		"declaration": true,
-		"declarationMap": true
+		"declarationMap": true,
+		"noEmit": true
 	},
 	"include": [ "src" ]
 }
