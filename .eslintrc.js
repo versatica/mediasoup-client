@@ -14,13 +14,13 @@ const eslintConfig =
 	settings      : {},
 	parserOptions :
 	{
-		ecmaVersion  : 2018,
+		ecmaVersion  : 2022,
 		sourceType   : 'module',
 		ecmaFeatures :
 		{
 			impliedStrict : true
 		},
-		lib     : [ 'es2018', 'dom' ],
+		lib     : [ 'es2022', 'dom' ],
 		project : 'tsconfig.json'
 	},
 	rules :
