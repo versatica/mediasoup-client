@@ -19,7 +19,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
-    "npm-scripts.js",
+    "npm-scripts.mjs",
     "lib"
   ],
   "keywords": [
@@ -29,18 +29,18 @@
     "nodejs"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "scripts": {
-    "prepare": "node npm-scripts.js prepare",
-    "typescript:build": "node npm-scripts.js typescript:build",
-    "typescript:watch": "node npm-scripts.js typescript:watch",
-    "lint": "node npm-scripts.js lint",
-    "test": "node npm-scripts.js test",
-    "coverage": "node npm-scripts.js coverage",
-    "install-deps": "node npm-scripts.js install-deps",
-    "release:check": "node npm-scripts.js release:check",
-    "release": "node npm-scripts.js release"
+    "prepare": "node npm-scripts.mjs prepare",
+    "typescript:build": "node npm-scripts.mjs typescript:build",
+    "typescript:watch": "node npm-scripts.mjs typescript:watch",
+    "lint": "node npm-scripts.mjs lint",
+    "test": "node npm-scripts.mjs test",
+    "coverage": "node npm-scripts.mjs coverage",
+    "install-deps": "node npm-scripts.mjs install-deps",
+    "release:check": "node npm-scripts.mjs release:check",
+    "release": "node npm-scripts.mjs release"
   },
   "jest": {
     "verbose": true,
