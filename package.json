@@ -61,7 +61,7 @@
     "cacheDirectory": ".cache/jest"
   },
   "dependencies": {
-    "@types/debug": "^4.1.7",
+    "@types/debug": "^4.1.8",
     "awaitqueue": "^3.0.1",
     "bowser": "^2.11.0",
     "debug": "^4.3.4",
@@ -76,9 +76,9 @@
     "@types/events": "^3.0.0",
     "@types/jest": "^29.5.1",
     "@types/sdp-transform": "^2.4.6",
-    "@typescript-eslint/eslint-plugin": "^5.59.6",
-    "@typescript-eslint/parser": "^5.59.6",
-    "eslint": "^8.40.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.7",
+    "@typescript-eslint/parser": "^5.59.7",
+    "eslint": "^8.41.0",
     "eslint-plugin-jest": "^27.2.1",
     "jest": "^29.5.0",
     "open-cli": "^7.2.0",
