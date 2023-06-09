@@ -393,7 +393,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 		await this._pc.setLocalDescription(offer);
 
 		// We can now get the transceiver.mid.
-		const localId = transceiver.mid;
+		let localId = transceiver.mid;
 
 		// Set MID.
 		sendingRtpParameters.mid = localId;
@@ -474,6 +474,9 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 			answer);
 
 		await this._pc.setRemoteDescription(answer);
+
+		// on iOS with react-native-webrtc 111.0.0, transceiver.mid is not available until setRemoteDescription is called
+		localId = localId ?? transceiver.mid;
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
