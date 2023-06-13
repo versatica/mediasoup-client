@@ -16,7 +16,6 @@ import {
 	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
-import { SimulcastStream } from './types';
 
 export abstract class MediaSection
 {
@@ -508,10 +507,8 @@ export class AnswerMediaSection extends MediaSection
 		}
 
 		const raw = this._mediaObject.simulcast.list1;
-		// NOTE: Ignore bug in @types/sdp-transform.
-		// Ongoing PR: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/64119
-		// @ts-ignore
-		const simulcastStreams: SimulcastStream[] =
+
+		const simulcastStreams =
 			sdpTransform.parseSimulcastStreamList(raw);
 
 		for (const simulcastStream of simulcastStreams)
