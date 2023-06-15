@@ -63,19 +63,20 @@
   "dependencies": {
     "@types/debug": "^4.1.8",
     "awaitqueue": "^3.0.1",
-    "bowser": "^2.11.0",
     "debug": "^4.3.4",
     "events": "^3.3.0",
     "fake-mediastreamtrack": "^1.1.6",
     "h264-profile-level-id": "^1.0.1",
     "queue-microtask": "^1.2.3",
     "sdp-transform": "^2.14.1",
-    "supports-color": "^9.3.1"
+    "supports-color": "^9.3.1",
+    "ua-parser-js": "^1.0.35"
   },
   "devDependencies": {
     "@types/events": "^3.0.0",
     "@types/jest": "^29.5.2",
     "@types/sdp-transform": "^2.4.6",
+    "@types/ua-parser-js": "^0.7.36",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
     "eslint": "^8.42.0",
