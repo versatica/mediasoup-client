@@ -4,11 +4,12 @@
 	{
 		"lib": [ "es2018", "dom" ],
 		"target": "es2018",
-		"module": "commonjs",
+		"module": "esnext",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"strict": true,
+		"noEmit": true,
 		"outDir": "lib",
 		"declaration": true,
 		"declarationMap": true

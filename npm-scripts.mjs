@@ -164,6 +164,7 @@ function buildTypescript(force = false)
 
 	deleteLib();
 	executeCmd('tsc');
+	executeCmd('rollup --config');
 }
 
 function lint()
