@@ -19,6 +19,25 @@
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "default": "./index.js"
+    },
+    "./*": {
+      "types": "./lib/*.d.ts",
+      "import": {
+        "types": "./lib/*.d.mts",
+        "default": "./lib/*.mjs"
+      },
+      "default": "./lib/*.js"
+    }
+  },
   "files": [
     "npm-scripts.mjs",
     "lib"

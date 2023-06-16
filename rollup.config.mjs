@@ -32,4 +32,4 @@ const createBundleConfig = (input, output) => [
 	}
 ];
 
-export default [ ...createBundleConfig('src/index.ts', 'lib/index') ];
+export default [ ...createBundleConfig('src/index.ts', 'lib/index'), ...createBundleConfig('src/handlers/index.ts', 'lib/builtin-handlers') ];

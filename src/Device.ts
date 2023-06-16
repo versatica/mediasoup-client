@@ -6,35 +6,12 @@ import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
-import { Chrome111 } from './handlers/Chrome111';
-import { Chrome74 } from './handlers/Chrome74';
-import { Chrome70 } from './handlers/Chrome70';
-import { Chrome67 } from './handlers/Chrome67';
-import { Chrome55 } from './handlers/Chrome55';
-import { Firefox60 } from './handlers/Firefox60';
-import { Safari12 } from './handlers/Safari12';
-import { Safari11 } from './handlers/Safari11';
-import { Edge11 } from './handlers/Edge11';
-import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
-import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
 import { AppData } from './types';
+import { BuiltinHandlerName, builtinHandlerFactory } from './BuiltinHandlerFactory';
 
 const logger = new Logger('Device');
-
-export type BuiltinHandlerName =
-	| 'Chrome111'
-	| 'Chrome74'
-	| 'Chrome70'
-	| 'Chrome67'
-	| 'Chrome55'
-	| 'Firefox60'
-	| 'Safari12'
-	| 'Safari11'
-	| 'Edge11'
-	| 'ReactNativeUnifiedPlan'
-	| 'ReactNative';
 
 export type DeviceOptions =
 {
@@ -199,8 +176,7 @@ export type DeviceObserverEvents =
 {
 	newtransport: [Transport];
 };
-
-export class Device
+export class ManualDevice
 {
 	// RTC handler factory.
 	private readonly _handlerFactory: HandlerFactory;
@@ -225,95 +201,11 @@ export class Device
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {})
+	constructor({ handlerFactory }: Required<Pick<DeviceOptions, 'handlerFactory'>>)
 	{
 		logger.debug('constructor()');
 
-		// Handle deprecated option.
-		if (Handler)
-		{
-			logger.warn(
-				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
-
-			if (typeof Handler === 'string')
-			{
-				handlerName = Handler as BuiltinHandlerName;
-			}
-			else
-			{
-				throw new TypeError(
-					'non string Handler option no longer supported, use handlerFactory instead');
-			}
-		}
-
-		if (handlerName && handlerFactory)
-		{
-			throw new TypeError('just one of handlerName or handlerInterface can be given');
-		}
-
-		if (handlerFactory)
-		{
-			this._handlerFactory = handlerFactory;
-		}
-		else
-		{
-			if (handlerName)
-			{
-				logger.debug('constructor() | handler given: %s', handlerName);
-			}
-			else
-			{
-				handlerName = detectDevice();
-
-				if (handlerName)
-				{
-					logger.debug('constructor() | detected handler: %s', handlerName);
-				}
-				else
-				{
-					throw new UnsupportedError('device not supported');
-				}
-			}
-
-			switch (handlerName)
-			{
-				case 'Chrome111':
-					this._handlerFactory = Chrome111.createFactory();
-					break;
-				case 'Chrome74':
-					this._handlerFactory = Chrome74.createFactory();
-					break;
-				case 'Chrome70':
-					this._handlerFactory = Chrome70.createFactory();
-					break;
-				case 'Chrome67':
-					this._handlerFactory = Chrome67.createFactory();
-					break;
-				case 'Chrome55':
-					this._handlerFactory = Chrome55.createFactory();
-					break;
-				case 'Firefox60':
-					this._handlerFactory = Firefox60.createFactory();
-					break;
-				case 'Safari12':
-					this._handlerFactory = Safari12.createFactory();
-					break;
-				case 'Safari11':
-					this._handlerFactory = Safari11.createFactory();
-					break;
-				case 'Edge11':
-					this._handlerFactory = Edge11.createFactory();
-					break;
-				case 'ReactNativeUnifiedPlan':
-					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
-					break;
-				case 'ReactNative':
-					this._handlerFactory = ReactNative.createFactory();
-					break;
-				default:
-					throw new TypeError(`unknown handlerName "${handlerName}"`);
-			}
-		}
+		this._handlerFactory = handlerFactory;
 
 		// Create a temporal handler to get its name.
 		const handler = this._handlerFactory();
@@ -638,5 +530,66 @@ export class Device
 		this._observer.safeEmit('newtransport', transport);
 
 		return transport;
+	}
+}
+
+export class Device extends ManualDevice
+{
+
+	/**
+	 * Create a new Device to connect to mediasoup server.
+	 *
+	 * @throws {UnsupportedError} if device is not supported.
+	 */
+	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {})
+	{
+		// Handle deprecated option.
+		if (Handler)
+		{
+			logger.warn(
+				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
+
+			if (typeof Handler === 'string')
+			{
+				handlerName = Handler as BuiltinHandlerName;
+			}
+			else
+			{
+				throw new TypeError(
+					'non string Handler option no longer supported, use handlerFactory instead');
+			}
+		}
+
+		if (handlerName && handlerFactory)
+		{
+			throw new TypeError('just one of handlerName or handlerInterface can be given');
+		}
+
+		if (handlerFactory)
+		{
+			super({ handlerFactory });
+		}
+		else
+		{
+			if (handlerName)
+			{
+				logger.debug('constructor() | handler given: %s', handlerName);
+			}
+			else
+			{
+				handlerName = detectDevice();
+
+				if (handlerName)
+				{
+					logger.debug('constructor() | detected handler: %s', handlerName);
+				}
+				else
+				{
+					throw new UnsupportedError('device not supported');
+				}
+			}
+
+			super({ handlerFactory: builtinHandlerFactory(handlerName) });
+		}
 	}
 }
