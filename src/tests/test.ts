@@ -12,6 +12,7 @@ import { RemoteSdp } from '../handlers/sdp/RemoteSdp';
 import { FakeHandler } from '../handlers/FakeHandler';
 import * as fakeParameters from './fakeParameters';
 import { AwaitQueue } from 'awaitqueue';
+import uaTestCases from './ua.json';
 
 const {
 	Device,
@@ -1699,3 +1700,33 @@ test('parseScalabilityMode() works', () =>
 	expect(parseScalabilityMode('L20T3')).toEqual({ spatialLayers: 20, temporalLayers: 3 });
 	expect(parseScalabilityMode('S200T3')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 }, 500);
+
+describe('detectDevice() Test UA Variants', () => 
+{
+	const originalNavigator = global.navigator;
+
+	uaTestCases.forEach((uaTestCase) => 
+	{
+		test(`detectDevice() Test UA - ${uaTestCase.desc}`, () => 
+		{
+			global.navigator = {
+				userAgent : uaTestCase.ua
+			} as any;
+			const originalRTCRtpTransceiver = global.RTCRtpTransceiver;
+
+			if (uaTestCase.expect === 'Safari12') 
+			{
+				global.RTCRtpTransceiver = class Dummy 
+				{
+					currentDirection() {}
+				} as any;
+			}
+			expect(detectDevice()).toBe(uaTestCase.expect);
+			// cleanup
+			global.RTCRtpTransceiver = originalRTCRtpTransceiver;
+		
+		}, 100);
+	});
+	// cleanup
+	global.navigator = originalNavigator;
+});
