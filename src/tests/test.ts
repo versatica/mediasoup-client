@@ -4,6 +4,7 @@
  */
 
 import * as sdpTransform from 'sdp-transform';
+import { AwaitQueue } from 'awaitqueue';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as mediasoupClient from '../';
 import { UnsupportedError, InvalidStateError } from '../errors';
@@ -11,8 +12,7 @@ import * as utils from '../utils';
 import { RemoteSdp } from '../handlers/sdp/RemoteSdp';
 import { FakeHandler } from '../handlers/FakeHandler';
 import * as fakeParameters from './fakeParameters';
-import { AwaitQueue } from 'awaitqueue';
-import uaTestCases from './ua.json';
+import { uaTestCases } from './uaTestCases';
 
 const {
 	Device,
@@ -1701,32 +1701,38 @@ test('parseScalabilityMode() works', () =>
 	expect(parseScalabilityMode('S200T3')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 }, 500);
 
-describe('detectDevice() Test UA Variants', () => 
+describe('detectDevice() assigns proper handler based on UserAgent', () =>
 {
 	const originalNavigator = global.navigator;
 
-	uaTestCases.forEach((uaTestCase) => 
+	for (const uaTestCase of uaTestCases)
 	{
-		test(`detectDevice() Test UA - ${uaTestCase.desc}`, () => 
+		test(uaTestCase.desc, () =>
 		{
-			global.navigator = {
+			// @ts-ignore
+			global.navigator =
+			{
 				userAgent : uaTestCase.ua
-			} as any;
+			};
+
 			const originalRTCRtpTransceiver = global.RTCRtpTransceiver;
 
 			if (uaTestCase.expect === 'Safari12') 
 			{
 				global.RTCRtpTransceiver = class Dummy 
 				{
-					currentDirection() {}
+					currentDirection()
+					{}
 				} as any;
 			}
+
 			expect(detectDevice()).toBe(uaTestCase.expect);
-			// cleanup
+
+			// Cleanup.
 			global.RTCRtpTransceiver = originalRTCRtpTransceiver;
-		
 		}, 100);
-	});
-	// cleanup
+	}
+
+	// Cleanup.
 	global.navigator = originalNavigator;
 });

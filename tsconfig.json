@@ -11,8 +11,7 @@
 		"strict": true,
 		"outDir": "lib",
 		"declaration": true,
-		"declarationMap": true,
-		"resolveJsonModule": true,
+		"declarationMap": true
 	},
 	"include": [ "src" ]
 }
