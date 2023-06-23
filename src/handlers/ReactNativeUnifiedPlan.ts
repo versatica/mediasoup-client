@@ -392,12 +392,24 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 
 		await this._pc.setLocalDescription(offer);
 
+		// We can now get the transceiver.mid.
 		// NOTE: We cannot read generated MID on iOS react-native-webrtc 111.0.0
-		// because  transceiver.mid is not available until setRemoteDescription()
+		// because transceiver.mid is not available until setRemoteDescription()
 		// is called, so this is best effort.
 		// Issue: https://github.com/react-native-webrtc/react-native-webrtc/issues/1404
 		// NOTE: So let's fill MID in sendingRtpParameters later.
-		let localId = transceiver.mid;
+		let localId = transceiver.mid ?? undefined;
+
+		if (!localId)
+		{
+			logger.warn(
+				'send() | missing transceiver.mid (bug in react-native-webrtc, using a workaround'
+			);
+		}
+
+		// Set MID.
+		// NOTE: As per above, it could be unset yet.
+		sendingRtpParameters.mid = localId;
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
@@ -478,10 +490,11 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 
 		// Follow up of iOS react-native-webrtc 111.0.0 issue told above. Now yes,
 		// we can read generated MID (if not done above) and fill sendingRtpParameters.
-		localId = localId ?? transceiver.mid;
-
-		// Set MID.
-		sendingRtpParameters.mid = localId;
+		if (!localId)
+		{
+			localId = transceiver.mid;
+			sendingRtpParameters.mid = localId;
+		}
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
