@@ -43,15 +43,9 @@ async function run()
 
 		case 'typescript:watch':
 		{
-			// NOTE: Load dep on demand since it's a devDependency.
-			const { TscWatchClient } = await import('tsc-watch/client.js');
-
-			const watch = new TscWatchClient();
-
 			deleteLib();
-
-			watch.on('success', replaceVersion);
-			watch.start('--pretty');
+			// NOTE: We need to enable tsc emit so it writes node/lib.
+			executeCmd('tsc --noEmit false --watch');
 
 			break;
 		}
@@ -164,6 +158,7 @@ function buildTypescript(force = false)
 
 	deleteLib();
 	executeCmd('tsc');
+	executeCmd('rollup --config');
 }
 
 function lint()
