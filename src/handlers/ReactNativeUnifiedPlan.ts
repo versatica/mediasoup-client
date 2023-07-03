@@ -398,6 +398,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 		// is called, so this is best effort.
 		// Issue: https://github.com/react-native-webrtc/react-native-webrtc/issues/1404
 		// NOTE: So let's fill MID in sendingRtpParameters later.
+		// NOTE: This is fixed in react-native-webrtc 111.0.3.
 		let localId = transceiver.mid ?? undefined;
 
 		if (!localId)
@@ -490,6 +491,8 @@ export class ReactNativeUnifiedPlan extends HandlerInterface
 
 		// Follow up of iOS react-native-webrtc 111.0.0 issue told above. Now yes,
 		// we can read generated MID (if not done above) and fill sendingRtpParameters.
+		// NOTE: This is fixed in react-native-webrtc 111.0.3 so this block isn't
+		// needed starting from that version.
 		if (!localId)
 		{
 			localId = transceiver.mid;
