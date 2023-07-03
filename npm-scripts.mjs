@@ -1,4 +1,5 @@
 import process from 'process';
+import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { execSync } from 'child_process';
@@ -43,15 +44,9 @@ async function run()
 
 		case 'typescript:watch':
 		{
-			// NOTE: Load dep on demand since it's a devDependency.
-			const { TscWatchClient } = await import('tsc-watch/client.js');
-
-			const watch = new TscWatchClient();
-
 			deleteLib();
 
-			watch.on('success', replaceVersion);
-			watch.start('--pretty');
+			executeCmd('tsc --watch');
 
 			break;
 		}
@@ -122,14 +117,24 @@ function replaceVersion()
 {
 	logInfo('replaceVersion()');
 
-	const files = [ 'lib/index.js', 'lib/index.d.ts' ];
+	const files = fs.readdirSync('lib',
+		{
+			withFileTypes : true,
+			recursive     : true
+		});
 
 	for (const file of files)
 	{
-		const text = fs.readFileSync(file, { encoding: 'utf8' });
+		if (!file.isFile())
+		{
+			continue;
+		}
+
+		const filePath = path.join('lib', file.name);
+		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
 		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
 
-		fs.writeFileSync(file, result, { encoding: 'utf8' });
+		fs.writeFileSync(filePath, result, { encoding: 'utf8' });
 	}
 }
 
