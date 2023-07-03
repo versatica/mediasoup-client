@@ -39,20 +39,20 @@ test('mediasoup-client exposes debug dependency', () =>
 test('detectDevice() returns nothing in Node', () =>
 {
 	expect(detectDevice()).toBe(undefined);
-}, 500);
+});
 
 test('create a Device in Node without custom handlerName/handlerFactory throws UnsupportedError', () =>
 {
 	expect(() => new Device())
 		.toThrow(UnsupportedError);
-}, 500);
+});
 
 test('create a Device with an unknown handlerName string throws TypeError', () =>
 {
 	// @ts-ignore
 	expect(() => new Device({ handlerName: 'FooBrowser666' }))
 		.toThrow(TypeError);
-}, 500);
+});
 
 test('create a Device in Node with a valid handlerFactory succeeds', () =>
 {
@@ -61,25 +61,25 @@ test('create a Device in Node with a valid handlerFactory succeeds', () =>
 	expect(typeof device).toBe('object');
 	expect(device.handlerName).toBe('FakeHandler');
 	expect(device.loaded).toBe(false);
-}, 500);
+});
 
 test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.rtpCapabilities)
 		.toThrow(InvalidStateError);
-}, 500);
+});
 
 test('device.sctpCapabilities getter throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.sctpCapabilities)
 		.toThrow(InvalidStateError);
-}, 500);
+});
 
 test('device.canProduce() throws InvalidStateError if not loaded', () =>
 {
 	expect(() => device.canProduce('audio'))
 		.toThrow(InvalidStateError);
-}, 500);
+});
 
 test('device.createSendTransport() throws InvalidStateError if not loaded', () =>
 {
@@ -100,7 +100,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 			sctpParameters
 		}))
 		.toThrow(InvalidStateError);
-}, 500);
+});
 
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () =>
 {
@@ -155,25 +155,25 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 test('device.rtpCapabilities getter succeeds', () =>
 {
 	expect(typeof device.rtpCapabilities).toBe('object');
-}, 500);
+});
 
 test('device.sctpCapabilities getter succeeds', () =>
 {
 	expect(typeof device.sctpCapabilities).toBe('object');
-}, 500);
+});
 
 test('device.canProduce() with "audio"/"video" kind returns true', () =>
 {
 	expect(device.canProduce('audio')).toBe(true);
 	expect(device.canProduce('video')).toBe(true);
-}, 500);
+});
 
 test('device.canProduce() with invalid kind throws TypeError', () =>
 {
 	// @ts-ignore
 	expect(() => device.canProduce('chicken'))
 		.toThrow(TypeError);
-}, 500);
+});
 
 test('device.createSendTransport() for sending media succeeds', () =>
 {
@@ -204,7 +204,7 @@ test('device.createSendTransport() for sending media succeeds', () =>
 	expect(sendTransport.handler instanceof FakeHandler).toBe(true);
 	expect(sendTransport.connectionState).toBe('new');
 	expect(sendTransport.appData).toEqual({ foo: 123 });
-}, 500);
+});
 
 test('device.createRecvTransport() for receiving media succeeds', () =>
 {
@@ -234,7 +234,7 @@ test('device.createRecvTransport() for receiving media succeeds', () =>
 	expect(recvTransport.handler instanceof FakeHandler).toBe(true);
 	expect(recvTransport.connectionState).toBe('new');
 	expect(recvTransport.appData).toEqual({});
-}, 500);
+});
 
 test('device.createSendTransport() with missing remote Transport parameters throws TypeError', () =>
 {
@@ -254,7 +254,7 @@ test('device.createSendTransport() with missing remote Transport parameters thro
 			iceCandidates : []
 		}))
 		.toThrow(TypeError);
-}, 500);
+});
 
 test('device.createRecvTransport() with a non object appData throws TypeError', () =>
 {
@@ -277,7 +277,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			appData : 1234
 		}))
 		.toThrow(TypeError);
-}, 500);
+});
 
 test('transport.produce() without "connect" listener rejects', async () =>
 {
@@ -376,6 +376,7 @@ test('transport.produce() succeeds', async () =>
 	expect(audioProducer.rtpParameters.codecs.length).toBe(1);
 
 	codecs = audioProducer.rtpParameters.codecs;
+
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'audio/opus',
@@ -394,6 +395,7 @@ test('transport.produce() succeeds', async () =>
 		});
 
 	headerExtensions = audioProducer.rtpParameters.headerExtensions;
+
 	expect(headerExtensions).toEqual(
 		[
 			{
@@ -411,6 +413,7 @@ test('transport.produce() succeeds', async () =>
 		]);
 
 	encodings = audioProducer.rtpParameters.encodings;
+
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
 	expect(typeof encodings?.[0]).toBe('object');
@@ -418,6 +421,7 @@ test('transport.produce() succeeds', async () =>
 	expect(typeof encodings?.[0].ssrc).toBe('number');
 
 	rtcp = audioProducer.rtpParameters.rtcp;
+
 	expect(typeof rtcp).toBe('object');
 	expect(typeof rtcp?.cname).toBe('string');
 
@@ -456,6 +460,7 @@ test('transport.produce() succeeds', async () =>
 	expect(videoProducer.rtpParameters.codecs.length).toBe(2);
 
 	codecs = videoProducer.rtpParameters.codecs;
+
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'video/VP8',
@@ -474,6 +479,7 @@ test('transport.produce() succeeds', async () =>
 				baz : '1234abcd'
 			}
 		});
+
 	expect(codecs[1]).toEqual(
 		{
 			mimeType     : 'video/rtx',
@@ -487,6 +493,7 @@ test('transport.produce() succeeds', async () =>
 		});
 
 	headerExtensions = videoProducer.rtpParameters.headerExtensions;
+
 	expect(headerExtensions).toEqual(
 		[
 			{
@@ -522,6 +529,7 @@ test('transport.produce() succeeds', async () =>
 		]);
 
 	encodings = videoProducer.rtpParameters.encodings;
+
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(2);
 	expect(typeof encodings?.[0]).toBe('object');
@@ -536,6 +544,7 @@ test('transport.produce() succeeds', async () =>
 	expect(typeof encodings?.[1].rtx?.ssrc).toBe('number');
 
 	rtcp = videoProducer.rtpParameters.rtcp;
+
 	expect(typeof rtcp).toBe('object');
 	expect(typeof rtcp?.cname).toBe('string');
 
@@ -630,6 +639,7 @@ test('transport.consume() succeeds', async () =>
 	expect(audioConsumer.rtpParameters.codecs.length).toBe(1);
 
 	codecs = audioConsumer.rtpParameters.codecs;
+
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'audio/opus',
@@ -648,6 +658,7 @@ test('transport.consume() succeeds', async () =>
 		});
 
 	headerExtensions = audioConsumer.rtpParameters.headerExtensions;
+
 	expect(headerExtensions).toEqual(
 		[
 			{
@@ -671,6 +682,7 @@ test('transport.consume() succeeds', async () =>
 		]);
 
 	encodings = audioConsumer.rtpParameters.encodings;
+
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
 	expect(typeof encodings?.[0]).toBe('object');
@@ -678,6 +690,7 @@ test('transport.consume() succeeds', async () =>
 	expect(typeof encodings![0].ssrc).toBe('number');
 
 	rtcp = audioProducer.rtpParameters.rtcp;
+
 	expect(typeof rtcp).toBe('object');
 	expect(typeof rtcp?.cname).toBe('string');
 
@@ -704,6 +717,7 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.rtpParameters.codecs.length).toBe(2);
 
 	codecs = videoConsumer.rtpParameters.codecs;
+
 	expect(codecs[0]).toEqual(
 		{
 			mimeType     : 'video/VP8',
@@ -722,6 +736,7 @@ test('transport.consume() succeeds', async () =>
 				'x-google-start-bitrate' : 1500
 			}
 		});
+
 	expect(codecs[1]).toEqual(
 		{
 			mimeType     : 'video/rtx',
@@ -735,6 +750,7 @@ test('transport.consume() succeeds', async () =>
 		});
 
 	headerExtensions = videoConsumer.rtpParameters.headerExtensions;
+
 	expect(headerExtensions).toEqual(
 		[
 			{
@@ -770,6 +786,7 @@ test('transport.consume() succeeds', async () =>
 		]);
 
 	encodings = videoConsumer.rtpParameters.encodings;
+
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
 	expect(typeof encodings?.[0]).toBe('object');
@@ -780,6 +797,7 @@ test('transport.consume() succeeds', async () =>
 	expect(typeof encodings?.[0].rtx?.ssrc).toBe('number');
 
 	rtcp = videoConsumer.rtpParameters.rtcp;
+
 	expect(typeof rtcp).toBe('object');
 	expect(typeof rtcp?.cname).toBe('string');
 
@@ -1131,23 +1149,24 @@ test('connection state change fires "connectionstatechange" in live Transport', 
 	expect(sendTransport.connectionState).toBe('completed');
 
 	sendTransport.removeAllListeners('connectionstatechange');
-}, 500);
+});
 
 test('producer.pause() succeeds', () =>
 {
 	videoProducer.pause();
-	expect(videoProducer.paused).toBe(true);
 
+	expect(videoProducer.paused).toBe(true);
 	// Track will be still enabled due to disableTrackOnPause: false.
 	expect(videoProducer.track?.enabled).toBe(true);
-}, 500);
+});
 
 test('producer.resume() succeeds', () =>
 {
 	videoProducer.resume();
+
 	expect(videoProducer.paused).toBe(false);
 	expect(videoProducer.track?.enabled).toBe(true);
-}, 500);
+});
 
 test('producer.replaceTrack() with a new track succeeds', async () =>
 {
@@ -1301,14 +1320,16 @@ test('producer.getStats() succeeds', async () =>
 test('consumer.resume() succeeds', () =>
 {
 	videoConsumer.resume();
+
 	expect(videoConsumer.paused).toBe(false);
-}, 500);
+});
 
 test('consumer.pause() succeeds', () =>
 {
 	videoConsumer.pause();
+
 	expect(videoConsumer.paused).toBe(true);
-}, 500);
+});
 
 test('consumer.getStats() succeeds', async () =>
 {
@@ -1320,10 +1341,11 @@ test('consumer.getStats() succeeds', async () =>
 test('producer.close() succeed', () =>
 {
 	audioProducer.close();
+
 	expect(audioProducer.closed).toBe(true);
 	// Track will be still 'live' due to stopTracks: false.
 	expect(audioProducer.track?.readyState).toBe('live');
-}, 500);
+});
 
 test('producer.replaceTrack() rejects with InvalidStateError if closed', async () =>
 {
@@ -1346,9 +1368,10 @@ test('producer.getStats() rejects with InvalidStateError if closed', async () =>
 test('consumer.close() succeed', () =>
 {
 	audioConsumer.close();
+
 	expect(audioConsumer.closed).toBe(true);
 	expect(audioConsumer.track.readyState).toBe('ended');
-}, 500);
+});
 
 test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 {
@@ -1360,14 +1383,16 @@ test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 test('dataProducer.close() succeed', () =>
 {
 	dataProducer.close();
+
 	expect(dataProducer.closed).toBe(true);
-}, 500);
+});
 
 test('dataConsumer.close() succeed', () =>
 {
 	dataConsumer.close();
+
 	expect(dataConsumer.closed).toBe(true);
-}, 500);
+});
 
 test('remotetely stopped track fires "trackended" in live Producers/Consumers', () =>
 {
@@ -1398,27 +1423,31 @@ test('remotetely stopped track fires "trackended" in live Producers/Consumers', 
 
 	// @ts-ignore
 	audioProducer.track.remoteStop();
+
 	// Audio Producer was already closed.
 	expect(audioProducerTrackendedEventCalled).toBe(false);
 
 	// @ts-ignore
 	videoProducer.track.remoteStop();
+
 	expect(videoProducerTrackendedEventCalled).toBe(true);
 
 	// @ts-ignore
 	audioConsumer.track.remoteStop();
+
 	// Audio Consumer was already closed.
 	expect(audiosConsumerTrackendedEventCalled).toBe(false);
 
 	// @ts-ignore
 	videoConsumer.track.remoteStop();
+
 	expect(videoConsumerTrackendedEventCalled).toBe(true);
 
 	audioProducer.removeAllListeners();
 	videoProducer.removeAllListeners();
 	audioConsumer.removeAllListeners();
 	videoConsumer.removeAllListeners();
-}, 500);
+});
 
 test('transport.close() fires "transportclose" in live Producers/Consumers', () =>
 {
@@ -1452,6 +1481,7 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 	expect(videoProducer.closed).toBe(false);
 
 	sendTransport.close();
+
 	expect(sendTransport.closed).toBe(true);
 	expect(videoProducer.closed).toBe(true);
 	// Audio Producer was already closed.
@@ -1463,6 +1493,7 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 	expect(videoConsumer.closed).toBe(false);
 
 	recvTransport.close();
+
 	expect(recvTransport.closed).toBe(true);
 	expect(videoConsumer.closed).toBe(true);
 	// Audio Consumer was already closed.
@@ -1473,7 +1504,7 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 	videoProducer.removeAllListeners();
 	audioConsumer.removeAllListeners();
 	videoConsumer.removeAllListeners();
-}, 500);
+});
 
 test('transport.produce() rejects with InvalidStateError if closed', async () =>
 {
@@ -1556,11 +1587,12 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 
 	// @ts-ignore
 	sendTransport.handler.setConnectionState('disconnected');
+
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
 	expect(sendTransport.connectionState).toBe('disconnected');
 
 	sendTransport.removeAllListeners('connectionstatechange');
-}, 500);
+});
 
 test('RemoteSdp properly handles multiple streams of the same type in planB', async () =>
 {
@@ -1699,7 +1731,7 @@ test('parseScalabilityMode() works', () =>
 	expect(parseScalabilityMode('S1T0')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
 	expect(parseScalabilityMode('L20T3')).toEqual({ spatialLayers: 20, temporalLayers: 3 });
 	expect(parseScalabilityMode('S200T3')).toEqual({ spatialLayers: 1, temporalLayers: 1 });
-}, 500);
+});
 
 describe('detectDevice() assigns proper handler based on UserAgent', () =>
 {
