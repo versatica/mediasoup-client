@@ -7,7 +7,8 @@ export type * from './DataConsumer';
 export type * from './RtpParameters';
 export type * from './SctpParameters';
 export type * from './handlers/HandlerInterface';
-export type * from './errors';
+// We cannot export only the type of error classes because those are useless.
+export * from './errors';
 export type { ScalabilityMode } from './scalabilityModes';
 
 export type AppData =
