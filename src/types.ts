@@ -1,13 +1,13 @@
-export * from './Device';
-export * from './Transport';
-export * from './Producer';
-export * from './Consumer';
-export * from './DataProducer';
-export * from './DataConsumer';
-export * from './RtpParameters';
-export * from './SctpParameters';
-export * from './handlers/HandlerInterface';
-export * from './errors';
+export type * from './Device';
+export type * from './Transport';
+export type * from './Producer';
+export type * from './Consumer';
+export type * from './DataProducer';
+export type * from './DataConsumer';
+export type * from './RtpParameters';
+export type * from './SctpParameters';
+export type * from './handlers/HandlerInterface';
+export type * from './errors';
 export type { ScalabilityMode } from './scalabilityModes';
 
 export type AppData =
