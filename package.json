@@ -6,8 +6,8 @@
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)"
   ],
-  "homepage": "https://mediasoup.org",
   "license": "ISC",
+  "homepage": "https://mediasoup.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/versatica/mediasoup-client.git"
@@ -22,15 +22,15 @@
     "npm-scripts.mjs",
     "lib"
   ],
+  "engines": {
+    "node": ">=16"
+  },
   "keywords": [
     "webrtc",
     "ortc",
     "browser",
     "nodejs"
   ],
-  "engines": {
-    "node": ">=16"
-  },
   "scripts": {
     "prepare": "node npm-scripts.mjs prepare",
     "typescript:build": "node npm-scripts.mjs typescript:build",

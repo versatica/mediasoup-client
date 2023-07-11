@@ -45,7 +45,6 @@ async function run()
 		case 'typescript:watch':
 		{
 			deleteLib();
-
 			executeCmd('tsc --watch');
 
 			break;
@@ -94,7 +93,6 @@ async function run()
 		case 'release':
 		{
 			checkRelease();
-
 			executeCmd(`git commit -am '${PKG.version}'`);
 			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
 			executeCmd(`git push origin v${MAYOR_VERSION}`);
@@ -219,6 +217,7 @@ function executeCmd(command, exitOnError = true)
 		if (exitOnError)
 		{
 			logError(`executeCmd() failed, exiting: ${error}`);
+
 			exitWithError();
 		}
 		else
