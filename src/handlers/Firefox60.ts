@@ -1,6 +1,6 @@
 import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
-import { UnsupportedError } from '../errors';
+import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
@@ -30,6 +30,8 @@ const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
 export class Firefox60 extends HandlerInterface
 {
+	// Closed flag.
+	private _closed = false;
 	// Handler direction.
 	private _direction?: 'send' | 'recv';
 	// Remote SDP handler.
@@ -74,6 +76,13 @@ export class Firefox60 extends HandlerInterface
 	close(): void
 	{
 		logger.debug('close()');
+
+		if (this._closed)
+		{
+			return;
+		}
+
+		this._closed = true;
 
 		// Close RTCPeerConnection.
 		if (this._pc)
@@ -178,6 +187,8 @@ export class Firefox60 extends HandlerInterface
 		}: HandlerRunOptions
 	): void
 	{
+		this.assertNotClosed();
+
 		logger.debug('run()');
 
 		this._direction = direction;
@@ -252,12 +263,16 @@ export class Firefox60 extends HandlerInterface
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
 	{
+		this.assertNotClosed();
+
 		// NOTE: Firefox does not implement pc.setConfiguration().
 		throw new UnsupportedError('not supported');
 	}
 
 	async restartIce(iceParameters: IceParameters): Promise<void>
 	{
+		this.assertNotClosed();
+
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.
@@ -308,6 +323,8 @@ export class Firefox60 extends HandlerInterface
 
 	async getTransportStats(): Promise<RTCStatsReport>
 	{
+		this.assertNotClosed();
+
 		return this._pc.getStats();
 	}
 
@@ -315,6 +332,7 @@ export class Firefox60 extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -477,7 +495,14 @@ export class Firefox60 extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
+		this.assertSendDirection();
+
 		logger.debug('stopSending() [localId:%s]', localId);
+
+		if (this._closed)
+		{
+			return;
+		}
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
@@ -525,6 +550,7 @@ export class Firefox60 extends HandlerInterface
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('pauseSending() [localId:%s]', localId);
@@ -559,6 +585,7 @@ export class Firefox60 extends HandlerInterface
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('resumeSending() [localId:%s]', localId);
@@ -594,6 +621,7 @@ export class Firefox60 extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		if (track)
@@ -618,6 +646,7 @@ export class Firefox60 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug(
@@ -672,6 +701,7 @@ export class Firefox60 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug(
@@ -715,6 +745,7 @@ export class Firefox60 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -737,6 +768,7 @@ export class Firefox60 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		const options =
@@ -806,6 +838,7 @@ export class Firefox60 extends HandlerInterface
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
@@ -900,6 +933,11 @@ export class Firefox60 extends HandlerInterface
 	{
 		this.assertRecvDirection();
 
+		if (this._closed)
+		{
+			return;
+		}
+
 		for (const localId of localIds)
 		{
 			logger.debug('stopReceiving() [localId:%s]', localId);
@@ -938,6 +976,7 @@ export class Firefox60 extends HandlerInterface
 
 	async pauseReceiving(localIds: string[]): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		for (const localId of localIds)
@@ -974,6 +1013,7 @@ export class Firefox60 extends HandlerInterface
 
 	async resumeReceiving(localIds: string[]): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		for (const localId of localIds)
@@ -1026,6 +1066,7 @@ export class Firefox60 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const {
@@ -1123,6 +1164,14 @@ export class Firefox60 extends HandlerInterface
 		});
 
 		this._transportReady = true;
+	}
+
+	private assertNotClosed(): void
+	{
+		if (this._closed)
+		{
+			throw new InvalidStateError('method called in a closed handler');
+		}
 	}
 
 	private assertSendDirection(): void
