@@ -449,7 +449,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 
 		// Enqueue command.
 		return this._awaitQueue.push(
-			async () => this._handler.restartIce(iceParameters),
+			async () => await this._handler.restartIce(iceParameters),
 			'transport.restartIce()');
 	}
 
@@ -1247,7 +1247,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 			}
 
 			this._awaitQueue.push(
-				async () => this._handler.stopSending(producer.localId),
+				async () => await this._handler.stopSending(producer.localId),
 				'producer @close event')
 				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
 		});
@@ -1255,7 +1255,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 		producer.on('@pause', (callback, errback) =>
 		{
 			this._awaitQueue.push(
-				async () => this._handler.pauseSending(producer.localId),
+				async () => await this._handler.pauseSending(producer.localId),
 				'producer @pause event')
 				.then(callback)
 				.catch(errback);
@@ -1264,7 +1264,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 		producer.on('@resume', (callback, errback) =>
 		{
 			this._awaitQueue.push(
-				async () => this._handler.resumeSending(producer.localId),
+				async () => await this._handler.resumeSending(producer.localId),
 				'producer @resume event')
 				.then(callback)
 				.catch(errback);
@@ -1273,7 +1273,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 		producer.on('@replacetrack', (track, callback, errback) =>
 		{
 			this._awaitQueue.push(
-				async () => this._handler.replaceTrack(producer.localId, track),
+				async () => await this._handler.replaceTrack(producer.localId, track),
 				'producer @replacetrack event')
 				.then(callback)
 				.catch(errback);
@@ -1283,7 +1283,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 		{
 			this._awaitQueue.push(
 				async () => (
-					this._handler.setMaxSpatialLayer(producer.localId, spatialLayer)
+					await this._handler.setMaxSpatialLayer(producer.localId, spatialLayer)
 				), 'producer @setmaxspatiallayer event')
 				.then(callback)
 				.catch(errback);
@@ -1293,7 +1293,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 		{
 			this._awaitQueue.push(
 				async () => (
-					this._handler.setRtpEncodingParameters(producer.localId, params)
+					await this._handler.setRtpEncodingParameters(producer.localId, params)
 				), 'producer @setrtpencodingparameters event')
 				.then(callback)
 				.catch(errback);
