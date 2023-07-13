@@ -163,6 +163,8 @@ export class Chrome111 extends HandlerInterface
 		}: HandlerRunOptions
 	): void
 	{
+		this.assertNotClosed();
+
 		logger.debug('run()');
 
 		this._direction = direction;
@@ -257,6 +259,8 @@ export class Chrome111 extends HandlerInterface
 
 	async restartIce(iceParameters: IceParameters): Promise<void>
 	{
+		this.assertNotClosed();
+
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.

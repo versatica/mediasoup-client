@@ -5,6 +5,7 @@ import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
+import { InvalidStateError } from '../errors';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -34,6 +35,8 @@ const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class Chrome74 extends HandlerInterface
 {
+	// Closed flag.
+	private _closed = false;
 	// Handler direction.
 	private _direction?: 'send' | 'recv';
 	// Remote SDP handler.
@@ -81,6 +84,13 @@ export class Chrome74 extends HandlerInterface
 	close(): void
 	{
 		logger.debug('close()');
+
+		if (this._closed)
+		{
+			return;
+		}
+
+		this._closed = true;
 
 		// Close RTCPeerConnection.
 		if (this._pc)
@@ -238,6 +248,8 @@ export class Chrome74 extends HandlerInterface
 
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
 	{
+		this.assertNotClosed();
+
 		logger.debug('updateIceServers()');
 
 		const configuration = this._pc.getConfiguration();
@@ -249,6 +261,8 @@ export class Chrome74 extends HandlerInterface
 
 	async restartIce(iceParameters: IceParameters): Promise<void>
 	{
+		this.assertNotClosed();
+
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.
@@ -299,6 +313,8 @@ export class Chrome74 extends HandlerInterface
 
 	async getTransportStats(): Promise<RTCStatsReport>
 	{
+		this.assertNotClosed();
+
 		return this._pc.getStats();
 	}
 
@@ -306,6 +322,7 @@ export class Chrome74 extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
@@ -486,6 +503,11 @@ export class Chrome74 extends HandlerInterface
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
+		if (this._closed)
+		{
+			return;
+		}
+
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver)
@@ -531,6 +553,7 @@ export class Chrome74 extends HandlerInterface
 
 	async pauseSending(localId: string): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('pauseSending() [localId:%s]', localId);
@@ -564,6 +587,7 @@ export class Chrome74 extends HandlerInterface
 
 	async resumeSending(localId: string): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug('resumeSending() [localId:%s]', localId);
@@ -600,6 +624,7 @@ export class Chrome74 extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		if (track)
@@ -624,6 +649,7 @@ export class Chrome74 extends HandlerInterface
 
 	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug(
@@ -674,6 +700,7 @@ export class Chrome74 extends HandlerInterface
 
 	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		logger.debug(
@@ -717,6 +744,7 @@ export class Chrome74 extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -739,6 +767,7 @@ export class Chrome74 extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
+		this.assertNotClosed();
 		this.assertSendDirection();
 
 		const options =
@@ -811,6 +840,7 @@ export class Chrome74 extends HandlerInterface
 		optionsList: HandlerReceiveOptions[]
 	) : Promise<HandlerReceiveResult[]>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
@@ -911,6 +941,11 @@ export class Chrome74 extends HandlerInterface
 	{
 		this.assertRecvDirection();
 
+		if (this._closed)
+		{
+			return;
+		}
+
 		for (const localId of localIds)
 		{
 			logger.debug('stopReceiving() [localId:%s]', localId);
@@ -949,6 +984,7 @@ export class Chrome74 extends HandlerInterface
 
 	async pauseReceiving(localIds: string[]): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		for (const localId of localIds)
@@ -985,6 +1021,7 @@ export class Chrome74 extends HandlerInterface
 
 	async resumeReceiving(localIds: string[]): Promise<void>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		for (const localId of localIds)
@@ -1021,6 +1058,7 @@ export class Chrome74 extends HandlerInterface
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -1037,6 +1075,7 @@ export class Chrome74 extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
+		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const {
@@ -1138,6 +1177,14 @@ export class Chrome74 extends HandlerInterface
 		});
 
 		this._transportReady = true;
+	}
+
+	private assertNotClosed(): void
+	{
+		if (this._closed)
+		{
+			throw new InvalidStateError('method called in a closed handler');
+		}
 	}
 
 	private assertSendDirection(): void
