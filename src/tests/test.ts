@@ -1131,6 +1131,48 @@ test('transport.updateIceServers() without iceServers rejects with TypeError', a
 		.toThrow(TypeError);
 }, 500);
 
+test('ICE gathering state change fires "icegatheringstatechange" in live Transport', () =>
+{
+	// NOTE: These tests are a bit flaky and we should isolate them. FakeHandler
+	// emits '@connectionstatechange' with value 'connecting' as soon as its
+	// private setupTransport() method is called (which has happens many times in
+	// tests above already). So here we have to reset it manually to test things.
+
+	// @ts-ignore
+	sendTransport.handler.setIceGatheringState('new');
+	// @ts-ignore
+	sendTransport.handler.setConnectionState('new');
+
+	let iceGatheringStateChangeEventNumTimesCalled = 0;
+	let connectionStateChangeEventNumTimesCalled = 0;
+
+	sendTransport.on('icegatheringstatechange', (iceGatheringState) =>
+	{
+		iceGatheringStateChangeEventNumTimesCalled++;
+
+		expect(iceGatheringState).toBe('complete');
+		expect(sendTransport.iceGatheringState).toBe('complete');
+		expect(sendTransport.connectionState).toBe('new');
+	});
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	sendTransport.on('connectionstatechange', (connectionState) =>
+	{
+		connectionStateChangeEventNumTimesCalled++;
+	});
+
+	// @ts-ignore
+	sendTransport.handler.setIceGatheringState('complete');
+
+	expect(iceGatheringStateChangeEventNumTimesCalled).toBe(1);
+	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
+	expect(sendTransport.iceGatheringState).toBe('complete');
+	expect(sendTransport.connectionState).toBe('new');
+
+	sendTransport.removeAllListeners('icegatheringstatechange');
+	sendTransport.removeAllListeners('connectionstatechange');
+});
+
 test('connection state change fires "connectionstatechange" in live Transport', () =>
 {
 	let connectionStateChangeEventNumTimesCalled = 0;

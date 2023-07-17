@@ -204,6 +204,11 @@ export class Chrome55 extends HandlerInterface
 			},
 			proprietaryConstraints);
 
+		this._pc.addEventListener('icegatheringstatechange', () =>
+		{
+			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
+		});
+
 		if (this._pc.connectionState)
 		{
 			this._pc.addEventListener('connectionstatechange', () =>

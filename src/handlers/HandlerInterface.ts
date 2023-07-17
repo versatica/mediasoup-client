@@ -4,6 +4,7 @@ import {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
+	IceGatheringState,
 	ConnectionState
 } from '../Transport';
 import {
@@ -99,6 +100,7 @@ export type HandlerEvents =
 		() => void,
 		(error: Error) => void
 	];
+	'@icegatheringstatechange': [IceGatheringState];
 	'@connectionstatechange': [ConnectionState];
 };
 
