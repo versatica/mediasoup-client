@@ -20,6 +20,7 @@ import {
 	IceParameters,
 	DtlsParameters,
 	DtlsRole,
+	IceGatheringState,
 	ConnectionState
 } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
@@ -136,6 +137,12 @@ export class FakeHandler extends HandlerInterface
 		}
 
 		this._closed = true;
+	}
+
+	// NOTE: Custom method for simulation purposes.
+	setIceGatheringState(iceGatheringState: IceGatheringState): void
+	{
+		this.emit('@icegatheringstatechange', iceGatheringState);
 	}
 
 	// NOTE: Custom method for simulation purposes.

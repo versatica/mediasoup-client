@@ -207,10 +207,17 @@ export class Chrome111 extends HandlerInterface
 			},
 			proprietaryConstraints);
 
+		this._pc.addEventListener('icegatheringstatechange', () =>
+		{
+			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
+		});
+
 		if (this._pc.connectionState)
 		{
 			this._pc.addEventListener('connectionstatechange', () =>
 			{
+				console.log('FOOOO this._pc.iceConnectionState:', this._pc.iceConnectionState);
+
 				this.emit('@connectionstatechange', this._pc.connectionState);
 			});
 		}
