@@ -216,8 +216,6 @@ export class Chrome111 extends HandlerInterface
 		{
 			this._pc.addEventListener('connectionstatechange', () =>
 			{
-				console.log('FOOOO this._pc.iceConnectionState:', this._pc.iceConnectionState);
-
 				this.emit('@connectionstatechange', this._pc.connectionState);
 			});
 		}
