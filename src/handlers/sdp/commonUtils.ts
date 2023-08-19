@@ -172,8 +172,8 @@ export function extractDtlsParameters(
 ): DtlsParameters
 {
 	const mediaObject = (sdpObject.media || [])
-		.find((m: { iceUfrag: string; port: number }) => (
-			m.iceUfrag && m.port !== 0
+		.find((m: { port: number }) => (
+			m.port !== 0
 		));
 
 	if (!mediaObject)
