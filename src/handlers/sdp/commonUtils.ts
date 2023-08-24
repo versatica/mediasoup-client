@@ -172,13 +172,13 @@ export function extractDtlsParameters(
 ): DtlsParameters
 {
 	const mediaObject = (sdpObject.media || [])
-		.find((m: { port: number }) => (
-			m.port !== 0
+		.find((m: { port: number; setup: 'active' | 'passive' | 'actpass' }) => (
+			m.port !== 0 && m.setup
 		));
 
 	if (!mediaObject)
 	{
-		throw new Error('no active media section found');
+		throw new Error('no active media section with DTLS role found');
 	}
 
 	const fingerprint = mediaObject.fingerprint || sdpObject.fingerprint;
