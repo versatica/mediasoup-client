@@ -171,20 +171,33 @@ export function extractDtlsParameters(
 	{ sdpObject: any }
 ): DtlsParameters
 {
-	const mediaObject = (sdpObject.media || [])
-		.find((m: { port: number; setup: 'active' | 'passive' | 'actpass' }) => (
-			m.port !== 0 && m.setup
-		));
+	let setup = sdpObject.setup;
+	let fingerprint = sdpObject.fingerprint;
 
-	if (!mediaObject)
+	if (!setup || !fingerprint)
 	{
-		throw new Error('no active media section with DTLS role found');
+		const mediaObject = (sdpObject.media || [])
+			.find((m: { port: number }) => (m.port !== 0));
+
+		if (mediaObject)
+		{
+			setup ??= mediaObject.setup;
+			fingerprint ??= mediaObject.fingerprint;
+		}
 	}
 
-	const fingerprint = mediaObject.fingerprint || sdpObject.fingerprint;
+	if (!setup)
+	{
+		throw new Error('no a=setup found at SDP session or media level');
+	}
+	else if (!fingerprint)
+	{
+		throw new Error('no a=fingerprint found at SDP session or media level');
+	}
+
 	let role: DtlsRole | undefined;
 
-	switch (mediaObject.setup)
+	switch (setup)
 	{
 		case 'active':
 			role = 'client';
