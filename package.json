@@ -58,6 +58,9 @@
         }
       ]
     },
+    "coveragePathIgnorePatterns": [
+      "src/tests"
+    ],
     "cacheDirectory": ".cache/jest"
   },
   "dependencies": {
