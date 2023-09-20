@@ -339,13 +339,13 @@ export class ReactNative extends HandlerInterface
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
 
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs);
@@ -388,7 +388,7 @@ export class ReactNative extends HandlerInterface
 			.find((m: any) => m.type === track.kind);
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings.

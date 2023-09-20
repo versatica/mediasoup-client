@@ -308,14 +308,14 @@ export class Chrome70 extends HandlerInterface
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
@@ -421,7 +421,7 @@ export class Chrome70 extends HandlerInterface
 		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings.

@@ -11,6 +11,7 @@ import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
 import { RemoteSdp } from '../handlers/sdp/RemoteSdp';
 import { FakeHandler } from '../handlers/FakeHandler';
+import { RtpCapabilities } from '../RtpParameters';
 import * as fakeParameters from './fakeParameters';
 import { uaTestCases } from './uaTestCases';
 
@@ -116,11 +117,12 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 {
 	// Clonse fake router RTP capabilities to make them invalid.
 	const routerRtpCapabilities =
-		utils.clone(fakeParameters.generateRouterRtpCapabilities(), {});
+		utils.clone<RtpCapabilities>(fakeParameters.generateRouterRtpCapabilities());
 
-	for (const codec of routerRtpCapabilities.codecs)
+	for (const codec of routerRtpCapabilities.codecs!)
 	{
-		delete codec.mimeType;
+		// @ts-ignore
+		delete codec!.mimeType;
 	}
 
 	await expect(device.load({ routerRtpCapabilities }))

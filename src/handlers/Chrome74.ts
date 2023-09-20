@@ -341,14 +341,14 @@ export class Chrome74 extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
@@ -419,7 +419,7 @@ export class Chrome74 extends HandlerInterface
 		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.

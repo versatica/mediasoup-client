@@ -1165,7 +1165,7 @@ export function generateProbatorRtpParameters(
 ): RtpParameters
 {
 	// Clone given reference video RTP parameters.
-	videoRtpParameters = utils.clone(videoRtpParameters, {}) as RtpParameters;
+	videoRtpParameters = utils.clone<RtpParameters>(videoRtpParameters);
 
 	// This may throw.
 	validateRtpParameters(videoRtpParameters);

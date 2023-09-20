@@ -21,7 +21,11 @@ import {
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters
+} from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Firefox60');
@@ -344,7 +348,7 @@ export class Firefox60 extends HandlerInterface
 
 		if (encodings)
 		{
-			encodings = utils.clone(encodings, []);
+			encodings = utils.clone<RtpEncodingParameters[]>(encodings);
 
 			if (encodings!.length > 1)
 			{
@@ -360,14 +364,14 @@ export class Firefox60 extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			utils.clone(this._sendingRemoteRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRemoteRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
@@ -421,7 +425,7 @@ export class Firefox60 extends HandlerInterface
 		const offerMediaObject = localSdpObject.media[localSdpObject.media.length - 1];
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.

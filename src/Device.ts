@@ -446,7 +446,7 @@ export class Device
 	{
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
-		routerRtpCapabilities = utils.clone(routerRtpCapabilities, undefined);
+		routerRtpCapabilities = utils.clone<RtpCapabilities>(routerRtpCapabilities);
 
 		// Temporal handler to get its capabilities.
 		let handler: HandlerInterface | undefined;

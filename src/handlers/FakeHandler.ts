@@ -232,7 +232,7 @@ export class FakeHandler extends HandlerInterface
 		}
 
 		const rtpParameters =
-			utils.clone(this._rtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._rtpParametersByKind![track.kind]);
 		const useRtx = rtpParameters.codecs
 			.some((_codec: any) => /.+\/rtx$/i.test(_codec.mimeType));
 
@@ -501,7 +501,7 @@ export class FakeHandler extends HandlerInterface
 	): Promise<void>
 	{
 		const dtlsParameters =
-			utils.clone(this.fakeParameters.generateLocalDtlsParameters(), {});
+			utils.clone<DtlsParameters>(this.fakeParameters.generateLocalDtlsParameters());
 
 		// Set our DTLS role.
 		if (localDtlsRole)

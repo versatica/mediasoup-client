@@ -279,7 +279,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 			sctpParameters ? sctpParameters.maxMessageSize : null;
 
 		// Clone and sanitize additionalSettings.
-		additionalSettings = utils.clone(additionalSettings, {});
+		additionalSettings = utils.clone(additionalSettings) || {};
 
 		delete additionalSettings.iceServers;
 		delete additionalSettings.iceTransportPolicy;
@@ -698,7 +698,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 	{
 		logger.debug('consume()');
 
-		rtpParameters = utils.clone(rtpParameters, undefined);
+		rtpParameters = utils.clone<RtpParameters>(rtpParameters);
 
 		if (this._closed)
 		{
@@ -884,7 +884,7 @@ export class Transport<TransportAppData extends AppData = AppData>
 	{
 		logger.debug('consumeData()');
 
-		sctpStreamParameters = utils.clone(sctpStreamParameters, undefined);
+		sctpStreamParameters = utils.clone(sctpStreamParameters);
 
 		if (this._closed)
 		{

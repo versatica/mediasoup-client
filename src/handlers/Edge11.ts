@@ -207,7 +207,7 @@ export class Edge11 extends HandlerInterface
 
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters =
-			utils.clone(this._sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
 
 		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);
 
