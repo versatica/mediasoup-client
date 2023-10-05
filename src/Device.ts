@@ -103,8 +103,10 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const os = uaParser.getOS();
 		const osName = os.name?.toLowerCase() ?? '';
 		const osVersion = parseFloat(os.version ?? '0');
+		const device = uaParser.getDevice();
+		const deviceModel = device.model?.toLowerCase() ?? '';
 
-		const isIOS = osName === 'ios';
+		const isIOS = osName === 'ios' || (osName === 'mac os' && deviceModel === 'ipad');
 
 		const isChrome =
 		[
@@ -188,7 +190,6 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		else if (
 			engineName === 'webkit' &&
 			isIOS &&
-			osVersion >= 14.3 &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection'))
 		{
