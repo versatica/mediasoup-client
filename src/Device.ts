@@ -106,7 +106,7 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		const device = uaParser.getDevice();
 		const deviceModel = device.model?.toLowerCase() ?? '';
 
-		const isIOS = osName === 'ios' || (osName === 'mac os' && deviceModel === 'ipad');
+		const isIOS = osName === 'ios' || deviceModel === 'ipad';
 
 		const isChrome =
 		[
