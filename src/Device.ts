@@ -96,19 +96,19 @@ export function detectDevice(): BuiltinHandlerName | undefined
 		);
 
 		const browser = uaParser.getBrowser();
-		const browserName = browser.name?.toLowerCase() ?? '';
+		const browserName = browser.name?.toLowerCase();
 		const browserVersion = parseInt(browser.major ?? '0');
 		const engine = uaParser.getEngine();
-		const engineName = engine.name?.toLowerCase() ?? '';
+		const engineName = engine.name?.toLowerCase();
 		const os = uaParser.getOS();
-		const osName = os.name?.toLowerCase() ?? '';
+		const osName = os.name?.toLowerCase();
 		const osVersion = parseFloat(os.version ?? '0');
 		const device = uaParser.getDevice();
-		const deviceModel = device.model?.toLowerCase() ?? '';
+		const deviceModel = device.model?.toLowerCase();
 
 		const isIOS = osName === 'ios' || deviceModel === 'ipad';
 
-		const isChrome =
+		const isChrome = browserName &&
 		[
 			'chrome',
 			'chromium',
@@ -117,20 +117,20 @@ export function detectDevice(): BuiltinHandlerName | undefined
 			'chrome headless'
 		].includes(browserName);
 
-		const isFirefox =
+		const isFirefox = browserName &&
 		[
 			'firefox',
 			'mobile firefox',
 			'mobile focus'
 		].includes(browserName);
 
-		const isSafari =
+		const isSafari = browserName &&
 		[
 			'safari',
 			'mobile safari'
 		].includes(browserName);
 
-		const isEdge = [ 'edge' ].includes(browserName);
+		const isEdge = browserName && [ 'edge' ].includes(browserName);
 
 		// Chrome, Chromium, and Edge.
 		if ((isChrome || isEdge) && !isIOS && browserVersion >= 111)
