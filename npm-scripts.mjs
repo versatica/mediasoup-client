@@ -118,17 +118,19 @@ function replaceVersion()
 	const files = fs.readdirSync('lib',
 		{
 			withFileTypes : true,
-			recursive     : true
+			recursive     : false
 		});
 
 	for (const file of files)
 	{
+		console.log('--- file:', file);
 		if (!file.isFile())
 		{
 			continue;
 		}
 
 		const filePath = path.join('lib', file.name);
+		console.log('--- filePath:', filePath);
 		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
 		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
 
