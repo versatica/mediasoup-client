@@ -57,7 +57,7 @@ class FakeDataChannel extends EnhancedEventEmitter
 		super();
 
 		this.id = id;
-		this.ordered= ordered;
+		this.ordered = ordered;
 		this.maxPacketLifeTime = maxPacketLifeTime;
 		this.maxRetransmits = maxRetransmits;
 		this.label = label;
