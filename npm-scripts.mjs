@@ -128,6 +128,7 @@ function replaceVersion()
 
 	for (const file of files)
 	{
+		// eslint-disable-next-line no-console
 		console.log('--- file:', file);
 		if (!file.isFile())
 		{
@@ -135,6 +136,8 @@ function replaceVersion()
 		}
 
 		const filePath = path.join('lib', file.name);
+
+		// eslint-disable-next-line no-console
 		console.log('--- filePath:', filePath);
 		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
 		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
