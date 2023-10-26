@@ -10,6 +10,11 @@ const MAYOR_VERSION = PKG.version.split('.')[0];
 
 const task = process.argv.slice(2).join(' ');
 
+executeCmd('echo "node -v:"');
+executeCmd('node -v');
+// replaceVersion();
+// process.exit();
+
 run();
 
 async function run()
@@ -118,7 +123,7 @@ function replaceVersion()
 	const files = fs.readdirSync('lib',
 		{
 			withFileTypes : true,
-			recursive     : false
+			recursive     : true
 		});
 
 	for (const file of files)
