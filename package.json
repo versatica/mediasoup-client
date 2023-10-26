@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@types/debug": "^4.1.10",
-    "awaitqueue": "^3.0.1",
+    "awaitqueue": "^3.0.2",
     "debug": "^4.3.4",
     "events": "^3.3.0",
     "fake-mediastreamtrack": "^1.2.0",
