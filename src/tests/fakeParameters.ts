@@ -294,16 +294,19 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 			},
 			{
 				kind        : 'video',
+				// @ts-ignore
 				uri         : 'http://www.webrtc.org/experiments/rtp-hdrext/playout-delay',
 				preferredId : 6
 			},
 			{
 				kind        : 'video',
+				// @ts-ignore
 				uri         : 'http://www.webrtc.org/experiments/rtp-hdrext/video-content-type',
 				preferredId : 7
 			},
 			{
 				kind        : 'video',
+				// @ts-ignore
 				uri         : 'http://www.webrtc.org/experiments/rtp-hdrext/video-timing',
 				preferredId : 8
 			},

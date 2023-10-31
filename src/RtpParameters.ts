@@ -96,7 +96,7 @@ export type RtpHeaderExtension =
 	/*
 	 * The URI of the RTP header extension, as defined in RFC 5285.
 	 */
-	uri: string;
+	uri: RtpHeaderExtensionUri;
 	/**
 	 * The preferred numeric identifier that goes in the RTP packet. Must be
 	 * unique.
@@ -272,6 +272,22 @@ export type RtpEncodingParameters =
 };
 
 /**
+ * Supported RTP header extension URIs.
+ */
+export type RtpHeaderExtensionUri =
+    'urn:ietf:params:rtp-hdrext:sdes:mid' |
+    'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id' |
+    'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id' |
+    'http://tools.ietf.org/html/draft-ietf-avtext-framemarking-07' |
+    'urn:ietf:params:rtp-hdrext:framemarking' |
+    'urn:ietf:params:rtp-hdrext:ssrc-audio-level' |
+    'urn:3gpp:video-orientation' |
+    'urn:ietf:params:rtp-hdrext:toffset' |
+    'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01' |
+    'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time' |
+    'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time';
+
+/**
  * Defines a RTP header extension within the RTP parameters. The list of RTP
  * header extensions supported by mediasoup is defined in the
  * supportedRtpCapabilities.ts file.
@@ -284,7 +300,7 @@ export type RtpHeaderExtensionParameters =
 	/**
 	 * The URI of the RTP header extension, as defined in RFC 5285.
 	 */
-	uri: string;
+	uri: RtpHeaderExtensionUri;
 	/**
 	 * The numeric identifier that goes in the RTP packet. Must be unique.
 	 */
