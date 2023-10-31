@@ -100,13 +100,19 @@ export type DtlsParameters =
 
 /**
  * The hash function algorithm (as defined in the "Hash function Textual Names"
+ * registry initially specified in RFC 4572 Section 8).
+ */
+export type FingerprintAlgorithm = 'sha-1'| 'sha-224'| 'sha-256'| 'sha-384'| 'sha-512';
+
+/**
+ * The hash function algorithm (as defined in the "Hash function Textual Names"
  * registry initially specified in RFC 4572 Section 8) and its corresponding
  * certificate fingerprint value (in lowercase hex string as expressed utilizing
  * the syntax of "fingerprint" in RFC 4572 Section 5).
  */
 export type DtlsFingerprint =
 {
-	algorithm: string;
+	algorithm: FingerprintAlgorithm;
 	value: string;
 };
 
