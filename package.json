@@ -64,12 +64,12 @@
     "cacheDirectory": ".cache/jest"
   },
   "dependencies": {
-    "@types/debug": "^4.1.11",
+    "@types/debug": "^4.1.12",
     "awaitqueue": "^3.0.2",
     "debug": "^4.3.4",
     "events": "^3.3.0",
     "fake-mediastreamtrack": "^1.2.0",
-    "h264-profile-level-id": "^1.0.1",
+    "h264-profile-level-id": "^1.0.2",
     "queue-microtask": "^1.2.3",
     "sdp-transform": "^2.14.1",
     "supports-color": "^9.4.0",
@@ -77,16 +77,16 @@
   },
   "devDependencies": {
     "@types/events": "^3.0.3",
-    "@types/jest": "^29.5.8",
+    "@types/jest": "^29.5.11",
     "@types/sdp-transform": "^2.4.9",
     "@types/ua-parser-js": "^0.7.39",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "eslint": "^8.53.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
     "eslint-plugin-jest": "^27.6.0",
     "jest": "^29.7.0",
     "open-cli": "^7.2.0",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.2"
   }
 }
