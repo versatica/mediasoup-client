@@ -42,6 +42,7 @@ export function extractRtpCapabilities(
 
 				break;
 			}
+
 			case 'video':
 			{
 				if (gotVideo)
@@ -53,6 +54,7 @@ export function extractRtpCapabilities(
 
 				break;
 			}
+
 			default:
 			{
 				continue;
@@ -200,14 +202,25 @@ export function extractDtlsParameters(
 	switch (setup)
 	{
 		case 'active':
+		{
 			role = 'client';
+
 			break;
+		}
+
 		case 'passive':
+		{
 			role = 'server';
+
 			break;
+		}
+
 		case 'actpass':
+		{
 			role = 'auto';
+
 			break;
+		}
 	}
 
 	const dtlsParameters: DtlsParameters =

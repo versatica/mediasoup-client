@@ -332,40 +332,75 @@ export class Device
 			switch (handlerName)
 			{
 				case 'Chrome111':
+				{
 					this._handlerFactory = Chrome111.createFactory();
 					break;
+				}
+
 				case 'Chrome74':
+				{
 					this._handlerFactory = Chrome74.createFactory();
 					break;
+				}
+
 				case 'Chrome70':
+				{
 					this._handlerFactory = Chrome70.createFactory();
 					break;
+				}
+
 				case 'Chrome67':
+				{
 					this._handlerFactory = Chrome67.createFactory();
 					break;
+				}
+
 				case 'Chrome55':
+				{
 					this._handlerFactory = Chrome55.createFactory();
 					break;
+				}
+
 				case 'Firefox60':
+				{
 					this._handlerFactory = Firefox60.createFactory();
 					break;
+				}
+
 				case 'Safari12':
+				{
 					this._handlerFactory = Safari12.createFactory();
 					break;
+				}
+
 				case 'Safari11':
+				{
 					this._handlerFactory = Safari11.createFactory();
 					break;
+				}
+
 				case 'Edge11':
+				{
 					this._handlerFactory = Edge11.createFactory();
 					break;
+				}
+
 				case 'ReactNativeUnifiedPlan':
+				{
 					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
 					break;
+				}
+
 				case 'ReactNative':
+				{
 					this._handlerFactory = ReactNative.createFactory();
 					break;
+				}
+
 				default:
+				{
 					throw new TypeError(`unknown handlerName "${handlerName}"`);
+				}
 			}
 		}
 

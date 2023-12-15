@@ -557,21 +557,40 @@ export class Edge11 extends HandlerInterface
 			switch (iceTransport.state)
 			{
 				case 'checking':
+				{
 					this.emit('@connectionstatechange', 'connecting');
+
 					break;
+				}
+
 				case 'connected':
 				case 'completed':
+				{
 					this.emit('@connectionstatechange', 'connected');
+
 					break;
+				}
+
 				case 'failed':
+				{
 					this.emit('@connectionstatechange', 'failed');
+
 					break;
+				}
+
 				case 'disconnected':
+				{
 					this.emit('@connectionstatechange', 'disconnected');
+
 					break;
+				}
+
 				case 'closed':
+				{
 					this.emit('@connectionstatechange', 'closed');
+
 					break;
+				}
 			}
 		});
 
@@ -581,21 +600,40 @@ export class Edge11 extends HandlerInterface
 			switch (iceTransport.state)
 			{
 				case 'checking':
+				{
 					this.emit('@connectionstatechange', 'connecting');
+
 					break;
+				}
+
 				case 'connected':
 				case 'completed':
+				{
 					this.emit('@connectionstatechange', 'connected');
+
 					break;
+				}
+
 				case 'failed':
+				{
 					this.emit('@connectionstatechange', 'failed');
+
 					break;
+				}
+
 				case 'disconnected':
+				{
 					this.emit('@connectionstatechange', 'disconnected');
+
 					break;
+				}
+
 				case 'closed':
+				{
 					this.emit('@connectionstatechange', 'closed');
+
 					break;
+				}
 			}
 		});
 

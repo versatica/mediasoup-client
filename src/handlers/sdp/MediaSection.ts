@@ -473,14 +473,25 @@ export class AnswerMediaSection extends MediaSection
 		switch (role)
 		{
 			case 'client':
+			{
 				this._mediaObject.setup = 'active';
+
 				break;
+			}
+
 			case 'server':
+			{
 				this._mediaObject.setup = 'passive';
+
 				break;
+			}
+
 			case 'auto':
+			{
 				this._mediaObject.setup = 'actpass';
+
 				break;
+			}
 		}
 	}
 

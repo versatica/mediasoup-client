@@ -231,21 +231,40 @@ export class Chrome74 extends HandlerInterface
 				switch (this._pc.iceConnectionState)
 				{
 					case 'checking':
+					{
 						this.emit('@connectionstatechange', 'connecting');
+
 						break;
+					}
+
 					case 'connected':
 					case 'completed':
+					{
 						this.emit('@connectionstatechange', 'connected');
+
 						break;
+					}
+
 					case 'failed':
+					{
 						this.emit('@connectionstatechange', 'failed');
+
 						break;
+					}
+
 					case 'disconnected':
+					{
 						this.emit('@connectionstatechange', 'disconnected');
+
 						break;
+					}
+
 					case 'closed':
+					{
 						this.emit('@connectionstatechange', 'closed');
+
 						break;
+					}
 				}
 			});
 		}
