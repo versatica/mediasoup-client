@@ -76,13 +76,6 @@ async function run()
 			break;
 		}
 
-		case 'install-deps':
-		{
-			installDeps();
-
-			break;
-		}
-
 		case 'release:check':
 		{
 			checkRelease();

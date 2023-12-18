@@ -38,7 +38,6 @@
     "lint": "node npm-scripts.mjs lint",
     "test": "node npm-scripts.mjs test",
     "coverage": "node npm-scripts.mjs coverage",
-    "install-deps": "node npm-scripts.mjs install-deps",
     "release:check": "node npm-scripts.mjs release:check",
     "release": "node npm-scripts.mjs release"
   },
