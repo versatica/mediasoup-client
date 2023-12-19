@@ -140,7 +140,7 @@ export class DataConsumer<DataConsumerAppData extends AppData = AppData>
 	 */
 	get binaryType(): BinaryType
 	{
-		return this._dataChannel.binaryType;
+		return this._dataChannel.binaryType as BinaryType;
 	}
 
 	/**
