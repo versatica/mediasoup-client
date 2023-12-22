@@ -1293,7 +1293,9 @@ function matchCodecs(
 				try
 				{
 					selectedProfileLevelId =
-						h264.generateProfileLevelIdForAnswer(aCodec.parameters, bCodec.parameters);
+						h264.generateProfileLevelIdStringForAnswer(
+							aCodec.parameters, bCodec.parameters
+						);
 				}
 				catch (error)
 				{
