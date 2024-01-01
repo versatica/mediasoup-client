@@ -396,11 +396,6 @@ export class Firefox60 extends HandlerInterface
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
-		// NOTE: Firefox fails sometimes to properly anticipate the closed media
-		// section that it should use, so don't reuse closed media sections.
-		//   https://github.com/versatica/mediasoup-client/issues/104
-		//
-		// const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(
 			track, { direction: 'sendonly', streams: [ this._sendStream ] });
 
@@ -441,7 +436,8 @@ export class Firefox60 extends HandlerInterface
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 
-		const offerMediaObject = localSdpObject.media[localSdpObject.media.length - 1];
+		const offerMediaObject =
+			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname =
@@ -497,6 +493,7 @@ export class Firefox60 extends HandlerInterface
 		this._remoteSdp!.send(
 			{
 				offerMediaObject,
+				localSdpMedia       : localSdpObject.media,
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : sendingRemoteRtpParameters,
 				codecOptions,
@@ -551,10 +548,7 @@ export class Firefox60 extends HandlerInterface
 		// {}
 
 		this._pc.removeTrack(transceiver.sender);
-		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
-		// method.
-		// this._remoteSdp!.closeMediaSection(transceiver.mid);
-		this._remoteSdp!.disableMediaSection(transceiver.mid!);
+		this._remoteSdp!.closeMediaSection(transceiver.mid!);
 
 		const offer = await this._pc.createOffer();
 
