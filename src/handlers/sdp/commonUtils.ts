@@ -5,18 +5,18 @@ import {
 	RtpCodecCapability,
 	RtpHeaderExtension,
 	RtpParameters,
-	RtcpFeedback
+	RtcpFeedback,
 } from '../../RtpParameters';
 
 /**
  * This function must be called with an SDP with 1 m=audio and 1 m=video
  * sections.
  */
-export function extractRtpCapabilities(
-	{ sdpObject }:
-	{ sdpObject: any }
-): RtpCapabilities
-{
+export function extractRtpCapabilities({
+	sdpObject,
+}: {
+	sdpObject: any;
+}): RtpCapabilities {
 	// Map of RtpCodecParameters indexed by payload type.
 	const codecsMap: Map<number, RtpCodecCapability> = new Map();
 	// Array of RtpHeaderExtensions.
@@ -25,16 +25,12 @@ export function extractRtpCapabilities(
 	let gotAudio = false;
 	let gotVideo = false;
 
-	for (const m of sdpObject.media)
-	{
+	for (const m of sdpObject.media) {
 		const kind = m.type;
 
-		switch (kind)
-		{
-			case 'audio':
-			{
-				if (gotAudio)
-				{
+		switch (kind) {
+			case 'audio': {
+				if (gotAudio) {
 					continue;
 				}
 
@@ -43,10 +39,8 @@ export function extractRtpCapabilities(
 				break;
 			}
 
-			case 'video':
-			{
-				if (gotVideo)
-				{
+			case 'video': {
+				if (gotVideo) {
 					continue;
 				}
 
@@ -55,43 +49,37 @@ export function extractRtpCapabilities(
 				break;
 			}
 
-			default:
-			{
+			default: {
 				continue;
 			}
 		}
 
 		// Get codecs.
-		for (const rtp of m.rtp)
-		{
-			const codec: RtpCodecCapability =
-			{
-				kind                 : kind,
-				mimeType             : `${kind}/${rtp.codec}`,
-				preferredPayloadType : rtp.payload,
-				clockRate            : rtp.rate,
-				channels             : rtp.encoding,
-				parameters           : {},
-				rtcpFeedback         : []
+		for (const rtp of m.rtp) {
+			const codec: RtpCodecCapability = {
+				kind: kind,
+				mimeType: `${kind}/${rtp.codec}`,
+				preferredPayloadType: rtp.payload,
+				clockRate: rtp.rate,
+				channels: rtp.encoding,
+				parameters: {},
+				rtcpFeedback: [],
 			};
 
 			codecsMap.set(codec.preferredPayloadType!, codec);
 		}
 
 		// Get codec parameters.
-		for (const fmtp of m.fmtp || [])
-		{
+		for (const fmtp of m.fmtp || []) {
 			const parameters = sdpTransform.parseParams(fmtp.config);
 			const codec = codecsMap.get(fmtp.payload);
 
-			if (!codec)
-			{
+			if (!codec) {
 				continue;
 			}
 
 			// Specials case to convert parameter value to string.
-			if (parameters && parameters.hasOwnProperty('profile-level-id'))
-			{
+			if (parameters && parameters.hasOwnProperty('profile-level-id')) {
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
 			}
 
@@ -99,27 +87,22 @@ export function extractRtpCapabilities(
 		}
 
 		// Get RTCP feedback for each codec.
-		for (const fb of m.rtcpFb || [])
-		{
-			const feedback: RtcpFeedback =
-			{
-				type      : fb.type,
-				parameter : fb.subtype
+		for (const fb of m.rtcpFb || []) {
+			const feedback: RtcpFeedback = {
+				type: fb.type,
+				parameter: fb.subtype,
 			};
 
-			if (!feedback.parameter)
-			{
+			if (!feedback.parameter) {
 				delete feedback.parameter;
 			}
 
 			// rtcp-fb payload is not '*', so just apply it to its corresponding
 			// codec.
-			if (fb.payload !== '*')
-			{
+			if (fb.payload !== '*') {
 				const codec = codecsMap.get(fb.payload);
 
-				if (!codec)
-				{
+				if (!codec) {
 					continue;
 				}
 
@@ -127,12 +110,9 @@ export function extractRtpCapabilities(
 			}
 			// If rtcp-fb payload is '*' it must be applied to all codecs with same
 			// kind (with some exceptions such as RTX codec).
-			else
-			{
-				for (const codec of codecsMap.values())
-				{
-					if (codec.kind === kind && !/.+\/rtx$/i.test(codec.mimeType))
-					{
+			else {
+				for (const codec of codecsMap.values()) {
+					if (codec.kind === kind && !/.+\/rtx$/i.test(codec.mimeType)) {
 						codec.rtcpFeedback!.push(feedback);
 					}
 				}
@@ -140,114 +120,100 @@ export function extractRtpCapabilities(
 		}
 
 		// Get RTP header extensions.
-		for (const ext of m.ext || [])
-		{
+		for (const ext of m.ext || []) {
 			// Ignore encrypted extensions (not yet supported in mediasoup).
-			if (ext['encrypt-uri'])
-			{
+			if (ext['encrypt-uri']) {
 				continue;
 			}
 
-			const headerExtension: RtpHeaderExtension =
-			{
-				kind        : kind,
-				uri         : ext.uri,
-				preferredId : ext.value
+			const headerExtension: RtpHeaderExtension = {
+				kind: kind,
+				uri: ext.uri,
+				preferredId: ext.value,
 			};
 
 			headerExtensions.push(headerExtension);
 		}
 	}
 
-	const rtpCapabilities: RtpCapabilities =
-	{
-		codecs           : Array.from(codecsMap.values()),
-		headerExtensions : headerExtensions
+	const rtpCapabilities: RtpCapabilities = {
+		codecs: Array.from(codecsMap.values()),
+		headerExtensions: headerExtensions,
 	};
 
 	return rtpCapabilities;
 }
 
-export function extractDtlsParameters(
-	{ sdpObject }:
-	{ sdpObject: any }
-): DtlsParameters
-{
+export function extractDtlsParameters({
+	sdpObject,
+}: {
+	sdpObject: any;
+}): DtlsParameters {
 	let setup = sdpObject.setup;
 	let fingerprint = sdpObject.fingerprint;
 
-	if (!setup || !fingerprint)
-	{
-		const mediaObject = (sdpObject.media || [])
-			.find((m: { port: number }) => (m.port !== 0));
+	if (!setup || !fingerprint) {
+		const mediaObject = (sdpObject.media || []).find(
+			(m: { port: number }) => m.port !== 0,
+		);
 
-		if (mediaObject)
-		{
+		if (mediaObject) {
 			setup ??= mediaObject.setup;
 			fingerprint ??= mediaObject.fingerprint;
 		}
 	}
 
-	if (!setup)
-	{
+	if (!setup) {
 		throw new Error('no a=setup found at SDP session or media level');
-	}
-	else if (!fingerprint)
-	{
+	} else if (!fingerprint) {
 		throw new Error('no a=fingerprint found at SDP session or media level');
 	}
 
 	let role: DtlsRole | undefined;
 
-	switch (setup)
-	{
-		case 'active':
-		{
+	switch (setup) {
+		case 'active': {
 			role = 'client';
 
 			break;
 		}
 
-		case 'passive':
-		{
+		case 'passive': {
 			role = 'server';
 
 			break;
 		}
 
-		case 'actpass':
-		{
+		case 'actpass': {
 			role = 'auto';
 
 			break;
 		}
 	}
 
-	const dtlsParameters: DtlsParameters =
-	{
+	const dtlsParameters: DtlsParameters = {
 		role,
-		fingerprints :
-		[
+		fingerprints: [
 			{
-				algorithm : fingerprint.type,
-				value     : fingerprint.hash
-			}
-		]
+				algorithm: fingerprint.type,
+				value: fingerprint.hash,
+			},
+		],
 	};
 
 	return dtlsParameters;
 }
 
-export function getCname(
-	{ offerMediaObject }:
-	{ offerMediaObject: any }
-): string
-{
-	const ssrcCnameLine = (offerMediaObject.ssrcs || [])
-		.find((line: { attribute: string }) => line.attribute === 'cname');
+export function getCname({
+	offerMediaObject,
+}: {
+	offerMediaObject: any;
+}): string {
+	const ssrcCnameLine = (offerMediaObject.ssrcs || []).find(
+		(line: { attribute: string }) => line.attribute === 'cname',
+	);
 
-	if (!ssrcCnameLine)
-	{
+	if (!ssrcCnameLine) {
 		return '';
 	}
 
@@ -258,57 +224,48 @@ export function getCname(
  * Apply codec parameters in the given SDP m= section answer based on the
  * given RTP parameters of an offer.
  */
-export function applyCodecParameters(
-	{
-		offerRtpParameters,
-		answerMediaObject
-	}:
-	{
-		offerRtpParameters: RtpParameters;
-		answerMediaObject: any;
-	}
-): void
-{
-	for (const codec of offerRtpParameters.codecs)
-	{
+export function applyCodecParameters({
+	offerRtpParameters,
+	answerMediaObject,
+}: {
+	offerRtpParameters: RtpParameters;
+	answerMediaObject: any;
+}): void {
+	for (const codec of offerRtpParameters.codecs) {
 		const mimeType = codec.mimeType.toLowerCase();
 
 		// Avoid parsing codec parameters for unhandled codecs.
-		if (mimeType !== 'audio/opus')
-		{
+		if (mimeType !== 'audio/opus') {
 			continue;
 		}
 
-		const rtp = (answerMediaObject.rtp || [])
-			.find((r: { payload: number }) => r.payload === codec.payloadType);
+		const rtp = (answerMediaObject.rtp || []).find(
+			(r: { payload: number }) => r.payload === codec.payloadType,
+		);
 
-		if (!rtp)
-		{
+		if (!rtp) {
 			continue;
 		}
 
 		// Just in case.
 		answerMediaObject.fmtp = answerMediaObject.fmtp || [];
 
-		let fmtp = answerMediaObject.fmtp
-			.find((f: { payload: number }) => f.payload === codec.payloadType);
+		let fmtp = answerMediaObject.fmtp.find(
+			(f: { payload: number }) => f.payload === codec.payloadType,
+		);
 
-		if (!fmtp)
-		{
+		if (!fmtp) {
 			fmtp = { payload: codec.payloadType, config: '' };
 			answerMediaObject.fmtp.push(fmtp);
 		}
 
 		const parameters = sdpTransform.parseParams(fmtp.config);
 
-		switch (mimeType)
-		{
-			case 'audio/opus':
-			{
+		switch (mimeType) {
+			case 'audio/opus': {
 				const spropStereo = codec.parameters['sprop-stereo'];
 
-				if (spropStereo !== undefined)
-				{
+				if (spropStereo !== undefined) {
 					parameters.stereo = spropStereo ? 1 : 0;
 				}
 
@@ -319,10 +276,8 @@ export function applyCodecParameters(
 		// Write the codec fmtp.config back.
 		fmtp.config = '';
 
-		for (const key of Object.keys(parameters))
-		{
-			if (fmtp.config)
-			{
+		for (const key of Object.keys(parameters)) {
+			if (fmtp.config) {
 				fmtp.config += ';';
 			}
 

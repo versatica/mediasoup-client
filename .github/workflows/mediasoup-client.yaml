@@ -1,6 +1,6 @@
 name: mediasoup-client
 
-on: [push, pull_request]
+on: [pull_request, workflow_dispatch]
 
 concurrency:
   # Cancel a currently running workflow from the same PR, branch or tag when a
@@ -12,14 +12,18 @@ jobs:
   ci:
     strategy:
       matrix:
-        # Different Node versions on Ubuntu, the latest Node on other platforms.
         ci:
-          - os: ubuntu-22.04
+          - os: ubuntu-20.04
             node: 16
-          - os: macos-12
+          - os: ubuntu-20.04
             node: 18
           - os: ubuntu-22.04
             node: 20
+          - os: macos-12
+            node: 20
+          - os: windows-2022
+            node: 20
+
     runs-on: ${{ matrix.ci.os }}
 
     steps:
@@ -39,6 +43,12 @@ jobs:
           key: ${{ matrix.ci.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ matrix.ci.os }}-node-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
+
+      - name: npm ci
+        run: npm ci --foreground-scripts
+
+      - name: npm run lint
+        run: npm run lint
+
+      - name: npm run test
+        run: npm run test

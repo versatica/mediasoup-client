@@ -1,0 +1,6 @@
+# NOTE: This file and .eslintignore must contain same paths.
+
+/.cache
+/coverage
+/doc
+/lib

@@ -10,7 +10,6 @@ export * from './handlers/HandlerInterface';
 export * from './errors';
 export type { ScalabilityMode } from './scalabilityModes';
 
-export type AppData =
-{
+export type AppData = {
 	[key: string]: unknown;
 };

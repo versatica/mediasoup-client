@@ -20,5 +20,4 @@ https://mediasoup.discourse.group
 - mediasoup version:
 - mediasoup-client version:
 
-
 ### Issue description
