@@ -14,21 +14,20 @@ import {
 	HandlerSendDataChannelOptions,
 	HandlerSendDataChannelResult,
 	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult
+	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
-	DtlsRole
+	DtlsRole,
 } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('Edge11');
 
-export class Edge11 extends HandlerInterface
-{
+export class Edge11 extends HandlerInterface {
 	// Generic sending RTP parameters for audio and video.
 	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Transport remote ICE parameters.
@@ -57,92 +56,85 @@ export class Edge11 extends HandlerInterface
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory
-	{
+	static createFactory(): HandlerFactory {
 		return (): Edge11 => new Edge11();
 	}
 
-	constructor()
-	{
+	constructor() {
 		super();
 	}
 
-	get name(): string
-	{
+	get name(): string {
 		return 'Edge11';
 	}
 
-	close(): void
-	{
+	close(): void {
 		logger.debug('close()');
 
 		// Close the ICE gatherer.
 		// NOTE: Not yet implemented by Edge.
-		try { this._iceGatherer.close(); }
-		catch (error) {}
+		try {
+			this._iceGatherer.close();
+		} catch (error) {}
 
 		// Close the ICE transport.
-		try { this._iceTransport.stop(); }
-		catch (error) {}
+		try {
+			this._iceTransport.stop();
+		} catch (error) {}
 
 		// Close the DTLS transport.
-		try { this._dtlsTransport.stop(); }
-		catch (error) {}
+		try {
+			this._dtlsTransport.stop();
+		} catch (error) {}
 
 		// Close RTCRtpSenders.
-		for (const rtpSender of this._rtpSenders.values())
-		{
-			try { (rtpSender as any).stop(); }
-			catch (error) {}
+		for (const rtpSender of this._rtpSenders.values()) {
+			try {
+				(rtpSender as any).stop();
+			} catch (error) {}
 		}
 
 		// Close RTCRtpReceivers.
-		for (const rtpReceiver of this._rtpReceivers.values())
-		{
-			try { (rtpReceiver as any).stop(); }
-			catch (error) {}
+		for (const rtpReceiver of this._rtpReceivers.values()) {
+			try {
+				(rtpReceiver as any).stop();
+			} catch (error) {}
 		}
 
 		this.emit('@close');
 	}
 
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
-	{
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities> {
 		logger.debug('getNativeRtpCapabilities()');
 
 		return edgeUtils.getCapabilities();
 	}
 
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
-	{
+	async getNativeSctpCapabilities(): Promise<SctpCapabilities> {
 		logger.debug('getNativeSctpCapabilities()');
 
 		return {
-			numStreams : { OS: 0, MIS: 0 }
+			numStreams: { OS: 0, MIS: 0 },
 		};
 	}
 
-	run(
-		{
-			direction, // eslint-disable-line @typescript-eslint/no-unused-vars
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters, // eslint-disable-line @typescript-eslint/no-unused-vars
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings, // eslint-disable-line @typescript-eslint/no-unused-vars
-			proprietaryConstraints, // eslint-disable-line @typescript-eslint/no-unused-vars
-			extendedRtpCapabilities
-		}: HandlerRunOptions
-	): void
-	{
+	run({
+		direction, // eslint-disable-line @typescript-eslint/no-unused-vars
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters, // eslint-disable-line @typescript-eslint/no-unused-vars
+		iceServers,
+		iceTransportPolicy,
+		additionalSettings, // eslint-disable-line @typescript-eslint/no-unused-vars
+		proprietaryConstraints, // eslint-disable-line @typescript-eslint/no-unused-vars
+		extendedRtpCapabilities,
+	}: HandlerRunOptions): void {
 		logger.debug('run()');
 
-		this._sendingRtpParametersByKind =
-		{
-			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+		this._sendingRtpParametersByKind = {
+			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
 		};
 
 		this._remoteIceParameters = iceParameters;
@@ -156,75 +148,66 @@ export class Edge11 extends HandlerInterface
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
-	{
+	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		// NOTE: Edge 11 does not implement iceGatherer.gater().
 		throw new UnsupportedError('not supported');
 	}
 
-	async restartIce(iceParameters: IceParameters): Promise<void>
-	{
+	async restartIce(iceParameters: IceParameters): Promise<void> {
 		logger.debug('restartIce()');
 
 		this._remoteIceParameters = iceParameters;
 
-		if (!this._transportReady)
-		{
+		if (!this._transportReady) {
 			return;
 		}
 
 		logger.debug('restartIce() | calling iceTransport.start()');
 
-		this._iceTransport.start(
-			this._iceGatherer, iceParameters, 'controlling');
+		this._iceTransport.start(this._iceGatherer, iceParameters, 'controlling');
 
-		for (const candidate of this._remoteIceCandidates!)
-		{
+		for (const candidate of this._remoteIceCandidates!) {
 			this._iceTransport.addRemoteCandidate(candidate);
 		}
 
 		this._iceTransport.addRemoteCandidate({});
 	}
 
-	async getTransportStats(): Promise<RTCStatsReport>
-	{
+	async getTransportStats(): Promise<RTCStatsReport> {
 		return this._iceTransport.getStats();
 	}
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
-	): Promise<HandlerSendResult>
-	{
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions,
+	): Promise<HandlerSendResult> {
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		if (!this._transportReady)
-		{
+		if (!this._transportReady) {
 			await this.setupTransport({ localDtlsRole: 'server' });
 		}
 
 		logger.debug('send() | calling new RTCRtpSender()');
 
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
-		const rtpParameters =
-			utils.clone<RtpParameters>(this._sendingRtpParametersByKind![track.kind]);
+		const rtpParameters = utils.clone<RtpParameters>(
+			this._sendingRtpParametersByKind![track.kind],
+		);
 
 		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);
 
-		const useRtx = rtpParameters.codecs
-			.some((_codec: any) => /.+\/rtx$/i.test(_codec.mimeType));
+		const useRtx = rtpParameters.codecs.some((_codec: any) =>
+			/.+\/rtx$/i.test(_codec.mimeType),
+		);
 
-		if (!encodings)
-		{
-			encodings = [ {} ];
+		if (!encodings) {
+			encodings = [{}];
 		}
 
-		for (const encoding of encodings)
-		{
+		for (const encoding of encodings) {
 			encoding.ssrc = utils.generateRandomNumber();
 
-			if (useRtx)
-			{
+			if (useRtx) {
 				encoding.rtx = { ssrc: utils.generateRandomNumber() };
 			}
 		}
@@ -232,11 +215,10 @@ export class Edge11 extends HandlerInterface
 		rtpParameters.encodings = encodings;
 
 		// Fill RTCRtpParameters.rtcp.
-		rtpParameters.rtcp =
-		{
-			cname       : this._cname!,
-			reducedSize : true,
-			mux         : true
+		rtpParameters.rtcp = {
+			cname: this._cname!,
+			reducedSize: true,
+			mux: true,
 		};
 
 		// NOTE: Convert our standard RTCRtpParameters into those that Edge
@@ -245,7 +227,8 @@ export class Edge11 extends HandlerInterface
 
 		logger.debug(
 			'send() | calling rtpSender.send() [params:%o]',
-			edgeRtpParameters);
+			edgeRtpParameters,
+		);
 
 		await rtpSender.send(edgeRtpParameters);
 
@@ -259,27 +242,22 @@ export class Edge11 extends HandlerInterface
 		return { localId, rtpParameters, rtpSender };
 	}
 
-	async stopSending(localId: string): Promise<void>
-	{
+	async stopSending(localId: string): Promise<void> {
 		logger.debug('stopSending() [localId:%s]', localId);
 
 		const rtpSender = this._rtpSenders.get(localId);
 
-		if (!rtpSender)
-		{
+		if (!rtpSender) {
 			throw new Error('RTCRtpSender not found');
 		}
 
 		this._rtpSenders.delete(localId);
 
-		try
-		{
+		try {
 			logger.debug('stopSending() | calling rtpSender.stop()');
 
 			(rtpSender as any).stop();
-		}
-		catch (error)
-		{
+		} catch (error) {
 			logger.warn('stopSending() | rtpSender.stop() failed:%o', error);
 
 			throw error;
@@ -287,101 +265,93 @@ export class Edge11 extends HandlerInterface
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async pauseSending(localId: string): Promise<void>
-	{
+	async pauseSending(localId: string): Promise<void> {
 		// Unimplemented.
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async resumeSending(localId: string): Promise<void>
-	{
+	async resumeSending(localId: string): Promise<void> {
 		// Unimplemented.
 	}
 
 	async replaceTrack(
-		localId: string, track: MediaStreamTrack | null
-	): Promise<void>
-	{
-		if (track)
-		{
+		localId: string,
+		track: MediaStreamTrack | null,
+	): Promise<void> {
+		if (track) {
 			logger.debug(
-				'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
-		}
-		else
-		{
+				'replaceTrack() [localId:%s, track.id:%s]',
+				localId,
+				track.id,
+			);
+		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
 		}
 
 		const rtpSender = this._rtpSenders.get(localId);
 
-		if (!rtpSender)
-		{
+		if (!rtpSender) {
 			throw new Error('RTCRtpSender not found');
 		}
 
 		(rtpSender as any).setTrack(track);
 	}
 
-	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
-	{
+	async setMaxSpatialLayer(
+		localId: string,
+		spatialLayer: number,
+	): Promise<void> {
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
-			localId, spatialLayer);
+			localId,
+			spatialLayer,
+		);
 
 		const rtpSender = this._rtpSenders.get(localId);
 
-		if (!rtpSender)
-		{
+		if (!rtpSender) {
 			throw new Error('RTCRtpSender not found');
 		}
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings
-			.forEach((encoding, idx) =>
-			{
-				if (idx <= spatialLayer)
-				{
-					encoding.active = true;
-				}
-				else
-				{
-					encoding.active = false;
-				}
-			});
+		parameters.encodings.forEach((encoding, idx) => {
+			if (idx <= spatialLayer) {
+				encoding.active = true;
+			} else {
+				encoding.active = false;
+			}
+		});
 
 		await rtpSender.setParameters(parameters);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
-	{
+	async setRtpEncodingParameters(localId: string, params: any): Promise<void> {
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
-			localId, params);
+			localId,
+			params,
+		);
 
 		const rtpSender = this._rtpSenders.get(localId);
 
-		if (!rtpSender)
-		{
+		if (!rtpSender) {
 			throw new Error('RTCRtpSender not found');
 		}
 
 		const parameters = rtpSender.getParameters();
 
-		parameters.encodings.forEach((encoding: any, idx: number) =>
-		{
+		parameters.encodings.forEach((encoding: any, idx: number) => {
 			parameters.encodings[idx] = { ...encoding, ...params };
 		});
 
 		await rtpSender.setParameters(parameters);
 	}
 
-	async getSenderStats(localId: string): Promise<RTCStatsReport>
-	{
+	async getSenderStats(localId: string): Promise<RTCStatsReport> {
 		const rtpSender = this._rtpSenders.get(localId);
 
-		if (!rtpSender)
-		{
+		if (!rtpSender) {
 			throw new Error('RTCRtpSender not found');
 		}
 
@@ -390,51 +360,48 @@ export class Edge11 extends HandlerInterface
 
 	async sendDataChannel(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerSendDataChannelOptions
-	): Promise<HandlerSendDataChannelResult>
-	{
+		options: HandlerSendDataChannelOptions,
+	): Promise<HandlerSendDataChannelResult> {
 		throw new UnsupportedError('not implemented');
 	}
 
 	async receive(
-		optionsList: HandlerReceiveOptions[]
-	) : Promise<HandlerReceiveResult[]>
-	{
+		optionsList: HandlerReceiveOptions[],
+	): Promise<HandlerReceiveResult[]> {
 		const results: HandlerReceiveResult[] = [];
 
-		for (const options of optionsList)
-		{
+		for (const options of optionsList) {
 			const { trackId, kind } = options;
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 		}
 
-		if (!this._transportReady)
-		{
+		if (!this._transportReady) {
 			await this.setupTransport({ localDtlsRole: 'server' });
 		}
 
-		for (const options of optionsList)
-		{
+		for (const options of optionsList) {
 			const { trackId, kind, rtpParameters } = options;
 
 			logger.debug('receive() | calling new RTCRtpReceiver()');
 
-			const rtpReceiver = new (RTCRtpReceiver as any)(this._dtlsTransport, kind);
+			const rtpReceiver = new (RTCRtpReceiver as any)(
+				this._dtlsTransport,
+				kind,
+			);
 
-			rtpReceiver.addEventListener('error', (event: any) =>
-			{
+			rtpReceiver.addEventListener('error', (event: any) => {
 				logger.error('rtpReceiver "error" event [event:%o]', event);
 			});
 
 			// NOTE: Convert our standard RTCRtpParameters into those that Edge
 			// expects.
-			const edgeRtpParameters =
-				edgeUtils.mangleRtpParameters(rtpParameters);
+			const edgeRtpParameters = edgeUtils.mangleRtpParameters(rtpParameters);
 
 			logger.debug(
 				'receive() | calling rtpReceiver.receive() [params:%o]',
-				edgeRtpParameters);
+				edgeRtpParameters,
+			);
 
 			await rtpReceiver.receive(edgeRtpParameters);
 
@@ -445,37 +412,31 @@ export class Edge11 extends HandlerInterface
 
 			results.push({
 				localId,
-				track : rtpReceiver.track,
-				rtpReceiver
+				track: rtpReceiver.track,
+				rtpReceiver,
 			});
 		}
 
 		return results;
 	}
 
-	async stopReceiving(localIds: string[]): Promise<void>
-	{
-		for (const localId of localIds)
-		{
+	async stopReceiving(localIds: string[]): Promise<void> {
+		for (const localId of localIds) {
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
 			const rtpReceiver = this._rtpReceivers.get(localId);
 
-			if (!rtpReceiver)
-			{
+			if (!rtpReceiver) {
 				throw new Error('RTCRtpReceiver not found');
 			}
 
 			this._rtpReceivers.delete(localId);
 
-			try
-			{
+			try {
 				logger.debug('stopReceiving() | calling rtpReceiver.stop()');
 
 				(rtpReceiver as any).stop();
-			}
-			catch (error)
-			{
+			} catch (error) {
 				logger.warn('stopReceiving() | rtpReceiver.stop() failed:%o', error);
 			}
 		}
@@ -483,24 +444,22 @@ export class Edge11 extends HandlerInterface
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[]): Promise<void>
-	{
+		localIds: string[],
+	): Promise<void> {
 		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[]): Promise<void>
-	{
+		localIds: string[],
+	): Promise<void> {
 		// Unimplemented.
 	}
 
-	async getReceiverStats(localId: string): Promise<RTCStatsReport>
-	{
+	async getReceiverStats(localId: string): Promise<RTCStatsReport> {
 		const rtpReceiver = this._rtpReceivers.get(localId);
 
-		if (!rtpReceiver)
-		{
+		if (!rtpReceiver) {
 			throw new Error('RTCRtpReceiver not found');
 		}
 
@@ -509,84 +468,73 @@ export class Edge11 extends HandlerInterface
 
 	async receiveDataChannel(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerReceiveDataChannelOptions
-	): Promise<HandlerReceiveDataChannelResult>
-	{
+		options: HandlerReceiveDataChannelOptions,
+	): Promise<HandlerReceiveDataChannelResult> {
 		throw new UnsupportedError('not implemented');
 	}
 
-	private setIceGatherer(
-		{ iceServers, iceTransportPolicy }:
-		{ iceServers?: any[]; iceTransportPolicy?: RTCIceTransportPolicy }
-	): void
-	{
+	private setIceGatherer({
+		iceServers,
+		iceTransportPolicy,
+	}: {
+		iceServers?: any[];
+		iceTransportPolicy?: RTCIceTransportPolicy;
+	}): void {
 		// @ts-ignore
-		const iceGatherer = new (RTCIceGatherer as any)(
-			{
-				iceServers   : iceServers || [],
-				gatherPolicy : iceTransportPolicy || 'all'
-			});
+		const iceGatherer = new (RTCIceGatherer as any)({
+			iceServers: iceServers || [],
+			gatherPolicy: iceTransportPolicy || 'all',
+		});
 
-		iceGatherer.addEventListener('error', (event: any) =>
-		{
+		iceGatherer.addEventListener('error', (event: any) => {
 			logger.error('iceGatherer "error" event [event:%o]', event);
 		});
 
 		// NOTE: Not yet implemented by Edge, which starts gathering automatically.
-		try
-		{
+		try {
 			iceGatherer.gather();
-		}
-		catch (error)
-		{
+		} catch (error) {
 			logger.debug(
 				'setIceGatherer() | iceGatherer.gather() failed: %s',
-				(error as Error).toString());
+				(error as Error).toString(),
+			);
 		}
 
 		this._iceGatherer = iceGatherer;
 	}
 
-	private setIceTransport(): void
-	{
+	private setIceTransport(): void {
 		const iceTransport = new (RTCIceTransport as any)(this._iceGatherer);
 
 		// NOTE: Not yet implemented by Edge.
-		iceTransport.addEventListener('statechange', () =>
-		{
-			switch (iceTransport.state)
-			{
-				case 'checking':
-				{
+		iceTransport.addEventListener('statechange', () => {
+			switch (iceTransport.state) {
+				case 'checking': {
 					this.emit('@connectionstatechange', 'connecting');
 
 					break;
 				}
 
 				case 'connected':
-				case 'completed':
-				{
+				case 'completed': {
 					this.emit('@connectionstatechange', 'connected');
 
 					break;
 				}
 
-				case 'failed':
-				{
+				case 'failed': {
 					this.emit('@connectionstatechange', 'failed');
 
 					break;
 				}
 
-				case 'disconnected':
-				{
+				case 'disconnected': {
 					this.emit('@connectionstatechange', 'disconnected');
 
 					break;
 				}
 
-				case 'closed':
-				{
+				case 'closed': {
 					this.emit('@connectionstatechange', 'closed');
 
 					break;
@@ -595,41 +543,34 @@ export class Edge11 extends HandlerInterface
 		});
 
 		// NOTE: Not standard, but implemented by Edge.
-		iceTransport.addEventListener('icestatechange', () =>
-		{
-			switch (iceTransport.state)
-			{
-				case 'checking':
-				{
+		iceTransport.addEventListener('icestatechange', () => {
+			switch (iceTransport.state) {
+				case 'checking': {
 					this.emit('@connectionstatechange', 'connecting');
 
 					break;
 				}
 
 				case 'connected':
-				case 'completed':
-				{
+				case 'completed': {
 					this.emit('@connectionstatechange', 'connected');
 
 					break;
 				}
 
-				case 'failed':
-				{
+				case 'failed': {
 					this.emit('@connectionstatechange', 'failed');
 
 					break;
 				}
 
-				case 'disconnected':
-				{
+				case 'disconnected': {
 					this.emit('@connectionstatechange', 'disconnected');
 
 					break;
 				}
 
-				case 'closed':
-				{
+				case 'closed': {
 					this.emit('@connectionstatechange', 'closed');
 
 					break;
@@ -637,51 +578,51 @@ export class Edge11 extends HandlerInterface
 			}
 		});
 
-		iceTransport.addEventListener('candidatepairchange', (event: any) =>
-		{
+		iceTransport.addEventListener('candidatepairchange', (event: any) => {
 			logger.debug(
-				'iceTransport "candidatepairchange" event [pair:%o]', event.pair);
+				'iceTransport "candidatepairchange" event [pair:%o]',
+				event.pair,
+			);
 		});
 
 		this._iceTransport = iceTransport;
 	}
 
-	private setDtlsTransport(): void
-	{
+	private setDtlsTransport(): void {
 		const dtlsTransport = new (RTCDtlsTransport as any)(this._iceTransport);
 
 		// NOTE: Not yet implemented by Edge.
-		dtlsTransport.addEventListener('statechange', () =>
-		{
+		dtlsTransport.addEventListener('statechange', () => {
 			logger.debug(
-				'dtlsTransport "statechange" event [state:%s]', dtlsTransport.state);
+				'dtlsTransport "statechange" event [state:%s]',
+				dtlsTransport.state,
+			);
 		});
 
 		// NOTE: Not standard, but implemented by Edge.
-		dtlsTransport.addEventListener('dtlsstatechange', () =>
-		{
+		dtlsTransport.addEventListener('dtlsstatechange', () => {
 			logger.debug(
-				'dtlsTransport "dtlsstatechange" event [state:%s]', dtlsTransport.state);
+				'dtlsTransport "dtlsstatechange" event [state:%s]',
+				dtlsTransport.state,
+			);
 
-			if (dtlsTransport.state === 'closed')
-			{
+			if (dtlsTransport.state === 'closed') {
 				this.emit('@connectionstatechange', 'closed');
 			}
 		});
 
-		dtlsTransport.addEventListener('error', (event: any) =>
-		{
+		dtlsTransport.addEventListener('error', (event: any) => {
 			logger.error('dtlsTransport "error" event [event:%o]', event);
 		});
 
 		this._dtlsTransport = dtlsTransport;
 	}
 
-	private async setupTransport(
-		{ localDtlsRole }:
-		{ localDtlsRole: DtlsRole }
-	): Promise<void>
-	{
+	private async setupTransport({
+		localDtlsRole,
+	}: {
+		localDtlsRole: DtlsRole;
+	}): Promise<void> {
 		logger.debug('setupTransport()');
 
 		// Get our local DTLS parameters.
@@ -690,23 +631,19 @@ export class Edge11 extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Need to tell the remote transport about our parameters.
-		await new Promise<void>((resolve, reject) =>
-		{
-			this.safeEmit(
-				'@connect',
-				{ dtlsParameters },
-				resolve,
-				reject
-			);
+		await new Promise<void>((resolve, reject) => {
+			this.safeEmit('@connect', { dtlsParameters }, resolve, reject);
 		});
 
 		// Start the RTCIceTransport.
 		this._iceTransport.start(
-			this._iceGatherer, this._remoteIceParameters, 'controlling');
+			this._iceGatherer,
+			this._remoteIceParameters,
+			'controlling',
+		);
 
 		// Add remote ICE candidates.
-		for (const candidate of this._remoteIceCandidates!)
-		{
+		for (const candidate of this._remoteIceCandidates!) {
 			this._iceTransport.addRemoteCandidate(candidate);
 		}
 
@@ -717,9 +654,8 @@ export class Edge11 extends HandlerInterface
 		this._iceTransport.addRemoteCandidate({});
 
 		// NOTE: Edge does not like SHA less than 256.
-		this._remoteDtlsParameters!.fingerprints = this._remoteDtlsParameters!.fingerprints
-			.filter((fingerprint: any) =>
-			{
+		this._remoteDtlsParameters!.fingerprints =
+			this._remoteDtlsParameters!.fingerprints.filter((fingerprint: any) => {
 				return (
 					fingerprint.algorithm === 'sha-256' ||
 					fingerprint.algorithm === 'sha-384' ||

@@ -5,7 +5,11 @@ import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
-import { HandlerFactory, HandlerInterface, HandlerReceiveOptions } from './handlers/HandlerInterface';
+import {
+	HandlerFactory,
+	HandlerInterface,
+	HandlerReceiveOptions,
+} from './handlers/HandlerInterface';
 import { Producer, ProducerOptions } from './Producer';
 import { Consumer, ConsumerOptions } from './Consumer';
 import { DataProducer, DataProducerOptions } from './DataProducer';
@@ -16,8 +20,7 @@ import { AppData } from './types';
 
 const logger = new Logger('Transport');
 
-export type TransportOptions<TransportAppData extends AppData = AppData> =
-{
+export type TransportOptions<TransportAppData extends AppData = AppData> = {
 	id: string;
 	iceParameters: IceParameters;
 	iceCandidates: IceCandidate[];
@@ -30,15 +33,13 @@ export type TransportOptions<TransportAppData extends AppData = AppData> =
 	appData?: TransportAppData;
 };
 
-export type CanProduceByKind =
-{
+export type CanProduceByKind = {
 	audio: boolean;
 	video: boolean;
 	[key: string]: boolean;
 };
 
-export type IceParameters =
-{
+export type IceParameters = {
 	/**
 	 * ICE username fragment.
 	 * */
@@ -53,8 +54,7 @@ export type IceParameters =
 	iceLite?: boolean;
 };
 
-export type IceCandidate =
-{
+export type IceCandidate = {
 	/**
 	 * Unique identifier that allows ICE to correlate candidates that appear on
 	 * multiple transports.
@@ -86,8 +86,7 @@ export type IceCandidate =
 	tcpType?: 'active' | 'passive' | 'so';
 };
 
-export type DtlsParameters =
-{
+export type DtlsParameters = {
 	/**
 	 * Server DTLS role. Default 'auto'.
 	 */
@@ -102,7 +101,12 @@ export type DtlsParameters =
  * The hash function algorithm (as defined in the "Hash function Textual Names"
  * registry initially specified in RFC 4572 Section 8).
  */
-export type FingerprintAlgorithm = 'sha-1'| 'sha-224'| 'sha-256'| 'sha-384'| 'sha-512';
+export type FingerprintAlgorithm =
+	| 'sha-1'
+	| 'sha-224'
+	| 'sha-256'
+	| 'sha-384'
+	| 'sha-512';
 
 /**
  * The hash function algorithm (as defined in the "Hash function Textual Names"
@@ -110,18 +114,14 @@ export type FingerprintAlgorithm = 'sha-1'| 'sha-224'| 'sha-256'| 'sha-384'| 'sh
  * certificate fingerprint value (in lowercase hex string as expressed utilizing
  * the syntax of "fingerprint" in RFC 4572 Section 5).
  */
-export type DtlsFingerprint =
-{
+export type DtlsFingerprint = {
 	algorithm: FingerprintAlgorithm;
 	value: string;
 };
 
 export type DtlsRole = 'auto' | 'client' | 'server';
 
-export type IceGatheringState =
-	| 'new'
-	| 'gathering'
-	| 'complete';
+export type IceGatheringState = 'new' | 'gathering' | 'complete';
 
 export type ConnectionState =
 	| 'new'
@@ -131,30 +131,30 @@ export type ConnectionState =
 	| 'disconnected'
 	| 'closed';
 
-export type PlainRtpParameters =
-{
+export type PlainRtpParameters = {
 	ip: string;
 	ipVersion: 4 | 6;
 	port: number;
 };
 
-export type TransportEvents =
-{
-	connect: [{ dtlsParameters: DtlsParameters }, () => void, (error: Error) => void];
+export type TransportEvents = {
+	connect: [
+		{ dtlsParameters: DtlsParameters },
+		() => void,
+		(error: Error) => void,
+	];
 	icegatheringstatechange: [IceGatheringState];
 	connectionstatechange: [ConnectionState];
-	produce:
-	[
+	produce: [
 		{
 			kind: MediaKind;
 			rtpParameters: RtpParameters;
 			appData: AppData;
 		},
 		({ id }: { id: string }) => void,
-		(error: Error) => void
+		(error: Error) => void,
 	];
-	producedata:
-	[
+	producedata: [
 		{
 			sctpStreamParameters: SctpStreamParameters;
 			label?: string;
@@ -162,12 +162,11 @@ export type TransportEvents =
 			appData: AppData;
 		},
 		({ id }: { id: string }) => void,
-		(error: Error) => void
+		(error: Error) => void,
 	];
 };
 
-export type TransportObserverEvents =
-{
+export type TransportObserverEvents = {
 	close: [];
 	newproducer: [Producer];
 	newconsumer: [Consumer];
@@ -175,27 +174,24 @@ export type TransportObserverEvents =
 	newdataconsumer: [DataConsumer];
 };
 
-class ConsumerCreationTask
-{
+class ConsumerCreationTask {
 	consumerOptions: ConsumerOptions;
 	promise: Promise<Consumer>;
 	resolve?: (consumer: Consumer) => void;
 	reject?: (error: Error) => void;
 
-	constructor(consumerOptions: ConsumerOptions)
-	{
+	constructor(consumerOptions: ConsumerOptions) {
 		this.consumerOptions = consumerOptions;
-		this.promise = new Promise((resolve, reject) =>
-		{
+		this.promise = new Promise((resolve, reject) => {
 			this.resolve = resolve;
 			this.reject = reject;
 		});
 	}
 }
 
-export class Transport<TransportAppData extends AppData = AppData>
-	extends EnhancedEventEmitter<TransportEvents>
-{
+export class Transport<
+	TransportAppData extends AppData = AppData,
+> extends EnhancedEventEmitter<TransportEvents> {
 	// Id.
 	private readonly _id: string;
 	// Closed flag.
@@ -246,33 +242,30 @@ export class Transport<TransportAppData extends AppData = AppData>
 	// Consumer close in progress flag.
 	private _consumerCloseInProgress = false;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter<TransportObserverEvents>();
+	protected readonly _observer =
+		new EnhancedEventEmitter<TransportObserverEvents>();
 
-	constructor(
-		{
-			direction,
-			id,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings,
-			proprietaryConstraints,
-			appData,
-			handlerFactory,
-			extendedRtpCapabilities,
-			canProduceByKind
-		}:
-		{
-			direction: 'send' | 'recv';
-			handlerFactory: HandlerFactory;
-			extendedRtpCapabilities: any;
-			canProduceByKind: CanProduceByKind;
-		} & TransportOptions<TransportAppData>
-	)
-	{
+	constructor({
+		direction,
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		iceServers,
+		iceTransportPolicy,
+		additionalSettings,
+		proprietaryConstraints,
+		appData,
+		handlerFactory,
+		extendedRtpCapabilities,
+		canProduceByKind,
+	}: {
+		direction: 'send' | 'recv';
+		handlerFactory: HandlerFactory;
+		extendedRtpCapabilities: any;
+		canProduceByKind: CanProduceByKind;
+	} & TransportOptions<TransportAppData>) {
 		super();
 
 		logger.debug('constructor() [id:%s, direction:%s]', id, direction);
@@ -281,8 +274,9 @@ export class Transport<TransportAppData extends AppData = AppData>
 		this._direction = direction;
 		this._extendedRtpCapabilities = extendedRtpCapabilities;
 		this._canProduceByKind = canProduceByKind;
-		this._maxSctpMessageSize =
-			sctpParameters ? sctpParameters.maxMessageSize : null;
+		this._maxSctpMessageSize = sctpParameters
+			? sctpParameters.maxMessageSize
+			: null;
 
 		// Clone and sanitize additionalSettings.
 		additionalSettings = utils.clone(additionalSettings) || {};
@@ -295,21 +289,20 @@ export class Transport<TransportAppData extends AppData = AppData>
 
 		this._handler = handlerFactory();
 
-		this._handler.run(
-			{
-				direction,
-				iceParameters,
-				iceCandidates,
-				dtlsParameters,
-				sctpParameters,
-				iceServers,
-				iceTransportPolicy,
-				additionalSettings,
-				proprietaryConstraints,
-				extendedRtpCapabilities
-			});
+		this._handler.run({
+			direction,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters,
+			iceServers,
+			iceTransportPolicy,
+			additionalSettings,
+			proprietaryConstraints,
+			extendedRtpCapabilities,
+		});
 
-		this._appData = appData || {} as TransportAppData;
+		this._appData = appData || ({} as TransportAppData);
 
 		this.handleHandler();
 	}
@@ -317,79 +310,68 @@ export class Transport<TransportAppData extends AppData = AppData>
 	/**
 	 * Transport id.
 	 */
-	get id(): string
-	{
+	get id(): string {
 		return this._id;
 	}
 
 	/**
 	 * Whether the Transport is closed.
 	 */
-	get closed(): boolean
-	{
+	get closed(): boolean {
 		return this._closed;
 	}
 
 	/**
 	 * Transport direction.
 	 */
-	get direction(): 'send' | 'recv'
-	{
+	get direction(): 'send' | 'recv' {
 		return this._direction;
 	}
 
 	/**
 	 * RTC handler instance.
 	 */
-	get handler(): HandlerInterface
-	{
+	get handler(): HandlerInterface {
 		return this._handler;
 	}
 
 	/**
 	 * ICE gathering state.
 	 */
-	get iceGatheringState(): IceGatheringState
-	{
+	get iceGatheringState(): IceGatheringState {
 		return this._iceGatheringState;
 	}
 
 	/**
 	 * Connection state.
 	 */
-	get connectionState(): ConnectionState
-	{
+	get connectionState(): ConnectionState {
 		return this._connectionState;
 	}
 
 	/**
 	 * App custom data.
 	 */
-	get appData(): TransportAppData
-	{
+	get appData(): TransportAppData {
 		return this._appData;
 	}
 
 	/**
 	 * App custom data setter.
 	 */
-	set appData(appData: TransportAppData)
-	{
+	set appData(appData: TransportAppData) {
 		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter
-	{
+	get observer(): EnhancedEventEmitter {
 		return this._observer;
 	}
 
 	/**
 	 * Close the Transport.
 	 */
-	close(): void
-	{
-		if (this._closed)
-		{
+	close(): void {
+		if (this._closed) {
 			return;
 		}
 
@@ -408,29 +390,25 @@ export class Transport<TransportAppData extends AppData = AppData>
 		this._connectionState = 'closed';
 
 		// Close all Producers.
-		for (const producer of this._producers.values())
-		{
+		for (const producer of this._producers.values()) {
 			producer.transportClosed();
 		}
 		this._producers.clear();
 
 		// Close all Consumers.
-		for (const consumer of this._consumers.values())
-		{
+		for (const consumer of this._consumers.values()) {
 			consumer.transportClosed();
 		}
 		this._consumers.clear();
 
 		// Close all DataProducers.
-		for (const dataProducer of this._dataProducers.values())
-		{
+		for (const dataProducer of this._dataProducers.values()) {
 			dataProducer.transportClosed();
 		}
 		this._dataProducers.clear();
 
 		// Close all DataConsumers.
-		for (const dataConsumer of this._dataConsumers.values())
-		{
+		for (const dataConsumer of this._dataConsumers.values()) {
 			dataConsumer.transportClosed();
 		}
 		this._dataConsumers.clear();
@@ -444,10 +422,8 @@ export class Transport<TransportAppData extends AppData = AppData>
 	 *
 	 * @returns {RTCStatsReport}
 	 */
-	async getStats(): Promise<RTCStatsReport>
-	{
-		if (this._closed)
-		{
+	async getStats(): Promise<RTCStatsReport> {
+		if (this._closed) {
 			throw new InvalidStateError('closed');
 		}
 
@@ -457,195 +433,160 @@ export class Transport<TransportAppData extends AppData = AppData>
 	/**
 	 * Restart ICE connection.
 	 */
-	async restartIce(
-		{ iceParameters }:
-		{ iceParameters: IceParameters }
-	): Promise<void>
-	{
+	async restartIce({
+		iceParameters,
+	}: {
+		iceParameters: IceParameters;
+	}): Promise<void> {
 		logger.debug('restartIce()');
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (!iceParameters)
-		{
+		} else if (!iceParameters) {
 			throw new TypeError('missing iceParameters');
 		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
 			async () => await this._handler.restartIce(iceParameters),
-			'transport.restartIce()');
+			'transport.restartIce()',
+		);
 	}
 
 	/**
 	 * Update ICE servers.
 	 */
-	async updateIceServers(
-		{ iceServers }:
-		{ iceServers?: RTCIceServer[] } = {}
-	): Promise<void>
-	{
+	async updateIceServers({
+		iceServers,
+	}: { iceServers?: RTCIceServer[] } = {}): Promise<void> {
 		logger.debug('updateIceServers()');
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (!Array.isArray(iceServers))
-		{
+		} else if (!Array.isArray(iceServers)) {
 			throw new TypeError('missing iceServers');
 		}
 
 		// Enqueue command.
 		return this._awaitQueue.push(
 			async () => this._handler.updateIceServers(iceServers),
-			'transport.updateIceServers()');
+			'transport.updateIceServers()',
+		);
 	}
 
 	/**
 	 * Create a Producer.
 	 */
-	async produce<ProducerAppData extends AppData = AppData>(
-		{
-			track,
-			encodings,
-			codecOptions,
-			codec,
-			stopTracks = true,
-			disableTrackOnPause = true,
-			zeroRtpOnPause = false,
-			appData = {} as ProducerAppData
-		}: ProducerOptions<ProducerAppData> = {}
-	): Promise<Producer<ProducerAppData>>
-	{
+	async produce<ProducerAppData extends AppData = AppData>({
+		track,
+		encodings,
+		codecOptions,
+		codec,
+		stopTracks = true,
+		disableTrackOnPause = true,
+		zeroRtpOnPause = false,
+		appData = {} as ProducerAppData,
+	}: ProducerOptions<ProducerAppData> = {}): Promise<
+		Producer<ProducerAppData>
+	> {
 		logger.debug('produce() [track:%o]', track);
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (!track)
-		{
+		} else if (!track) {
 			throw new TypeError('missing track');
-		}
-		else if (this._direction !== 'send')
-		{
+		} else if (this._direction !== 'send') {
 			throw new UnsupportedError('not a sending Transport');
-		}
-		else if (!this._canProduceByKind[track.kind])
-		{
+		} else if (!this._canProduceByKind[track.kind]) {
 			throw new UnsupportedError(`cannot produce ${track.kind}`);
-		}
-		else if (track.readyState === 'ended')
-		{
+		} else if (track.readyState === 'ended') {
 			throw new InvalidStateError('track ended');
-		}
-		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
-		{
+		} else if (
+			this.listenerCount('connect') === 0 &&
+			this._connectionState === 'new'
+		) {
 			throw new TypeError('no "connect" listener set into this transport');
-		}
-		else if (this.listenerCount('produce') === 0)
-		{
+		} else if (this.listenerCount('produce') === 0) {
 			throw new TypeError('no "produce" listener set into this transport');
-		}
-		else if (appData && typeof appData !== 'object')
-		{
+		} else if (appData && typeof appData !== 'object') {
 			throw new TypeError('if given, appData must be an object');
 		}
 
 		// Enqueue command.
-		return this._awaitQueue.push(
-			async () =>
-			{
-				let normalizedEncodings;
+		return (
+			this._awaitQueue
+				.push(async () => {
+					let normalizedEncodings;
 
-				if (encodings && !Array.isArray(encodings))
-				{
-					throw TypeError('encodings must be an array');
-				}
-				else if (encodings && encodings.length === 0)
-				{
-					normalizedEncodings = undefined;
-				}
-				else if (encodings)
-				{
-					normalizedEncodings = encodings
-						.map((encoding: any) =>
-						{
+					if (encodings && !Array.isArray(encodings)) {
+						throw TypeError('encodings must be an array');
+					} else if (encodings && encodings.length === 0) {
+						normalizedEncodings = undefined;
+					} else if (encodings) {
+						normalizedEncodings = encodings.map((encoding: any) => {
 							const normalizedEncoding: any = { active: true };
 
-							if (encoding.active === false)
-							{
+							if (encoding.active === false) {
 								normalizedEncoding.active = false;
 							}
-							if (typeof encoding.dtx === 'boolean')
-							{
+							if (typeof encoding.dtx === 'boolean') {
 								normalizedEncoding.dtx = encoding.dtx;
 							}
-							if (typeof encoding.scalabilityMode === 'string')
-							{
+							if (typeof encoding.scalabilityMode === 'string') {
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
 							}
-							if (typeof encoding.scaleResolutionDownBy === 'number')
-							{
-								normalizedEncoding.scaleResolutionDownBy = encoding.scaleResolutionDownBy;
+							if (typeof encoding.scaleResolutionDownBy === 'number') {
+								normalizedEncoding.scaleResolutionDownBy =
+									encoding.scaleResolutionDownBy;
 							}
-							if (typeof encoding.maxBitrate === 'number')
-							{
+							if (typeof encoding.maxBitrate === 'number') {
 								normalizedEncoding.maxBitrate = encoding.maxBitrate;
 							}
-							if (typeof encoding.maxFramerate === 'number')
-							{
+							if (typeof encoding.maxFramerate === 'number') {
 								normalizedEncoding.maxFramerate = encoding.maxFramerate;
 							}
-							if (typeof encoding.adaptivePtime === 'boolean')
-							{
+							if (typeof encoding.adaptivePtime === 'boolean') {
 								normalizedEncoding.adaptivePtime = encoding.adaptivePtime;
 							}
-							if (typeof encoding.priority === 'string')
-							{
+							if (typeof encoding.priority === 'string') {
 								normalizedEncoding.priority = encoding.priority;
 							}
-							if (typeof encoding.networkPriority === 'string')
-							{
+							if (typeof encoding.networkPriority === 'string') {
 								normalizedEncoding.networkPriority = encoding.networkPriority;
 							}
 
 							return normalizedEncoding;
 						});
-				}
+					}
 
-				const { localId, rtpParameters, rtpSender } = await this._handler.send(
-					{
-						track,
-						encodings : normalizedEncodings,
-						codecOptions,
-						codec
-					});
+					const { localId, rtpParameters, rtpSender } =
+						await this._handler.send({
+							track,
+							encodings: normalizedEncodings,
+							codecOptions,
+							codec,
+						});
 
-				try
-				{
-					// This will fill rtpParameters's missing fields with default values.
-					ortc.validateRtpParameters(rtpParameters);
+					try {
+						// This will fill rtpParameters's missing fields with default values.
+						ortc.validateRtpParameters(rtpParameters);
 
-					const { id } = await new Promise<{ id: string }>((resolve, reject) =>
-					{
-						this.safeEmit(
-							'produce',
-							{
-								kind : track.kind as MediaKind,
-								rtpParameters,
-								appData
+						const { id } = await new Promise<{ id: string }>(
+							(resolve, reject) => {
+								this.safeEmit(
+									'produce',
+									{
+										kind: track.kind as MediaKind,
+										rtpParameters,
+										appData,
+									},
+									resolve,
+									reject,
+								);
 							},
-							resolve,
-							reject
 						);
-					});
 
-					const producer = new Producer<ProducerAppData>(
-						{
+						const producer = new Producer<ProducerAppData>({
 							id,
 							localId,
 							rtpSender,
@@ -654,120 +595,99 @@ export class Transport<TransportAppData extends AppData = AppData>
 							stopTracks,
 							disableTrackOnPause,
 							zeroRtpOnPause,
-							appData
+							appData,
 						});
 
-					this._producers.set(producer.id, producer);
-					this.handleProducer(producer);
+						this._producers.set(producer.id, producer);
+						this.handleProducer(producer);
 
-					// Emit observer event.
-					this._observer.safeEmit('newproducer', producer);
+						// Emit observer event.
+						this._observer.safeEmit('newproducer', producer);
 
-					return producer;
-				}
-				catch (error)
-				{
-					this._handler.stopSending(localId)
-						.catch(() => {});
+						return producer;
+					} catch (error) {
+						this._handler.stopSending(localId).catch(() => {});
+
+						throw error;
+					}
+				}, 'transport.produce()')
+				// This catch is needed to stop the given track if the command above
+				// failed due to closed Transport.
+				.catch((error: Error) => {
+					if (stopTracks) {
+						try {
+							track.stop();
+						} catch (error2) {}
+					}
 
 					throw error;
-				}
-			},
-			'transport.produce()')
-			// This catch is needed to stop the given track if the command above
-			// failed due to closed Transport.
-			.catch((error: Error) =>
-			{
-				if (stopTracks)
-				{
-					try { track.stop(); }
-					catch (error2) {}
-				}
-
-				throw error;
-			});
+				})
+		);
 	}
 
 	/**
 	 * Create a Consumer to consume a remote Producer.
 	 */
-	async consume<ConsumerAppData extends AppData = AppData>(
-		{
-			id,
-			producerId,
-			kind,
-			rtpParameters,
-			streamId,
-			appData = {} as ConsumerAppData
-		}: ConsumerOptions<ConsumerAppData>
-	): Promise<Consumer<ConsumerAppData>>
-	{
+	async consume<ConsumerAppData extends AppData = AppData>({
+		id,
+		producerId,
+		kind,
+		rtpParameters,
+		streamId,
+		appData = {} as ConsumerAppData,
+	}: ConsumerOptions<ConsumerAppData>): Promise<Consumer<ConsumerAppData>> {
 		logger.debug('consume()');
 
 		rtpParameters = utils.clone<RtpParameters>(rtpParameters);
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (this._direction !== 'recv')
-		{
+		} else if (this._direction !== 'recv') {
 			throw new UnsupportedError('not a receiving Transport');
-		}
-		else if (typeof id !== 'string')
-		{
+		} else if (typeof id !== 'string') {
 			throw new TypeError('missing id');
-		}
-		else if (typeof producerId !== 'string')
-		{
+		} else if (typeof producerId !== 'string') {
 			throw new TypeError('missing producerId');
-		}
-		else if (kind !== 'audio' && kind !== 'video')
-		{
+		} else if (kind !== 'audio' && kind !== 'video') {
 			throw new TypeError(`invalid kind '${kind}'`);
-		}
-		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
-		{
+		} else if (
+			this.listenerCount('connect') === 0 &&
+			this._connectionState === 'new'
+		) {
 			throw new TypeError('no "connect" listener set into this transport');
-		}
-		else if (appData && typeof appData !== 'object')
-		{
+		} else if (appData && typeof appData !== 'object') {
 			throw new TypeError('if given, appData must be an object');
 		}
 
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
-			rtpParameters, this._extendedRtpCapabilities);
+			rtpParameters,
+			this._extendedRtpCapabilities,
+		);
 
-		if (!canConsume)
-		{
+		if (!canConsume) {
 			throw new UnsupportedError('cannot consume this Producer');
 		}
 
-		const consumerCreationTask = new ConsumerCreationTask(
-			{
-				id,
-				producerId,
-				kind,
-				rtpParameters,
-				streamId,
-				appData
-			}
-		);
+		const consumerCreationTask = new ConsumerCreationTask({
+			id,
+			producerId,
+			kind,
+			rtpParameters,
+			streamId,
+			appData,
+		});
 
 		// Store the Consumer creation task.
 		this._pendingConsumerTasks.push(consumerCreationTask);
 
 		// There is no Consumer creation in progress, create it now.
-		queueMicrotask(() => 
-		{
-			if (this._closed)
-			{
+		queueMicrotask(() => {
+			if (this._closed) {
 				return;
 			}
 
-			if (this._consumerCreationInProgress === false)
-			{
+			if (this._consumerCreationInProgress === false) {
 				this.createPendingConsumers<ConsumerAppData>();
 			}
 		});
@@ -778,146 +698,117 @@ export class Transport<TransportAppData extends AppData = AppData>
 	/**
 	 * Create a DataProducer
 	 */
-	async produceData<DataProducerAppData extends AppData = AppData>(
-		{
-			ordered = true,
-			maxPacketLifeTime,
-			maxRetransmits,
-			label = '',
-			protocol = '',
-			appData = {} as DataProducerAppData
-		}: DataProducerOptions<DataProducerAppData> = {}
-	): Promise<DataProducer<DataProducerAppData>>
-	{
+	async produceData<DataProducerAppData extends AppData = AppData>({
+		ordered = true,
+		maxPacketLifeTime,
+		maxRetransmits,
+		label = '',
+		protocol = '',
+		appData = {} as DataProducerAppData,
+	}: DataProducerOptions<DataProducerAppData> = {}): Promise<
+		DataProducer<DataProducerAppData>
+	> {
 		logger.debug('produceData()');
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (this._direction !== 'send')
-		{
+		} else if (this._direction !== 'send') {
 			throw new UnsupportedError('not a sending Transport');
-		}
-		else if (!this._maxSctpMessageSize)
-		{
+		} else if (!this._maxSctpMessageSize) {
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
-		}
-		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
-		{
+		} else if (
+			this.listenerCount('connect') === 0 &&
+			this._connectionState === 'new'
+		) {
 			throw new TypeError('no "connect" listener set into this transport');
-		}
-		else if (this.listenerCount('producedata') === 0)
-		{
+		} else if (this.listenerCount('producedata') === 0) {
 			throw new TypeError('no "producedata" listener set into this transport');
-		}
-		else if (appData && typeof appData !== 'object')
-		{
+		} else if (appData && typeof appData !== 'object') {
 			throw new TypeError('if given, appData must be an object');
 		}
 
-		if (maxPacketLifeTime || maxRetransmits)
-		{
+		if (maxPacketLifeTime || maxRetransmits) {
 			ordered = false;
 		}
 
 		// Enqueue command.
-		return this._awaitQueue.push(
-			async () =>
-			{
-				const {
-					dataChannel,
-					sctpStreamParameters
-				} = await this._handler.sendDataChannel(
-					{
-						ordered,
-						maxPacketLifeTime,
-						maxRetransmits,
-						label,
-						protocol
-					});
-
-				// This will fill sctpStreamParameters's missing fields with default values.
-				ortc.validateSctpStreamParameters(sctpStreamParameters);
-
-				const { id } = await new Promise<{ id: string }>((resolve, reject) =>
-				{
-					this.safeEmit(
-						'producedata',
-						{
-							sctpStreamParameters,
-							label,
-							protocol,
-							appData
-						},
-						resolve,
-						reject
-					);
+		return this._awaitQueue.push(async () => {
+			const { dataChannel, sctpStreamParameters } =
+				await this._handler.sendDataChannel({
+					ordered,
+					maxPacketLifeTime,
+					maxRetransmits,
+					label,
+					protocol,
 				});
 
-				const dataProducer = new DataProducer<DataProducerAppData>(
+			// This will fill sctpStreamParameters's missing fields with default values.
+			ortc.validateSctpStreamParameters(sctpStreamParameters);
+
+			const { id } = await new Promise<{ id: string }>((resolve, reject) => {
+				this.safeEmit(
+					'producedata',
 					{
-						id,
-						dataChannel,
 						sctpStreamParameters,
-						appData
-					});
+						label,
+						protocol,
+						appData,
+					},
+					resolve,
+					reject,
+				);
+			});
 
-				this._dataProducers.set(dataProducer.id, dataProducer);
-				this.handleDataProducer(dataProducer);
+			const dataProducer = new DataProducer<DataProducerAppData>({
+				id,
+				dataChannel,
+				sctpStreamParameters,
+				appData,
+			});
 
-				// Emit observer event.
-				this._observer.safeEmit('newdataproducer', dataProducer);
+			this._dataProducers.set(dataProducer.id, dataProducer);
+			this.handleDataProducer(dataProducer);
 
-				return dataProducer;
-			},
-			'transport.produceData()');
+			// Emit observer event.
+			this._observer.safeEmit('newdataproducer', dataProducer);
+
+			return dataProducer;
+		}, 'transport.produceData()');
 	}
 
 	/**
 	 * Create a DataConsumer
 	 */
-	async consumeData<ConsumerAppData extends AppData = AppData>(
-		{
-			id,
-			dataProducerId,
-			sctpStreamParameters,
-			label = '',
-			protocol = '',
-			appData = {} as ConsumerAppData
-		}: DataConsumerOptions<ConsumerAppData>
-	): Promise<DataConsumer<ConsumerAppData>>
-	{
+	async consumeData<ConsumerAppData extends AppData = AppData>({
+		id,
+		dataProducerId,
+		sctpStreamParameters,
+		label = '',
+		protocol = '',
+		appData = {} as ConsumerAppData,
+	}: DataConsumerOptions<ConsumerAppData>): Promise<
+		DataConsumer<ConsumerAppData>
+	> {
 		logger.debug('consumeData()');
 
 		sctpStreamParameters = utils.clone(sctpStreamParameters);
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			throw new InvalidStateError('closed');
-		}
-		else if (this._direction !== 'recv')
-		{
+		} else if (this._direction !== 'recv') {
 			throw new UnsupportedError('not a receiving Transport');
-		}
-		else if (!this._maxSctpMessageSize)
-		{
+		} else if (!this._maxSctpMessageSize) {
 			throw new UnsupportedError('SCTP not enabled by remote Transport');
-		}
-		else if (typeof id !== 'string')
-		{
+		} else if (typeof id !== 'string') {
 			throw new TypeError('missing id');
-		}
-		else if (typeof dataProducerId !== 'string')
-		{
+		} else if (typeof dataProducerId !== 'string') {
 			throw new TypeError('missing dataProducerId');
-		}
-		else if (this.listenerCount('connect') === 0 && this._connectionState === 'new')
-		{
+		} else if (
+			this.listenerCount('connect') === 0 &&
+			this._connectionState === 'new'
+		) {
 			throw new TypeError('no "connect" listener set into this transport');
-		}
-		else if (appData && typeof appData !== 'object')
-		{
+		} else if (appData && typeof appData !== 'object') {
 			throw new TypeError('if given, appData must be an object');
 		}
 
@@ -925,54 +816,48 @@ export class Transport<TransportAppData extends AppData = AppData>
 		ortc.validateSctpStreamParameters(sctpStreamParameters);
 
 		// Enqueue command.
-		return this._awaitQueue.push(
-			async () =>
-			{
-				const {
-					dataChannel
-				} = await this._handler.receiveDataChannel(
-					{
-						sctpStreamParameters,
-						label,
-						protocol
-					});
+		return this._awaitQueue.push(async () => {
+			const { dataChannel } = await this._handler.receiveDataChannel({
+				sctpStreamParameters,
+				label,
+				protocol,
+			});
 
-				const dataConsumer = new DataConsumer<ConsumerAppData>(
-					{
-						id,
-						dataProducerId,
-						dataChannel,
-						sctpStreamParameters,
-						appData
-					});
+			const dataConsumer = new DataConsumer<ConsumerAppData>({
+				id,
+				dataProducerId,
+				dataChannel,
+				sctpStreamParameters,
+				appData,
+			});
 
-				this._dataConsumers.set(dataConsumer.id, dataConsumer);
-				this.handleDataConsumer(dataConsumer);
+			this._dataConsumers.set(dataConsumer.id, dataConsumer);
+			this.handleDataConsumer(dataConsumer);
 
-				// Emit observer event.
-				this._observer.safeEmit('newdataconsumer', dataConsumer);
+			// Emit observer event.
+			this._observer.safeEmit('newdataconsumer', dataConsumer);
 
-				return dataConsumer;
-			},
-			'transport.consumeData()');
+			return dataConsumer;
+		}, 'transport.consumeData()');
 	}
 
 	// This method is guaranteed to never throw.
-	private async createPendingConsumers<ConsumerAppData extends AppData>(): Promise<void>
-	{
+	private async createPendingConsumers<
+		ConsumerAppData extends AppData,
+	>(): Promise<void> {
 		this._consumerCreationInProgress = true;
 
-		this._awaitQueue.push(
-			async () =>
-			{
-				if (this._pendingConsumerTasks.length === 0)
-				{
-					logger.debug('createPendingConsumers() | there is no Consumer to be created');
+		this._awaitQueue
+			.push(async () => {
+				if (this._pendingConsumerTasks.length === 0) {
+					logger.debug(
+						'createPendingConsumers() | there is no Consumer to be created',
+					);
 
 					return;
 				}
 
-				const pendingConsumerTasks = [ ...this._pendingConsumerTasks ];
+				const pendingConsumerTasks = [...this._pendingConsumerTasks];
 
 				// Clear pending Consumer tasks.
 				this._pendingConsumerTasks = [];
@@ -983,39 +868,35 @@ export class Transport<TransportAppData extends AppData = AppData>
 				// Fill options list.
 				const optionsList: HandlerReceiveOptions[] = [];
 
-				for (const task of pendingConsumerTasks)
-				{
+				for (const task of pendingConsumerTasks) {
 					const { id, kind, rtpParameters, streamId } = task.consumerOptions;
 
-					optionsList.push(
-						{
-							trackId : id!,
-							kind    : kind as MediaKind,
-							rtpParameters,
-							streamId
-						});
+					optionsList.push({
+						trackId: id!,
+						kind: kind as MediaKind,
+						rtpParameters,
+						streamId,
+					});
 				}
 
-				try
-				{
+				try {
 					const results = await this._handler.receive(optionsList);
 
-					for (let idx = 0; idx < results.length; ++idx)
-					{
+					for (let idx = 0; idx < results.length; ++idx) {
 						const task = pendingConsumerTasks[idx];
 						const result = results[idx];
-						const { id, producerId, kind, rtpParameters, appData } = task.consumerOptions;
+						const { id, producerId, kind, rtpParameters, appData } =
+							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;
-						const consumer = new Consumer<ConsumerAppData>(
-							{
-								id         : id!,
-								localId,
-								producerId : producerId!,
-								rtpReceiver,
-								track,
-								rtpParameters,
-								appData    : appData as ConsumerAppData
-							});
+						const consumer = new Consumer<ConsumerAppData>({
+							id: id!,
+							localId,
+							producerId: producerId!,
+							rtpReceiver,
+							track,
+							rtpParameters,
+							appData: appData as ConsumerAppData,
+						});
 
 						this._consumers.set(consumer.id, consumer);
 						this.handleConsumer(consumer);
@@ -1024,9 +905,9 @@ export class Transport<TransportAppData extends AppData = AppData>
 						// has not yet been created, it's time to create it.
 						if (
 							!this._probatorConsumerCreated &&
-							!videoConsumerForProbator && kind === 'video'
-						)
-						{
+							!videoConsumerForProbator &&
+							kind === 'video'
+						) {
 							videoConsumerForProbator = consumer;
 						}
 
@@ -1035,50 +916,45 @@ export class Transport<TransportAppData extends AppData = AppData>
 
 						task.resolve!(consumer);
 					}
-				}
-				catch (error)
-				{
-					for (const task of pendingConsumerTasks)
-					{
+				} catch (error) {
+					for (const task of pendingConsumerTasks) {
 						task.reject!(error as Error);
 					}
 				}
 
 				// If RTP probation must be handled, do it now.
-				if (videoConsumerForProbator)
-				{
-					try
-					{
-						const probatorRtpParameters =
-							ortc.generateProbatorRtpParameters(videoConsumerForProbator!.rtpParameters);
+				if (videoConsumerForProbator) {
+					try {
+						const probatorRtpParameters = ortc.generateProbatorRtpParameters(
+							videoConsumerForProbator!.rtpParameters,
+						);
 
-						await this._handler.receive(
-							[ {
-								trackId       : 'probator',
-								kind          : 'video',
-								rtpParameters : probatorRtpParameters
-							} ]);
+						await this._handler.receive([
+							{
+								trackId: 'probator',
+								kind: 'video',
+								rtpParameters: probatorRtpParameters,
+							},
+						]);
 
-						logger.debug('createPendingConsumers() | Consumer for RTP probation created');
+						logger.debug(
+							'createPendingConsumers() | Consumer for RTP probation created',
+						);
 
 						this._probatorConsumerCreated = true;
-					}
-					catch (error)
-					{
+					} catch (error) {
 						logger.error(
 							'createPendingConsumers() | failed to create Consumer for RTP probation:%o',
-							error);
+							error,
+						);
 					}
 				}
-			},
-			'transport.createPendingConsumers()')
-			.then(() =>
-			{
+			}, 'transport.createPendingConsumers()')
+			.then(() => {
 				this._consumerCreationInProgress = false;
 
 				// There are pending Consumer tasks, enqueue their creation.
-				if (this._pendingConsumerTasks.length > 0)
-				{
+				if (this._pendingConsumerTasks.length > 0) {
 					this.createPendingConsumers<ConsumerAppData>();
 				}
 			})
@@ -1086,184 +962,178 @@ export class Transport<TransportAppData extends AppData = AppData>
 			.catch(() => {});
 	}
 
-	private pausePendingConsumers()
-	{
+	private pausePendingConsumers() {
 		this._consumerPauseInProgress = true;
 
-		this._awaitQueue.push(
-			async () =>
-			{
-				if (this._pendingPauseConsumers.size === 0)
-				{
-					logger.debug('pausePendingConsumers() | there is no Consumer to be paused');
+		this._awaitQueue
+			.push(async () => {
+				if (this._pendingPauseConsumers.size === 0) {
+					logger.debug(
+						'pausePendingConsumers() | there is no Consumer to be paused',
+					);
 
 					return;
 				}
 
-				const pendingPauseConsumers = Array.from(this._pendingPauseConsumers.values());
+				const pendingPauseConsumers = Array.from(
+					this._pendingPauseConsumers.values(),
+				);
 
 				// Clear pending pause Consumer map.
 				this._pendingPauseConsumers.clear();
 
-				try
-				{
-					const localIds = pendingPauseConsumers
-						.map((consumer) => consumer.localId);
+				try {
+					const localIds = pendingPauseConsumers.map(
+						consumer => consumer.localId,
+					);
 
 					await this._handler.pauseReceiving(localIds);
+				} catch (error) {
+					logger.error(
+						'pausePendingConsumers() | failed to pause Consumers:',
+						error,
+					);
 				}
-				catch (error)
-				{
-					logger.error('pausePendingConsumers() | failed to pause Consumers:', error);
-				}
-			},
-			'transport.pausePendingConsumers')
-			.then(() =>
-			{
+			}, 'transport.pausePendingConsumers')
+			.then(() => {
 				this._consumerPauseInProgress = false;
 
 				// There are pending Consumers to be paused, do it.
-				if (this._pendingPauseConsumers.size > 0)
-				{
+				if (this._pendingPauseConsumers.size > 0) {
 					this.pausePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
-			.catch(() => { });
+			.catch(() => {});
 	}
 
-	private resumePendingConsumers()
-	{
+	private resumePendingConsumers() {
 		this._consumerResumeInProgress = true;
 
-		this._awaitQueue.push(
-			async () =>
-			{
-				if (this._pendingResumeConsumers.size === 0)
-				{
-					logger.debug('resumePendingConsumers() | there is no Consumer to be resumed');
-					
+		this._awaitQueue
+			.push(async () => {
+				if (this._pendingResumeConsumers.size === 0) {
+					logger.debug(
+						'resumePendingConsumers() | there is no Consumer to be resumed',
+					);
+
 					return;
 				}
 
-				const pendingResumeConsumers = Array.from(this._pendingResumeConsumers.values());
+				const pendingResumeConsumers = Array.from(
+					this._pendingResumeConsumers.values(),
+				);
 
 				// Clear pending resume Consumer map.
 				this._pendingResumeConsumers.clear();
 
-				try
-				{
-					const localIds = pendingResumeConsumers
-						.map((consumer) => consumer.localId);
+				try {
+					const localIds = pendingResumeConsumers.map(
+						consumer => consumer.localId,
+					);
 
 					await this._handler.resumeReceiving(localIds);
+				} catch (error) {
+					logger.error(
+						'resumePendingConsumers() | failed to resume Consumers:',
+						error,
+					);
 				}
-				catch (error)
-				{
-					logger.error('resumePendingConsumers() | failed to resume Consumers:', error);
-				}
-			},
-			'transport.resumePendingConsumers')
-			.then(() =>
-			{
+			}, 'transport.resumePendingConsumers')
+			.then(() => {
 				this._consumerResumeInProgress = false;
 
 				// There are pending Consumer to be resumed, do it.
-				if (this._pendingResumeConsumers.size > 0)
-				{
+				if (this._pendingResumeConsumers.size > 0) {
 					this.resumePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
-			.catch(() => { });
+			.catch(() => {});
 	}
 
-	private closePendingConsumers()
-	{
+	private closePendingConsumers() {
 		this._consumerCloseInProgress = true;
 
-		this._awaitQueue.push(
-			async () =>
-			{
-				if (this._pendingCloseConsumers.size === 0)
-				{
-					logger.debug('closePendingConsumers() | there is no Consumer to be closed');
-					
+		this._awaitQueue
+			.push(async () => {
+				if (this._pendingCloseConsumers.size === 0) {
+					logger.debug(
+						'closePendingConsumers() | there is no Consumer to be closed',
+					);
+
 					return;
 				}
 
-				const pendingCloseConsumers = Array.from(this._pendingCloseConsumers.values());
+				const pendingCloseConsumers = Array.from(
+					this._pendingCloseConsumers.values(),
+				);
 
 				// Clear pending close Consumer map.
 				this._pendingCloseConsumers.clear();
 
-				try
-				{
+				try {
 					await this._handler.stopReceiving(
-						pendingCloseConsumers.map((consumer) => consumer.localId)
+						pendingCloseConsumers.map(consumer => consumer.localId),
+					);
+				} catch (error) {
+					logger.error(
+						'closePendingConsumers() | failed to close Consumers:',
+						error,
 					);
 				}
-				catch (error)
-				{
-					logger.error('closePendingConsumers() | failed to close Consumers:', error);
-				}
-			},
-			'transport.closePendingConsumers')
-			.then(() =>
-			{
+			}, 'transport.closePendingConsumers')
+			.then(() => {
 				this._consumerCloseInProgress = false;
 
 				// There are pending Consumer to be resumed, do it.
-				if (this._pendingCloseConsumers.size > 0)
-				{
+				if (this._pendingCloseConsumers.size > 0) {
 					this.closePendingConsumers();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
-			.catch(() => { });
+			.catch(() => {});
 	}
 
-	private handleHandler(): void
-	{
+	private handleHandler(): void {
 		const handler = this._handler;
 
-		handler.on('@connect', (
-			{ dtlsParameters }: { dtlsParameters: DtlsParameters },
-			callback: () => void,
-			errback: (error: Error) => void
-		) =>
-		{
-			if (this._closed)
-			{
-				errback(new InvalidStateError('closed'));
+		handler.on(
+			'@connect',
+			(
+				{ dtlsParameters }: { dtlsParameters: DtlsParameters },
+				callback: () => void,
+				errback: (error: Error) => void,
+			) => {
+				if (this._closed) {
+					errback(new InvalidStateError('closed'));
 
-				return;
-			}
+					return;
+				}
 
-			this.safeEmit('connect', { dtlsParameters }, callback, errback);
-		});
+				this.safeEmit('connect', { dtlsParameters }, callback, errback);
+			},
+		);
 
-		handler.on('@icegatheringstatechange', (iceGatheringState: IceGatheringState) =>
-		{
-			if (iceGatheringState === this._iceGatheringState)
-			{
-				return;
-			}
+		handler.on(
+			'@icegatheringstatechange',
+			(iceGatheringState: IceGatheringState) => {
+				if (iceGatheringState === this._iceGatheringState) {
+					return;
+				}
 
-			logger.debug('ICE gathering state changed to %s', iceGatheringState);
+				logger.debug('ICE gathering state changed to %s', iceGatheringState);
 
-			this._iceGatheringState = iceGatheringState;
+				this._iceGatheringState = iceGatheringState;
 
-			if (!this._closed)
-			{
-				this.safeEmit('icegatheringstatechange', iceGatheringState);
-			}
-		});
+				if (!this._closed) {
+					this.safeEmit('icegatheringstatechange', iceGatheringState);
+				}
+			},
+		);
 
-		handler.on('@connectionstatechange', (connectionState: ConnectionState) =>
-		{
-			if (connectionState === this._connectionState)
-			{
+		handler.on('@connectionstatechange', (connectionState: ConnectionState) => {
+			if (connectionState === this._connectionState) {
 				return;
 			}
 
@@ -1271,100 +1141,107 @@ export class Transport<TransportAppData extends AppData = AppData>
 
 			this._connectionState = connectionState;
 
-			if (!this._closed)
-			{
+			if (!this._closed) {
 				this.safeEmit('connectionstatechange', connectionState);
 			}
 		});
 	}
 
-	private handleProducer(producer: Producer): void
-	{
-		producer.on('@close', () =>
-		{
+	private handleProducer(producer: Producer): void {
+		producer.on('@close', () => {
 			this._producers.delete(producer.id);
 
-			if (this._closed)
-			{
+			if (this._closed) {
 				return;
 			}
 
-			this._awaitQueue.push(
-				async () => await this._handler.stopSending(producer.localId),
-				'producer @close event')
-				.catch((error: Error) => logger.warn('producer.close() failed:%o', error));
+			this._awaitQueue
+				.push(
+					async () => await this._handler.stopSending(producer.localId),
+					'producer @close event',
+				)
+				.catch((error: Error) =>
+					logger.warn('producer.close() failed:%o', error),
+				);
 		});
 
-		producer.on('@pause', (callback, errback) =>
-		{
-			this._awaitQueue.push(
-				async () => await this._handler.pauseSending(producer.localId),
-				'producer @pause event')
+		producer.on('@pause', (callback, errback) => {
+			this._awaitQueue
+				.push(
+					async () => await this._handler.pauseSending(producer.localId),
+					'producer @pause event',
+				)
 				.then(callback)
 				.catch(errback);
 		});
 
-		producer.on('@resume', (callback, errback) =>
-		{
-			this._awaitQueue.push(
-				async () => await this._handler.resumeSending(producer.localId),
-				'producer @resume event')
+		producer.on('@resume', (callback, errback) => {
+			this._awaitQueue
+				.push(
+					async () => await this._handler.resumeSending(producer.localId),
+					'producer @resume event',
+				)
 				.then(callback)
 				.catch(errback);
 		});
 
-		producer.on('@replacetrack', (track, callback, errback) =>
-		{
-			this._awaitQueue.push(
-				async () => await this._handler.replaceTrack(producer.localId, track),
-				'producer @replacetrack event')
+		producer.on('@replacetrack', (track, callback, errback) => {
+			this._awaitQueue
+				.push(
+					async () => await this._handler.replaceTrack(producer.localId, track),
+					'producer @replacetrack event',
+				)
 				.then(callback)
 				.catch(errback);
 		});
 
-		producer.on('@setmaxspatiallayer', (spatialLayer, callback, errback) =>
-		{
-			this._awaitQueue.push(
-				async () => (
-					await this._handler.setMaxSpatialLayer(producer.localId, spatialLayer)
-				), 'producer @setmaxspatiallayer event')
+		producer.on('@setmaxspatiallayer', (spatialLayer, callback, errback) => {
+			this._awaitQueue
+				.push(
+					async () =>
+						await this._handler.setMaxSpatialLayer(
+							producer.localId,
+							spatialLayer,
+						),
+					'producer @setmaxspatiallayer event',
+				)
 				.then(callback)
 				.catch(errback);
 		});
 
-		producer.on('@setrtpencodingparameters', (params, callback, errback) =>
-		{
-			this._awaitQueue.push(
-				async () => (
-					await this._handler.setRtpEncodingParameters(producer.localId, params)
-				), 'producer @setrtpencodingparameters event')
+		producer.on('@setrtpencodingparameters', (params, callback, errback) => {
+			this._awaitQueue
+				.push(
+					async () =>
+						await this._handler.setRtpEncodingParameters(
+							producer.localId,
+							params,
+						),
+					'producer @setrtpencodingparameters event',
+				)
 				.then(callback)
 				.catch(errback);
 		});
 
-		producer.on('@getstats', (callback, errback) =>
-		{
-			if (this._closed)
-			{
+		producer.on('@getstats', (callback, errback) => {
+			if (this._closed) {
 				return errback!(new InvalidStateError('closed'));
 			}
 
-			this._handler.getSenderStats(producer.localId)
+			this._handler
+				.getSenderStats(producer.localId)
 				.then(callback)
 				.catch(errback);
 		});
 	}
 
-	private handleConsumer(consumer: Consumer): void
-	{
-		consumer.on('@close', () =>
-		{
+	private handleConsumer(consumer: Consumer): void {
+		consumer.on('@close', () => {
 			this._consumers.delete(consumer.id);
 			this._pendingPauseConsumers.delete(consumer.id);
 			this._pendingResumeConsumers.delete(consumer.id);
 
-			if (this._closed)
-			{
+			if (this._closed) {
 				return;
 			}
 
@@ -1372,17 +1249,14 @@ export class Transport<TransportAppData extends AppData = AppData>
 			this._pendingCloseConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer close in progress, do it now.
-			if (this._consumerCloseInProgress === false)
-			{
+			if (this._consumerCloseInProgress === false) {
 				this.closePendingConsumers();
 			}
 		});
 
-		consumer.on('@pause', () =>
-		{
+		consumer.on('@pause', () => {
 			// If Consumer is pending to be resumed, remove from pending resume list.
-			if (this._pendingResumeConsumers.has(consumer.id))
-			{
+			if (this._pendingResumeConsumers.has(consumer.id)) {
 				this._pendingResumeConsumers.delete(consumer.id);
 			}
 
@@ -1390,25 +1264,20 @@ export class Transport<TransportAppData extends AppData = AppData>
 			this._pendingPauseConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer pause in progress, do it now.
-			queueMicrotask(() => 
-			{
-				if (this._closed)
-				{
+			queueMicrotask(() => {
+				if (this._closed) {
 					return;
 				}
 
-				if (this._consumerPauseInProgress === false)
-				{
+				if (this._consumerPauseInProgress === false) {
 					this.pausePendingConsumers();
 				}
 			});
 		});
 
-		consumer.on('@resume', () =>
-		{
+		consumer.on('@resume', () => {
 			// If Consumer is pending to be paused, remove from pending pause list.
-			if (this._pendingPauseConsumers.has(consumer.id))
-			{
+			if (this._pendingPauseConsumers.has(consumer.id)) {
 				this._pendingPauseConsumers.delete(consumer.id);
 			}
 
@@ -1416,45 +1285,37 @@ export class Transport<TransportAppData extends AppData = AppData>
 			this._pendingResumeConsumers.set(consumer.id, consumer);
 
 			// There is no Consumer resume in progress, do it now.
-			queueMicrotask(() => 
-			{
-				if (this._closed)
-				{
+			queueMicrotask(() => {
+				if (this._closed) {
 					return;
 				}
 
-				if (this._consumerResumeInProgress === false)
-				{
+				if (this._consumerResumeInProgress === false) {
 					this.resumePendingConsumers();
 				}
 			});
 		});
 
-		consumer.on('@getstats', (callback, errback) =>
-		{
-			if (this._closed)
-			{
+		consumer.on('@getstats', (callback, errback) => {
+			if (this._closed) {
 				return errback!(new InvalidStateError('closed'));
 			}
 
-			this._handler.getReceiverStats(consumer.localId)
+			this._handler
+				.getReceiverStats(consumer.localId)
 				.then(callback)
 				.catch(errback);
 		});
 	}
 
-	private handleDataProducer(dataProducer: DataProducer): void
-	{
-		dataProducer.on('@close', () =>
-		{
+	private handleDataProducer(dataProducer: DataProducer): void {
+		dataProducer.on('@close', () => {
 			this._dataProducers.delete(dataProducer.id);
 		});
 	}
 
-	private handleDataConsumer(dataConsumer: DataConsumer): void
-	{
-		dataConsumer.on('@close', () =>
-		{
+	private handleDataConsumer(dataConsumer: DataConsumer): void {
+		dataConsumer.on('@close', () => {
 			this._dataConsumers.delete(dataConsumer.id);
 		});
 	}

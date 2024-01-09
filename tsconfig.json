@@ -1,8 +1,7 @@
 {
 	"compileOnSave": true,
-	"compilerOptions":
-	{
-		"lib": [ "es2020", "dom" ],
+	"compilerOptions": {
+		"lib": ["es2020", "dom"],
 		"target": "es2020",
 		"module": "commonjs",
 		"moduleResolution": "node",
@@ -13,11 +12,11 @@
 		"declaration": true,
 		"declarationMap": true
 	},
-	"include": [ "src" ],
+	"include": ["src"],
 	"watchOptions": {
-	  "watchFile": "useFsEvents",
-	  "watchDirectory": "useFsEvents",
-	  "fallbackPolling": "dynamicPriority",
-	  "synchronousWatchDirectory": true
+		"watchFile": "useFsEvents",
+		"watchDirectory": "useFsEvents",
+		"fallbackPolling": "dynamicPriority",
+		"synchronousWatchDirectory": true
 	}
 }

@@ -1,41 +1,36 @@
 import { RtpEncodingParameters } from '../../RtpParameters';
 
-export function getRtpEncodings(
-	{ offerMediaObject }:
-	{ offerMediaObject: any }
-): RtpEncodingParameters[]
-{
+export function getRtpEncodings({
+	offerMediaObject,
+}: {
+	offerMediaObject: any;
+}): RtpEncodingParameters[] {
 	const ssrcs = new Set();
 
-	for (const line of offerMediaObject.ssrcs || [])
-	{
+	for (const line of offerMediaObject.ssrcs || []) {
 		const ssrc = line.id;
 
 		ssrcs.add(ssrc);
 	}
 
-	if (ssrcs.size === 0)
-	{
+	if (ssrcs.size === 0) {
 		throw new Error('no a=ssrc lines found');
 	}
 
 	const ssrcToRtxSsrc = new Map();
 
 	// First assume RTX is used.
-	for (const line of offerMediaObject.ssrcGroups || [])
-	{
-		if (line.semantics !== 'FID')
-		{
+	for (const line of offerMediaObject.ssrcGroups || []) {
+		if (line.semantics !== 'FID') {
 			continue;
 		}
 
-		let [ ssrc, rtxSsrc ] = line.ssrcs.split(/\s+/);
+		let [ssrc, rtxSsrc] = line.ssrcs.split(/\s+/);
 
 		ssrc = Number(ssrc);
 		rtxSsrc = Number(rtxSsrc);
 
-		if (ssrcs.has(ssrc))
-		{
+		if (ssrcs.has(ssrc)) {
 			// Remove both the SSRC and RTX SSRC from the set so later we know
 			// that they are already handled.
 			ssrcs.delete(ssrc);
@@ -48,20 +43,17 @@ export function getRtpEncodings(
 
 	// If the set of SSRCs is not empty it means that RTX is not being used, so
 	// take media SSRCs from there.
-	for (const ssrc of ssrcs)
-	{
+	for (const ssrc of ssrcs) {
 		// Add to the map.
 		ssrcToRtxSsrc.set(ssrc, null);
 	}
 
 	const encodings: RtpEncodingParameters[] = [];
 
-	for (const [ ssrc, rtxSsrc ] of ssrcToRtxSsrc)
-	{
+	for (const [ssrc, rtxSsrc] of ssrcToRtxSsrc) {
 		const encoding: RtpEncodingParameters = { ssrc };
 
-		if (rtxSsrc)
-		{
+		if (rtxSsrc) {
 			encoding.rtx = { ssrc: rtxSsrc };
 		}
 
@@ -74,63 +66,52 @@ export function getRtpEncodings(
 /**
  * Adds multi-ssrc based simulcast into the given SDP media section offer.
  */
-export function addLegacySimulcast(
-	{
-		offerMediaObject,
-		numStreams
-	}:
-	{
-		offerMediaObject: any;
-		numStreams: number;
-	}
-): void
-{
-	if (numStreams <= 1)
-	{
+export function addLegacySimulcast({
+	offerMediaObject,
+	numStreams,
+}: {
+	offerMediaObject: any;
+	numStreams: number;
+}): void {
+	if (numStreams <= 1) {
 		throw new TypeError('numStreams must be greater than 1');
 	}
 
 	// Get the SSRC.
-	const ssrcMsidLine = (offerMediaObject.ssrcs || [])
-		.find((line: any) => line.attribute === 'msid');
+	const ssrcMsidLine = (offerMediaObject.ssrcs || []).find(
+		(line: any) => line.attribute === 'msid',
+	);
 
-	if (!ssrcMsidLine)
-	{
+	if (!ssrcMsidLine) {
 		throw new Error('a=ssrc line with msid information not found');
 	}
 
-	const [ streamId, trackId ] = ssrcMsidLine.value.split(' ');
+	const [streamId, trackId] = ssrcMsidLine.value.split(' ');
 	const firstSsrc = ssrcMsidLine.id;
 	let firstRtxSsrc;
 
 	// Get the SSRC for RTX.
-	(offerMediaObject.ssrcGroups || [])
-		.some((line: any) =>
-		{
-			if (line.semantics !== 'FID')
-			{
-				return false;
-			}
+	(offerMediaObject.ssrcGroups || []).some((line: any) => {
+		if (line.semantics !== 'FID') {
+			return false;
+		}
 
-			const ssrcs = line.ssrcs.split(/\s+/);
+		const ssrcs = line.ssrcs.split(/\s+/);
 
-			if (Number(ssrcs[0]) === firstSsrc)
-			{
-				firstRtxSsrc = Number(ssrcs[1]);
+		if (Number(ssrcs[0]) === firstSsrc) {
+			firstRtxSsrc = Number(ssrcs[1]);
 
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		});
+			return true;
+		} else {
+			return false;
+		}
+	});
 
-	const ssrcCnameLine = offerMediaObject.ssrcs
-		.find((line: any) => line.attribute === 'cname');
+	const ssrcCnameLine = offerMediaObject.ssrcs.find(
+		(line: any) => line.attribute === 'cname',
+	);
 
-	if (!ssrcCnameLine)
-	{
+	if (!ssrcCnameLine) {
 		throw new Error('a=ssrc line with cname information not found');
 	}
 
@@ -138,12 +119,10 @@ export function addLegacySimulcast(
 	const ssrcs = [];
 	const rtxSsrcs = [];
 
-	for (let i = 0; i < numStreams; ++i)
-	{
+	for (let i = 0; i < numStreams; ++i) {
 		ssrcs.push(firstSsrc + i);
 
-		if (firstRtxSsrc)
-		{
+		if (firstRtxSsrc) {
 			rtxSsrcs.push(firstRtxSsrc + i);
 		}
 	}
@@ -151,54 +130,46 @@ export function addLegacySimulcast(
 	offerMediaObject.ssrcGroups = [];
 	offerMediaObject.ssrcs = [];
 
-	offerMediaObject.ssrcGroups.push(
-		{
-			semantics : 'SIM',
-			ssrcs     : ssrcs.join(' ')
-		});
+	offerMediaObject.ssrcGroups.push({
+		semantics: 'SIM',
+		ssrcs: ssrcs.join(' '),
+	});
 
-	for (let i = 0; i < ssrcs.length; ++i)
-	{
+	for (let i = 0; i < ssrcs.length; ++i) {
 		const ssrc = ssrcs[i];
 
-		offerMediaObject.ssrcs.push(
-			{
-				id        : ssrc,
-				attribute : 'cname',
-				value     : cname
-			});
+		offerMediaObject.ssrcs.push({
+			id: ssrc,
+			attribute: 'cname',
+			value: cname,
+		});
 
-		offerMediaObject.ssrcs.push(
-			{
-				id        : ssrc,
-				attribute : 'msid',
-				value     : `${streamId} ${trackId}`
-			});
+		offerMediaObject.ssrcs.push({
+			id: ssrc,
+			attribute: 'msid',
+			value: `${streamId} ${trackId}`,
+		});
 	}
 
-	for (let i = 0; i < rtxSsrcs.length; ++i)
-	{
+	for (let i = 0; i < rtxSsrcs.length; ++i) {
 		const ssrc = ssrcs[i];
 		const rtxSsrc = rtxSsrcs[i];
 
-		offerMediaObject.ssrcs.push(
-			{
-				id        : rtxSsrc,
-				attribute : 'cname',
-				value     : cname
-			});
+		offerMediaObject.ssrcs.push({
+			id: rtxSsrc,
+			attribute: 'cname',
+			value: cname,
+		});
 
-		offerMediaObject.ssrcs.push(
-			{
-				id        : rtxSsrc,
-				attribute : 'msid',
-				value     : `${streamId} ${trackId}`
-			});
+		offerMediaObject.ssrcs.push({
+			id: rtxSsrc,
+			attribute: 'msid',
+			value: `${streamId} ${trackId}`,
+		});
 
-		offerMediaObject.ssrcGroups.push(
-			{
-				semantics : 'FID',
-				ssrcs     : `${ssrc} ${rtxSsrc}`
-			});
+		offerMediaObject.ssrcGroups.push({
+			semantics: 'FID',
+			ssrcs: `${ssrc} ${rtxSsrc}`,
+		});
 	}
 }
