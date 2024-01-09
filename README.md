@@ -4,7 +4,7 @@
 [![][github-actions-shield-mediasoup-client]][github-actions-mediasoup-client]
 [![][opencollective-shield-mediasoup]][opencollective-mediasoup]
 
-JavaScript client side library for building [mediasoup][mediasoup-website] based applications.
+TypeScript client side library for building [mediasoup][mediasoup-website] based applications.
 
 ## Website and Documentation
 
@@ -16,7 +16,7 @@ JavaScript client side library for building [mediasoup][mediasoup-website] based
 
 ## Usage Example
 
-```js
+```ts
 import { Device } from 'mediasoup-client';
 import mySignaling from './my-signaling'; // Our own signaling stuff.
 

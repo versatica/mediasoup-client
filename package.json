@@ -1,7 +1,7 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.7.1",
-	"description": "mediasoup client side JavaScript library",
+	"version": "3.7.2",
+	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
 		"José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)"
