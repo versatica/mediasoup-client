@@ -4,7 +4,6 @@
  */
 
 import * as sdpTransform from 'sdp-transform';
-import { AwaitQueue } from 'awaitqueue';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as mediasoupClient from '../';
 import { UnsupportedError, InvalidStateError } from '../errors';
@@ -17,15 +16,166 @@ import { uaTestCases } from './uaTestCases';
 
 const { Device, detectDevice, parseScalabilityMode, debug } = mediasoupClient;
 
-let device: mediasoupClient.types.Device;
-let sendTransport: mediasoupClient.types.Transport;
-let recvTransport: mediasoupClient.types.Transport;
-let audioProducer: mediasoupClient.types.Producer;
-let videoProducer: mediasoupClient.types.Producer;
-let audioConsumer: mediasoupClient.types.Consumer;
-let videoConsumer: mediasoupClient.types.Consumer;
-let dataProducer: mediasoupClient.types.DataProducer;
-let dataConsumer: mediasoupClient.types.DataConsumer;
+type TestContext = {
+	device?: mediasoupClient.types.Device;
+	loadedDevice?: mediasoupClient.types.Device;
+	sendTransport?: mediasoupClient.types.Transport;
+	connectedSendTransport?: mediasoupClient.types.Transport;
+	recvTransport?: mediasoupClient.types.Transport;
+	connectedRecvTransport?: mediasoupClient.types.Transport;
+	audioProducer?: mediasoupClient.types.Producer;
+	videoProducer?: mediasoupClient.types.Producer;
+	audioConsumer?: mediasoupClient.types.Consumer;
+	videoConsumer?: mediasoupClient.types.Consumer;
+	dataProducer?: mediasoupClient.types.DataProducer;
+	dataConsumer?: mediasoupClient.types.DataConsumer;
+};
+
+const ctx: TestContext = {};
+
+beforeEach(async () => {
+	ctx.device = new Device({
+		handlerFactory: FakeHandler.createFactory(fakeParameters),
+	});
+
+	ctx.loadedDevice = new Device({
+		handlerFactory: FakeHandler.createFactory(fakeParameters),
+	});
+
+	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
+
+	// Only load loadedDevice.
+	await ctx.loadedDevice.load({ routerRtpCapabilities });
+
+	const { id, iceParameters, iceCandidates, dtlsParameters, sctpParameters } =
+		fakeParameters.generateTransportRemoteParameters();
+
+	ctx.sendTransport = ctx.loadedDevice.createSendTransport<{ foo: number }>({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+	});
+
+	ctx.connectedSendTransport = ctx.loadedDevice.createSendTransport<{
+		foo: number;
+	}>({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+	});
+
+	ctx.connectedSendTransport.on(
+		'connect',
+		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+		({ dtlsParameters }, callback /* errback */) => {
+			setTimeout(callback);
+		},
+	);
+
+	ctx.connectedSendTransport.on(
+		'produce',
+		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+		({ kind, rtpParameters, appData }, callback /* errback */) => {
+			// eslint-disable-next-line no-shadow
+			const id = fakeParameters.generateProducerRemoteParameters().id;
+
+			setTimeout(() => callback({ id }));
+		},
+	);
+
+	ctx.connectedSendTransport.on(
+		'producedata',
+		(
+			// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+			{ sctpStreamParameters, label, protocol, appData },
+			callback /* errback */,
+		) => {
+			// eslint-disable-next-line no-shadow
+			const id = fakeParameters.generateDataProducerRemoteParameters().id;
+
+			setTimeout(() => callback({ id }));
+		},
+	);
+
+	ctx.recvTransport = ctx.loadedDevice.createRecvTransport({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+	});
+
+	ctx.connectedRecvTransport = ctx.loadedDevice.createRecvTransport({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+	});
+
+	ctx.connectedRecvTransport.on(
+		'connect',
+		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+		({ dtlsParameters }, callback /* errback */) => {
+			setTimeout(callback);
+		},
+	);
+
+	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
+
+	ctx.audioProducer = await ctx.connectedSendTransport.produce({
+		track: audioTrack,
+		stopTracks: false,
+	});
+
+	const videoTrack = new FakeMediaStreamTrack({ kind: 'video' });
+
+	ctx.videoProducer = await ctx.connectedSendTransport.produce({
+		track: videoTrack,
+	});
+
+	const audioConsumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({
+			codecMimeType: 'audio/opus',
+		});
+
+	ctx.audioConsumer = await ctx.connectedRecvTransport.consume({
+		id: audioConsumerRemoteParameters.id,
+		producerId: audioConsumerRemoteParameters.producerId,
+		kind: audioConsumerRemoteParameters.kind,
+		rtpParameters: audioConsumerRemoteParameters.rtpParameters,
+	});
+
+	const videoConsumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({
+			codecMimeType: 'video/VP8',
+		});
+
+	ctx.videoConsumer = await ctx.connectedRecvTransport.consume({
+		id: videoConsumerRemoteParameters.id,
+		producerId: videoConsumerRemoteParameters.producerId,
+		kind: videoConsumerRemoteParameters.kind,
+		rtpParameters: videoConsumerRemoteParameters.rtpParameters,
+	});
+
+	ctx.dataProducer = await ctx.connectedSendTransport.produceData({
+		ordered: false,
+		maxPacketLifeTime: 5555,
+	});
+
+	const dataConsumerRemoteParameters =
+		fakeParameters.generateDataConsumerRemoteParameters();
+
+	ctx.dataConsumer = await ctx.connectedRecvTransport!.consumeData({
+		id: dataConsumerRemoteParameters.id,
+		dataProducerId: dataConsumerRemoteParameters.dataProducerId,
+		sctpStreamParameters: dataConsumerRemoteParameters.sctpStreamParameters,
+	});
+});
 
 test('mediasoup-client exposes debug dependency', () => {
 	expect(typeof debug).toBe('function');
@@ -45,7 +195,7 @@ test('create a Device with an unknown handlerName string throws TypeError', () =
 });
 
 test('create a Device in Node with a valid handlerFactory succeeds', () => {
-	device = new Device({
+	const device = new Device({
 		handlerFactory: FakeHandler.createFactory(fakeParameters),
 	});
 
@@ -55,15 +205,15 @@ test('create a Device in Node with a valid handlerFactory succeeds', () => {
 });
 
 test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () => {
-	expect(() => device.rtpCapabilities).toThrow(InvalidStateError);
+	expect(() => ctx.device!.rtpCapabilities).toThrow(InvalidStateError);
 });
 
 test('device.sctpCapabilities getter throws InvalidStateError if not loaded', () => {
-	expect(() => device.sctpCapabilities).toThrow(InvalidStateError);
+	expect(() => ctx.device!.sctpCapabilities).toThrow(InvalidStateError);
 });
 
 test('device.canProduce() throws InvalidStateError if not loaded', () => {
-	expect(() => device.canProduce('audio')).toThrow(InvalidStateError);
+	expect(() => ctx.device!.canProduce('audio')).toThrow(InvalidStateError);
 });
 
 test('device.createSendTransport() throws InvalidStateError if not loaded', () => {
@@ -71,7 +221,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 		fakeParameters.generateTransportRemoteParameters();
 
 	expect(() =>
-		device.createSendTransport({
+		ctx.device!.createSendTransport({
 			id,
 			iceParameters,
 			iceCandidates,
@@ -83,13 +233,13 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(device.load({})).rejects.toThrow(TypeError);
+	await expect(ctx.device!.load({})).rejects.toThrow(TypeError);
 
-	expect(device.loaded).toBe(false);
+	expect(ctx.device!.loaded).toBe(false);
 }, 500);
 
 test('device.load() with invalid routerRtpCapabilities rejects with TypeError', async () => {
-	// Clonse fake router RTP capabilities to make them invalid.
+	// Clone fake router RTP capabilities to make them invalid.
 	const routerRtpCapabilities = utils.clone<RtpCapabilities>(
 		fakeParameters.generateRouterRtpCapabilities(),
 	);
@@ -99,45 +249,50 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 		delete codec!.mimeType;
 	}
 
-	await expect(device.load({ routerRtpCapabilities })).rejects.toThrow(
+	await expect(ctx.device!.load({ routerRtpCapabilities })).rejects.toThrow(
 		TypeError,
 	);
 
-	expect(device.loaded).toBe(false);
+	expect(ctx.device!.loaded).toBe(false);
 }, 500);
 
 test('device.load() succeeds', async () => {
 	// Assume we get the router RTP capabilities.
 	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
 
-	await expect(device.load({ routerRtpCapabilities })).resolves.toBe(undefined);
+	await expect(ctx.device!.load({ routerRtpCapabilities })).resolves.toBe(
+		undefined,
+	);
 
-	expect(device.loaded).toBe(true);
+	expect(ctx.device!.loaded).toBe(true);
 }, 500);
 
 test('device.load() rejects with InvalidStateError if already loaded', async () => {
-	// @ts-ignore
-	await expect(device.load({})).rejects.toThrow(InvalidStateError);
+	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
 
-	expect(device.loaded).toBe(true);
+	await expect(
+		ctx.loadedDevice!.load({ routerRtpCapabilities }),
+	).rejects.toThrow(InvalidStateError);
+
+	expect(ctx.loadedDevice!.loaded).toBe(true);
 }, 500);
 
 test('device.rtpCapabilities getter succeeds', () => {
-	expect(typeof device.rtpCapabilities).toBe('object');
+	expect(typeof ctx.loadedDevice!.rtpCapabilities).toBe('object');
 });
 
 test('device.sctpCapabilities getter succeeds', () => {
-	expect(typeof device.sctpCapabilities).toBe('object');
+	expect(typeof ctx.loadedDevice!.sctpCapabilities).toBe('object');
 });
 
 test('device.canProduce() with "audio"/"video" kind returns true', () => {
-	expect(device.canProduce('audio')).toBe(true);
-	expect(device.canProduce('video')).toBe(true);
+	expect(ctx.loadedDevice!.canProduce('audio')).toBe(true);
+	expect(ctx.loadedDevice!.canProduce('video')).toBe(true);
 });
 
 test('device.canProduce() with invalid kind throws TypeError', () => {
 	// @ts-ignore
-	expect(() => device.canProduce('chicken')).toThrow(TypeError);
+	expect(() => ctx.loadedDevice!.canProduce('chicken')).toThrow(TypeError);
 });
 
 test('device.createSendTransport() for sending media succeeds', () => {
@@ -145,7 +300,7 @@ test('device.createSendTransport() for sending media succeeds', () => {
 	const { id, iceParameters, iceCandidates, dtlsParameters, sctpParameters } =
 		fakeParameters.generateTransportRemoteParameters();
 
-	sendTransport = device.createSendTransport<{ foo: number }>({
+	const sendTransport = ctx.loadedDevice!.createSendTransport<{ foo: number }>({
 		id,
 		iceParameters,
 		iceCandidates,
@@ -169,7 +324,7 @@ test('device.createRecvTransport() for receiving media succeeds', () => {
 	const { id, iceParameters, iceCandidates, dtlsParameters, sctpParameters } =
 		fakeParameters.generateTransportRemoteParameters();
 
-	recvTransport = device.createRecvTransport({
+	const recvTransport = ctx.loadedDevice!.createRecvTransport({
 		id,
 		iceParameters,
 		iceCandidates,
@@ -189,15 +344,17 @@ test('device.createRecvTransport() for receiving media succeeds', () => {
 
 test('device.createSendTransport() with missing remote Transport parameters throws TypeError', () => {
 	// @ts-ignore
-	expect(() => device.createSendTransport({ id: '1234' })).toThrow(TypeError);
+	expect(() => ctx.loadedDevice!.createSendTransport({ id: '1234' })).toThrow(
+		TypeError,
+	);
 
 	expect(() =>
 		// @ts-ignore
-		device.createSendTransport({ id: '1234', iceParameters: {} }),
+		ctx.loadedDevice!.createSendTransport({ id: '1234', iceParameters: {} }),
 	).toThrow(TypeError);
 
 	expect(() =>
-		device.createSendTransport({
+		ctx.loadedDevice!.createSendTransport({
 			id: '1234',
 			// @ts-ignore
 			iceParameters: {},
@@ -211,7 +368,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 		fakeParameters.generateTransportRemoteParameters();
 
 	expect(() =>
-		device.createRecvTransport({
+		ctx.loadedDevice!.createRecvTransport({
 			id,
 			iceParameters,
 			iceCandidates,
@@ -223,74 +380,21 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 	).toThrow(TypeError);
 });
 
-test('transport.produce() without "connect" listener rejects', async () => {
+test('transport.produce() without "produce" listener rejects', async () => {
 	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
-	await expect(sendTransport.produce({ track: audioTrack })).rejects.toThrow(
-		Error,
-	);
+	ctx.sendTransport!.removeAllListeners('produce');
+
+	await expect(
+		ctx.sendTransport!.produce({ track: audioTrack }),
+	).rejects.toThrow(Error);
 }, 500);
 
 test('transport.produce() succeeds', async () => {
 	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 	const videoTrack = new FakeMediaStreamTrack({ kind: 'video' });
-	let audioProducerId;
-	let videoProducerId;
 	let connectEventNumTimesCalled = 0;
 	let produceEventNumTimesCalled = 0;
-
-	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('connect', ({ dtlsParameters }, callback /* errback */) => {
-		connectEventNumTimesCalled++;
-
-		expect(typeof dtlsParameters).toBe('object');
-
-		// Emulate communication with the server and success response (no response
-		// data needed).
-		setTimeout(callback);
-	});
-
-	// eslint-disable-next-line no-unused-vars
-	sendTransport.on(
-		'produce',
-		({ kind, rtpParameters, appData }, callback /* errback */) => {
-			produceEventNumTimesCalled++;
-
-			expect(typeof kind).toBe('string');
-			expect(typeof rtpParameters).toBe('object');
-
-			let id: string;
-
-			switch (kind) {
-				case 'audio': {
-					expect(appData).toEqual({ foo: 'FOO' });
-
-					id = fakeParameters.generateProducerRemoteParameters().id;
-					audioProducerId = id;
-
-					break;
-				}
-
-				case 'video': {
-					expect(appData).toEqual({});
-
-					id = fakeParameters.generateProducerRemoteParameters().id;
-					videoProducerId = id;
-
-					break;
-				}
-
-				default: {
-					throw new Error('unknown kind');
-				}
-			}
-
-			// Emulate communication with the server and success response with Producer
-			// remote parameters.
-			setTimeout(() => callback({ id }));
-		},
-	);
-
 	let codecs;
 	let headerExtensions;
 	let encodings;
@@ -299,17 +403,30 @@ test('transport.produce() succeeds', async () => {
 	// Pause the audio track before creating its Producer.
 	audioTrack.enabled = false;
 
+	ctx.connectedSendTransport!.prependListener(
+		'connect',
+		() => ++connectEventNumTimesCalled,
+	);
+
+	ctx.connectedSendTransport!.prependListener(
+		'produce',
+		() => ++produceEventNumTimesCalled,
+	);
+
 	// Use stopTracks: false.
-	audioProducer = await sendTransport.produce<{ foo: string }>({
+	const audioProducer = await ctx.connectedSendTransport!.produce<{
+		foo: string;
+	}>({
 		track: audioTrack,
 		stopTracks: false,
 		appData: { foo: 'FOO' },
 	});
 
-	expect(connectEventNumTimesCalled).toBe(1);
+	// 'connect' event should not have been called since it was in beforeEach already.
+	expect(connectEventNumTimesCalled).toBe(0);
 	expect(produceEventNumTimesCalled).toBe(1);
 	expect(typeof audioProducer).toBe('object');
-	expect(audioProducer.id).toBe(audioProducerId);
+	expect(typeof audioProducer.id).toBe('string');
 	expect(audioProducer.closed).toBe(false);
 	expect(audioProducer.kind).toBe('audio');
 	expect(audioProducer.track).toBe(audioTrack);
@@ -372,17 +489,17 @@ test('transport.produce() succeeds', async () => {
 
 	// Note that stopTracks is not give so it's true by default.
 	// Use disableTrackOnPause: false and zeroRtpOnPause: true
-	videoProducer = await sendTransport.produce({
+	const videoProducer = await ctx.connectedSendTransport!.produce({
 		track: videoTrack,
 		encodings: videoEncodings,
 		disableTrackOnPause: false,
 		zeroRtpOnPause: true,
 	});
 
-	expect(connectEventNumTimesCalled).toBe(1);
+	expect(connectEventNumTimesCalled).toBe(0);
 	expect(produceEventNumTimesCalled).toBe(2);
 	expect(typeof videoProducer).toBe('object');
-	expect(videoProducer.id).toBe(videoProducerId);
+	expect(typeof videoProducer.id).toBe('string');
 	expect(videoProducer.closed).toBe(false);
 	expect(videoProducer.kind).toBe('video');
 	expect(videoProducer.track).toBe(videoTrack);
@@ -476,19 +593,16 @@ test('transport.produce() succeeds', async () => {
 	expect(videoProducer.paused).toBe(false);
 	expect(videoProducer.maxSpatialLayer).toBe(undefined);
 	expect(videoProducer.appData).toEqual({});
-
-	sendTransport.removeAllListeners('connect');
-	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.produce() without track rejects with TypeError', async () => {
-	await expect(sendTransport.produce({})).rejects.toThrow(TypeError);
+	await expect(ctx.sendTransport!.produce({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.produce() in a receiving Transport rejects with UnsupportedError', async () => {
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
-	await expect(recvTransport.produce({ track })).rejects.toThrow(
+	await expect(ctx.recvTransport!.produce({ track })).rejects.toThrow(
 		UnsupportedError,
 	);
 }, 500);
@@ -498,7 +612,7 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 
 	track.stop();
 
-	await expect(sendTransport.produce({ track })).rejects.toThrow(
+	await expect(ctx.sendTransport!.produce({ track })).rejects.toThrow(
 		InvalidStateError,
 	);
 }, 500);
@@ -506,10 +620,10 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 test('transport.produce() with a non object appData rejects with TypeError', async () => {
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
-	// @ts-ignore
-	await expect(sendTransport.produce({ track, appData: true })).rejects.toThrow(
-		TypeError,
-	);
+	await expect(
+		// @ts-ignore
+		ctx.sendTransport!.produce({ track, appData: true }),
+	).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consume() succeeds', async () => {
@@ -521,25 +635,21 @@ test('transport.consume() succeeds', async () => {
 		fakeParameters.generateConsumerRemoteParameters({
 			codecMimeType: 'video/VP8',
 		});
+
 	let connectEventNumTimesCalled = 0;
-
-	// eslint-disable-next-line no-unused-vars
-	recvTransport.on('connect', ({ dtlsParameters }, callback /* errback */) => {
-		connectEventNumTimesCalled++;
-
-		expect(typeof dtlsParameters).toBe('object');
-
-		// Emulate communication with the server and success response (no response
-		// data needed).
-		setTimeout(callback);
-	});
-
 	let codecs;
 	let headerExtensions;
 	let encodings;
 	let rtcp;
 
-	audioConsumer = await recvTransport.consume<{ bar: string }>({
+	ctx.connectedRecvTransport!.prependListener(
+		'connect',
+		() => ++connectEventNumTimesCalled,
+	);
+
+	const audioConsumer = await ctx.connectedRecvTransport!.consume<{
+		bar: string;
+	}>({
 		id: audioConsumerRemoteParameters.id,
 		producerId: audioConsumerRemoteParameters.producerId,
 		kind: audioConsumerRemoteParameters.kind,
@@ -547,7 +657,8 @@ test('transport.consume() succeeds', async () => {
 		appData: { bar: 'BAR' },
 	});
 
-	expect(connectEventNumTimesCalled).toBe(1);
+	// 'connect' event should not have been called since it was in beforeEach already.
+	expect(connectEventNumTimesCalled).toBe(0);
 	expect(typeof audioConsumer).toBe('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.producerId).toBe(
@@ -605,7 +716,7 @@ test('transport.consume() succeeds', async () => {
 	expect(Object.keys(encodings![0])).toEqual(['ssrc', 'dtx']);
 	expect(typeof encodings![0].ssrc).toBe('number');
 
-	rtcp = audioProducer.rtpParameters.rtcp;
+	rtcp = audioConsumer.rtpParameters.rtcp;
 
 	expect(typeof rtcp).toBe('object');
 	expect(typeof rtcp?.cname).toBe('string');
@@ -613,14 +724,14 @@ test('transport.consume() succeeds', async () => {
 	expect(audioConsumer.paused).toBe(false);
 	expect(audioConsumer.appData).toEqual({ bar: 'BAR' });
 
-	videoConsumer = await recvTransport.consume({
+	const videoConsumer = await ctx.connectedRecvTransport!.consume({
 		id: videoConsumerRemoteParameters.id,
 		producerId: videoConsumerRemoteParameters.producerId,
 		kind: videoConsumerRemoteParameters.kind,
 		rtpParameters: videoConsumerRemoteParameters.rtpParameters,
 	});
 
-	expect(connectEventNumTimesCalled).toBe(1);
+	expect(connectEventNumTimesCalled).toBe(0);
 	expect(typeof videoConsumer).toBe('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.producerId).toBe(
@@ -714,8 +825,6 @@ test('transport.consume() succeeds', async () => {
 
 	expect(videoConsumer.paused).toBe(false);
 	expect(videoConsumer.appData).toEqual({});
-
-	recvTransport.removeAllListeners('connect');
 }, 500);
 
 test('transport.consume() batches consumers created in same macrotask into the same task', async () => {
@@ -728,14 +837,12 @@ test('transport.consume() batches consumers created in same macrotask into the s
 			codecMimeType: 'video/VP8',
 		});
 
-	const pushSpy = jest.spyOn(
-		(recvTransport as unknown as { _awaitQueue: AwaitQueue })._awaitQueue,
-		'push',
-	);
+	// @ts-ignore
+	const pushSpy = jest.spyOn(ctx.connectedRecvTransport!._awaitQueue, 'push');
 
 	const waitForConsumer = (id: string | undefined): Promise<void> => {
 		return new Promise<void>(resolve => {
-			recvTransport.observer.on('newconsumer', consumer => {
+			ctx.connectedRecvTransport!.observer.on('newconsumer', consumer => {
 				if (consumer.id === id) {
 					resolve();
 				}
@@ -749,13 +856,13 @@ test('transport.consume() batches consumers created in same macrotask into the s
 	]);
 
 	await Promise.all([
-		recvTransport.consume({
+		ctx.connectedRecvTransport!.consume({
 			id: videoConsumerRemoteParameters1.id,
 			producerId: videoConsumerRemoteParameters1.producerId,
 			kind: videoConsumerRemoteParameters1.kind,
 			rtpParameters: videoConsumerRemoteParameters1.rtpParameters,
 		}),
-		recvTransport.consume({
+		ctx.connectedRecvTransport!.consume({
 			id: videoConsumerRemoteParameters2.id,
 			producerId: videoConsumerRemoteParameters2.producerId,
 			kind: videoConsumerRemoteParameters2.kind,
@@ -770,22 +877,22 @@ test('transport.consume() batches consumers created in same macrotask into the s
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(recvTransport.consume({})).rejects.toThrow(TypeError);
+	await expect(ctx.recvTransport!.consume({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consume() with missing remote Consumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(recvTransport.consume({ id: '1234' })).rejects.toThrow(
+	await expect(ctx.recvTransport!.consume({ id: '1234' })).rejects.toThrow(
 		TypeError,
 	);
 
 	await expect(
 		// @ts-ignore
-		recvTransport.consume({ id: '1234', producerId: '4444' }),
+		ctx.recvTransport!.consume({ id: '1234', producerId: '4444' }),
 	).rejects.toThrow(TypeError);
 
 	await expect(
-		recvTransport.consume(
+		ctx.recvTransport!.consume(
 			// @ts-ignore
 			{
 				id: '1234',
@@ -796,7 +903,7 @@ test('transport.consume() with missing remote Consumer parameters rejects with T
 	).rejects.toThrow(TypeError);
 
 	await expect(
-		recvTransport.consume(
+		ctx.recvTransport!.consume(
 			// @ts-ignore
 			{
 				id: '1234',
@@ -814,7 +921,7 @@ test('transport.consume() in a sending Transport rejects with UnsupportedError',
 		});
 
 	await expect(
-		sendTransport.consume({
+		ctx.sendTransport!.consume({
 			id,
 			producerId,
 			kind,
@@ -830,7 +937,7 @@ test('transport.consume() with unsupported rtpParameters rejects with Unsupporte
 		});
 
 	await expect(
-		sendTransport.consume({
+		ctx.sendTransport!.consume({
 			id,
 			producerId,
 			kind,
@@ -847,39 +954,20 @@ test('transport.consume() with a non object appData rejects with TypeError', asy
 
 	await expect(
 		// @ts-ignore
-		recvTransport.consume({ consumerRemoteParameters, appData: true }),
+		ctx.recvTransport!.consume({ consumerRemoteParameters, appData: true }),
 	).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.produceData() succeeds', async () => {
-	let dataProducerId;
 	let produceDataEventNumTimesCalled = 0;
 
-	// eslint-disable-next-line no-unused-vars
-	sendTransport.on(
-		'producedata',
-		(
-			{ sctpStreamParameters, label, protocol, appData },
-			callback /* errback */,
-		) => {
-			produceDataEventNumTimesCalled++;
+	ctx.connectedSendTransport!.prependListener('producedata', () => {
+		produceDataEventNumTimesCalled++;
+	});
 
-			expect(typeof sctpStreamParameters).toBe('object');
-			expect(label).toBe('FOO');
-			expect(protocol).toBe('BAR');
-			expect(appData).toEqual({ foo: 'FOO' });
-
-			const id = fakeParameters.generateDataProducerRemoteParameters().id;
-
-			dataProducerId = id;
-
-			// Emulate communication with the server and success response with Producer
-			// remote parameters.
-			setTimeout(() => callback({ id }));
-		},
-	);
-
-	dataProducer = await sendTransport.produceData<{ foo: string }>({
+	const dataProducer = await ctx.connectedSendTransport!.produceData<{
+		foo: string;
+	}>({
 		ordered: false,
 		maxPacketLifeTime: 5555,
 		label: 'FOO',
@@ -889,7 +977,7 @@ test('transport.produceData() succeeds', async () => {
 
 	expect(produceDataEventNumTimesCalled).toBe(1);
 	expect(typeof dataProducer).toBe('object');
-	expect(dataProducer.id).toBe(dataProducerId);
+	expect(typeof dataProducer.id).toBe('string');
 	expect(dataProducer.closed).toBe(false);
 	expect(typeof dataProducer.sctpStreamParameters).toBe('object');
 	expect(typeof dataProducer.sctpStreamParameters.streamId).toBe('number');
@@ -898,26 +986,28 @@ test('transport.produceData() succeeds', async () => {
 	expect(dataProducer.sctpStreamParameters.maxRetransmits).toBe(undefined);
 	expect(dataProducer.label).toBe('FOO');
 	expect(dataProducer.protocol).toBe('BAR');
-
-	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () => {
-	await expect(recvTransport.produceData({})).rejects.toThrow(UnsupportedError);
+	await expect(ctx.recvTransport!.produceData({})).rejects.toThrow(
+		UnsupportedError,
+	);
 }, 500);
 
 test('transport.produceData() with a non object appData rejects with TypeError', async () => {
-	// @ts-ignore
-	await expect(sendTransport.produceData({ appData: true })).rejects.toThrow(
-		TypeError,
-	);
+	await expect(
+		// @ts-ignore
+		ctx.sendTransport!.produceData({ appData: true }),
+	).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consumeData() succeeds', async () => {
 	const dataConsumerRemoteParameters =
 		fakeParameters.generateDataConsumerRemoteParameters();
 
-	dataConsumer = await recvTransport.consumeData<{ bar: string }>({
+	const dataConsumer = await ctx.connectedRecvTransport!.consumeData<{
+		bar: string;
+	}>({
 		id: dataConsumerRemoteParameters.id,
 		dataProducerId: dataConsumerRemoteParameters.dataProducerId,
 		sctpStreamParameters: dataConsumerRemoteParameters.sctpStreamParameters,
@@ -940,18 +1030,18 @@ test('transport.consumeData() succeeds', async () => {
 
 test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(recvTransport.consumeData({})).rejects.toThrow(TypeError);
+	await expect(ctx.recvTransport!.consumeData({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consumeData() with missing remote DataConsumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(recvTransport.consumeData({ id: '1234' })).rejects.toThrow(
+	await expect(ctx.recvTransport!.consumeData({ id: '1234' })).rejects.toThrow(
 		TypeError,
 	);
 
 	await expect(
 		// @ts-ignore
-		recvTransport.consumeData({ id: '1234', dataProducerId: '4444' }),
+		ctx.recvTransport!.consumeData({ id: '1234', dataProducerId: '4444' }),
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -960,7 +1050,7 @@ test('transport.consumeData() in a sending Transport rejects with UnsupportedErr
 		fakeParameters.generateDataConsumerRemoteParameters();
 
 	await expect(
-		sendTransport.consumeData({
+		ctx.sendTransport!.consumeData({
 			id,
 			dataProducerId,
 			sctpStreamParameters,
@@ -973,20 +1063,23 @@ test('transport.consumeData() with a non object appData rejects with TypeError',
 		fakeParameters.generateDataConsumerRemoteParameters();
 
 	await expect(
-		// @ts-ignore
-		recvTransport.consumeData({ dataConsumerRemoteParameters, appData: true }),
+		ctx.recvTransport!.consumeData({
+			dataConsumerRemoteParameters,
+			// @ts-ignore
+			appData: true,
+		}),
 	).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.getStats() succeeds', async () => {
-	const stats = await sendTransport.getStats();
+	const stats = await ctx.sendTransport!.getStats();
 
 	expect(typeof stats).toBe('object');
 }, 500);
 
 test('transport.restartIce() succeeds', async () => {
 	await expect(
-		sendTransport.restartIce({
+		ctx.sendTransport!.restartIce({
 			iceParameters: {
 				usernameFragment: 'foo',
 				password: 'xxx',
@@ -997,17 +1090,19 @@ test('transport.restartIce() succeeds', async () => {
 
 test('transport.restartIce() without remote iceParameters rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(sendTransport.restartIce({})).rejects.toThrow(TypeError);
+	await expect(ctx.sendTransport!.restartIce({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.updateIceServers() succeeds', async () => {
 	await expect(
-		sendTransport.updateIceServers({ iceServers: [] }),
+		ctx.sendTransport!.updateIceServers({ iceServers: [] }),
 	).resolves.toBe(undefined);
 }, 500);
 
 test('transport.updateIceServers() without iceServers rejects with TypeError', async () => {
-	await expect(sendTransport.updateIceServers({})).rejects.toThrow(TypeError);
+	await expect(ctx.sendTransport!.updateIceServers({})).rejects.toThrow(
+		TypeError,
+	);
 }, 500);
 
 test('ICE gathering state change fires "icegatheringstatechange" in live Transport', () => {
@@ -1017,143 +1112,137 @@ test('ICE gathering state change fires "icegatheringstatechange" in live Transpo
 	// tests above already). So here we have to reset it manually to test things.
 
 	// @ts-ignore
-	sendTransport.handler.setIceGatheringState('new');
+	ctx.sendTransport!.handler.setIceGatheringState('new');
 	// @ts-ignore
-	sendTransport.handler.setConnectionState('new');
+	ctx.sendTransport!.handler.setConnectionState('new');
 
 	let iceGatheringStateChangeEventNumTimesCalled = 0;
 	let connectionStateChangeEventNumTimesCalled = 0;
 
-	sendTransport.on('icegatheringstatechange', iceGatheringState => {
+	ctx.sendTransport!.on('icegatheringstatechange', iceGatheringState => {
 		iceGatheringStateChangeEventNumTimesCalled++;
 
 		expect(iceGatheringState).toBe('complete');
-		expect(sendTransport.iceGatheringState).toBe('complete');
-		expect(sendTransport.connectionState).toBe('new');
+		expect(ctx.sendTransport!.iceGatheringState).toBe('complete');
+		expect(ctx.sendTransport!.connectionState).toBe('new');
 	});
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	sendTransport.on('connectionstatechange', connectionState => {
+	ctx.sendTransport!.on('connectionstatechange', connectionState => {
 		connectionStateChangeEventNumTimesCalled++;
 	});
 
 	// @ts-ignore
-	sendTransport.handler.setIceGatheringState('complete');
+	ctx.sendTransport!.handler.setIceGatheringState('complete');
 
 	expect(iceGatheringStateChangeEventNumTimesCalled).toBe(1);
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
-	expect(sendTransport.iceGatheringState).toBe('complete');
-	expect(sendTransport.connectionState).toBe('new');
-
-	sendTransport.removeAllListeners('icegatheringstatechange');
-	sendTransport.removeAllListeners('connectionstatechange');
+	expect(ctx.sendTransport!.iceGatheringState).toBe('complete');
+	expect(ctx.sendTransport!.connectionState).toBe('new');
 });
 
 test('connection state change fires "connectionstatechange" in live Transport', () => {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
-	sendTransport.on('connectionstatechange', connectionState => {
+	ctx.sendTransport!.on('connectionstatechange', connectionState => {
 		connectionStateChangeEventNumTimesCalled++;
 
 		expect(connectionState).toBe('completed');
 	});
 
 	// @ts-ignore
-	sendTransport.handler.setConnectionState('completed');
+	ctx.sendTransport!.handler.setConnectionState('completed');
 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
-	expect(sendTransport.connectionState).toBe('completed');
-
-	sendTransport.removeAllListeners('connectionstatechange');
+	expect(ctx.sendTransport!.connectionState).toBe('completed');
 });
 
 test('producer.pause() succeeds', () => {
-	videoProducer.pause();
+	ctx.videoProducer!.pause();
 
-	expect(videoProducer.paused).toBe(true);
-	// Track will be still enabled due to disableTrackOnPause: false.
-	expect(videoProducer.track?.enabled).toBe(true);
+	expect(ctx.videoProducer!.paused).toBe(true);
+	expect(ctx.videoProducer!.track?.enabled).toBe(false);
 });
 
 test('producer.resume() succeeds', () => {
-	videoProducer.resume();
+	ctx.videoProducer!.resume();
 
-	expect(videoProducer.paused).toBe(false);
-	expect(videoProducer.track?.enabled).toBe(true);
+	expect(ctx.videoProducer!.paused).toBe(false);
+	expect(ctx.videoProducer!.track?.enabled).toBe(true);
 });
 
 test('producer.replaceTrack() with a new track succeeds', async () => {
 	// Have the audio Producer paused.
-	audioProducer.pause();
+	ctx.audioProducer!.pause();
 
-	const audioProducerPreviousTrack = audioProducer.track;
+	const audioProducerPreviousTrack = ctx.audioProducer!.track;
 	const newAudioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(
-		audioProducer.replaceTrack({ track: newAudioTrack }),
+		ctx.audioProducer!.replaceTrack({ track: newAudioTrack }),
 	).resolves.toBe(undefined);
 
 	// Previous track must be 'live' due to stopTracks: false.
 	expect(audioProducerPreviousTrack?.readyState).toBe('live');
-	expect(audioProducer.track?.readyState).toBe('live');
-	expect(audioProducer.track).not.toBe(audioProducerPreviousTrack);
-	expect(audioProducer.track).toBe(newAudioTrack);
+	expect(ctx.audioProducer!.track?.readyState).toBe('live');
+	expect(ctx.audioProducer!.track).not.toBe(audioProducerPreviousTrack);
+	expect(ctx.audioProducer!.track).toBe(newAudioTrack);
 	// Producer was already paused.
-	expect(audioProducer.paused).toBe(true);
+	expect(ctx.audioProducer!.paused).toBe(true);
 
 	// Reset the audio paused state.
-	audioProducer.resume();
+	ctx.audioProducer!.resume();
 
-	const videoProducerPreviousTrack = videoProducer.track;
+	const videoProducerPreviousTrack = ctx.videoProducer!.track;
 	const newVideoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 
 	await expect(
-		videoProducer.replaceTrack({ track: newVideoTrack }),
+		ctx.videoProducer!.replaceTrack({ track: newVideoTrack }),
 	).resolves.toBe(undefined);
 
 	// Previous track must be 'ended' due to stopTracks: true.
 	expect(videoProducerPreviousTrack?.readyState).toBe('ended');
-	expect(videoProducer.track).not.toBe(videoProducerPreviousTrack);
-	expect(videoProducer.track).toBe(newVideoTrack);
-	expect(videoProducer.paused).toBe(false);
+	expect(ctx.videoProducer!.track).not.toBe(videoProducerPreviousTrack);
+	expect(ctx.videoProducer!.track).toBe(newVideoTrack);
+	expect(ctx.videoProducer!.paused).toBe(false);
 }, 500);
 
 test('producer.replaceTrack() with null succeeds', async () => {
 	// Have the audio Producer paused.
-	audioProducer.pause();
+	ctx.audioProducer!.pause();
 
-	const audioProducerPreviousTrack = audioProducer.track;
+	const audioProducerPreviousTrack = ctx.audioProducer!.track;
 
-	await expect(audioProducer.replaceTrack({ track: null })).resolves.toBe(
+	await expect(ctx.audioProducer!.replaceTrack({ track: null })).resolves.toBe(
 		undefined,
 	);
 
 	// Previous track must be 'live' due to stopTracks: false.
 	expect(audioProducerPreviousTrack?.readyState).toBe('live');
-	expect(audioProducer.track).toBeNull();
+	expect(ctx.audioProducer!.track).toBeNull();
 	// Producer was already paused.
-	expect(audioProducer.paused).toBe(true);
+	expect(ctx.audioProducer!.paused).toBe(true);
 
 	// Reset the audio paused state.
-	audioProducer.resume();
+	ctx.audioProducer!.resume();
 
-	expect(audioProducer.paused).toBe(false);
+	expect(ctx.audioProducer!.paused).toBe(false);
 
 	// Manually "mute" the original audio track.
 	audioProducerPreviousTrack!.enabled = false;
 
 	// Set the original audio track back.
 	await expect(
-		audioProducer.replaceTrack({ track: audioProducerPreviousTrack }),
+		ctx.audioProducer!.replaceTrack({ track: audioProducerPreviousTrack }),
 	).resolves.toBe(undefined);
 
 	// The given audio track was muted but the Producer was not, so the track
 	// must not be muted now.
-	expect(audioProducer.paused).toBe(false);
+	expect(ctx.audioProducer!.paused).toBe(false);
 	expect(audioProducerPreviousTrack?.enabled).toBe(true);
 
 	// Reset the audio paused state.
-	audioProducer.resume();
+	ctx.audioProducer!.resume();
 }, 500);
 
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () => {
@@ -1161,123 +1250,135 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 
 	track.stop();
 
-	await expect(videoProducer.replaceTrack({ track })).rejects.toThrow(
+	await expect(ctx.videoProducer!.replaceTrack({ track })).rejects.toThrow(
 		InvalidStateError,
 	);
 
 	expect(track.readyState).toBe('ended');
-	expect(videoProducer.track?.readyState).toBe('live');
+	expect(ctx.videoProducer!.track?.readyState).toBe('live');
 }, 500);
 
 test('producer.replaceTrack() with the same track succeeds', async () => {
 	await expect(
-		audioProducer.replaceTrack({ track: audioProducer.track }),
+		ctx.audioProducer!.replaceTrack({ track: ctx.audioProducer!.track }),
 	).resolves.toBe(undefined);
 
-	expect(audioProducer.track?.readyState).toBe('live');
+	expect(ctx.audioProducer!.track?.readyState).toBe('live');
 }, 500);
 
 test('producer.setMaxSpatialLayer() succeeds', async () => {
-	await expect(videoProducer.setMaxSpatialLayer(0)).resolves.toBe(undefined);
+	await expect(ctx.videoProducer!.setMaxSpatialLayer(0)).resolves.toBe(
+		undefined,
+	);
 
-	expect(videoProducer.maxSpatialLayer).toBe(0);
+	expect(ctx.videoProducer!.maxSpatialLayer).toBe(0);
 }, 500);
 
 test('producer.setMaxSpatialLayer() in an audio Producer rejects with UnsupportedError', async () => {
-	await expect(audioProducer.setMaxSpatialLayer(1)).rejects.toThrow(
+	await expect(ctx.audioProducer!.setMaxSpatialLayer(1)).rejects.toThrow(
 		UnsupportedError,
 	);
 
-	expect(audioProducer.maxSpatialLayer).toBe(undefined);
+	expect(ctx.audioProducer!.maxSpatialLayer).toBe(undefined);
 }, 500);
 
 test('producer.setMaxSpatialLayer() with invalid spatialLayer rejects with TypeError', async () => {
-	// @ts-ignore
-	await expect(videoProducer.setMaxSpatialLayer('chicken')).rejects.toThrow(
-		TypeError,
-	);
+	await expect(
+		// @ts-ignore
+		ctx.videoProducer!.setMaxSpatialLayer('chicken'),
+	).rejects.toThrow(TypeError);
 }, 500);
 
 test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError', async () => {
 	// @ts-ignore
-	await expect(videoProducer.setMaxSpatialLayer()).rejects.toThrow(TypeError);
+	await expect(ctx.videoProducer!.setMaxSpatialLayer()).rejects.toThrow(
+		TypeError,
+	);
 }, 500);
 
 test('producer.setRtpEncodingParameters() succeeds', async () => {
 	await expect(
-		videoProducer.setRtpEncodingParameters({ scaleResolutionDownBy: 2 }),
+		ctx.videoProducer!.setRtpEncodingParameters({ scaleResolutionDownBy: 2 }),
 	).resolves.toBe(undefined);
-
-	expect(videoProducer.maxSpatialLayer).toBe(0);
 }, 500);
 
 test('producer.getStats() succeeds', async () => {
-	const stats = await videoProducer.getStats();
+	const stats = await ctx.videoProducer!.getStats();
 
 	expect(typeof stats).toBe('object');
 }, 500);
 
 test('consumer.resume() succeeds', () => {
-	videoConsumer.resume();
+	ctx.videoConsumer!.resume();
 
-	expect(videoConsumer.paused).toBe(false);
+	expect(ctx.videoConsumer!.paused).toBe(false);
 });
 
 test('consumer.pause() succeeds', () => {
-	videoConsumer.pause();
+	ctx.videoConsumer!.pause();
 
-	expect(videoConsumer.paused).toBe(true);
+	expect(ctx.videoConsumer!.paused).toBe(true);
 });
 
 test('consumer.getStats() succeeds', async () => {
-	const stats = await videoConsumer.getStats();
+	const stats = await ctx.videoConsumer!.getStats();
 
 	expect(typeof stats).toBe('object');
 }, 500);
 
 test('producer.close() succeed', () => {
-	audioProducer.close();
+	ctx.audioProducer!.close();
 
-	expect(audioProducer.closed).toBe(true);
+	expect(ctx.audioProducer!.closed).toBe(true);
 	// Track will be still 'live' due to stopTracks: false.
-	expect(audioProducer.track?.readyState).toBe('live');
+	expect(ctx.audioProducer!.track?.readyState).toBe('live');
 });
 
 test('producer.replaceTrack() rejects with InvalidStateError if closed', async () => {
 	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
+	ctx.audioProducer!.close();
+
 	await expect(
-		audioProducer.replaceTrack({ track: audioTrack }),
+		ctx.audioProducer!.replaceTrack({ track: audioTrack }),
 	).rejects.toThrow(InvalidStateError);
 
 	expect(audioTrack.readyState).toBe('live');
 }, 500);
 
 test('producer.getStats() rejects with InvalidStateError if closed', async () => {
-	await expect(audioProducer.getStats()).rejects.toThrow(InvalidStateError);
+	ctx.audioProducer!.close();
+
+	await expect(ctx.audioProducer!.getStats()).rejects.toThrow(
+		InvalidStateError,
+	);
 }, 500);
 
 test('consumer.close() succeed', () => {
-	audioConsumer.close();
+	ctx.audioConsumer!.close();
 
-	expect(audioConsumer.closed).toBe(true);
-	expect(audioConsumer.track.readyState).toBe('ended');
+	expect(ctx.audioConsumer!.closed).toBe(true);
+	expect(ctx.audioConsumer!.track.readyState).toBe('ended');
 });
 
 test('consumer.getStats() rejects with InvalidStateError if closed', async () => {
-	await expect(audioConsumer.getStats()).rejects.toThrow(InvalidStateError);
+	ctx.audioConsumer!.close();
+
+	await expect(ctx.audioConsumer!.getStats()).rejects.toThrow(
+		InvalidStateError,
+	);
 }, 500);
 
 test('dataProducer.close() succeed', () => {
-	dataProducer.close();
+	ctx.dataProducer!.close();
 
-	expect(dataProducer.closed).toBe(true);
+	expect(ctx.dataProducer!.closed).toBe(true);
 });
 
 test('dataConsumer.close() succeed', () => {
-	dataConsumer.close();
+	ctx.dataConsumer!.close();
 
-	expect(dataConsumer.closed).toBe(true);
+	expect(ctx.dataConsumer!.closed).toBe(true);
 });
 
 test('remotetely stopped track fires "trackended" in live Producers/Consumers', () => {
@@ -1286,48 +1387,44 @@ test('remotetely stopped track fires "trackended" in live Producers/Consumers', 
 	let audiosConsumerTrackendedEventCalled = false;
 	let videoConsumerTrackendedEventCalled = false;
 
-	audioProducer.on('trackended', () => {
+	ctx.audioProducer!.on('trackended', () => {
 		audioProducerTrackendedEventCalled = true;
 	});
 
-	videoProducer.on('trackended', () => {
+	ctx.videoProducer!.on('trackended', () => {
 		videoProducerTrackendedEventCalled = true;
 	});
 
-	audioConsumer.on('trackended', () => {
+	ctx.audioConsumer!.on('trackended', () => {
 		audiosConsumerTrackendedEventCalled = true;
 	});
 
-	videoConsumer.on('trackended', () => {
+	ctx.videoConsumer!.on('trackended', () => {
 		videoConsumerTrackendedEventCalled = true;
 	});
 
 	// @ts-ignore
-	audioProducer.track.remoteStop();
+	ctx.audioProducer!.track.remoteStop();
 
-	// Audio Producer was already closed.
-	expect(audioProducerTrackendedEventCalled).toBe(false);
+	expect(audioProducerTrackendedEventCalled).toBe(true);
 
-	// @ts-ignore
-	videoProducer.track.remoteStop();
-
-	expect(videoProducerTrackendedEventCalled).toBe(true);
+	// Let's close the video producer.
+	ctx.videoProducer!.close();
 
 	// @ts-ignore
-	audioConsumer.track.remoteStop();
+	ctx.videoProducer!.track.remoteStop();
 
-	// Audio Consumer was already closed.
-	expect(audiosConsumerTrackendedEventCalled).toBe(false);
+	expect(videoProducerTrackendedEventCalled).toBe(false);
 
 	// @ts-ignore
-	videoConsumer.track.remoteStop();
+	ctx.audioConsumer!.track.remoteStop();
+
+	expect(audiosConsumerTrackendedEventCalled).toBe(true);
+
+	// @ts-ignore
+	ctx.videoConsumer!.track.remoteStop();
 
 	expect(videoConsumerTrackendedEventCalled).toBe(true);
-
-	audioProducer.removeAllListeners();
-	videoProducer.removeAllListeners();
-	audioConsumer.removeAllListeners();
-	videoConsumer.removeAllListeners();
 });
 
 test('transport.close() fires "transportclose" in live Producers/Consumers', () => {
@@ -1336,125 +1433,120 @@ test('transport.close() fires "transportclose" in live Producers/Consumers', () 
 	let audioConsumerTransportcloseEventCalled = false;
 	let videoConsumerTransportcloseEventCalled = false;
 
-	audioProducer.on('transportclose', () => {
+	ctx.audioProducer!.on('transportclose', () => {
 		audioProducerTransportcloseEventCalled = true;
 	});
 
-	videoProducer.on('transportclose', () => {
+	ctx.videoProducer!.on('transportclose', () => {
 		videoProducerTransportcloseEventCalled = true;
 	});
 
-	audioConsumer.on('transportclose', () => {
+	ctx.audioConsumer!.on('transportclose', () => {
 		audioConsumerTransportcloseEventCalled = true;
 	});
 
-	videoConsumer.on('transportclose', () => {
+	ctx.videoConsumer!.on('transportclose', () => {
 		videoConsumerTransportcloseEventCalled = true;
 	});
 
-	// Audio Producer was already closed.
-	expect(audioProducer.closed).toBe(true);
-	expect(videoProducer.closed).toBe(false);
+	ctx.connectedSendTransport!.close();
 
-	sendTransport.close();
-
-	expect(sendTransport.closed).toBe(true);
-	expect(videoProducer.closed).toBe(true);
-	// Audio Producer was already closed.
-	expect(audioProducerTransportcloseEventCalled).toBe(false);
+	expect(ctx.connectedSendTransport!.closed).toBe(true);
+	expect(ctx.videoProducer!.closed).toBe(true);
+	expect(audioProducerTransportcloseEventCalled).toBe(true);
 	expect(videoProducerTransportcloseEventCalled).toBe(true);
 
-	// Audio Consumer was already closed.
-	expect(audioConsumer.closed).toBe(true);
-	expect(videoConsumer.closed).toBe(false);
+	// Let's close the video consumer.
+	ctx.videoConsumer!.close();
+	ctx.connectedRecvTransport!.close();
 
-	recvTransport.close();
-
-	expect(recvTransport.closed).toBe(true);
-	expect(videoConsumer.closed).toBe(true);
-	// Audio Consumer was already closed.
-	expect(audioConsumerTransportcloseEventCalled).toBe(false);
-	expect(videoConsumerTransportcloseEventCalled).toBe(true);
-
-	audioProducer.removeAllListeners();
-	videoProducer.removeAllListeners();
-	audioConsumer.removeAllListeners();
-	videoConsumer.removeAllListeners();
+	expect(ctx.connectedRecvTransport!.closed).toBe(true);
+	expect(ctx.videoConsumer!.closed).toBe(true);
+	expect(audioConsumerTransportcloseEventCalled).toBe(true);
+	expect(videoConsumerTransportcloseEventCalled).toBe(false);
 });
 
 test('transport.produce() rejects with InvalidStateError if closed', async () => {
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
-	// Add noop listener to avoid the method fail.
-	sendTransport.on('produce', () => {});
+	ctx.connectedSendTransport!.close();
 
 	await expect(
-		sendTransport.produce({ track, stopTracks: false }),
+		ctx.connectedSendTransport!.produce({ track, stopTracks: false }),
 	).rejects.toThrow(InvalidStateError);
 
 	// The track must be 'live' due to stopTracks: false.
 	expect(track.readyState).toBe('live');
-
-	sendTransport.removeAllListeners('produce');
 }, 500);
 
 test('transport.consume() rejects with InvalidStateError if closed', async () => {
-	// @ts-ignore
-	await expect(recvTransport.consume({})).rejects.toThrow(InvalidStateError);
+	ctx.connectedRecvTransport!.close();
 
-	recvTransport.removeAllListeners();
+	// @ts-ignore
+	await expect(ctx.connectedRecvTransport!.consume({})).rejects.toThrow(
+		InvalidStateError,
+	);
 }, 500);
 
 test('transport.produceData() rejects with InvalidStateError if closed', async () => {
-	// Add noop listener to avoid the method fail.
-	sendTransport.on('producedata', () => {});
+	ctx.connectedSendTransport!.close();
 
-	await expect(sendTransport.produceData({})).rejects.toThrow(
+	await expect(ctx.connectedSendTransport!.produceData({})).rejects.toThrow(
 		InvalidStateError,
 	);
-
-	sendTransport.removeAllListeners('producedata');
 }, 500);
 
 test('transport.consumeData() rejects with InvalidStateError if closed', async () => {
+	ctx.connectedRecvTransport!.close();
+
 	// @ts-ignore
-	await expect(recvTransport.consumeData({})).rejects.toThrow(
+	await expect(ctx.connectedRecvTransport!.consumeData({})).rejects.toThrow(
 		InvalidStateError,
 	);
 }, 500);
 
 test('transport.getStats() rejects with InvalidStateError if closed', async () => {
-	await expect(sendTransport.getStats()).rejects.toThrow(InvalidStateError);
-}, 500);
+	ctx.connectedSendTransport!.close();
 
-test('transport.restartIce() rejects with InvalidStateError if closed', async () => {
-	// @ts-ignore
-	await expect(sendTransport.restartIce({ ieParameters: {} })).rejects.toThrow(
+	await expect(ctx.connectedSendTransport!.getStats()).rejects.toThrow(
 		InvalidStateError,
 	);
 }, 500);
 
-test('transport.updateIceServers() rejects with InvalidStateError if closed', async () => {
+test('transport.restartIce() rejects with InvalidStateError if closed', async () => {
+	ctx.connectedSendTransport!.close();
+
 	await expect(
-		sendTransport.updateIceServers({ iceServers: [] }),
+		// @ts-ignore
+		ctx.connectedSendTransport!.restartIce({ ieParameters: {} }),
+	).rejects.toThrow(InvalidStateError);
+}, 500);
+
+test('transport.updateIceServers() rejects with InvalidStateError if closed', async () => {
+	ctx.connectedSendTransport!.close();
+
+	await expect(
+		ctx.connectedSendTransport!.updateIceServers({ iceServers: [] }),
 	).rejects.toThrow(InvalidStateError);
 }, 500);
 
 test('connection state change does not fire "connectionstatechange" in closed Transport', () => {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
-	// eslint-disable-next-line no-unused-vars
-	sendTransport.on('connectionstatechange', (/* connectionState */) => {
-		connectionStateChangeEventNumTimesCalled++;
-	});
+	ctx.connectedSendTransport!.on(
+		'connectionstatechange',
+		(/* connectionState */) => {
+			connectionStateChangeEventNumTimesCalled++;
+		},
+	);
+
+	ctx.connectedSendTransport!.close();
 
 	// @ts-ignore
-	sendTransport.handler.setConnectionState('disconnected');
+	ctx.connectedSendTransport!.handler.setConnectionState('disconnected');
 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
-	expect(sendTransport.connectionState).toBe('disconnected');
-
-	sendTransport.removeAllListeners('connectionstatechange');
+	expect(ctx.connectedSendTransport!.connectionState).toBe('disconnected');
 });
 
 test('RemoteSdp properly handles multiple streams of the same type in planB', async () => {
