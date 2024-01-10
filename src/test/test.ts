@@ -422,7 +422,8 @@ test('transport.produce() succeeds', async () => {
 		appData: { foo: 'FOO' },
 	});
 
-	// 'connect' event should not have been called since it was in beforeEach already.
+	// 'connect' event should not have been called since it was in beforeEach
+	// already.
 	expect(connectEventNumTimesCalled).toBe(0);
 	expect(produceEventNumTimesCalled).toBe(1);
 	expect(typeof audioProducer).toBe('object');
@@ -487,7 +488,7 @@ test('transport.produce() succeeds', async () => {
 
 	const videoEncodings = [{ maxBitrate: 100000 }, { maxBitrate: 500000 }];
 
-	// Note that stopTracks is not give so it's true by default.
+	// Note that stopTracks is not given so it's true by default.
 	// Use disableTrackOnPause: false and zeroRtpOnPause: true
 	const videoProducer = await ctx.connectedSendTransport!.produce({
 		track: videoTrack,
@@ -657,7 +658,8 @@ test('transport.consume() succeeds', async () => {
 		appData: { bar: 'BAR' },
 	});
 
-	// 'connect' event should not have been called since it was in beforeEach already.
+	// 'connect' event should not have been called since it was in beforeEach
+	// already.
 	expect(connectEventNumTimesCalled).toBe(0);
 	expect(typeof audioConsumer).toBe('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
