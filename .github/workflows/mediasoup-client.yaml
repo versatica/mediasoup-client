@@ -44,8 +44,9 @@ jobs:
           restore-keys: |
             ${{ matrix.ci.os }}-node-
 
+      # NOTE: Add --force since some dev dependencies require Node >= 18.
       - name: npm ci
-        run: npm ci --foreground-scripts
+        run: npm ci --force --foreground-scripts
 
       - name: npm run lint
         run: npm run lint
