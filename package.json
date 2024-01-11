@@ -10,7 +10,7 @@
 	"homepage": "https://mediasoup.org",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/versatica/mediasoup-client.git"
+		"url": "git+https://github.com/versatica/mediasoup-client.git"
 	},
 	"funding": {
 		"type": "opencollective",
