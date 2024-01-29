@@ -30,7 +30,7 @@ export function getCapabilities(): RtpCapabilities {
 
 			if (parameters['packetization-mode']) {
 				parameters['packetization-mode'] = Number(
-					parameters['packetization-mode'],
+					parameters['packetization-mode']
 				);
 			}
 		}
@@ -50,7 +50,7 @@ export function getCapabilities(): RtpCapabilities {
  * Generate RTCRtpParameters as ORTC based Edge likes.
  */
 export function mangleRtpParameters(
-	rtpParameters: RtpParameters,
+	rtpParameters: RtpParameters
 ): RtpParameters {
 	const params = utils.clone<RtpParameters>(rtpParameters);
 

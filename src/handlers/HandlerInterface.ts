@@ -125,27 +125,27 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void>;
 
 	abstract setMaxSpatialLayer(
 		localId: string,
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void>;
 
 	abstract setRtpEncodingParameters(
 		localId: string,
-		params: any,
+		params: any
 	): Promise<void>;
 
 	abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
 
 	abstract sendDataChannel(
-		options: HandlerSendDataChannelOptions,
+		options: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>;
 
 	abstract receive(
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]>;
 
 	abstract stopReceiving(localIds: string[]): Promise<void>;
@@ -157,6 +157,6 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 	abstract getReceiverStats(localId: string): Promise<RTCStatsReport>;
 
 	abstract receiveDataChannel(
-		options: HandlerReceiveDataChannelOptions,
+		options: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>;
 }

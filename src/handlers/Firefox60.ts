@@ -204,11 +204,11 @@ export class Firefox60 extends HandlerInterface {
 		this._sendingRemoteRtpParametersByKind = {
 			audio: ortc.getSendingRemoteRtpParameters(
 				'audio',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 			video: ortc.getSendingRemoteRtpParameters(
 				'video',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 		};
 
@@ -220,7 +220,7 @@ export class Firefox60 extends HandlerInterface {
 				rtcpMuxPolicy: 'require',
 				...additionalSettings,
 			},
-			proprietaryConstraints,
+			proprietaryConstraints
 		);
 
 		this._pc.addEventListener('icegatheringstatechange', () => {
@@ -234,7 +234,7 @@ export class Firefox60 extends HandlerInterface {
 		} else {
 			this._pc.addEventListener('iceconnectionstatechange', () => {
 				logger.warn(
-					'run() | pc.connectionState not supported, using pc.iceConnectionState',
+					'run() | pc.connectionState not supported, using pc.iceConnectionState'
 				);
 
 				switch (this._pc.iceConnectionState) {
@@ -298,7 +298,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setLocalDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setLocalDescription(offer);
@@ -307,7 +307,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setRemoteDescription(answer);
@@ -316,7 +316,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setRemoteDescription(offer);
@@ -325,7 +325,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setLocalDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setLocalDescription(answer);
@@ -364,23 +364,23 @@ export class Firefox60 extends HandlerInterface {
 		}
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind],
+			this._sendingRtpParametersByKind![track.kind]
 		);
 
 		// This may throw.
 		sendingRtpParameters.codecs = ortc.reduceCodecs(
 			sendingRtpParameters.codecs,
-			codec,
+			codec
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind],
+			this._sendingRemoteRtpParametersByKind![track.kind]
 		);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
 			sendingRemoteRtpParameters.codecs,
-			codec,
+			codec
 		);
 
 		// NOTE: Firefox fails sometimes to properly anticipate the closed media
@@ -484,7 +484,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'send() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -535,7 +535,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setLocalDescription(offer);
@@ -544,7 +544,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -572,7 +572,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'pauseSending() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setLocalDescription(offer);
@@ -581,7 +581,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'pauseSending() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -607,7 +607,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'resumeSending() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setLocalDescription(offer);
@@ -616,7 +616,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'resumeSending() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -624,7 +624,7 @@ export class Firefox60 extends HandlerInterface {
 
 	async replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -633,7 +633,7 @@ export class Firefox60 extends HandlerInterface {
 			logger.debug(
 				'replaceTrack() [localId:%s, track.id:%s]',
 				localId,
-				track.id,
+				track.id
 			);
 		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
@@ -650,7 +650,7 @@ export class Firefox60 extends HandlerInterface {
 
 	async setMaxSpatialLayer(
 		localId: string,
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -658,7 +658,7 @@ export class Firefox60 extends HandlerInterface {
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId,
-			spatialLayer,
+			spatialLayer
 		);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -680,7 +680,7 @@ export class Firefox60 extends HandlerInterface {
 				} else {
 					encoding.active = false;
 				}
-			},
+			}
 		);
 
 		await transceiver.sender.setParameters(parameters);
@@ -691,7 +691,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'setMaxSpatialLayer() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setLocalDescription(offer);
@@ -700,7 +700,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'setMaxSpatialLayer() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -713,7 +713,7 @@ export class Firefox60 extends HandlerInterface {
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId,
-			params,
+			params
 		);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -727,7 +727,7 @@ export class Firefox60 extends HandlerInterface {
 		parameters.encodings.forEach(
 			(encoding: RTCRtpEncodingParameters, idx: number) => {
 				parameters.encodings[idx] = { ...encoding, ...params };
-			},
+			}
 		);
 
 		await transceiver.sender.setParameters(parameters);
@@ -738,7 +738,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'setRtpEncodingParameters() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setLocalDescription(offer);
@@ -747,7 +747,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'setRtpEncodingParameters() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -799,7 +799,7 @@ export class Firefox60 extends HandlerInterface {
 			const offer = await this._pc.createOffer();
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'application',
+				(m: any) => m.type === 'application'
 			);
 
 			if (!this._transportReady) {
@@ -808,7 +808,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setLocalDescription(offer);
@@ -819,7 +819,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setRemoteDescription(answer);
@@ -839,7 +839,7 @@ export class Firefox60 extends HandlerInterface {
 
 	async receive(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertNotClosed();
 		this.assertRecvDirection();
@@ -869,7 +869,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -881,7 +881,7 @@ export class Firefox60 extends HandlerInterface {
 			const { trackId, rtpParameters } = options;
 			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media.find(
-				(m: any) => String(m.mid) === localId,
+				(m: any) => String(m.mid) === localId
 			);
 
 			// May need to modify codec parameters in the answer based on codec
@@ -900,7 +900,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -952,7 +952,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -961,7 +961,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -992,7 +992,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -1001,7 +1001,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'pauseReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -1028,7 +1028,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -1037,7 +1037,7 @@ export class Firefox60 extends HandlerInterface {
 
 		logger.debug(
 			'resumeReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -1092,7 +1092,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setRemoteDescription(offer);
@@ -1107,7 +1107,7 @@ export class Firefox60 extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setLocalDescription(answer);
@@ -1139,7 +1139,7 @@ export class Firefox60 extends HandlerInterface {
 
 		// Update the remote DTLS role in the SDP.
 		this._remoteSdp!.updateDtlsRole(
-			localDtlsRole === 'client' ? 'server' : 'client',
+			localDtlsRole === 'client' ? 'server' : 'client'
 		);
 
 		// Need to tell the remote transport about our parameters.
@@ -1159,7 +1159,7 @@ export class Firefox60 extends HandlerInterface {
 	private assertSendDirection(): void {
 		if (this._direction !== 'send') {
 			throw new Error(
-				'method can just be called for handlers with "send" direction',
+				'method can just be called for handlers with "send" direction'
 			);
 		}
 	}
@@ -1167,7 +1167,7 @@ export class Firefox60 extends HandlerInterface {
 	private assertRecvDirection(): void {
 		if (this._direction !== 'recv') {
 			throw new Error(
-				'method can just be called for handlers with "recv" direction',
+				'method can just be called for handlers with "recv" direction'
 			);
 		}
 	}

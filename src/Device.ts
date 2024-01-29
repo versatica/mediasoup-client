@@ -61,7 +61,7 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 
 		if (typeof RTCPeerConnection === 'undefined') {
 			logger.warn(
-				'detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?',
+				'detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?'
 			);
 
 			return undefined;
@@ -89,7 +89,7 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 		logger.debug(
 			'detectDevice() | browser detected [ua:%s, parsed:%o]',
 			ua,
-			uaParser.getResult(),
+			uaParser.getResult()
 		);
 
 		const browser = uaParser.getBrowser();
@@ -200,7 +200,7 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 			logger.warn(
 				'detectDevice() | browser not supported [name:%s, version:%s]',
 				browserName,
-				browserVersion,
+				browserVersion
 			);
 
 			return undefined;
@@ -249,21 +249,21 @@ export class Device {
 		// Handle deprecated option.
 		if (Handler) {
 			logger.warn(
-				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead',
+				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead'
 			);
 
 			if (typeof Handler === 'string') {
 				handlerName = Handler as BuiltinHandlerName;
 			} else {
 				throw new TypeError(
-					'non string Handler option no longer supported, use handlerFactory instead',
+					'non string Handler option no longer supported, use handlerFactory instead'
 				);
 			}
 		}
 
 		if (handlerName && handlerFactory) {
 			throw new TypeError(
-				'just one of handlerName or handlerInterface can be given',
+				'just one of handlerName or handlerInterface can be given'
 			);
 		}
 
@@ -433,7 +433,7 @@ export class Device {
 
 			logger.debug(
 				'load() | got native RTP capabilities:%o',
-				nativeRtpCapabilities,
+				nativeRtpCapabilities
 			);
 
 			// This may throw.
@@ -442,27 +442,27 @@ export class Device {
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
 				nativeRtpCapabilities,
-				routerRtpCapabilities,
+				routerRtpCapabilities
 			);
 
 			logger.debug(
 				'load() | got extended RTP capabilities:%o',
-				this._extendedRtpCapabilities,
+				this._extendedRtpCapabilities
 			);
 
 			// Check whether we can produce audio/video.
 			this._canProduceByKind.audio = ortc.canSend(
 				'audio',
-				this._extendedRtpCapabilities,
+				this._extendedRtpCapabilities
 			);
 			this._canProduceByKind.video = ortc.canSend(
 				'video',
-				this._extendedRtpCapabilities,
+				this._extendedRtpCapabilities
 			);
 
 			// Generate our receiving RTP capabilities for receiving media.
 			this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
-				this._extendedRtpCapabilities,
+				this._extendedRtpCapabilities
 			);
 
 			// This may throw.
@@ -470,7 +470,7 @@ export class Device {
 
 			logger.debug(
 				'load() | got receiving RTP capabilities:%o',
-				this._recvRtpCapabilities,
+				this._recvRtpCapabilities
 			);
 
 			// Generate our SCTP capabilities.
@@ -478,7 +478,7 @@ export class Device {
 
 			logger.debug(
 				'load() | got native SCTP capabilities:%o',
-				this._sctpCapabilities,
+				this._sctpCapabilities
 			);
 
 			// This may throw.

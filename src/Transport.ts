@@ -449,7 +449,7 @@ export class Transport<
 		// Enqueue command.
 		return this._awaitQueue.push(
 			async () => await this._handler.restartIce(iceParameters),
-			'transport.restartIce()',
+			'transport.restartIce()'
 		);
 	}
 
@@ -470,7 +470,7 @@ export class Transport<
 		// Enqueue command.
 		return this._awaitQueue.push(
 			async () => this._handler.updateIceServers(iceServers),
-			'transport.updateIceServers()',
+			'transport.updateIceServers()'
 		);
 	}
 
@@ -581,9 +581,9 @@ export class Transport<
 										appData,
 									},
 									resolve,
-									reject,
+									reject
 								);
-							},
+							}
 						);
 
 						const producer = new Producer<ProducerAppData>({
@@ -662,7 +662,7 @@ export class Transport<
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
 			rtpParameters,
-			this._extendedRtpCapabilities,
+			this._extendedRtpCapabilities
 		);
 
 		if (!canConsume) {
@@ -755,7 +755,7 @@ export class Transport<
 						appData,
 					},
 					resolve,
-					reject,
+					reject
 				);
 			});
 
@@ -851,7 +851,7 @@ export class Transport<
 			.push(async () => {
 				if (this._pendingConsumerTasks.length === 0) {
 					logger.debug(
-						'createPendingConsumers() | there is no Consumer to be created',
+						'createPendingConsumers() | there is no Consumer to be created'
 					);
 
 					return;
@@ -926,7 +926,7 @@ export class Transport<
 				if (videoConsumerForProbator) {
 					try {
 						const probatorRtpParameters = ortc.generateProbatorRtpParameters(
-							videoConsumerForProbator!.rtpParameters,
+							videoConsumerForProbator!.rtpParameters
 						);
 
 						await this._handler.receive([
@@ -938,14 +938,14 @@ export class Transport<
 						]);
 
 						logger.debug(
-							'createPendingConsumers() | Consumer for RTP probation created',
+							'createPendingConsumers() | Consumer for RTP probation created'
 						);
 
 						this._probatorConsumerCreated = true;
 					} catch (error) {
 						logger.error(
 							'createPendingConsumers() | failed to create Consumer for RTP probation:%o',
-							error,
+							error
 						);
 					}
 				}
@@ -969,14 +969,14 @@ export class Transport<
 			.push(async () => {
 				if (this._pendingPauseConsumers.size === 0) {
 					logger.debug(
-						'pausePendingConsumers() | there is no Consumer to be paused',
+						'pausePendingConsumers() | there is no Consumer to be paused'
 					);
 
 					return;
 				}
 
 				const pendingPauseConsumers = Array.from(
-					this._pendingPauseConsumers.values(),
+					this._pendingPauseConsumers.values()
 				);
 
 				// Clear pending pause Consumer map.
@@ -984,14 +984,14 @@ export class Transport<
 
 				try {
 					const localIds = pendingPauseConsumers.map(
-						consumer => consumer.localId,
+						consumer => consumer.localId
 					);
 
 					await this._handler.pauseReceiving(localIds);
 				} catch (error) {
 					logger.error(
 						'pausePendingConsumers() | failed to pause Consumers:',
-						error,
+						error
 					);
 				}
 			}, 'transport.pausePendingConsumers')
@@ -1014,14 +1014,14 @@ export class Transport<
 			.push(async () => {
 				if (this._pendingResumeConsumers.size === 0) {
 					logger.debug(
-						'resumePendingConsumers() | there is no Consumer to be resumed',
+						'resumePendingConsumers() | there is no Consumer to be resumed'
 					);
 
 					return;
 				}
 
 				const pendingResumeConsumers = Array.from(
-					this._pendingResumeConsumers.values(),
+					this._pendingResumeConsumers.values()
 				);
 
 				// Clear pending resume Consumer map.
@@ -1029,14 +1029,14 @@ export class Transport<
 
 				try {
 					const localIds = pendingResumeConsumers.map(
-						consumer => consumer.localId,
+						consumer => consumer.localId
 					);
 
 					await this._handler.resumeReceiving(localIds);
 				} catch (error) {
 					logger.error(
 						'resumePendingConsumers() | failed to resume Consumers:',
-						error,
+						error
 					);
 				}
 			}, 'transport.resumePendingConsumers')
@@ -1059,14 +1059,14 @@ export class Transport<
 			.push(async () => {
 				if (this._pendingCloseConsumers.size === 0) {
 					logger.debug(
-						'closePendingConsumers() | there is no Consumer to be closed',
+						'closePendingConsumers() | there is no Consumer to be closed'
 					);
 
 					return;
 				}
 
 				const pendingCloseConsumers = Array.from(
-					this._pendingCloseConsumers.values(),
+					this._pendingCloseConsumers.values()
 				);
 
 				// Clear pending close Consumer map.
@@ -1074,12 +1074,12 @@ export class Transport<
 
 				try {
 					await this._handler.stopReceiving(
-						pendingCloseConsumers.map(consumer => consumer.localId),
+						pendingCloseConsumers.map(consumer => consumer.localId)
 					);
 				} catch (error) {
 					logger.error(
 						'closePendingConsumers() | failed to close Consumers:',
-						error,
+						error
 					);
 				}
 			}, 'transport.closePendingConsumers')
@@ -1103,7 +1103,7 @@ export class Transport<
 			(
 				{ dtlsParameters }: { dtlsParameters: DtlsParameters },
 				callback: () => void,
-				errback: (error: Error) => void,
+				errback: (error: Error) => void
 			) => {
 				if (this._closed) {
 					errback(new InvalidStateError('closed'));
@@ -1112,7 +1112,7 @@ export class Transport<
 				}
 
 				this.safeEmit('connect', { dtlsParameters }, callback, errback);
-			},
+			}
 		);
 
 		handler.on(
@@ -1129,7 +1129,7 @@ export class Transport<
 				if (!this._closed) {
 					this.safeEmit('icegatheringstatechange', iceGatheringState);
 				}
-			},
+			}
 		);
 
 		handler.on('@connectionstatechange', (connectionState: ConnectionState) => {
@@ -1158,10 +1158,10 @@ export class Transport<
 			this._awaitQueue
 				.push(
 					async () => await this._handler.stopSending(producer.localId),
-					'producer @close event',
+					'producer @close event'
 				)
 				.catch((error: Error) =>
-					logger.warn('producer.close() failed:%o', error),
+					logger.warn('producer.close() failed:%o', error)
 				);
 		});
 
@@ -1169,7 +1169,7 @@ export class Transport<
 			this._awaitQueue
 				.push(
 					async () => await this._handler.pauseSending(producer.localId),
-					'producer @pause event',
+					'producer @pause event'
 				)
 				.then(callback)
 				.catch(errback);
@@ -1179,7 +1179,7 @@ export class Transport<
 			this._awaitQueue
 				.push(
 					async () => await this._handler.resumeSending(producer.localId),
-					'producer @resume event',
+					'producer @resume event'
 				)
 				.then(callback)
 				.catch(errback);
@@ -1189,7 +1189,7 @@ export class Transport<
 			this._awaitQueue
 				.push(
 					async () => await this._handler.replaceTrack(producer.localId, track),
-					'producer @replacetrack event',
+					'producer @replacetrack event'
 				)
 				.then(callback)
 				.catch(errback);
@@ -1201,9 +1201,9 @@ export class Transport<
 					async () =>
 						await this._handler.setMaxSpatialLayer(
 							producer.localId,
-							spatialLayer,
+							spatialLayer
 						),
-					'producer @setmaxspatiallayer event',
+					'producer @setmaxspatiallayer event'
 				)
 				.then(callback)
 				.catch(errback);
@@ -1215,9 +1215,9 @@ export class Transport<
 					async () =>
 						await this._handler.setRtpEncodingParameters(
 							producer.localId,
-							params,
+							params
 						),
-					'producer @setrtpencodingparameters event',
+					'producer @setrtpencodingparameters event'
 				)
 				.then(callback)
 				.catch(errback);

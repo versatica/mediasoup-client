@@ -25,7 +25,7 @@ const device = new Device();
 
 // Communicate with our server app to retrieve router RTP capabilities.
 const routerRtpCapabilities = await mySignaling.request(
-	'getRouterCapabilities',
+	'getRouterCapabilities'
 );
 
 // Load the device with the router RTP capabilities.
@@ -89,7 +89,7 @@ sendTransport.on(
 			// Something was wrong in server side.
 			errback(error);
 		}
-	},
+	}
 );
 
 // Set transport "producedata" event handler.
@@ -98,7 +98,7 @@ sendTransport.on(
 	async (
 		{ sctpStreamParameters, label, protocol, appData },
 		callback,
-		errback,
+		errback
 	) => {
 		// Here we must communicate our local parameters to our remote transport.
 		try {
@@ -116,7 +116,7 @@ sendTransport.on(
 			// Something was wrong in server side.
 			errback(error);
 		}
-	},
+	}
 );
 
 // Produce our webcam video.

@@ -232,7 +232,7 @@ export class DataProducer<
 				logger.error(
 					'DataChannel SCTP error [sctpCauseCode:%s]: %s',
 					error.sctpCauseCode,
-					error.message,
+					error.message
 				);
 			} else {
 				logger.error('DataChannel "error" event: %o', error);
@@ -263,7 +263,7 @@ export class DataProducer<
 			}
 
 			logger.warn(
-				'DataChannel "message" event in a DataProducer, message discarded',
+				'DataChannel "message" event in a DataProducer, message discarded'
 			);
 		});
 

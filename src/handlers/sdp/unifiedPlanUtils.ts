@@ -79,7 +79,7 @@ export function addLegacySimulcast({
 
 	// Get the SSRC.
 	const ssrcMsidLine = (offerMediaObject.ssrcs || []).find(
-		(line: any) => line.attribute === 'msid',
+		(line: any) => line.attribute === 'msid'
 	);
 
 	if (!ssrcMsidLine) {
@@ -108,7 +108,7 @@ export function addLegacySimulcast({
 	});
 
 	const ssrcCnameLine = offerMediaObject.ssrcs.find(
-		(line: any) => line.attribute === 'cname',
+		(line: any) => line.attribute === 'cname'
 	);
 
 	if (!ssrcCnameLine) {

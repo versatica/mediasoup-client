@@ -119,7 +119,7 @@ export function validateRtpCodecCapability(codec: RtpCodecCapability): void {
 
 		if (typeof value !== 'string' && typeof value !== 'number') {
 			throw new TypeError(
-				`invalid codec parameter [key:${key}s, value:${value}]`,
+				`invalid codec parameter [key:${key}s, value:${value}]`
 			);
 		}
 
@@ -317,7 +317,7 @@ export function validateRtpCodecParameters(codec: RtpCodecParameters): void {
 
 		if (typeof value !== 'string' && typeof value !== 'number') {
 			throw new TypeError(
-				`invalid codec parameter [key:${key}s, value:${value}]`,
+				`invalid codec parameter [key:${key}s, value:${value}]`
 			);
 		}
 
@@ -345,7 +345,7 @@ export function validateRtpCodecParameters(codec: RtpCodecParameters): void {
  * It throws if invalid.
  */
 export function validateRtpHeaderExtensionParameters(
-	ext: RtpHeaderExtensionParameters,
+	ext: RtpHeaderExtensionParameters
 ): void {
 	if (typeof ext !== 'object') {
 		throw new TypeError('ext is not an object');
@@ -393,7 +393,7 @@ export function validateRtpHeaderExtensionParameters(
  * It throws if invalid.
  */
 export function validateRtpEncodingParameters(
-	encoding: RtpEncodingParameters,
+	encoding: RtpEncodingParameters
 ): void {
 	if (typeof encoding !== 'object') {
 		throw new TypeError('encoding is not an object');
@@ -530,7 +530,7 @@ export function validateSctpParameters(params: SctpParameters): void {
  * It throws if invalid.
  */
 export function validateSctpStreamParameters(
-	params: SctpStreamParameters,
+	params: SctpStreamParameters
 ): void {
 	if (typeof params !== 'object') {
 		throw new TypeError('params is not an object');
@@ -565,7 +565,7 @@ export function validateSctpStreamParameters(
 
 	if (params.maxPacketLifeTime && params.maxRetransmits) {
 		throw new TypeError(
-			'cannot provide both maxPacketLifeTime and maxRetransmits',
+			'cannot provide both maxPacketLifeTime and maxRetransmits'
 		);
 	}
 
@@ -575,7 +575,7 @@ export function validateSctpStreamParameters(
 		(params.maxPacketLifeTime || params.maxRetransmits)
 	) {
 		throw new TypeError(
-			'cannot be ordered with maxPacketLifeTime or maxRetransmits',
+			'cannot be ordered with maxPacketLifeTime or maxRetransmits'
 		);
 	} else if (
 		!orderedGiven &&
@@ -600,7 +600,7 @@ export function validateSctpStreamParameters(
  */
 export function getExtendedRtpCapabilities(
 	localCaps: RtpCapabilities,
-	remoteCaps: RtpCapabilities,
+	remoteCaps: RtpCapabilities
 ): any {
 	const extendedRtpCapabilities: any = {
 		codecs: [],
@@ -615,7 +615,7 @@ export function getExtendedRtpCapabilities(
 
 		const matchingLocalCodec = (localCaps.codecs || []).find(
 			(localCodec: RtpCodecCapability) =>
-				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true }),
+				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true })
 		);
 
 		if (!matchingLocalCodec) {
@@ -644,13 +644,13 @@ export function getExtendedRtpCapabilities(
 		const matchingLocalRtxCodec = localCaps.codecs!.find(
 			(localCodec: RtpCodecCapability) =>
 				isRtxCodec(localCodec) &&
-				localCodec.parameters.apt === extendedCodec.localPayloadType,
+				localCodec.parameters.apt === extendedCodec.localPayloadType
 		);
 
 		const matchingRemoteRtxCodec = remoteCaps.codecs!.find(
 			(remoteCodec: RtpCodecCapability) =>
 				isRtxCodec(remoteCodec) &&
-				remoteCodec.parameters.apt === extendedCodec.remotePayloadType,
+				remoteCodec.parameters.apt === extendedCodec.remotePayloadType
 		);
 
 		if (matchingLocalRtxCodec && matchingRemoteRtxCodec) {
@@ -665,7 +665,7 @@ export function getExtendedRtpCapabilities(
 	for (const remoteExt of remoteCaps.headerExtensions!) {
 		const matchingLocalExt = localCaps.headerExtensions!.find(
 			(localExt: RtpHeaderExtension) =>
-				matchHeaderExtensions(localExt, remoteExt),
+				matchHeaderExtensions(localExt, remoteExt)
 		);
 
 		if (!matchingLocalExt) {
@@ -718,7 +718,7 @@ export function getExtendedRtpCapabilities(
  * RTP capabilities.
  */
 export function getRecvRtpCapabilities(
-	extendedRtpCapabilities: any,
+	extendedRtpCapabilities: any
 ): RtpCapabilities {
 	const rtpCapabilities: RtpCapabilities = {
 		codecs: [],
@@ -788,7 +788,7 @@ export function getRecvRtpCapabilities(
  */
 export function getSendingRtpParameters(
 	kind: MediaKind,
-	extendedRtpCapabilities: any,
+	extendedRtpCapabilities: any
 ): RtpParameters {
 	const rtpParameters: RtpParameters = {
 		mid: undefined,
@@ -858,7 +858,7 @@ export function getSendingRtpParameters(
  */
 export function getSendingRemoteRtpParameters(
 	kind: MediaKind,
-	extendedRtpCapabilities: any,
+	extendedRtpCapabilities: any
 ): RtpParameters {
 	const rtpParameters: RtpParameters = {
 		mid: undefined,
@@ -925,31 +925,30 @@ export function getSendingRemoteRtpParameters(
 		rtpParameters.headerExtensions!.some(
 			ext =>
 				ext.uri ===
-				'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+				'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
 		)
 	) {
 		for (const codec of rtpParameters.codecs) {
 			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
-				(fb: RtcpFeedback) => fb.type !== 'goog-remb',
+				(fb: RtcpFeedback) => fb.type !== 'goog-remb'
 			);
 		}
 	} else if (
 		rtpParameters.headerExtensions!.some(
 			ext =>
-				ext.uri ===
-				'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+				ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time'
 		)
 	) {
 		for (const codec of rtpParameters.codecs) {
 			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
-				fb => fb.type !== 'transport-cc',
+				fb => fb.type !== 'transport-cc'
 			);
 		}
 	} else {
 		for (const codec of rtpParameters.codecs) {
 			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
 				(fb: RtcpFeedback) =>
-					fb.type !== 'transport-cc' && fb.type !== 'goog-remb',
+					fb.type !== 'transport-cc' && fb.type !== 'goog-remb'
 			);
 		}
 	}
@@ -969,7 +968,7 @@ export function getSendingRemoteRtpParameters(
  */
 export function reduceCodecs(
 	codecs: RtpCodecParameters[],
-	capCodec?: RtpCodecCapability,
+	capCodec?: RtpCodecCapability
 ): RtpCodecParameters[] {
 	const filteredCodecs: RtpCodecParameters[] = [];
 
@@ -1007,7 +1006,7 @@ export function reduceCodecs(
  * Create RTP parameters for a Consumer for the RTP probator.
  */
 export function generateProbatorRtpParameters(
-	videoRtpParameters: RtpParameters,
+	videoRtpParameters: RtpParameters
 ): RtpParameters {
 	// Clone given reference video RTP parameters.
 	videoRtpParameters = utils.clone<RtpParameters>(videoRtpParameters);
@@ -1035,10 +1034,10 @@ export function generateProbatorRtpParameters(
  */
 export function canSend(
 	kind: MediaKind,
-	extendedRtpCapabilities: any,
+	extendedRtpCapabilities: any
 ): boolean {
 	return extendedRtpCapabilities.codecs.some(
-		(codec: any) => codec.kind === kind,
+		(codec: any) => codec.kind === kind
 	);
 }
 
@@ -1048,7 +1047,7 @@ export function canSend(
  */
 export function canReceive(
 	rtpParameters: RtpParameters,
-	extendedRtpCapabilities: any,
+	extendedRtpCapabilities: any
 ): boolean {
 	// This may throw.
 	validateRtpParameters(rtpParameters);
@@ -1060,7 +1059,7 @@ export function canReceive(
 	const firstMediaCodec = rtpParameters.codecs[0];
 
 	return extendedRtpCapabilities.codecs.some(
-		(codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType,
+		(codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType
 	);
 }
 
@@ -1075,7 +1074,7 @@ function isRtxCodec(codec?: RtpCodecCapability | RtpCodecParameters): boolean {
 function matchCodecs(
 	aCodec: RtpCodecCapability | RtpCodecParameters,
 	bCodec: RtpCodecCapability | RtpCodecParameters,
-	{ strict = false, modify = false } = {},
+	{ strict = false, modify = false } = {}
 ): boolean {
 	const aMimeType = aCodec.mimeType.toLowerCase();
 	const bMimeType = bCodec.mimeType.toLowerCase();
@@ -1112,7 +1111,7 @@ function matchCodecs(
 				try {
 					selectedProfileLevelId = h264.generateProfileLevelIdStringForAnswer(
 						aCodec.parameters,
-						bCodec.parameters,
+						bCodec.parameters
 					);
 				} catch (error) {
 					return false;
@@ -1151,7 +1150,7 @@ function matchCodecs(
 
 function matchHeaderExtensions(
 	aExt: RtpHeaderExtension,
-	bExt: RtpHeaderExtension,
+	bExt: RtpHeaderExtension
 ): boolean {
 	if (aExt.kind && bExt.kind && aExt.kind !== bExt.kind) {
 		return false;
@@ -1166,7 +1165,7 @@ function matchHeaderExtensions(
 
 function reduceRtcpFeedback(
 	codecA: RtpCodecCapability | RtpCodecParameters,
-	codecB: RtpCodecCapability | RtpCodecParameters,
+	codecB: RtpCodecCapability | RtpCodecParameters
 ): RtcpFeedback[] {
 	const reducedRtcpFeedback: RtcpFeedback[] = [];
 
@@ -1174,7 +1173,7 @@ function reduceRtcpFeedback(
 		const matchingBFb = (codecB.rtcpFeedback || []).find(
 			(bFb: RtcpFeedback) =>
 				bFb.type === aFb.type &&
-				(bFb.parameter === aFb.parameter || (!bFb.parameter && !aFb.parameter)),
+				(bFb.parameter === aFb.parameter || (!bFb.parameter && !aFb.parameter))
 		);
 
 		if (matchingBFb) {

@@ -155,7 +155,7 @@ function lint() {
 	executeCmd('eslint-config-prettier .eslintrc.js');
 
 	executeCmd(
-		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .',
+		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .'
 	);
 }
 

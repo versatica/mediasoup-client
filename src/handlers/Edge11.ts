@@ -179,7 +179,7 @@ export class Edge11 extends HandlerInterface {
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions,
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
@@ -191,13 +191,13 @@ export class Edge11 extends HandlerInterface {
 
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind],
+			this._sendingRtpParametersByKind![track.kind]
 		);
 
 		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);
 
 		const useRtx = rtpParameters.codecs.some((_codec: any) =>
-			/.+\/rtx$/i.test(_codec.mimeType),
+			/.+\/rtx$/i.test(_codec.mimeType)
 		);
 
 		if (!encodings) {
@@ -227,7 +227,7 @@ export class Edge11 extends HandlerInterface {
 
 		logger.debug(
 			'send() | calling rtpSender.send() [params:%o]',
-			edgeRtpParameters,
+			edgeRtpParameters
 		);
 
 		await rtpSender.send(edgeRtpParameters);
@@ -276,13 +276,13 @@ export class Edge11 extends HandlerInterface {
 
 	async replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void> {
 		if (track) {
 			logger.debug(
 				'replaceTrack() [localId:%s, track.id:%s]',
 				localId,
-				track.id,
+				track.id
 			);
 		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
@@ -299,12 +299,12 @@ export class Edge11 extends HandlerInterface {
 
 	async setMaxSpatialLayer(
 		localId: string,
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void> {
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId,
-			spatialLayer,
+			spatialLayer
 		);
 
 		const rtpSender = this._rtpSenders.get(localId);
@@ -330,7 +330,7 @@ export class Edge11 extends HandlerInterface {
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId,
-			params,
+			params
 		);
 
 		const rtpSender = this._rtpSenders.get(localId);
@@ -360,13 +360,13 @@ export class Edge11 extends HandlerInterface {
 
 	async sendDataChannel(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerSendDataChannelOptions,
+		options: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult> {
 		throw new UnsupportedError('not implemented');
 	}
 
 	async receive(
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		const results: HandlerReceiveResult[] = [];
 
@@ -387,7 +387,7 @@ export class Edge11 extends HandlerInterface {
 
 			const rtpReceiver = new (RTCRtpReceiver as any)(
 				this._dtlsTransport,
-				kind,
+				kind
 			);
 
 			rtpReceiver.addEventListener('error', (event: any) => {
@@ -400,7 +400,7 @@ export class Edge11 extends HandlerInterface {
 
 			logger.debug(
 				'receive() | calling rtpReceiver.receive() [params:%o]',
-				edgeRtpParameters,
+				edgeRtpParameters
 			);
 
 			await rtpReceiver.receive(edgeRtpParameters);
@@ -444,14 +444,14 @@ export class Edge11 extends HandlerInterface {
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		// Unimplemented.
 	}
@@ -468,7 +468,7 @@ export class Edge11 extends HandlerInterface {
 
 	async receiveDataChannel(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerReceiveDataChannelOptions,
+		options: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult> {
 		throw new UnsupportedError('not implemented');
 	}
@@ -496,7 +496,7 @@ export class Edge11 extends HandlerInterface {
 		} catch (error) {
 			logger.debug(
 				'setIceGatherer() | iceGatherer.gather() failed: %s',
-				(error as Error).toString(),
+				(error as Error).toString()
 			);
 		}
 
@@ -581,7 +581,7 @@ export class Edge11 extends HandlerInterface {
 		iceTransport.addEventListener('candidatepairchange', (event: any) => {
 			logger.debug(
 				'iceTransport "candidatepairchange" event [pair:%o]',
-				event.pair,
+				event.pair
 			);
 		});
 
@@ -595,7 +595,7 @@ export class Edge11 extends HandlerInterface {
 		dtlsTransport.addEventListener('statechange', () => {
 			logger.debug(
 				'dtlsTransport "statechange" event [state:%s]',
-				dtlsTransport.state,
+				dtlsTransport.state
 			);
 		});
 
@@ -603,7 +603,7 @@ export class Edge11 extends HandlerInterface {
 		dtlsTransport.addEventListener('dtlsstatechange', () => {
 			logger.debug(
 				'dtlsTransport "dtlsstatechange" event [state:%s]',
-				dtlsTransport.state,
+				dtlsTransport.state
 			);
 
 			if (dtlsTransport.state === 'closed') {
@@ -639,7 +639,7 @@ export class Edge11 extends HandlerInterface {
 		this._iceTransport.start(
 			this._iceGatherer,
 			this._remoteIceParameters,
-			'controlling',
+			'controlling'
 		);
 
 		// Add remote ICE candidates.

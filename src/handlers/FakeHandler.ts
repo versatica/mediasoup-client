@@ -195,7 +195,7 @@ export class FakeHandler extends HandlerInterface {
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions,
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 
@@ -206,10 +206,10 @@ export class FakeHandler extends HandlerInterface {
 		}
 
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._rtpParametersByKind![track.kind],
+			this._rtpParametersByKind![track.kind]
 		);
 		const useRtx = rtpParameters.codecs.some((_codec: any) =>
-			/.+\/rtx$/i.test(_codec.mimeType),
+			/.+\/rtx$/i.test(_codec.mimeType)
 		);
 
 		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
@@ -272,7 +272,7 @@ export class FakeHandler extends HandlerInterface {
 
 	async replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void> {
 		this.assertNotClosed();
 
@@ -280,7 +280,7 @@ export class FakeHandler extends HandlerInterface {
 			logger.debug(
 				'replaceTrack() [localId:%s, track.id:%s]',
 				localId,
-				track.id,
+				track.id
 			);
 		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
@@ -292,14 +292,14 @@ export class FakeHandler extends HandlerInterface {
 
 	async setMaxSpatialLayer(
 		localId: string,
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void> {
 		this.assertNotClosed();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId,
-			spatialLayer,
+			spatialLayer
 		);
 	}
 
@@ -309,7 +309,7 @@ export class FakeHandler extends HandlerInterface {
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId,
-			params,
+			params
 		);
 	}
 
@@ -356,7 +356,7 @@ export class FakeHandler extends HandlerInterface {
 	}
 
 	async receive(
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertNotClosed();
 
@@ -396,7 +396,7 @@ export class FakeHandler extends HandlerInterface {
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		this.assertNotClosed();
 
@@ -405,7 +405,7 @@ export class FakeHandler extends HandlerInterface {
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		this.assertNotClosed();
 
@@ -454,7 +454,7 @@ export class FakeHandler extends HandlerInterface {
 		localSdpObject?: any;
 	}): Promise<void> {
 		const dtlsParameters = utils.clone<DtlsParameters>(
-			this.fakeParameters.generateLocalDtlsParameters(),
+			this.fakeParameters.generateLocalDtlsParameters()
 		);
 
 		// Set our DTLS role.
@@ -467,7 +467,7 @@ export class FakeHandler extends HandlerInterface {
 
 		// Need to tell the remote transport about our parameters.
 		await new Promise<void>((resolve, reject) =>
-			this.emit('@connect', { dtlsParameters }, resolve, reject),
+			this.emit('@connect', { dtlsParameters }, resolve, reject)
 		);
 
 		this._transportReady = true;

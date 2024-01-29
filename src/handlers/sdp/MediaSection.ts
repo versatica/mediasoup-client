@@ -200,7 +200,7 @@ export class AnswerMediaSection extends MediaSection {
 						} = codecOptions;
 
 						const offerCodec = offerRtpParameters!.codecs.find(
-							(c: RtpCodecParameters) => c.payloadType === codec.payloadType,
+							(c: RtpCodecParameters) => c.payloadType === codec.payloadType
 						);
 
 						switch (codec.mimeType.toLowerCase()) {
@@ -239,11 +239,11 @@ export class AnswerMediaSection extends MediaSection {
 								// announce it in their RTP capabilities.
 								if (!opusNack) {
 									offerCodec!.rtcpFeedback = offerCodec!.rtcpFeedback!.filter(
-										fb => fb.type !== 'nack' || fb.parameter,
+										fb => fb.type !== 'nack' || fb.parameter
 									);
 
 									codecRtcpFeedback = codecRtcpFeedback.filter(
-										fb => fb.type !== 'nack' || fb.parameter,
+										fb => fb.type !== 'nack' || fb.parameter
 									);
 								}
 
@@ -309,8 +309,7 @@ export class AnswerMediaSection extends MediaSection {
 				for (const ext of answerRtpParameters!.headerExtensions!) {
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext || []).some(
-						(localExt: RtpHeaderExtensionParameters) =>
-							localExt.uri === ext.uri,
+						(localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri
 					);
 
 					if (!found) {
@@ -455,7 +454,7 @@ export class AnswerMediaSection extends MediaSection {
 
 		this._mediaObject.simulcast.list1 = simulcastStreams
 			.map(simulcastFormats =>
-				simulcastFormats.map(f => `${f.paused ? '~' : ''}${f.scid}`).join(','),
+				simulcastFormats.map(f => `${f.paused ? '~' : ''}${f.scid}`).join(',')
 			)
 			.join(';');
 	}
@@ -724,7 +723,7 @@ export class OfferMediaSection extends MediaSection {
 		this._mediaObject.payloads += ` ${offerRtpParameters.codecs
 			.filter(
 				(codec: RtpCodecParameters) =>
-					!this._mediaObject.payloads.includes(codec.payloadType),
+					!this._mediaObject.payloads.includes(codec.payloadType)
 			)
 			.map((codec: RtpCodecParameters) => codec.payloadType)
 			.join(' ')}`;
@@ -779,12 +778,12 @@ export class OfferMediaSection extends MediaSection {
 			encoding.rtx && encoding.rtx.ssrc ? encoding.rtx.ssrc : undefined;
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs.filter(
-			(s: any) => s.id !== ssrc && s.id !== rtxSsrc,
+			(s: any) => s.id !== ssrc && s.id !== rtxSsrc
 		);
 
 		if (rtxSsrc) {
 			this._mediaObject.ssrcGroups = this._mediaObject.ssrcGroups.filter(
-				(group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`,
+				(group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`
 			);
 		}
 	}

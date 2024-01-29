@@ -413,7 +413,7 @@ export class Producer<
 	}
 
 	async setRtpEncodingParameters(
-		params: RTCRtpEncodingParameters,
+		params: RTCRtpEncodingParameters
 	): Promise<void> {
 		if (this._closed) {
 			throw new InvalidStateError('closed');

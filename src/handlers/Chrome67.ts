@@ -169,11 +169,11 @@ export class Chrome67 extends HandlerInterface {
 		this._sendingRemoteRtpParametersByKind = {
 			audio: ortc.getSendingRemoteRtpParameters(
 				'audio',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 			video: ortc.getSendingRemoteRtpParameters(
 				'video',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 		};
 
@@ -191,7 +191,7 @@ export class Chrome67 extends HandlerInterface {
 				sdpSemantics: 'plan-b',
 				...additionalSettings,
 			},
-			proprietaryConstraints,
+			proprietaryConstraints
 		);
 
 		this._pc.addEventListener('icegatheringstatechange', () => {
@@ -205,7 +205,7 @@ export class Chrome67 extends HandlerInterface {
 		} else {
 			this._pc.addEventListener('iceconnectionstatechange', () => {
 				logger.warn(
-					'run() | pc.connectionState not supported, using pc.iceConnectionState',
+					'run() | pc.connectionState not supported, using pc.iceConnectionState'
 				);
 
 				switch (this._pc.iceConnectionState) {
@@ -269,7 +269,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setLocalDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setLocalDescription(offer);
@@ -278,7 +278,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setRemoteDescription(answer);
@@ -287,7 +287,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setRemoteDescription(offer);
@@ -296,7 +296,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'restartIce() | calling pc.setLocalDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setLocalDescription(answer);
@@ -320,7 +320,7 @@ export class Chrome67 extends HandlerInterface {
 		if (codec) {
 			logger.warn(
 				'send() | codec selection is not available in %s handler',
-				this.name,
+				this.name
 			);
 		}
 
@@ -331,19 +331,19 @@ export class Chrome67 extends HandlerInterface {
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		let offerMediaObject;
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind],
+			this._sendingRtpParametersByKind![track.kind]
 		);
 
 		sendingRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRtpParameters.codecs,
+			sendingRtpParameters.codecs
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind],
+			this._sendingRemoteRtpParametersByKind![track.kind]
 		);
 
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRemoteRtpParameters.codecs,
+			sendingRemoteRtpParameters.codecs
 		);
 
 		if (!this._transportReady) {
@@ -358,7 +358,7 @@ export class Chrome67 extends HandlerInterface {
 
 			localSdpObject = sdpTransform.parse(offer.sdp);
 			offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'video',
+				(m: any) => m.type === 'video'
 			);
 
 			sdpPlanBUtils.addLegacySimulcast({
@@ -376,7 +376,7 @@ export class Chrome67 extends HandlerInterface {
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 		offerMediaObject = localSdpObject.media.find(
-			(m: any) => m.type === track.kind,
+			(m: any) => m.type === track.kind
 		);
 
 		// Set RTCP CNAME.
@@ -421,7 +421,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'send() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -467,7 +467,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'stopSending() | calling pc.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		try {
@@ -478,7 +478,7 @@ export class Chrome67 extends HandlerInterface {
 			if (this._sendStream.getTracks().length === 0) {
 				logger.warn(
 					'stopSending() | ignoring expected error due no sending tracks: %s',
-					(error as Error).toString(),
+					(error as Error).toString()
 				);
 
 				return;
@@ -495,7 +495,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setRemoteDescription(answer);
@@ -513,7 +513,7 @@ export class Chrome67 extends HandlerInterface {
 
 	async replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void> {
 		this.assertSendDirection();
 
@@ -521,7 +521,7 @@ export class Chrome67 extends HandlerInterface {
 			logger.debug(
 				'replaceTrack() [localId:%s, track.id:%s]',
 				localId,
-				track.id,
+				track.id
 			);
 		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
@@ -550,14 +550,14 @@ export class Chrome67 extends HandlerInterface {
 
 	async setMaxSpatialLayer(
 		localId: string,
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void> {
 		this.assertSendDirection();
 
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
 			localId,
-			spatialLayer,
+			spatialLayer
 		);
 
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
@@ -575,7 +575,7 @@ export class Chrome67 extends HandlerInterface {
 				} else {
 					encoding.active = false;
 				}
-			},
+			}
 		);
 
 		await rtpSender.setParameters(parameters);
@@ -587,7 +587,7 @@ export class Chrome67 extends HandlerInterface {
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
 			localId,
-			params,
+			params
 		);
 
 		const rtpSender = this._mapSendLocalIdRtpSender.get(localId);
@@ -601,7 +601,7 @@ export class Chrome67 extends HandlerInterface {
 		parameters.encodings.forEach(
 			(encoding: RTCRtpEncodingParameters, idx: number) => {
 				parameters.encodings[idx] = { ...encoding, ...params };
-			},
+			}
 		);
 
 		await rtpSender.setParameters(parameters);
@@ -652,7 +652,7 @@ export class Chrome67 extends HandlerInterface {
 			const offer = await this._pc.createOffer();
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'application',
+				(m: any) => m.type === 'application'
 			);
 
 			if (!this._transportReady) {
@@ -664,7 +664,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setLocalDescription(offer);
@@ -675,7 +675,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setRemoteDescription(answer);
@@ -694,7 +694,7 @@ export class Chrome67 extends HandlerInterface {
 	}
 
 	async receive(
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertRecvDirection();
 
@@ -720,7 +720,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -732,7 +732,7 @@ export class Chrome67 extends HandlerInterface {
 			const { kind, rtpParameters } = options;
 			const mid = kind;
 			const answerMediaObject = localSdpObject.media.find(
-				(m: any) => String(m.mid) === mid,
+				(m: any) => String(m.mid) === mid
 			);
 
 			// May need to modify codec parameters in the answer based on codec
@@ -754,7 +754,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -810,7 +810,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this._pc.setRemoteDescription(offer);
@@ -819,7 +819,7 @@ export class Chrome67 extends HandlerInterface {
 
 		logger.debug(
 			'stopReceiving() | calling pc.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this._pc.setLocalDescription(answer);
@@ -827,14 +827,14 @@ export class Chrome67 extends HandlerInterface {
 
 	async pauseReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		// Unimplemented.
 	}
 
 	async resumeReceiving(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		localIds: string[],
+		localIds: string[]
 	): Promise<void> {
 		// Unimplemented.
 	}
@@ -884,7 +884,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this._pc.setRemoteDescription(offer);
@@ -902,7 +902,7 @@ export class Chrome67 extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this._pc.setLocalDescription(answer);
@@ -934,7 +934,7 @@ export class Chrome67 extends HandlerInterface {
 
 		// Update the remote DTLS role in the SDP.
 		this._remoteSdp!.updateDtlsRole(
-			localDtlsRole === 'client' ? 'server' : 'client',
+			localDtlsRole === 'client' ? 'server' : 'client'
 		);
 
 		// Need to tell the remote transport about our parameters.
@@ -948,7 +948,7 @@ export class Chrome67 extends HandlerInterface {
 	private assertSendDirection(): void {
 		if (this._direction !== 'send') {
 			throw new Error(
-				'method can just be called for handlers with "send" direction',
+				'method can just be called for handlers with "send" direction'
 			);
 		}
 	}
@@ -956,7 +956,7 @@ export class Chrome67 extends HandlerInterface {
 	private assertRecvDirection(): void {
 		if (this._direction !== 'recv') {
 			throw new Error(
-				'method can just be called for handlers with "recv" direction',
+				'method can just be called for handlers with "recv" direction'
 			);
 		}
 	}

@@ -73,7 +73,7 @@ beforeEach(async () => {
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
 		({ dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
-		},
+		}
 	);
 
 	ctx.connectedSendTransport.on(
@@ -84,7 +84,7 @@ beforeEach(async () => {
 			const id = fakeParameters.generateProducerRemoteParameters().id;
 
 			setTimeout(() => callback({ id }));
-		},
+		}
 	);
 
 	ctx.connectedSendTransport.on(
@@ -92,13 +92,13 @@ beforeEach(async () => {
 		(
 			// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
 			{ sctpStreamParameters, label, protocol, appData },
-			callback /* errback */,
+			callback /* errback */
 		) => {
 			// eslint-disable-next-line no-shadow
 			const id = fakeParameters.generateDataProducerRemoteParameters().id;
 
 			setTimeout(() => callback({ id }));
-		},
+		}
 	);
 
 	ctx.recvTransport = ctx.loadedDevice.createRecvTransport({
@@ -122,7 +122,7 @@ beforeEach(async () => {
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
 		({ dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
-		},
+		}
 	);
 
 	const audioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
@@ -227,7 +227,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 			iceCandidates,
 			dtlsParameters,
 			sctpParameters,
-		}),
+		})
 	).toThrow(InvalidStateError);
 });
 
@@ -241,7 +241,7 @@ test('device.load() without routerRtpCapabilities rejects with TypeError', async
 test('device.load() with invalid routerRtpCapabilities rejects with TypeError', async () => {
 	// Clone fake router RTP capabilities to make them invalid.
 	const routerRtpCapabilities = utils.clone<RtpCapabilities>(
-		fakeParameters.generateRouterRtpCapabilities(),
+		fakeParameters.generateRouterRtpCapabilities()
 	);
 
 	for (const codec of routerRtpCapabilities.codecs!) {
@@ -250,7 +250,7 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 	}
 
 	await expect(ctx.device!.load({ routerRtpCapabilities })).rejects.toThrow(
-		TypeError,
+		TypeError
 	);
 
 	expect(ctx.device!.loaded).toBe(false);
@@ -261,7 +261,7 @@ test('device.load() succeeds', async () => {
 	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
 
 	await expect(ctx.device!.load({ routerRtpCapabilities })).resolves.toBe(
-		undefined,
+		undefined
 	);
 
 	expect(ctx.device!.loaded).toBe(true);
@@ -271,7 +271,7 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 	const routerRtpCapabilities = fakeParameters.generateRouterRtpCapabilities();
 
 	await expect(
-		ctx.loadedDevice!.load({ routerRtpCapabilities }),
+		ctx.loadedDevice!.load({ routerRtpCapabilities })
 	).rejects.toThrow(InvalidStateError);
 
 	expect(ctx.loadedDevice!.loaded).toBe(true);
@@ -345,12 +345,12 @@ test('device.createRecvTransport() for receiving media succeeds', () => {
 test('device.createSendTransport() with missing remote Transport parameters throws TypeError', () => {
 	// @ts-ignore
 	expect(() => ctx.loadedDevice!.createSendTransport({ id: '1234' })).toThrow(
-		TypeError,
+		TypeError
 	);
 
 	expect(() =>
 		// @ts-ignore
-		ctx.loadedDevice!.createSendTransport({ id: '1234', iceParameters: {} }),
+		ctx.loadedDevice!.createSendTransport({ id: '1234', iceParameters: {} })
 	).toThrow(TypeError);
 
 	expect(() =>
@@ -359,7 +359,7 @@ test('device.createSendTransport() with missing remote Transport parameters thro
 			// @ts-ignore
 			iceParameters: {},
 			iceCandidates: [],
-		}),
+		})
 	).toThrow(TypeError);
 });
 
@@ -376,7 +376,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			sctpParameters,
 			// @ts-ignore
 			appData: 1234,
-		}),
+		})
 	).toThrow(TypeError);
 });
 
@@ -386,7 +386,7 @@ test('transport.produce() without "produce" listener rejects', async () => {
 	ctx.sendTransport!.removeAllListeners('produce');
 
 	await expect(
-		ctx.sendTransport!.produce({ track: audioTrack }),
+		ctx.sendTransport!.produce({ track: audioTrack })
 	).rejects.toThrow(Error);
 }, 500);
 
@@ -405,12 +405,12 @@ test('transport.produce() succeeds', async () => {
 
 	ctx.connectedSendTransport!.prependListener(
 		'connect',
-		() => ++connectEventNumTimesCalled,
+		() => ++connectEventNumTimesCalled
 	);
 
 	ctx.connectedSendTransport!.prependListener(
 		'produce',
-		() => ++produceEventNumTimesCalled,
+		() => ++produceEventNumTimesCalled
 	);
 
 	// Use stopTracks: false.
@@ -604,7 +604,7 @@ test('transport.produce() in a receiving Transport rejects with UnsupportedError
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(ctx.recvTransport!.produce({ track })).rejects.toThrow(
-		UnsupportedError,
+		UnsupportedError
 	);
 }, 500);
 
@@ -614,7 +614,7 @@ test('transport.produce() with an ended track rejects with InvalidStateError', a
 	track.stop();
 
 	await expect(ctx.sendTransport!.produce({ track })).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -623,7 +623,7 @@ test('transport.produce() with a non object appData rejects with TypeError', asy
 
 	await expect(
 		// @ts-ignore
-		ctx.sendTransport!.produce({ track, appData: true }),
+		ctx.sendTransport!.produce({ track, appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -645,7 +645,7 @@ test('transport.consume() succeeds', async () => {
 
 	ctx.connectedRecvTransport!.prependListener(
 		'connect',
-		() => ++connectEventNumTimesCalled,
+		() => ++connectEventNumTimesCalled
 	);
 
 	const audioConsumer = await ctx.connectedRecvTransport!.consume<{
@@ -664,7 +664,7 @@ test('transport.consume() succeeds', async () => {
 	expect(typeof audioConsumer).toBe('object');
 	expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 	expect(audioConsumer.producerId).toBe(
-		audioConsumerRemoteParameters.producerId,
+		audioConsumerRemoteParameters.producerId
 	);
 	expect(audioConsumer.closed).toBe(false);
 	expect(audioConsumer.kind).toBe('audio');
@@ -737,7 +737,7 @@ test('transport.consume() succeeds', async () => {
 	expect(typeof videoConsumer).toBe('object');
 	expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 	expect(videoConsumer.producerId).toBe(
-		videoConsumerRemoteParameters.producerId,
+		videoConsumerRemoteParameters.producerId
 	);
 	expect(videoConsumer.closed).toBe(false);
 	expect(videoConsumer.kind).toBe('video');
@@ -885,12 +885,12 @@ test('transport.consume() without remote Consumer parameters rejects with TypeEr
 test('transport.consume() with missing remote Consumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
 	await expect(ctx.recvTransport!.consume({ id: '1234' })).rejects.toThrow(
-		TypeError,
+		TypeError
 	);
 
 	await expect(
 		// @ts-ignore
-		ctx.recvTransport!.consume({ id: '1234', producerId: '4444' }),
+		ctx.recvTransport!.consume({ id: '1234', producerId: '4444' })
 	).rejects.toThrow(TypeError);
 
 	await expect(
@@ -900,8 +900,8 @@ test('transport.consume() with missing remote Consumer parameters rejects with T
 				id: '1234',
 				producerId: '4444',
 				kind: 'audio',
-			},
-		),
+			}
+		)
 	).rejects.toThrow(TypeError);
 
 	await expect(
@@ -911,8 +911,8 @@ test('transport.consume() with missing remote Consumer parameters rejects with T
 				id: '1234',
 				producerId: '4444',
 				kind: 'audio',
-			},
-		),
+			}
+		)
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -928,7 +928,7 @@ test('transport.consume() in a sending Transport rejects with UnsupportedError',
 			producerId,
 			kind,
 			rtpParameters,
-		}),
+		})
 	).rejects.toThrow(UnsupportedError);
 }, 500);
 
@@ -944,7 +944,7 @@ test('transport.consume() with unsupported rtpParameters rejects with Unsupporte
 			producerId,
 			kind,
 			rtpParameters,
-		}),
+		})
 	).rejects.toThrow(UnsupportedError);
 }, 500);
 
@@ -956,7 +956,7 @@ test('transport.consume() with a non object appData rejects with TypeError', asy
 
 	await expect(
 		// @ts-ignore
-		ctx.recvTransport!.consume({ consumerRemoteParameters, appData: true }),
+		ctx.recvTransport!.consume({ consumerRemoteParameters, appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -992,14 +992,14 @@ test('transport.produceData() succeeds', async () => {
 
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () => {
 	await expect(ctx.recvTransport!.produceData({})).rejects.toThrow(
-		UnsupportedError,
+		UnsupportedError
 	);
 }, 500);
 
 test('transport.produceData() with a non object appData rejects with TypeError', async () => {
 	await expect(
 		// @ts-ignore
-		ctx.sendTransport!.produceData({ appData: true }),
+		ctx.sendTransport!.produceData({ appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -1021,7 +1021,7 @@ test('transport.consumeData() succeeds', async () => {
 	expect(typeof dataConsumer).toBe('object');
 	expect(dataConsumer.id).toBe(dataConsumerRemoteParameters.id);
 	expect(dataConsumer.dataProducerId).toBe(
-		dataConsumerRemoteParameters.dataProducerId,
+		dataConsumerRemoteParameters.dataProducerId
 	);
 	expect(dataConsumer.closed).toBe(false);
 	expect(typeof dataConsumer.sctpStreamParameters).toBe('object');
@@ -1038,12 +1038,12 @@ test('transport.consumeData() without remote DataConsumer parameters rejects wit
 test('transport.consumeData() with missing remote DataConsumer parameters rejects with TypeError', async () => {
 	// @ts-ignore
 	await expect(ctx.recvTransport!.consumeData({ id: '1234' })).rejects.toThrow(
-		TypeError,
+		TypeError
 	);
 
 	await expect(
 		// @ts-ignore
-		ctx.recvTransport!.consumeData({ id: '1234', dataProducerId: '4444' }),
+		ctx.recvTransport!.consumeData({ id: '1234', dataProducerId: '4444' })
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -1056,7 +1056,7 @@ test('transport.consumeData() in a sending Transport rejects with UnsupportedErr
 			id,
 			dataProducerId,
 			sctpStreamParameters,
-		}),
+		})
 	).rejects.toThrow(UnsupportedError);
 }, 500);
 
@@ -1069,7 +1069,7 @@ test('transport.consumeData() with a non object appData rejects with TypeError',
 			dataConsumerRemoteParameters,
 			// @ts-ignore
 			appData: true,
-		}),
+		})
 	).rejects.toThrow(TypeError);
 }, 500);
 
@@ -1086,7 +1086,7 @@ test('transport.restartIce() succeeds', async () => {
 				usernameFragment: 'foo',
 				password: 'xxx',
 			},
-		}),
+		})
 	).resolves.toBe(undefined);
 }, 500);
 
@@ -1097,13 +1097,13 @@ test('transport.restartIce() without remote iceParameters rejects with TypeError
 
 test('transport.updateIceServers() succeeds', async () => {
 	await expect(
-		ctx.sendTransport!.updateIceServers({ iceServers: [] }),
+		ctx.sendTransport!.updateIceServers({ iceServers: [] })
 	).resolves.toBe(undefined);
 }, 500);
 
 test('transport.updateIceServers() without iceServers rejects with TypeError', async () => {
 	await expect(ctx.sendTransport!.updateIceServers({})).rejects.toThrow(
-		TypeError,
+		TypeError
 	);
 }, 500);
 
@@ -1181,7 +1181,7 @@ test('producer.replaceTrack() with a new track succeeds', async () => {
 	const newAudioTrack = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(
-		ctx.audioProducer!.replaceTrack({ track: newAudioTrack }),
+		ctx.audioProducer!.replaceTrack({ track: newAudioTrack })
 	).resolves.toBe(undefined);
 
 	// Previous track must be 'live' due to stopTracks: false.
@@ -1199,7 +1199,7 @@ test('producer.replaceTrack() with a new track succeeds', async () => {
 	const newVideoTrack = new FakeMediaStreamTrack({ kind: 'video' });
 
 	await expect(
-		ctx.videoProducer!.replaceTrack({ track: newVideoTrack }),
+		ctx.videoProducer!.replaceTrack({ track: newVideoTrack })
 	).resolves.toBe(undefined);
 
 	// Previous track must be 'ended' due to stopTracks: true.
@@ -1216,7 +1216,7 @@ test('producer.replaceTrack() with null succeeds', async () => {
 	const audioProducerPreviousTrack = ctx.audioProducer!.track;
 
 	await expect(ctx.audioProducer!.replaceTrack({ track: null })).resolves.toBe(
-		undefined,
+		undefined
 	);
 
 	// Previous track must be 'live' due to stopTracks: false.
@@ -1235,7 +1235,7 @@ test('producer.replaceTrack() with null succeeds', async () => {
 
 	// Set the original audio track back.
 	await expect(
-		ctx.audioProducer!.replaceTrack({ track: audioProducerPreviousTrack }),
+		ctx.audioProducer!.replaceTrack({ track: audioProducerPreviousTrack })
 	).resolves.toBe(undefined);
 
 	// The given audio track was muted but the Producer was not, so the track
@@ -1253,7 +1253,7 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 	track.stop();
 
 	await expect(ctx.videoProducer!.replaceTrack({ track })).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 
 	expect(track.readyState).toBe('ended');
@@ -1262,7 +1262,7 @@ test('producer.replaceTrack() with an ended track rejects with InvalidStateError
 
 test('producer.replaceTrack() with the same track succeeds', async () => {
 	await expect(
-		ctx.audioProducer!.replaceTrack({ track: ctx.audioProducer!.track }),
+		ctx.audioProducer!.replaceTrack({ track: ctx.audioProducer!.track })
 	).resolves.toBe(undefined);
 
 	expect(ctx.audioProducer!.track?.readyState).toBe('live');
@@ -1270,7 +1270,7 @@ test('producer.replaceTrack() with the same track succeeds', async () => {
 
 test('producer.setMaxSpatialLayer() succeeds', async () => {
 	await expect(ctx.videoProducer!.setMaxSpatialLayer(0)).resolves.toBe(
-		undefined,
+		undefined
 	);
 
 	expect(ctx.videoProducer!.maxSpatialLayer).toBe(0);
@@ -1278,7 +1278,7 @@ test('producer.setMaxSpatialLayer() succeeds', async () => {
 
 test('producer.setMaxSpatialLayer() in an audio Producer rejects with UnsupportedError', async () => {
 	await expect(ctx.audioProducer!.setMaxSpatialLayer(1)).rejects.toThrow(
-		UnsupportedError,
+		UnsupportedError
 	);
 
 	expect(ctx.audioProducer!.maxSpatialLayer).toBe(undefined);
@@ -1287,20 +1287,20 @@ test('producer.setMaxSpatialLayer() in an audio Producer rejects with Unsupporte
 test('producer.setMaxSpatialLayer() with invalid spatialLayer rejects with TypeError', async () => {
 	await expect(
 		// @ts-ignore
-		ctx.videoProducer!.setMaxSpatialLayer('chicken'),
+		ctx.videoProducer!.setMaxSpatialLayer('chicken')
 	).rejects.toThrow(TypeError);
 }, 500);
 
 test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError', async () => {
 	// @ts-ignore
 	await expect(ctx.videoProducer!.setMaxSpatialLayer()).rejects.toThrow(
-		TypeError,
+		TypeError
 	);
 }, 500);
 
 test('producer.setRtpEncodingParameters() succeeds', async () => {
 	await expect(
-		ctx.videoProducer!.setRtpEncodingParameters({ scaleResolutionDownBy: 2 }),
+		ctx.videoProducer!.setRtpEncodingParameters({ scaleResolutionDownBy: 2 })
 	).resolves.toBe(undefined);
 }, 500);
 
@@ -1342,7 +1342,7 @@ test('producer.replaceTrack() rejects with InvalidStateError if closed', async (
 	ctx.audioProducer!.close();
 
 	await expect(
-		ctx.audioProducer!.replaceTrack({ track: audioTrack }),
+		ctx.audioProducer!.replaceTrack({ track: audioTrack })
 	).rejects.toThrow(InvalidStateError);
 
 	expect(audioTrack.readyState).toBe('live');
@@ -1352,7 +1352,7 @@ test('producer.getStats() rejects with InvalidStateError if closed', async () =>
 	ctx.audioProducer!.close();
 
 	await expect(ctx.audioProducer!.getStats()).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1367,7 +1367,7 @@ test('consumer.getStats() rejects with InvalidStateError if closed', async () =>
 	ctx.audioConsumer!.close();
 
 	await expect(ctx.audioConsumer!.getStats()).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1474,7 +1474,7 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 	ctx.connectedSendTransport!.close();
 
 	await expect(
-		ctx.connectedSendTransport!.produce({ track, stopTracks: false }),
+		ctx.connectedSendTransport!.produce({ track, stopTracks: false })
 	).rejects.toThrow(InvalidStateError);
 
 	// The track must be 'live' due to stopTracks: false.
@@ -1486,7 +1486,7 @@ test('transport.consume() rejects with InvalidStateError if closed', async () =>
 
 	// @ts-ignore
 	await expect(ctx.connectedRecvTransport!.consume({})).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1494,7 +1494,7 @@ test('transport.produceData() rejects with InvalidStateError if closed', async (
 	ctx.connectedSendTransport!.close();
 
 	await expect(ctx.connectedSendTransport!.produceData({})).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1503,7 +1503,7 @@ test('transport.consumeData() rejects with InvalidStateError if closed', async (
 
 	// @ts-ignore
 	await expect(ctx.connectedRecvTransport!.consumeData({})).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1511,7 +1511,7 @@ test('transport.getStats() rejects with InvalidStateError if closed', async () =
 	ctx.connectedSendTransport!.close();
 
 	await expect(ctx.connectedSendTransport!.getStats()).rejects.toThrow(
-		InvalidStateError,
+		InvalidStateError
 	);
 }, 500);
 
@@ -1520,7 +1520,7 @@ test('transport.restartIce() rejects with InvalidStateError if closed', async ()
 
 	await expect(
 		// @ts-ignore
-		ctx.connectedSendTransport!.restartIce({ ieParameters: {} }),
+		ctx.connectedSendTransport!.restartIce({ ieParameters: {} })
 	).rejects.toThrow(InvalidStateError);
 }, 500);
 
@@ -1528,7 +1528,7 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 	ctx.connectedSendTransport!.close();
 
 	await expect(
-		ctx.connectedSendTransport!.updateIceServers({ iceServers: [] }),
+		ctx.connectedSendTransport!.updateIceServers({ iceServers: [] })
 	).rejects.toThrow(InvalidStateError);
 }, 500);
 
@@ -1539,7 +1539,7 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 		'connectionstatechange',
 		(/* connectionState */) => {
 			connectionStateChangeEventNumTimesCalled++;
-		},
+		}
 	);
 
 	ctx.connectedSendTransport!.close();
@@ -1744,7 +1744,7 @@ describe('detectDevice() assigns proper handler based on UserAgent', () => {
 				// Cleanup.
 				global.RTCRtpTransceiver = originalRTCRtpTransceiver;
 			},
-			100,
+			100
 		);
 	}
 

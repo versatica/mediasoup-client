@@ -272,7 +272,7 @@ export class RemoteSdp {
 		if (mid === this._firstMid) {
 			logger.debug(
 				'closeMediaSection() | cannot close first media section, disabling it instead [mid:%s]',
-				mid,
+				mid
 			);
 
 			this.disableMediaSection(mid);
@@ -290,7 +290,7 @@ export class RemoteSdp {
 
 	muxMediaSectionSimulcast(
 		mid: string,
-		encodings: RTCRtpEncodingParameters[],
+		encodings: RTCRtpEncodingParameters[]
 	): void {
 		const mediaSection = this._findMediaSection(mid) as AnswerMediaSection;
 
@@ -396,7 +396,7 @@ export class RemoteSdp {
 
 			if (idx === undefined) {
 				throw new Error(
-					`no media section found with mid '${newMediaSection.mid}'`,
+					`no media section found with mid '${newMediaSection.mid}'`
 				);
 			}
 

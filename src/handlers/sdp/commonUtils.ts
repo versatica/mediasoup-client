@@ -154,7 +154,7 @@ export function extractDtlsParameters({
 
 	if (!setup || !fingerprint) {
 		const mediaObject = (sdpObject.media || []).find(
-			(m: { port: number }) => m.port !== 0,
+			(m: { port: number }) => m.port !== 0
 		);
 
 		if (mediaObject) {
@@ -210,7 +210,7 @@ export function getCname({
 	offerMediaObject: any;
 }): string {
 	const ssrcCnameLine = (offerMediaObject.ssrcs || []).find(
-		(line: { attribute: string }) => line.attribute === 'cname',
+		(line: { attribute: string }) => line.attribute === 'cname'
 	);
 
 	if (!ssrcCnameLine) {
@@ -240,7 +240,7 @@ export function applyCodecParameters({
 		}
 
 		const rtp = (answerMediaObject.rtp || []).find(
-			(r: { payload: number }) => r.payload === codec.payloadType,
+			(r: { payload: number }) => r.payload === codec.payloadType
 		);
 
 		if (!rtp) {
@@ -251,7 +251,7 @@ export function applyCodecParameters({
 		answerMediaObject.fmtp = answerMediaObject.fmtp || [];
 
 		let fmtp = answerMediaObject.fmtp.find(
-			(f: { payload: number }) => f.payload === codec.payloadType,
+			(f: { payload: number }) => f.payload === codec.payloadType
 		);
 
 		if (!fmtp) {

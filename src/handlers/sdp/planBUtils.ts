@@ -31,7 +31,7 @@ export function getRtpEncodings({
 
 	if (ssrcs.size === 0) {
 		throw new Error(
-			`a=ssrc line with msid information not found [track.id:${track.id}]`,
+			`a=ssrc line with msid information not found [track.id:${track.id}]`
 		);
 	}
 
@@ -121,7 +121,7 @@ export function addLegacySimulcast({
 
 	if (!ssrcMsidLine) {
 		throw new Error(
-			`a=ssrc line with msid information not found [track.id:${track.id}]`,
+			`a=ssrc line with msid information not found [track.id:${track.id}]`
 		);
 	}
 
@@ -143,12 +143,12 @@ export function addLegacySimulcast({
 	});
 
 	const ssrcCnameLine = offerMediaObject.ssrcs.find(
-		(line: any) => line.attribute === 'cname' && line.id === firstSsrc,
+		(line: any) => line.attribute === 'cname' && line.id === firstSsrc
 	);
 
 	if (!ssrcCnameLine) {
 		throw new Error(
-			`a=ssrc line with cname information not found [track.id:${track.id}]`,
+			`a=ssrc line with cname information not found [track.id:${track.id}]`
 		);
 	}
 
