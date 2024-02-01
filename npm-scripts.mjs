@@ -154,9 +154,7 @@ function lint() {
 	// rules.
 	executeCmd('eslint-config-prettier .eslintrc.js');
 
-	executeCmd(
-		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .'
-	);
+	executeCmd('eslint -c .eslintrc.js --max-warnings 0 .');
 }
 
 function format() {
