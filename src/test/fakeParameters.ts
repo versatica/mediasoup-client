@@ -319,6 +319,7 @@ export function generateTransportRemoteParameters(): mediasoupClient.types.Trans
 		iceCandidates: [
 			{
 				foundation: 'udpcandidate',
+				address: '9.9.9.9',
 				ip: '9.9.9.9',
 				port: 40533,
 				priority: 1078862079,
@@ -328,6 +329,7 @@ export function generateTransportRemoteParameters(): mediasoupClient.types.Trans
 			},
 			{
 				foundation: 'udpcandidate',
+				address: '9.9.9.9',
 				ip: '9:9:9:9:9:9',
 				port: 41333,
 				priority: 1078862089,

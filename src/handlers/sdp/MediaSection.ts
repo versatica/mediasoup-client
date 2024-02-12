@@ -51,7 +51,9 @@ export abstract class MediaSection {
 				// RTP (1).
 				candidateObject.component = 1;
 				candidateObject.foundation = candidate.foundation;
-				candidateObject.ip = candidate.ip;
+				// Be ready for new candidate.address field in mediasoup server side
+				// field and keep backward compatibility with deprecated candidate.ip.
+				candidateObject.ip = candidate.address ?? candidate.ip;
 				candidateObject.port = candidate.port;
 				candidateObject.priority = candidate.priority;
 				candidateObject.transport = candidate.protocol;

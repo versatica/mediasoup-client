@@ -65,7 +65,12 @@ export type IceCandidate = {
 	 */
 	priority: number;
 	/**
-	 * The IP address of the candidate.
+	 * The IP address or hostname of the candidate.
+	 */
+	address: string;
+	/**
+	 * The IP address  or hostname of the candidate.
+	 * @deprecated Use |address| instead.
 	 */
 	ip: string;
 	/**
