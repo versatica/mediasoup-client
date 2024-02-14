@@ -100,6 +100,14 @@ export type DtlsParameters = {
 	 * Server DTLS fingerprints.
 	 */
 	fingerprints: DtlsFingerprint[];
+	/**
+	 * ICE ufrag.
+	 */
+	iceUfrag?: string;
+	/**
+	 * ICE password.
+	 */
+	icePwd?: string;
 };
 
 /**
