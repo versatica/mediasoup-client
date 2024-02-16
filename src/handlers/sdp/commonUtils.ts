@@ -151,27 +151,22 @@ export function extractDtlsParameters({
 }): DtlsParameters {
 	let setup = sdpObject.setup;
 	let fingerprint = sdpObject.fingerprint;
-	let iceUfrag = sdpObject.iceUfrag;
-	let icePwd = sdpObject.icePwd;
 
-	const mediaObject = (sdpObject.media || []).find(
-		(m: { port: number }) => m.port !== 0
-	);
+	if (!setup || !fingerprint) {
+		const mediaObject = (sdpObject.media || []).find(
+			(m: { port: number }) => m.port !== 0
+		);
 
-	if ((!setup || !fingerprint) && mediaObject) {
-		setup ??= mediaObject.setup;
-		fingerprint ??= mediaObject.fingerprint;
+		if (mediaObject) {
+			setup ??= mediaObject.setup;
+			fingerprint ??= mediaObject.fingerprint;
+		}
 	}
 
 	if (!setup) {
 		throw new Error('no a=setup found at SDP session or media level');
 	} else if (!fingerprint) {
 		throw new Error('no a=fingerprint found at SDP session or media level');
-	}
-
-	if ((!iceUfrag || !icePwd) && mediaObject) {
-		iceUfrag ??= mediaObject.iceUfrag;
-		icePwd ??= mediaObject.icePwd;
 	}
 
 	let role: DtlsRole | undefined;
@@ -204,8 +199,6 @@ export function extractDtlsParameters({
 				value: fingerprint.hash,
 			},
 		],
-		iceUfrag,
-		icePwd,
 	};
 
 	return dtlsParameters;
