@@ -977,6 +977,11 @@ export class Chrome70 extends HandlerInterface {
 			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 		}
 
+		// Get our local ICE parameters.
+		const iceParameters = sdpCommonUtils.extractIceParameters({
+			sdpObject: localSdpObject,
+		});
+
 		// Get our local DTLS parameters.
 		const dtlsParameters = sdpCommonUtils.extractDtlsParameters({
 			sdpObject: localSdpObject,
@@ -992,7 +997,12 @@ export class Chrome70 extends HandlerInterface {
 
 		// Need to tell the remote transport about our parameters.
 		await new Promise<void>((resolve, reject) => {
-			this.safeEmit('@connect', { dtlsParameters }, resolve, reject);
+			this.safeEmit(
+				'@connect',
+				{ iceParameters, dtlsParameters },
+				resolve,
+				reject
+			);
 		});
 
 		this._transportReady = true;

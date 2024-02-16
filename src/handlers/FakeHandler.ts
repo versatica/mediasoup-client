@@ -453,6 +453,10 @@ export class FakeHandler extends HandlerInterface {
 		localDtlsRole: DtlsRole;
 		localSdpObject?: any;
 	}): Promise<void> {
+		const iceParameters = utils.clone<IceParameters>(
+			this.fakeParameters.generateLocalIceParameters()
+		);
+
 		const dtlsParameters = utils.clone<DtlsParameters>(
 			this.fakeParameters.generateLocalDtlsParameters()
 		);
@@ -467,7 +471,7 @@ export class FakeHandler extends HandlerInterface {
 
 		// Need to tell the remote transport about our parameters.
 		await new Promise<void>((resolve, reject) =>
-			this.emit('@connect', { dtlsParameters }, resolve, reject)
+			this.emit('@connect', { iceParameters, dtlsParameters }, resolve, reject)
 		);
 
 		this._transportReady = true;
