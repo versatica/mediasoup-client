@@ -625,6 +625,9 @@ export class Edge11 extends HandlerInterface {
 	}): Promise<void> {
 		logger.debug('setupTransport()');
 
+		// Get our local ICE parameters.
+		const iceParameters = this._iceGatherer.getLocalParameters();
+
 		// Get our local DTLS parameters.
 		const dtlsParameters = this._dtlsTransport.getLocalParameters();
 
@@ -632,7 +635,12 @@ export class Edge11 extends HandlerInterface {
 
 		// Need to tell the remote transport about our parameters.
 		await new Promise<void>((resolve, reject) => {
-			this.safeEmit('@connect', { dtlsParameters }, resolve, reject);
+			this.safeEmit(
+				'@connect',
+				{ iceParameters, dtlsParameters },
+				resolve,
+				reject
+			);
 		});
 
 		// Start the RTCIceTransport.
