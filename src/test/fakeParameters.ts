@@ -295,13 +295,6 @@ export function generateNativeSctpCapabilities(): mediasoupClient.types.SctpCapa
 	};
 }
 
-export function generateLocalIceParameters(): mediasoupClient.types.IceParameters {
-	return {
-		usernameFragment: 'foo',
-		password: 'xxxx',
-	};
-}
-
 export function generateLocalDtlsParameters(): mediasoupClient.types.DtlsParameters {
 	return {
 		fingerprints: [

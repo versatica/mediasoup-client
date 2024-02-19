@@ -1,5 +1,5 @@
 import * as sdpTransform from 'sdp-transform';
-import { IceParameters, DtlsParameters, DtlsRole } from '../../Transport';
+import { DtlsParameters, DtlsRole } from '../../Transport';
 import {
 	RtpCapabilities,
 	RtpCodecCapability,
@@ -142,39 +142,6 @@ export function extractRtpCapabilities({
 	};
 
 	return rtpCapabilities;
-}
-
-export function extractIceParameters({
-	sdpObject,
-}: {
-	sdpObject: any;
-}): IceParameters {
-	let usernameFragment = sdpObject.iceUfrag;
-	let password = sdpObject.icePwd;
-
-	if (!usernameFragment || !password) {
-		const mediaObject = (sdpObject.media || []).find(
-			(m: { port: number }) => m.port !== 0
-		);
-
-		if (mediaObject) {
-			usernameFragment ??= mediaObject.iceUfrag;
-			password ??= mediaObject.icePwd;
-		}
-	}
-
-	if (!usernameFragment) {
-		throw new Error('no a=iceUfrag found at SDP session or media level');
-	} else if (!password) {
-		throw new Error('no a=icePwd found at SDP session or media level');
-	}
-
-	const iceParameters: IceParameters = {
-		usernameFragment,
-		password,
-	};
-
-	return iceParameters;
 }
 
 export function extractDtlsParameters({

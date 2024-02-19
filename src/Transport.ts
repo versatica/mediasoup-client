@@ -144,7 +144,7 @@ export type PlainRtpParameters = {
 
 export type TransportEvents = {
 	connect: [
-		{ iceParameters: IceParameters; dtlsParameters: DtlsParameters },
+		{ dtlsParameters: DtlsParameters },
 		() => void,
 		(error: Error) => void,
 	];
@@ -1106,10 +1106,7 @@ export class Transport<
 		handler.on(
 			'@connect',
 			(
-				{
-					iceParameters,
-					dtlsParameters,
-				}: { iceParameters: IceParameters; dtlsParameters: DtlsParameters },
+				{ dtlsParameters }: { dtlsParameters: DtlsParameters },
 				callback: () => void,
 				errback: (error: Error) => void
 			) => {
@@ -1119,12 +1116,7 @@ export class Transport<
 					return;
 				}
 
-				this.safeEmit(
-					'connect',
-					{ iceParameters, dtlsParameters },
-					callback,
-					errback
-				);
+				this.safeEmit('connect', { dtlsParameters }, callback, errback);
 			}
 		);
 

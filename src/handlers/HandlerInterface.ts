@@ -86,7 +86,7 @@ export type HandlerReceiveDataChannelResult = {
 export type HandlerEvents = {
 	'@close': [];
 	'@connect': [
-		{ iceParameters: IceParameters; dtlsParameters: DtlsParameters },
+		{ dtlsParameters: DtlsParameters },
 		() => void,
 		(error: Error) => void,
 	];
