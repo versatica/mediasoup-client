@@ -114,7 +114,7 @@ export class Firefox120 extends HandlerInterface {
 		try {
 			pc.addTransceiver('audio', { direction: 'sendrecv' });
 
-			const videoTransceiver = pc.addTransceiver(fakeVideoTrack, {
+			pc.addTransceiver(fakeVideoTrack, {
 				direction: 'sendrecv',
 				sendEncodings: [
 					{ rid: 'r0', maxBitrate: 100000 },
