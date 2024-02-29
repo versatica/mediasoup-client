@@ -102,7 +102,8 @@ export class Firefox120 extends HandlerInterface {
 			rtcpMuxPolicy: 'require',
 		});
 
-		// NOTE: We need to add a real video track to get the RID extension mapping.
+		// NOTE: We need to add a real video track to get the RID extension mapping,
+		// otherwiser Firefox doesn't include it in the SDP.
 		const canvas = document.createElement('canvas');
 
 		// NOTE: Otherwise Firefox fails in next line.
