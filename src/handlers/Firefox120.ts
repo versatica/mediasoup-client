@@ -1,11 +1,10 @@
 import * as sdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
+import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import * as ortcUtils from './ortc/utils';
-import { InvalidStateError } from '../errors';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -22,14 +21,18 @@ import {
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import {
+	RtpCapabilities,
+	RtpParameters,
+	RtpEncodingParameters,
+} from '../RtpParameters';
 import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
-const logger = new Logger('Chrome111');
+const logger = new Logger('Firefox120');
 
-const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
-export class Chrome111 extends HandlerInterface {
+export class Firefox120 extends HandlerInterface {
 	// Closed flag.
 	private _closed = false;
 	// Handler direction.
@@ -41,9 +44,6 @@ export class Chrome111 extends HandlerInterface {
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
-	// Initial server side DTLS role. If not 'auto', it will force the opposite
-	// value in client side.
-	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: any;
 	// Map of RTCTransceivers indexed by MID.
@@ -62,7 +62,7 @@ export class Chrome111 extends HandlerInterface {
 	 * Creates a factory function.
 	 */
 	static createFactory(): HandlerFactory {
-		return (): Chrome111 => new Chrome111();
+		return (): Firefox120 => new Firefox120();
 	}
 
 	constructor() {
@@ -70,7 +70,7 @@ export class Chrome111 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Chrome111';
+		return 'Firefox120';
 	}
 
 	close(): void {
@@ -100,14 +100,38 @@ export class Chrome111 extends HandlerInterface {
 			iceTransportPolicy: 'all',
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require',
-			sdpSemantics: 'unified-plan',
 		});
 
+		// NOTE: We need to add a real video track to get the RID extension mapping,
+		// otherwiser Firefox doesn't include it in the SDP.
+		const canvas = document.createElement('canvas');
+
+		// NOTE: Otherwise Firefox fails in next line.
+		canvas.getContext('2d');
+
+		const fakeStream = (canvas as any).captureStream();
+		const fakeVideoTrack = fakeStream.getVideoTracks()[0];
+
 		try {
-			pc.addTransceiver('audio');
-			pc.addTransceiver('video');
+			pc.addTransceiver('audio', { direction: 'sendrecv' });
+
+			pc.addTransceiver(fakeVideoTrack, {
+				direction: 'sendrecv',
+				sendEncodings: [
+					{ rid: 'r0', maxBitrate: 100000 },
+					{ rid: 'r1', maxBitrate: 500000 },
+				],
+			});
 
 			const offer = await pc.createOffer();
+
+			try {
+				canvas.remove();
+			} catch (error) {}
+
+			try {
+				fakeVideoTrack.stop();
+			} catch (error) {}
 
 			try {
 				pc.close();
@@ -118,11 +142,16 @@ export class Chrome111 extends HandlerInterface {
 				sdpObject,
 			});
 
-			// libwebrtc supports NACK for OPUS but doesn't announce it.
-			ortcUtils.addNackSuppportForOpus(nativeRtpCapabilities);
-
 			return nativeRtpCapabilities;
 		} catch (error) {
+			try {
+				canvas.remove();
+			} catch (error2) {}
+
+			try {
+				fakeVideoTrack.stop();
+			} catch (error2) {}
+
 			try {
 				pc.close();
 			} catch (error2) {}
@@ -180,18 +209,12 @@ export class Chrome111 extends HandlerInterface {
 			),
 		};
 
-		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
-			this._forcedLocalDtlsRole =
-				dtlsParameters.role === 'server' ? 'client' : 'server';
-		}
-
 		this._pc = new (RTCPeerConnection as any)(
 			{
 				iceServers: iceServers || [],
 				iceTransportPolicy: iceTransportPolicy || 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
-				sdpSemantics: 'unified-plan',
 				...additionalSettings,
 			},
 			proprietaryConstraints
@@ -206,11 +229,11 @@ export class Chrome111 extends HandlerInterface {
 				this.emit('@connectionstatechange', this._pc.connectionState);
 			});
 		} else {
-			logger.warn(
-				'run() | pc.connectionState not supported, using pc.iceConnectionState'
-			);
-
 			this._pc.addEventListener('iceconnectionstatechange', () => {
+				logger.warn(
+					'run() | pc.connectionState not supported, using pc.iceConnectionState'
+				);
+
 				switch (this._pc.iceConnectionState) {
 					case 'checking': {
 						this.emit('@connectionstatechange', 'connecting');
@@ -247,16 +270,12 @@ export class Chrome111 extends HandlerInterface {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		this.assertNotClosed();
 
-		logger.debug('updateIceServers()');
-
-		const configuration = this._pc.getConfiguration();
-
-		configuration.iceServers = iceServers;
-
-		this._pc.setConfiguration(configuration);
+		// NOTE: Firefox does not implement pc.setConfiguration().
+		throw new UnsupportedError('not supported');
 	}
 
 	async restartIce(iceParameters: IceParameters): Promise<void> {
@@ -328,26 +347,8 @@ export class Chrome111 extends HandlerInterface {
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (encodings && encodings.length > 1) {
-			// Set rid and verify scalabilityMode in each encoding.
-			// NOTE: Even if WebRTC allows different scalabilityMode (different number
-			// of temporal layers) per simulcast stream, we need that those are the
-			// same in all them, so let's pick up the highest value.
-			// NOTE: If scalabilityMode is not given, Chrome will use L1T3.
-			let maxTemporalLayers = 1;
-
-			for (const encoding of encodings) {
-				const temporalLayers = encoding.scalabilityMode
-					? parseScalabilityMode(encoding.scalabilityMode).temporalLayers
-					: 3;
-
-				if (temporalLayers > maxTemporalLayers) {
-					maxTemporalLayers = temporalLayers;
-				}
-			}
-
-			encodings.forEach((encoding, idx: number) => {
+			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
 				encoding.rid = `r${idx}`;
-				encoding.scalabilityMode = `L1T${maxTemporalLayers}`;
 			});
 		}
 
@@ -372,7 +373,12 @@ export class Chrome111 extends HandlerInterface {
 			codec
 		);
 
-		const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
+		// NOTE: Firefox fails sometimes to properly anticipate the closed media
+		// section that it should use, so don't reuse closed media sections.
+		//   https://github.com/versatica/mediasoup-client/issues/104
+		//
+		// const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
+
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
 			streams: [this._sendStream],
@@ -381,12 +387,13 @@ export class Chrome111 extends HandlerInterface {
 		const offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
+		// In Firefox use DTLS role client even if we are the "offerer" since
+		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady) {
-			await this.setupTransport({
-				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-				localSdpObject,
-			});
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
+
+		const layers = parseScalabilityMode((encodings || [{}])[0].scalabilityMode);
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
@@ -400,7 +407,8 @@ export class Chrome111 extends HandlerInterface {
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
 
-		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+		const offerMediaObject =
+			localSdpObject.media[localSdpObject.media.length - 1];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -429,9 +437,24 @@ export class Chrome111 extends HandlerInterface {
 			sendingRtpParameters.encodings = encodings;
 		}
 
+		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
+		// each encoding.
+		if (
+			sendingRtpParameters.encodings.length > 1 &&
+			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+		) {
+			for (const encoding of sendingRtpParameters.encodings) {
+				if (encoding.scalabilityMode) {
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
+				} else {
+					encoding.scalabilityMode = 'L1T3';
+				}
+			}
+		}
+
 		this._remoteSdp!.send({
 			offerMediaObject,
-			reuseMid: mediaSectionIdx.reuseMid,
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
@@ -469,22 +492,25 @@ export class Chrome111 extends HandlerInterface {
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver) {
-			throw new Error('associated RTCRtpTransceiver not found');
+			throw new Error('associated transceiver not found');
 		}
 
 		transceiver.sender.replaceTrack(null);
 
+		// NOTE: Cannot use stop() the transceiver due to the the note above in
+		// send() method.
+		// try
+		// {
+		// 	transceiver.stop();
+		// }
+		// catch (error)
+		// {}
+
 		this._pc.removeTrack(transceiver.sender);
-
-		const mediaSectionClosed = this._remoteSdp!.closeMediaSection(
-			transceiver.mid!
-		);
-
-		if (mediaSectionClosed) {
-			try {
-				transceiver.stop();
-			} catch (error) {}
-		}
+		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
+		// method.
+		// this._remoteSdp!.closeMediaSection(transceiver.mid);
+		this._remoteSdp!.disableMediaSection(transceiver.mid!);
 
 		const offer = await this._pc.createOffer();
 
@@ -507,6 +533,7 @@ export class Chrome111 extends HandlerInterface {
 		this._mapMidTransceiver.delete(localId);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -541,6 +568,7 @@ export class Chrome111 extends HandlerInterface {
 		await this._pc.setRemoteDescription(answer);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -549,13 +577,12 @@ export class Chrome111 extends HandlerInterface {
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
-		this._remoteSdp!.resumeSendingMediaSection(localId);
-
 		if (!transceiver) {
 			throw new Error('associated RTCRtpTransceiver not found');
 		}
 
 		transceiver.direction = 'sendonly';
+		this._remoteSdp!.resumeSendingMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -618,7 +645,7 @@ export class Chrome111 extends HandlerInterface {
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver) {
-			throw new Error('associated RTCRtpTransceiver not found');
+			throw new Error('associated transceiver not found');
 		}
 
 		const parameters = transceiver.sender.getParameters();
@@ -753,10 +780,7 @@ export class Chrome111 extends HandlerInterface {
 			);
 
 			if (!this._transportReady) {
-				await this.setupTransport({
-					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-					localSdpObject,
-				});
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(
@@ -791,6 +815,7 @@ export class Chrome111 extends HandlerInterface {
 	}
 
 	async receive(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertNotClosed();
@@ -842,15 +867,12 @@ export class Chrome111 extends HandlerInterface {
 				offerRtpParameters: rtpParameters,
 				answerMediaObject,
 			});
+
+			answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
 		}
 
-		answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
-
 		if (!this._transportReady) {
-			await this.setupTransport({
-				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-				localSdpObject,
-			});
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
 
 		logger.debug(
@@ -869,16 +891,16 @@ export class Chrome111 extends HandlerInterface {
 
 			if (!transceiver) {
 				throw new Error('new RTCRtpTransceiver not found');
-			} else {
-				// Store in the map.
-				this._mapMidTransceiver.set(localId, transceiver);
-
-				results.push({
-					localId,
-					track: transceiver.receiver.track,
-					rtpReceiver: transceiver.receiver,
-				});
 			}
+
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
+
+			results.push({
+				localId,
+				track: transceiver.receiver.track,
+				rtpReceiver: transceiver.receiver,
+			});
 		}
 
 		return results;
@@ -999,7 +1021,6 @@ export class Chrome111 extends HandlerInterface {
 	}
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport> {
-		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -1058,10 +1079,7 @@ export class Chrome111 extends HandlerInterface {
 			if (!this._transportReady) {
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this.setupTransport({
-					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-					localSdpObject,
-				});
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(
