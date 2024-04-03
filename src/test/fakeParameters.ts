@@ -6,7 +6,7 @@ function generateFakeUuid(): string {
 }
 
 export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabilities {
-	return {
+	return utils.deepFreeze<mediasoupClient.types.RtpCapabilities>({
 		codecs: [
 			{
 				mimeType: 'audio/opus',
@@ -168,11 +168,11 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				direction: 'sendrecv',
 			},
 		],
-	};
+	});
 }
 
 export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabilities {
-	return {
+	return utils.deepFreeze<mediasoupClient.types.RtpCapabilities>({
 		codecs: [
 			{
 				mimeType: 'audio/opus',
@@ -286,17 +286,17 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				preferredId: 10,
 			},
 		],
-	};
+	});
 }
 
 export function generateNativeSctpCapabilities(): mediasoupClient.types.SctpCapabilities {
-	return {
+	return utils.deepFreeze<mediasoupClient.types.SctpCapabilities>({
 		numStreams: { OS: 2048, MIS: 2048 },
-	};
+	});
 }
 
 export function generateLocalDtlsParameters(): mediasoupClient.types.DtlsParameters {
-	return {
+	return utils.deepFreeze<mediasoupClient.types.DtlsParameters>({
 		fingerprints: [
 			{
 				algorithm: 'sha-256',
@@ -305,18 +305,18 @@ export function generateLocalDtlsParameters(): mediasoupClient.types.DtlsParamet
 			},
 		],
 		role: 'auto',
-	};
+	});
 }
 
 export function generateTransportRemoteParameters(): mediasoupClient.types.TransportOptions {
 	return {
 		id: generateFakeUuid(),
-		iceParameters: {
+		iceParameters: utils.deepFreeze<mediasoupClient.types.IceParameters>({
 			iceLite: true,
 			password: 'yku5ej8nvfaor28lvtrabcx0wkrpkztz',
 			usernameFragment: 'h3hk1iz6qqlnqlne',
-		},
-		iceCandidates: [
+		}),
+		iceCandidates: utils.deepFreeze<mediasoupClient.types.IceCandidate[]>([
 			{
 				foundation: 'udpcandidate',
 				address: '9.9.9.9',
@@ -337,8 +337,8 @@ export function generateTransportRemoteParameters(): mediasoupClient.types.Trans
 				type: 'host',
 				tcpType: 'passive',
 			},
-		],
-		dtlsParameters: {
+		]),
+		dtlsParameters: utils.deepFreeze<mediasoupClient.types.DtlsParameters>({
 			fingerprints: [
 				{
 					algorithm: 'sha-256',
@@ -357,20 +357,20 @@ export function generateTransportRemoteParameters(): mediasoupClient.types.Trans
 				},
 			],
 			role: 'auto',
-		},
-		sctpParameters: {
+		}),
+		sctpParameters: utils.deepFreeze<mediasoupClient.types.SctpParameters>({
 			port: 5000,
 			OS: 2048,
 			MIS: 2048,
 			maxMessageSize: 2000000,
-		},
+		}),
 	};
 }
 
 export function generateProducerRemoteParameters(): { id: string } {
-	return {
+	return utils.deepFreeze<{ id: string }>({
 		id: generateFakeUuid(),
-	};
+	});
 }
 
 export function generateConsumerRemoteParameters({
@@ -386,7 +386,7 @@ export function generateConsumerRemoteParameters({
 				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
-				rtpParameters: {
+				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
 					codecs: [
 						{
 							mimeType: 'audio/opus',
@@ -424,7 +424,7 @@ export function generateConsumerRemoteParameters({
 						reducedSize: true,
 						mux: true,
 					},
-				},
+				}),
 			};
 		}
 
@@ -433,7 +433,7 @@ export function generateConsumerRemoteParameters({
 				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
-				rtpParameters: {
+				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
 					codecs: [
 						{
 							mimeType: 'audio/ISAC',
@@ -464,7 +464,7 @@ export function generateConsumerRemoteParameters({
 						reducedSize: true,
 						mux: true,
 					},
-				},
+				}),
 			};
 		}
 
@@ -473,7 +473,7 @@ export function generateConsumerRemoteParameters({
 				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
-				rtpParameters: {
+				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
 					codecs: [
 						{
 							mimeType: 'video/VP8',
@@ -535,7 +535,7 @@ export function generateConsumerRemoteParameters({
 						reducedSize: true,
 						mux: true,
 					},
-				},
+				}),
 			};
 		}
 
@@ -544,7 +544,7 @@ export function generateConsumerRemoteParameters({
 				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
-				rtpParameters: {
+				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
 					codecs: [
 						{
 							mimeType: 'video/H264',
@@ -608,20 +608,20 @@ export function generateConsumerRemoteParameters({
 						reducedSize: true,
 						mux: true,
 					},
-				},
+				}),
 			};
 		}
 
 		default: {
-			throw new TypeError(`unknown codecMimeType "${codecMimeType}"`);
+			throw new TypeError(`unknown codecMimeType '${codecMimeType}'`);
 		}
 	}
 }
 
 export function generateDataProducerRemoteParameters(): { id: string } {
-	return {
+	return utils.deepFreeze<{ id: string }>({
 		id: generateFakeUuid(),
-	};
+	});
 }
 
 export function generateDataConsumerRemoteParameters({
@@ -630,10 +630,11 @@ export function generateDataConsumerRemoteParameters({
 	return {
 		id: id || generateFakeUuid(),
 		dataProducerId: generateFakeUuid(),
-		sctpStreamParameters: {
-			streamId: 666,
-			maxPacketLifeTime: 5000,
-			maxRetransmits: undefined,
-		},
+		sctpStreamParameters:
+			utils.deepFreeze<mediasoupClient.types.SctpStreamParameters>({
+				streamId: 666,
+				maxPacketLifeTime: 5000,
+				maxRetransmits: undefined,
+			}),
 	};
 }

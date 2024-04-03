@@ -423,8 +423,6 @@ export class Device {
 	}): Promise<void> {
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
-		routerRtpCapabilities = utils.clone<RtpCapabilities>(routerRtpCapabilities);
-
 		// Temporal handler to get its capabilities.
 		let handler: HandlerInterface | undefined;
 
@@ -433,8 +431,13 @@ export class Device {
 				throw new InvalidStateError('already loaded');
 			}
 
+			// Clone given router RTP capabilities to not modify input data.
+			const clonedRouterRtpCapabilities = utils.clone<RtpCapabilities>(
+				routerRtpCapabilities
+			);
+
 			// This may throw.
-			ortc.validateRtpCapabilities(routerRtpCapabilities);
+			ortc.validateRtpCapabilities(clonedRouterRtpCapabilities);
 
 			handler = this._handlerFactory();
 
@@ -445,13 +448,18 @@ export class Device {
 				nativeRtpCapabilities
 			);
 
+			// Clone obtained native RTP capabilities to not modify input data.
+			const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
+				nativeRtpCapabilities
+			);
+
 			// This may throw.
-			ortc.validateRtpCapabilities(nativeRtpCapabilities);
+			ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
 
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
-				nativeRtpCapabilities,
-				routerRtpCapabilities
+				clonedNativeRtpCapabilities,
+				clonedRouterRtpCapabilities
 			);
 
 			logger.debug(

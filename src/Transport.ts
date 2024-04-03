@@ -284,13 +284,13 @@ export class Transport<
 			: null;
 
 		// Clone and sanitize additionalSettings.
-		additionalSettings = utils.clone(additionalSettings) || {};
+		const clonedAdditionalSettings = utils.clone(additionalSettings) || {};
 
-		delete additionalSettings.iceServers;
-		delete additionalSettings.iceTransportPolicy;
-		delete additionalSettings.bundlePolicy;
-		delete additionalSettings.rtcpMuxPolicy;
-		delete additionalSettings.sdpSemantics;
+		delete clonedAdditionalSettings.iceServers;
+		delete clonedAdditionalSettings.iceTransportPolicy;
+		delete clonedAdditionalSettings.bundlePolicy;
+		delete clonedAdditionalSettings.rtcpMuxPolicy;
+		delete clonedAdditionalSettings.sdpSemantics;
 
 		this._handler = handlerFactory();
 
@@ -302,7 +302,7 @@ export class Transport<
 			sctpParameters,
 			iceServers,
 			iceTransportPolicy,
-			additionalSettings,
+			additionalSettings: clonedAdditionalSettings,
 			proprietaryConstraints,
 			extendedRtpCapabilities,
 		});
@@ -643,8 +643,6 @@ export class Transport<
 	}: ConsumerOptions<ConsumerAppData>): Promise<Consumer<ConsumerAppData>> {
 		logger.debug('consume()');
 
-		rtpParameters = utils.clone<RtpParameters>(rtpParameters);
-
 		if (this._closed) {
 			throw new InvalidStateError('closed');
 		} else if (this._direction !== 'recv') {
@@ -664,9 +662,12 @@ export class Transport<
 			throw new TypeError('if given, appData must be an object');
 		}
 
+		// Clone given RTP parameters to not modify input data.
+		const clonedRtpParameters = utils.clone<RtpParameters>(rtpParameters);
+
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
-			rtpParameters,
+			clonedRtpParameters,
 			this._extendedRtpCapabilities
 		);
 
@@ -678,7 +679,7 @@ export class Transport<
 			id,
 			producerId,
 			kind,
-			rtpParameters,
+			rtpParameters: clonedRtpParameters,
 			streamId,
 			appData,
 		});
@@ -796,8 +797,6 @@ export class Transport<
 	> {
 		logger.debug('consumeData()');
 
-		sctpStreamParameters = utils.clone(sctpStreamParameters);
-
 		if (this._closed) {
 			throw new InvalidStateError('closed');
 		} else if (this._direction !== 'recv') {
@@ -817,13 +816,16 @@ export class Transport<
 			throw new TypeError('if given, appData must be an object');
 		}
 
+		// Clone given SCTP stream parameters to not modify input data.
+		const clonedSctpStreamParameters = utils.clone(sctpStreamParameters);
+
 		// This may throw.
-		ortc.validateSctpStreamParameters(sctpStreamParameters);
+		ortc.validateSctpStreamParameters(clonedSctpStreamParameters);
 
 		// Enqueue command.
 		return this._awaitQueue.push(async () => {
 			const { dataChannel } = await this._handler.receiveDataChannel({
-				sctpStreamParameters,
+				sctpStreamParameters: clonedSctpStreamParameters,
 				label,
 				protocol,
 			});
@@ -832,7 +834,7 @@ export class Transport<
 				id,
 				dataProducerId,
 				dataChannel,
-				sctpStreamParameters,
+				sctpStreamParameters: clonedSctpStreamParameters,
 				appData,
 			});
 
