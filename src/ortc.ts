@@ -588,7 +588,7 @@ export function reduceCodecs(
 	// Otherwise look for a compatible set of codecs.
 	else {
 		for (let idx = 0; idx < codecs.length; ++idx) {
-			if (matchCodecs(codecs[idx], capCodec)) {
+			if (matchCodecs(codecs[idx], capCodec, { strict: true })) {
 				filteredCodecs.push(codecs[idx]);
 
 				if (isRtxCodec(codecs[idx + 1])) {
