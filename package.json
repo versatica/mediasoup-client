@@ -78,6 +78,7 @@
 	"devDependencies": {
 		"@types/events": "^3.0.3",
 		"@types/jest": "^29.5.12",
+		"@types/node": "20",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
 		"@typescript-eslint/eslint-plugin": "^7.10.0",
