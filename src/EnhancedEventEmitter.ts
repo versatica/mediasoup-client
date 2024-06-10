@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter, Listener } from 'npm-events-package';
 import { Logger } from './Logger';
 
 const logger = new Logger('EnhancedEventEmitter');
@@ -109,11 +109,11 @@ export class EnhancedEventEmitter<
 		return super.listenerCount(eventName);
 	}
 
-	listeners<K extends keyof E & string>(eventName: K): Function[] {
+	listeners<K extends keyof E & string>(eventName: K): Listener[] {
 		return super.listeners(eventName);
 	}
 
-	rawListeners<K extends keyof E & string>(eventName: K): Function[] {
+	rawListeners<K extends keyof E & string>(eventName: K): Listener[] {
 		return super.rawListeners(eventName);
 	}
 }

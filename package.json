@@ -67,7 +67,7 @@
 		"@types/debug": "^4.1.12",
 		"awaitqueue": "^3.0.2",
 		"debug": "^4.3.5",
-		"events": "^3.3.0",
+		"npm-events-package": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^1.2.0",
 		"h264-profile-level-id": "^2.0.0",
 		"queue-microtask": "^1.2.3",
@@ -76,7 +76,7 @@
 		"ua-parser-js": "^1.0.38"
 	},
 	"devDependencies": {
-		"@types/events": "^3.0.3",
+		"@types/npm-events-package": "npm:@types/events@^3.0.3",
 		"@types/jest": "^29.5.12",
 		"@types/node": "20",
 		"@types/sdp-transform": "^2.4.9",
