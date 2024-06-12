@@ -490,6 +490,7 @@ export class Transport<
 		stopTracks = true,
 		disableTrackOnPause = true,
 		zeroRtpOnPause = false,
+		onRtpSender,
 		appData = {} as ProducerAppData,
 	}: ProducerOptions<ProducerAppData> = {}): Promise<
 		Producer<ProducerAppData>
@@ -570,6 +571,7 @@ export class Transport<
 							encodings: normalizedEncodings,
 							codecOptions,
 							codec,
+							onRtpSender,
 						});
 
 					try {
@@ -639,6 +641,7 @@ export class Transport<
 		kind,
 		rtpParameters,
 		streamId,
+		onRtpReceiver,
 		appData = {} as ConsumerAppData,
 	}: ConsumerOptions<ConsumerAppData>): Promise<Consumer<ConsumerAppData>> {
 		logger.debug('consume()');
@@ -681,6 +684,7 @@ export class Transport<
 			kind,
 			rtpParameters: clonedRtpParameters,
 			streamId,
+			onRtpReceiver,
 			appData,
 		});
 
@@ -876,13 +880,14 @@ export class Transport<
 				const optionsList: HandlerReceiveOptions[] = [];
 
 				for (const task of pendingConsumerTasks) {
-					const { id, kind, rtpParameters, streamId } = task.consumerOptions;
+					const { id, kind, rtpParameters, streamId, onRtpReceiver } = task.consumerOptions;
 
 					optionsList.push({
 						trackId: id!,
 						kind: kind as MediaKind,
 						rtpParameters,
 						streamId,
+						onRtpReceiver,
 					});
 				}
 

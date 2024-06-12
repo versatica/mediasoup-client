@@ -2,7 +2,7 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { MediaKind, RtpParameters } from './RtpParameters';
-import { AppData } from './types';
+import { AppData, ReceiverCallback } from './types';
 
 const logger = new Logger('Consumer');
 
@@ -12,6 +12,7 @@ export type ConsumerOptions<ConsumerAppData extends AppData = AppData> = {
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
+	onRtpReceiver?: ReceiverCallback;
 	appData?: ConsumerAppData;
 };
 

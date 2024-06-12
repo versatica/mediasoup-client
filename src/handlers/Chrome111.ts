@@ -321,6 +321,7 @@ export class Chrome111 extends HandlerInterface {
 		encodings,
 		codecOptions,
 		codec,
+		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -378,6 +379,11 @@ export class Chrome111 extends HandlerInterface {
 			streams: [this._sendStream],
 			sendEncodings: encodings,
 		});
+
+		if (onRtpSender) {
+			onRtpSender(transceiver.sender);
+		}
+
 		const offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
@@ -825,6 +831,22 @@ export class Chrome111 extends HandlerInterface {
 		);
 
 		await this._pc.setRemoteDescription(offer);
+
+		for (const options of optionsList) {
+			const { trackId, onRtpReceiver } = options;
+
+			if (onRtpReceiver) {
+				const localId = mapLocalId.get(trackId);
+				const transceiver = this._pc.getTransceivers()
+					.find((t: RTCRtpTransceiver) => t.mid === localId);
+				
+				if (!transceiver) {
+					throw new Error('transceiver not found');
+				}
+
+				onRtpReceiver(transceiver.receiver);
+			}
+		}
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp);

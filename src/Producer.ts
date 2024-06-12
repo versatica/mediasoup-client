@@ -7,7 +7,7 @@ import {
 	RtpParameters,
 	RtpEncodingParameters,
 } from './RtpParameters';
-import { AppData } from './types';
+import { AppData, SenderCallback } from './types';
 
 const logger = new Logger('Producer');
 
@@ -19,6 +19,7 @@ export type ProducerOptions<ProducerAppData extends AppData = AppData> = {
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
+	onRtpSender?: SenderCallback;
 	appData?: ProducerAppData;
 };
 
