@@ -1,5 +1,4 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
-import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
 	IceCandidate,
@@ -7,6 +6,8 @@ import {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
+import { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import { OnRtpReceiverCallback } from '../Consumer';
 import {
 	RtpCapabilities,
 	RtpCodecCapability,
@@ -39,6 +40,7 @@ export type HandlerSendOptions = {
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	codec?: RtpCodecCapability;
+	onRtpSender?: OnRtpSenderCallback;
 };
 
 export type HandlerSendResult = {
@@ -58,6 +60,7 @@ export type HandlerReceiveOptions = {
 	 * can just synchronize up to one audio stream with one video stream.
 	 */
 	streamId?: string;
+	onRtpReceiver?: OnRtpReceiverCallback;
 };
 
 export type HandlerReceiveResult = {

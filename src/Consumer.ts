@@ -12,8 +12,15 @@ export type ConsumerOptions<ConsumerAppData extends AppData = AppData> = {
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
+	onRtpReceiver?: OnRtpReceiverCallback;
 	appData?: ConsumerAppData;
 };
+
+/**
+ * Invoked synchronously immediately after a new RTCRtpReceiver is created.
+ * This allows for creating encoded streams in chromium browsers.
+ */
+export type OnRtpReceiverCallback = (rtpReceiver: RTCRtpReceiver) => void;
 
 export type ConsumerEvents = {
 	transportclose: [];
