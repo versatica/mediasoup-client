@@ -837,9 +837,10 @@ export class Chrome111 extends HandlerInterface {
 
 			if (onRtpReceiver) {
 				const localId = mapLocalId.get(trackId);
-				const transceiver = this._pc.getTransceivers()
+				const transceiver = this._pc
+					.getTransceivers()
 					.find((t: RTCRtpTransceiver) => t.mid === localId);
-				
+
 				if (!transceiver) {
 					throw new Error('transceiver not found');
 				}
