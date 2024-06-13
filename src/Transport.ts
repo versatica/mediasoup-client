@@ -880,7 +880,8 @@ export class Transport<
 				const optionsList: HandlerReceiveOptions[] = [];
 
 				for (const task of pendingConsumerTasks) {
-					const { id, kind, rtpParameters, streamId, onRtpReceiver } = task.consumerOptions;
+					const { id, kind, rtpParameters, streamId, onRtpReceiver } =
+						task.consumerOptions;
 
 					optionsList.push({
 						trackId: id!,
