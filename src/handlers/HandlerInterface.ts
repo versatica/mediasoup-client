@@ -1,5 +1,4 @@
 import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
-import { ProducerCodecOptions } from '../Producer';
 import {
 	IceParameters,
 	IceCandidate,
@@ -7,6 +6,8 @@ import {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
+import { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import { OnRtpReceiverCallback } from '../Consumer';
 import {
 	RtpCapabilities,
 	RtpCodecCapability,
@@ -34,18 +35,12 @@ export type HandlerRunOptions = {
 	extendedRtpCapabilities: any;
 };
 
-/*
- * Invoked synchronously immediately after a new RTCRtpSender is created.
- * This allows for creating encoded streams in chromium browsers.
- */
-export type SenderCallback = (sender: RTCRtpSender) => void;
-
 export type HandlerSendOptions = {
 	track: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	codec?: RtpCodecCapability;
-	onRtpSender?: SenderCallback;
+	onRtpSender?: OnRtpSenderCallback;
 };
 
 export type HandlerSendResult = {
@@ -53,12 +48,6 @@ export type HandlerSendResult = {
 	rtpParameters: RtpParameters;
 	rtpSender?: RTCRtpSender;
 };
-
-/*
- * Invoked synchronously immediately after a new RTCRtpReceiver is created.
- * This allows for creating encoded streams in chromium browsers.
- */
-export type ReceiverCallback = (receiver: RTCRtpReceiver) => void;
 
 export type HandlerReceiveOptions = {
 	trackId: string;
@@ -71,7 +60,7 @@ export type HandlerReceiveOptions = {
 	 * can just synchronize up to one audio stream with one video stream.
 	 */
 	streamId?: string;
-	onRtpReceiver?: ReceiverCallback;
+	onRtpReceiver?: OnRtpReceiverCallback;
 };
 
 export type HandlerReceiveResult = {

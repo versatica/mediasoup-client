@@ -2,7 +2,7 @@ import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 import { MediaKind, RtpParameters } from './RtpParameters';
-import { AppData, ReceiverCallback } from './types';
+import { AppData } from './types';
 
 const logger = new Logger('Consumer');
 
@@ -12,9 +12,15 @@ export type ConsumerOptions<ConsumerAppData extends AppData = AppData> = {
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
-	onRtpReceiver?: ReceiverCallback;
+	onRtpReceiver?: OnRtpReceiverCallback;
 	appData?: ConsumerAppData;
 };
+
+/**
+ * Invoked synchronously immediately after a new RTCRtpReceiver is created.
+ * This allows for creating encoded streams in chromium browsers.
+ */
+export type OnRtpReceiverCallback = (rtpReceiver: RTCRtpReceiver) => void;
 
 export type ConsumerEvents = {
 	transportclose: [];

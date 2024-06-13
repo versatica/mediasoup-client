@@ -7,7 +7,7 @@ import {
 	RtpParameters,
 	RtpEncodingParameters,
 } from './RtpParameters';
-import { AppData, SenderCallback } from './types';
+import { AppData } from './types';
 
 const logger = new Logger('Producer');
 
@@ -19,9 +19,15 @@ export type ProducerOptions<ProducerAppData extends AppData = AppData> = {
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
 	zeroRtpOnPause?: boolean;
-	onRtpSender?: SenderCallback;
+	onRtpSender?: OnRtpSenderCallback;
 	appData?: ProducerAppData;
 };
+
+/**
+ * Invoked synchronously immediately after a new RTCRtpSender is created.
+ * This allows for creating encoded streams in chromium browsers.
+ */
+export type OnRtpSenderCallback = (rtpSender: RTCRtpSender) => void;
 
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
 export type ProducerCodecOptions = {
