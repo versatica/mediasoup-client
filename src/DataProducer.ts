@@ -150,7 +150,7 @@ export class DataProducer<
 		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter {
+	get observer(): DataProducerObserver {
 		return this._observer;
 	}
 

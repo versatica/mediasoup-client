@@ -370,7 +370,7 @@ export class Transport<
 		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter {
+	get observer(): TransportObserver {
 		return this._observer;
 	}
 

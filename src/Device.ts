@@ -411,7 +411,7 @@ export class Device {
 		return this._sctpCapabilities!;
 	}
 
-	get observer(): EnhancedEventEmitter {
+	get observer(): DeviceObserver {
 		return this._observer;
 	}
 

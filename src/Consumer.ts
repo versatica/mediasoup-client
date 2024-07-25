@@ -177,7 +177,7 @@ export class Consumer<
 		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter {
+	get observer(): ConsumerObserver {
 		return this._observer;
 	}
 

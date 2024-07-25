@@ -230,7 +230,7 @@ export class Producer<
 		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter {
+	get observer(): ProducerObserver {
 		return this._observer;
 	}
 
