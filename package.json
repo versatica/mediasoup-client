@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.7.12",
+	"version": "3.7.13",
 	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
