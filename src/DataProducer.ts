@@ -16,6 +16,9 @@ export type DataProducerOptions<DataProducerAppData extends AppData = AppData> =
 		appData?: DataProducerAppData;
 	};
 
+export type DataProducerObserver =
+	EnhancedEventEmitter<DataProducerObserverEvents>;
+
 export type DataProducerEvents = {
 	transportclose: [];
 	open: [];
@@ -44,7 +47,7 @@ export class DataProducer<
 	// App custom data.
 	private _appData: DataProducerAppData;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: DataProducerObserver =
 		new EnhancedEventEmitter<DataProducerObserverEvents>();
 
 	constructor({

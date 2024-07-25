@@ -171,6 +171,8 @@ export type TransportEvents = {
 	];
 };
 
+export type TransportObserver = EnhancedEventEmitter<TransportObserverEvents>;
+
 export type TransportObserverEvents = {
 	close: [];
 	newproducer: [Producer];
@@ -247,7 +249,7 @@ export class Transport<
 	// Consumer close in progress flag.
 	private _consumerCloseInProgress = false;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: TransportObserver =
 		new EnhancedEventEmitter<TransportObserverEvents>();
 
 	constructor({

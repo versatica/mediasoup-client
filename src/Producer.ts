@@ -64,6 +64,8 @@ export type ProducerEvents = {
 	'@close': [];
 };
 
+export type ProducerObserver = EnhancedEventEmitter<ProducerObserverEvents>;
+
 export type ProducerObserverEvents = {
 	close: [];
 	pause: [];
@@ -101,7 +103,7 @@ export class Producer<
 	// App custom data.
 	private _appData: ProducerAppData;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: ProducerObserver =
 		new EnhancedEventEmitter<ProducerObserverEvents>();
 
 	constructor({

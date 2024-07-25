@@ -32,6 +32,8 @@ export type ConsumerEvents = {
 	'@resume': [];
 };
 
+export type ConsumerObserver = EnhancedEventEmitter<ConsumerObserverEvents>;
+
 export type ConsumerObserverEvents = {
 	close: [];
 	pause: [];
@@ -61,7 +63,7 @@ export class Consumer<
 	// App custom data.
 	private _appData: ConsumerAppData;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: ConsumerObserver =
 		new EnhancedEventEmitter<ConsumerObserverEvents>();
 
 	constructor({

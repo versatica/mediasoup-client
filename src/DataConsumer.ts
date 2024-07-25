@@ -15,6 +15,9 @@ export type DataConsumerOptions<DataConsumerAppData extends AppData = AppData> =
 		appData?: DataConsumerAppData;
 	};
 
+export type DataConsumerObserver =
+	EnhancedEventEmitter<DataConsumerObserverEvents>;
+
 export type DataConsumerEvents = {
 	transportclose: [];
 	open: [];
@@ -45,7 +48,7 @@ export class DataConsumer<
 	// App custom data.
 	private _appData: DataConsumerAppData;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: DataConsumerObserver =
 		new EnhancedEventEmitter<DataConsumerObserverEvents>();
 
 	constructor({

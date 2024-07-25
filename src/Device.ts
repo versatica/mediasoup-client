@@ -218,6 +218,8 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 	}
 }
 
+export type DeviceObserver = EnhancedEventEmitter<DeviceObserverEvents>;
+
 export type DeviceObserverEvents = {
 	newtransport: [Transport];
 };
@@ -239,7 +241,7 @@ export class Device {
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
 	// Observer instance.
-	protected readonly _observer =
+	protected readonly _observer: DeviceObserver =
 		new EnhancedEventEmitter<DeviceObserverEvents>();
 
 	/**
