@@ -79,7 +79,7 @@ export function extractRtpCapabilities({
 			}
 
 			// Specials case to convert parameter value to string.
-			if (parameters && parameters.hasOwnProperty('profile-level-id')) {
+			if (parameters?.hasOwnProperty('profile-level-id')) {
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
 			}
 

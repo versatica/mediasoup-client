@@ -87,8 +87,8 @@ export function addLegacySimulcast({
 	}
 
 	const [streamId, trackId] = ssrcMsidLine.value.split(' ');
-	const firstSsrc = ssrcMsidLine.id;
-	let firstRtxSsrc;
+	const firstSsrc = Number(ssrcMsidLine.id);
+	let firstRtxSsrc: number | undefined;
 
 	// Get the SSRC for RTX.
 	(offerMediaObject.ssrcGroups || []).some((line: any) => {
@@ -135,9 +135,7 @@ export function addLegacySimulcast({
 		ssrcs: ssrcs.join(' '),
 	});
 
-	for (let i = 0; i < ssrcs.length; ++i) {
-		const ssrc = ssrcs[i];
-
+	for (const ssrc of ssrcs) {
 		offerMediaObject.ssrcs.push({
 			id: ssrc,
 			attribute: 'cname',

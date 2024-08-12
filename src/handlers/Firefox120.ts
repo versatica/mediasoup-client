@@ -30,6 +30,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Firefox120');
 
+const NAME = 'Firefox120';
 const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
 export class Firefox120 extends HandlerInterface {
@@ -70,7 +71,7 @@ export class Firefox120 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Firefox120';
+		return NAME;
 	}
 
 	close(): void {
@@ -211,8 +212,8 @@ export class Firefox120 extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				...additionalSettings,
@@ -399,7 +400,7 @@ export class Firefox120 extends HandlerInterface {
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
 
-		const layers = parseScalabilityMode((encodings || [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
@@ -501,7 +502,7 @@ export class Firefox120 extends HandlerInterface {
 			throw new Error('associated transceiver not found');
 		}
 
-		transceiver.sender.replaceTrack(null);
+		void transceiver.sender.replaceTrack(null);
 
 		// NOTE: Cannot use stop() the transceiver due to the the note above in
 		// send() method.
@@ -539,7 +540,6 @@ export class Firefox120 extends HandlerInterface {
 		this._mapMidTransceiver.delete(localId);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -574,7 +574,6 @@ export class Firefox120 extends HandlerInterface {
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -821,7 +820,6 @@ export class Firefox120 extends HandlerInterface {
 	}
 
 	async receive(
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertNotClosed();
@@ -835,7 +833,7 @@ export class Firefox120 extends HandlerInterface {
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const localId = rtpParameters.mid ?? String(this._mapMidTransceiver.size);
 
 			mapLocalId.set(trackId, localId);
 
@@ -843,7 +841,7 @@ export class Firefox120 extends HandlerInterface {
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId || rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
 			});
 		}

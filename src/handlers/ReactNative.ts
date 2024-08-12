@@ -25,6 +25,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('ReactNative');
 
+const NAME = 'ReactNative';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class ReactNative extends HandlerInterface {
@@ -77,7 +78,7 @@ export class ReactNative extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'ReactNative';
+		return NAME;
 	}
 
 	close(): void {
@@ -85,7 +86,7 @@ export class ReactNative extends HandlerInterface {
 
 		// Free/dispose native MediaStream but DO NOT free/dispose native
 		// MediaStreamTracks (that is parent's business).
-		// @ts-ignore (proprietary API in react-native-webrtc).
+		// @ts-expect-error --- Proprietary API in react-native-webrtc.
 		this._sendStream.release(/* releaseTracks */ false);
 
 		// Close RTCPeerConnection.
@@ -189,8 +190,8 @@ export class ReactNative extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				sdpSemantics: 'plan-b',
@@ -624,7 +625,7 @@ export class ReactNative extends HandlerInterface {
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 			const mid = kind;
-			let streamId = options.streamId || rtpParameters.rtcp!.cname!;
+			let streamId = options.streamId ?? rtpParameters.rtcp!.cname!;
 
 			// NOTE: In React-Native we cannot reuse the same remote MediaStream for new
 			// remote tracks. This is because react-native-webrtc does not react on new
@@ -721,7 +722,7 @@ export class ReactNative extends HandlerInterface {
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
 			const { mid, rtpParameters } =
-				this._mapRecvLocalIdInfo.get(localId) || {};
+				this._mapRecvLocalIdInfo.get(localId) ?? {};
 
 			// Remove from the map.
 			this._mapRecvLocalIdInfo.delete(localId);

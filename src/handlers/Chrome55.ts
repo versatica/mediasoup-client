@@ -25,6 +25,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome55');
 
+const NAME = 'Chrome55';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class Chrome55 extends HandlerInterface {
@@ -77,7 +78,7 @@ export class Chrome55 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Chrome55';
+		return NAME;
 	}
 
 	close(): void {
@@ -184,8 +185,8 @@ export class Chrome55 extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				sdpSemantics: 'plan-b',
@@ -622,7 +623,7 @@ export class Chrome55 extends HandlerInterface {
 				mid,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId || rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
 			});
 		}
@@ -674,7 +675,7 @@ export class Chrome55 extends HandlerInterface {
 			const { kind, trackId, rtpParameters } = options;
 			const mid = kind;
 			const localId = trackId;
-			const streamId = options.streamId || rtpParameters.rtcp!.cname!;
+			const streamId = options.streamId ?? rtpParameters.rtcp!.cname!;
 			const stream = this._pc
 				.getRemoteStreams()
 				.find((s: any) => s.id === streamId);
@@ -700,7 +701,7 @@ export class Chrome55 extends HandlerInterface {
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
 			const { mid, rtpParameters } =
-				this._mapRecvLocalIdInfo.get(localId) || {};
+				this._mapRecvLocalIdInfo.get(localId) ?? {};
 
 			// Remove from the map.
 			this._mapRecvLocalIdInfo.delete(localId);

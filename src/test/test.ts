@@ -78,7 +78,7 @@ beforeEach(async () => {
 
 	ctx.connectedSendTransport.on(
 		'produce',
-		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		({ kind, rtpParameters, appData }, callback /* errback */) => {
 			// eslint-disable-next-line no-shadow
 			const id = fakeParameters.generateProducerRemoteParameters().id;
@@ -90,7 +90,7 @@ beforeEach(async () => {
 	ctx.connectedSendTransport.on(
 		'producedata',
 		(
-			// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			{ sctpStreamParameters, label, protocol, appData },
 			callback /* errback */
 		) => {
@@ -190,7 +190,7 @@ test('create a Device in Node without custom handlerName/handlerFactory throws U
 });
 
 test('create a Device with an unknown handlerName string throws TypeError', () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	expect(() => new Device({ handlerName: 'FooBrowser666' })).toThrow(TypeError);
 });
 
@@ -232,7 +232,7 @@ test('device.createSendTransport() throws InvalidStateError if not loaded', () =
 });
 
 test('device.load() without routerRtpCapabilities rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.device!.load({})).rejects.toThrow(TypeError);
 
 	expect(ctx.device!.loaded).toBe(false);
@@ -245,7 +245,7 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 	);
 
 	for (const codec of routerRtpCapabilities.codecs!) {
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		delete codec!.mimeType;
 	}
 
@@ -291,7 +291,7 @@ test('device.canProduce() with "audio"/"video" kind returns true', () => {
 });
 
 test('device.canProduce() with invalid kind throws TypeError', () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	expect(() => ctx.loadedDevice!.canProduce('chicken')).toThrow(TypeError);
 });
 
@@ -343,20 +343,20 @@ test('device.createRecvTransport() for receiving media succeeds', () => {
 });
 
 test('device.createSendTransport() with missing remote Transport parameters throws TypeError', () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	expect(() => ctx.loadedDevice!.createSendTransport({ id: '1234' })).toThrow(
 		TypeError
 	);
 
 	expect(() =>
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.loadedDevice!.createSendTransport({ id: '1234', iceParameters: {} })
 	).toThrow(TypeError);
 
 	expect(() =>
 		ctx.loadedDevice!.createSendTransport({
 			id: '1234',
-			// @ts-ignore
+			// @ts-expect-error --- On purpose.
 			iceParameters: {},
 			iceCandidates: [],
 		})
@@ -374,7 +374,7 @@ test('device.createRecvTransport() with a non object appData throws TypeError', 
 			iceCandidates,
 			dtlsParameters,
 			sctpParameters,
-			// @ts-ignore
+			// @ts-expect-error --- On purpose.
 			appData: 1234,
 		})
 	).toThrow(TypeError);
@@ -622,7 +622,7 @@ test('transport.produce() with a non object appData rejects with TypeError', asy
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.sendTransport!.produce({ track, appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
@@ -839,7 +839,7 @@ test('transport.consume() batches consumers created in same macrotask into the s
 			codecMimeType: 'video/VP8',
 		});
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	const pushSpy = jest.spyOn(ctx.connectedRecvTransport!._awaitQueue, 'push');
 
 	const waitForConsumer = (id: string | undefined): Promise<void> => {
@@ -874,28 +874,28 @@ test('transport.consume() batches consumers created in same macrotask into the s
 
 	await allConsumersCreated;
 
-	expect(pushSpy).toBeCalledTimes(1);
+	expect(pushSpy).toHaveBeenCalledTimes(1);
 }, 500);
 
 test('transport.consume() without remote Consumer parameters rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.recvTransport!.consume({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consume() with missing remote Consumer parameters rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.recvTransport!.consume({ id: '1234' })).rejects.toThrow(
 		TypeError
 	);
 
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.recvTransport!.consume({ id: '1234', producerId: '4444' })
 	).rejects.toThrow(TypeError);
 
 	await expect(
 		ctx.recvTransport!.consume(
-			// @ts-ignore
+			// @ts-expect-error --- On purpose.
 			{
 				id: '1234',
 				producerId: '4444',
@@ -906,7 +906,7 @@ test('transport.consume() with missing remote Consumer parameters rejects with T
 
 	await expect(
 		ctx.recvTransport!.consume(
-			// @ts-ignore
+			// @ts-expect-error --- On purpose.
 			{
 				id: '1234',
 				producerId: '4444',
@@ -955,7 +955,7 @@ test('transport.consume() with a non object appData rejects with TypeError', asy
 		});
 
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.recvTransport!.consume({ consumerRemoteParameters, appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
@@ -998,7 +998,7 @@ test('transport.produceData() in a receiving Transport rejects with UnsupportedE
 
 test('transport.produceData() with a non object appData rejects with TypeError', async () => {
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.sendTransport!.produceData({ appData: true })
 	).rejects.toThrow(TypeError);
 }, 500);
@@ -1031,18 +1031,18 @@ test('transport.consumeData() succeeds', async () => {
 }, 500);
 
 test('transport.consumeData() without remote DataConsumer parameters rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.recvTransport!.consumeData({})).rejects.toThrow(TypeError);
 }, 500);
 
 test('transport.consumeData() with missing remote DataConsumer parameters rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.recvTransport!.consumeData({ id: '1234' })).rejects.toThrow(
 		TypeError
 	);
 
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.recvTransport!.consumeData({ id: '1234', dataProducerId: '4444' })
 	).rejects.toThrow(TypeError);
 }, 500);
@@ -1067,7 +1067,7 @@ test('transport.consumeData() with a non object appData rejects with TypeError',
 	await expect(
 		ctx.recvTransport!.consumeData({
 			dataConsumerRemoteParameters,
-			// @ts-ignore
+			// @ts-expect-error --- On purpose.
 			appData: true,
 		})
 	).rejects.toThrow(TypeError);
@@ -1091,7 +1091,7 @@ test('transport.restartIce() succeeds', async () => {
 }, 500);
 
 test('transport.restartIce() without remote iceParameters rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.sendTransport!.restartIce({})).rejects.toThrow(TypeError);
 }, 500);
 
@@ -1113,9 +1113,9 @@ test('ICE gathering state change fires "icegatheringstatechange" in live Transpo
 	// private setupTransport() method is called (which has happens many times in
 	// tests above already). So here we have to reset it manually to test things.
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.sendTransport!.handler.setIceGatheringState('new');
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.sendTransport!.handler.setConnectionState('new');
 
 	let iceGatheringStateChangeEventNumTimesCalled = 0;
@@ -1134,7 +1134,7 @@ test('ICE gathering state change fires "icegatheringstatechange" in live Transpo
 		connectionStateChangeEventNumTimesCalled++;
 	});
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.sendTransport!.handler.setIceGatheringState('complete');
 
 	expect(iceGatheringStateChangeEventNumTimesCalled).toBe(1);
@@ -1152,7 +1152,7 @@ test('connection state change fires "connectionstatechange" in live Transport', 
 		expect(connectionState).toBe('completed');
 	});
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.sendTransport!.handler.setConnectionState('completed');
 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
@@ -1286,13 +1286,13 @@ test('producer.setMaxSpatialLayer() in an audio Producer rejects with Unsupporte
 
 test('producer.setMaxSpatialLayer() with invalid spatialLayer rejects with TypeError', async () => {
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.videoProducer!.setMaxSpatialLayer('chicken')
 	).rejects.toThrow(TypeError);
 }, 500);
 
 test('producer.setMaxSpatialLayer() without spatialLayer rejects with TypeError', async () => {
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.videoProducer!.setMaxSpatialLayer()).rejects.toThrow(
 		TypeError
 	);
@@ -1405,7 +1405,7 @@ test('remotetely stopped track fires "trackended" in live Producers/Consumers', 
 		videoConsumerTrackendedEventCalled = true;
 	});
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.audioProducer!.track.remoteStop();
 
 	expect(audioProducerTrackendedEventCalled).toBe(true);
@@ -1413,17 +1413,17 @@ test('remotetely stopped track fires "trackended" in live Producers/Consumers', 
 	// Let's close the video producer.
 	ctx.videoProducer!.close();
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.videoProducer!.track.remoteStop();
 
 	expect(videoProducerTrackendedEventCalled).toBe(false);
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.audioConsumer!.track.remoteStop();
 
 	expect(audiosConsumerTrackendedEventCalled).toBe(true);
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.videoConsumer!.track.remoteStop();
 
 	expect(videoConsumerTrackendedEventCalled).toBe(true);
@@ -1484,7 +1484,7 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 test('transport.consume() rejects with InvalidStateError if closed', async () => {
 	ctx.connectedRecvTransport!.close();
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.connectedRecvTransport!.consume({})).rejects.toThrow(
 		InvalidStateError
 	);
@@ -1501,7 +1501,7 @@ test('transport.produceData() rejects with InvalidStateError if closed', async (
 test('transport.consumeData() rejects with InvalidStateError if closed', async () => {
 	ctx.connectedRecvTransport!.close();
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	await expect(ctx.connectedRecvTransport!.consumeData({})).rejects.toThrow(
 		InvalidStateError
 	);
@@ -1519,7 +1519,7 @@ test('transport.restartIce() rejects with InvalidStateError if closed', async ()
 	ctx.connectedSendTransport!.close();
 
 	await expect(
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		ctx.connectedSendTransport!.restartIce({ ieParameters: {} })
 	).rejects.toThrow(InvalidStateError);
 }, 500);
@@ -1544,20 +1544,20 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 
 	ctx.connectedSendTransport!.close();
 
-	// @ts-ignore
+	// @ts-expect-error --- On purpose.
 	ctx.connectedSendTransport!.handler.setConnectionState('disconnected');
 
 	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
 	expect(ctx.connectedSendTransport!.connectionState).toBe('disconnected');
 });
 
-test('RemoteSdp properly handles multiple streams of the same type in planB', async () => {
+test('RemoteSdp properly handles multiple streams of the same type in planB', () => {
 	let sdp = undefined;
 	let sdpObject = undefined;
 
 	const remoteSdp = new RemoteSdp({ planB: true });
 
-	await remoteSdp.receive({
+	remoteSdp.receive({
 		mid: 'video',
 		kind: 'video',
 		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({
@@ -1579,7 +1579,7 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
 
-	await remoteSdp.receive({
+	remoteSdp.receive({
 		mid: 'video',
 		kind: 'video',
 		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({
@@ -1605,7 +1605,7 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs?.length).toBe(8);
 
-	await remoteSdp.planBStopReceiving({
+	remoteSdp.planBStopReceiving({
 		mid: 'video',
 		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({
 			codecMimeType: 'video/H264',
@@ -1629,13 +1629,13 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', as
 	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
 }, 500);
 
-test('RemoteSdp does not duplicate codec descriptions', async () => {
+test('RemoteSdp does not duplicate codec descriptions', () => {
 	let sdp = undefined;
 	let sdpObject = undefined;
 
 	const remoteSdp = new RemoteSdp({ planB: true });
 
-	await remoteSdp.receive({
+	remoteSdp.receive({
 		mid: 'video',
 		kind: 'video',
 		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({
@@ -1657,7 +1657,7 @@ test('RemoteSdp does not duplicate codec descriptions', async () => {
 	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
 	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
 
-	await remoteSdp.receive({
+	remoteSdp.receive({
 		mid: 'video',
 		kind: 'video',
 		offerRtpParameters: fakeParameters.generateConsumerRemoteParameters({
@@ -1724,9 +1724,10 @@ describe('detectDevice() assigns proper handler based on UserAgent', () => {
 
 	for (const uaTestCase of uaTestCases) {
 		test(
+			// eslint-disable-next-line jest/valid-title --- Jest is not that smart.
 			uaTestCase.desc,
 			() => {
-				// @ts-ignore
+				// @ts-expect-error --- On purpose.
 				global.navigator = {
 					userAgent: uaTestCase.ua,
 				};

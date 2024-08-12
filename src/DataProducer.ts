@@ -68,7 +68,7 @@ export class DataProducer<
 		this._id = id;
 		this._dataChannel = dataChannel;
 		this._sctpStreamParameters = sctpStreamParameters;
-		this._appData = appData || ({} as DataProducerAppData);
+		this._appData = appData ?? ({} as DataProducerAppData);
 
 		this.handleDataChannel();
 	}

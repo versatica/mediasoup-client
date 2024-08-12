@@ -24,6 +24,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Safari11');
 
+const NAME = 'Safari11';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class Safari11 extends HandlerInterface {
@@ -77,7 +78,7 @@ export class Safari11 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Safari11';
+		return NAME;
 	}
 
 	close(): void {
@@ -184,8 +185,8 @@ export class Safari11 extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				...additionalSettings,
@@ -705,7 +706,7 @@ export class Safari11 extends HandlerInterface {
 				mid,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId || rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
 			});
 		}
@@ -790,7 +791,7 @@ export class Safari11 extends HandlerInterface {
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
 			const { mid, rtpParameters } =
-				this._mapRecvLocalIdInfo.get(localId) || {};
+				this._mapRecvLocalIdInfo.get(localId) ?? {};
 
 			// Remove from the map.
 			this._mapRecvLocalIdInfo.delete(localId);
@@ -823,7 +824,7 @@ export class Safari11 extends HandlerInterface {
 	async getReceiverStats(localId: string): Promise<RTCStatsReport> {
 		this.assertRecvDirection();
 
-		const { rtpReceiver } = this._mapRecvLocalIdInfo.get(localId) || {};
+		const { rtpReceiver } = this._mapRecvLocalIdInfo.get(localId) ?? {};
 
 		if (!rtpReceiver) {
 			throw new Error('associated RTCRtpReceiver not found');

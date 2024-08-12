@@ -310,7 +310,7 @@ export class AnswerMediaSection extends MediaSection {
 
 				for (const ext of answerRtpParameters!.headerExtensions!) {
 					// Don't add a header extension if not present in the offer.
-					const found = (offerMediaObject.ext || []).some(
+					const found = (offerMediaObject.ext ?? []).some(
 						(localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri
 					);
 
@@ -341,7 +341,7 @@ export class AnswerMediaSection extends MediaSection {
 
 					this._mediaObject.rids = [];
 
-					for (const rid of offerMediaObject.rids || []) {
+					for (const rid of offerMediaObject.rids ?? []) {
 						if (rid.direction !== 'send') {
 							continue;
 						}
@@ -354,14 +354,13 @@ export class AnswerMediaSection extends MediaSection {
 				}
 				// Simulcast (draft version 03).
 				else if (offerMediaObject.simulcast_03) {
-					// eslint-disable-next-line camelcase
 					this._mediaObject.simulcast_03 = {
 						value: offerMediaObject.simulcast_03.value.replace(/send/g, 'recv'),
 					};
 
 					this._mediaObject.rids = [];
 
-					for (const rid of offerMediaObject.rids || []) {
+					for (const rid of offerMediaObject.rids ?? []) {
 						if (rid.direction !== 'send') {
 							continue;
 						}
@@ -432,7 +431,7 @@ export class AnswerMediaSection extends MediaSection {
 	}
 
 	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]): void {
-		if (!this._mediaObject.simulcast || !this._mediaObject.simulcast.list1) {
+		if (!this._mediaObject.simulcast?.list1) {
 			return;
 		}
 
@@ -523,7 +522,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.fmtp = [];
 
 				if (!this._planB) {
-					this._mediaObject.msid = `${streamId || '-'} ${trackId}`;
+					this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
 				}
 
 				for (const codec of offerRtpParameters!.codecs) {
@@ -583,8 +582,7 @@ export class OfferMediaSection extends MediaSection {
 
 				const encoding = offerRtpParameters!.encodings![0];
 				const ssrc = encoding.ssrc;
-				const rtxSsrc =
-					encoding.rtx && encoding.rtx.ssrc ? encoding.rtx.ssrc : undefined;
+				const rtxSsrc = encoding.rtx?.ssrc;
 
 				this._mediaObject.ssrcs = [];
 				this._mediaObject.ssrcGroups = [];
@@ -601,7 +599,7 @@ export class OfferMediaSection extends MediaSection {
 					this._mediaObject.ssrcs.push({
 						id: ssrc,
 						attribute: 'msid',
-						value: `${streamId || '-'} ${trackId}`,
+						value: `${streamId ?? '-'} ${trackId}`,
 					});
 				}
 
@@ -618,7 +616,7 @@ export class OfferMediaSection extends MediaSection {
 						this._mediaObject.ssrcs.push({
 							id: rtxSsrc,
 							attribute: 'msid',
-							value: `${streamId || '-'} ${trackId}`,
+							value: `${streamId ?? '-'} ${trackId}`,
 						});
 					}
 
@@ -675,8 +673,7 @@ export class OfferMediaSection extends MediaSection {
 	}): void {
 		const encoding = offerRtpParameters.encodings![0];
 		const ssrc = encoding.ssrc;
-		const rtxSsrc =
-			encoding.rtx && encoding.rtx.ssrc ? encoding.rtx.ssrc : undefined;
+		const rtxSsrc = encoding.rtx?.ssrc;
 		const payloads = this._mediaObject.payloads.split(' ');
 
 		for (const codec of offerRtpParameters.codecs) {
@@ -743,7 +740,7 @@ export class OfferMediaSection extends MediaSection {
 		this._mediaObject.ssrcs.push({
 			id: ssrc,
 			attribute: 'msid',
-			value: `${streamId || '-'} ${trackId}`,
+			value: `${streamId ?? '-'} ${trackId}`,
 		});
 
 		if (rtxSsrc) {
@@ -758,7 +755,7 @@ export class OfferMediaSection extends MediaSection {
 			this._mediaObject.ssrcs.push({
 				id: rtxSsrc,
 				attribute: 'msid',
-				value: `${streamId || '-'} ${trackId}`,
+				value: `${streamId ?? '-'} ${trackId}`,
 			});
 
 			// Associate original and retransmission SSRCs.
@@ -776,8 +773,7 @@ export class OfferMediaSection extends MediaSection {
 	}): void {
 		const encoding = offerRtpParameters.encodings![0];
 		const ssrc = encoding.ssrc;
-		const rtxSsrc =
-			encoding.rtx && encoding.rtx.ssrc ? encoding.rtx.ssrc : undefined;
+		const rtxSsrc = encoding.rtx?.ssrc;
 
 		this._mediaObject.ssrcs = this._mediaObject.ssrcs.filter(
 			(s: any) => s.id !== ssrc && s.id !== rtxSsrc

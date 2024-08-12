@@ -179,7 +179,7 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 		}
 		// Best effort for Chromium based browsers.
 		else if (engineName === 'blink') {
-			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/gi);
 
 			if (match) {
 				const version = Number(match[1]);
@@ -635,7 +635,7 @@ export class Device {
 		}
 
 		// Create a new Transport.
-		const transport = new Transport<TransportAppData>({
+		const transport: Transport<TransportAppData> = new Transport({
 			direction,
 			id,
 			iceParameters,

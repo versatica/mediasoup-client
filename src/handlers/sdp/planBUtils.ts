@@ -172,9 +172,7 @@ export function addLegacySimulcast({
 		ssrcs: ssrcs.join(' '),
 	});
 
-	for (let i = 0; i < ssrcs.length; ++i) {
-		const ssrc = ssrcs[i];
-
+	for (const ssrc of ssrcs) {
 		offerMediaObject.ssrcs.push({
 			id: ssrc,
 			attribute: 'cname',

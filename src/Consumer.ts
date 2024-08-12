@@ -94,7 +94,7 @@ export class Consumer<
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
-		this._appData = appData || ({} as ConsumerAppData);
+		this._appData = appData ?? ({} as ConsumerAppData);
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		this.handleTrack();

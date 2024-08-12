@@ -27,6 +27,8 @@ import { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('Edge11');
 
+const NAME = 'Edge11';
+
 export class Edge11 extends HandlerInterface {
 	// Generic sending RTP parameters for audio and video.
 	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
@@ -65,7 +67,7 @@ export class Edge11 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Edge11';
+		return NAME;
 	}
 
 	close(): void {
@@ -480,10 +482,10 @@ export class Edge11 extends HandlerInterface {
 		iceServers?: any[];
 		iceTransportPolicy?: RTCIceTransportPolicy;
 	}): void {
-		// @ts-ignore
+		// @ts-expect-error --- On purpose
 		const iceGatherer = new (RTCIceGatherer as any)({
-			iceServers: iceServers || [],
-			gatherPolicy: iceTransportPolicy || 'all',
+			iceServers: iceServers ?? [],
+			gatherPolicy: iceTransportPolicy ?? 'all',
 		});
 
 		iceGatherer.addEventListener('error', (event: any) => {

@@ -1,8 +1,8 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
-		"lib": ["es2020", "dom"],
-		"target": "es2020",
+		"lib": ["es2022", "dom"],
+		"target": "es2021",
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"esModuleInterop": true,

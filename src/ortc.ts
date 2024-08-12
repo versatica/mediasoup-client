@@ -213,12 +213,12 @@ export function getExtendedRtpCapabilities(
 	};
 
 	// Match media codecs and keep the order preferred by remoteCaps.
-	for (const remoteCodec of remoteCaps.codecs || []) {
+	for (const remoteCodec of remoteCaps.codecs ?? []) {
 		if (isRtxCodec(remoteCodec)) {
 			continue;
 		}
 
-		const matchingLocalCodec = (localCaps.codecs || []).find(
+		const matchingLocalCodec = (localCaps.codecs ?? []).find(
 			(localCodec: RtpCodecCapability) =>
 				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true })
 		);
@@ -534,7 +534,7 @@ export function getSendingRemoteRtpParameters(
 		)
 	) {
 		for (const codec of rtpParameters.codecs) {
-			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
+			codec.rtcpFeedback = (codec.rtcpFeedback ?? []).filter(
 				(fb: RtcpFeedback) => fb.type !== 'goog-remb'
 			);
 		}
@@ -545,13 +545,13 @@ export function getSendingRemoteRtpParameters(
 		)
 	) {
 		for (const codec of rtpParameters.codecs) {
-			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
+			codec.rtcpFeedback = (codec.rtcpFeedback ?? []).filter(
 				fb => fb.type !== 'transport-cc'
 			);
 		}
 	} else {
 		for (const codec of rtpParameters.codecs) {
-			codec.rtcpFeedback = (codec.rtcpFeedback || []).filter(
+			codec.rtcpFeedback = (codec.rtcpFeedback ?? []).filter(
 				(fb: RtcpFeedback) =>
 					fb.type !== 'transport-cc' && fb.type !== 'goog-remb'
 			);
@@ -1135,8 +1135,8 @@ function reduceRtcpFeedback(
 ): RtcpFeedback[] {
 	const reducedRtcpFeedback: RtcpFeedback[] = [];
 
-	for (const aFb of codecA.rtcpFeedback || []) {
-		const matchingBFb = (codecB.rtcpFeedback || []).find(
+	for (const aFb of codecA.rtcpFeedback ?? []) {
+		const matchingBFb = (codecB.rtcpFeedback ?? []).find(
 			(bFb: RtcpFeedback) =>
 				bFb.type === aFb.type &&
 				(bFb.parameter === aFb.parameter || (!bFb.parameter && !aFb.parameter))

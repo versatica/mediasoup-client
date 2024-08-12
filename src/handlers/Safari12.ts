@@ -27,6 +27,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Safari12');
 
+const NAME = 'Safari12';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class Safari12 extends HandlerInterface {
@@ -70,7 +71,7 @@ export class Safari12 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Safari12';
+		return NAME;
 	}
 
 	close(): void {
@@ -186,8 +187,8 @@ export class Safari12 extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				...additionalSettings,
@@ -367,7 +368,7 @@ export class Safari12 extends HandlerInterface {
 			});
 		}
 
-		const layers = parseScalabilityMode((encodings || [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
 
 		if (encodings && encodings.length > 1) {
 			logger.debug('send() | enabling legacy simulcast');
@@ -473,7 +474,7 @@ export class Safari12 extends HandlerInterface {
 			throw new Error('associated RTCRtpTransceiver not found');
 		}
 
-		transceiver.sender.replaceTrack(null);
+		void transceiver.sender.replaceTrack(null);
 
 		this._pc.removeTrack(transceiver.sender);
 
@@ -508,7 +509,6 @@ export class Safari12 extends HandlerInterface {
 		this._mapMidTransceiver.delete(localId);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pauseSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -543,7 +543,6 @@ export class Safari12 extends HandlerInterface {
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async resumeSending(localId: string): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -806,7 +805,7 @@ export class Safari12 extends HandlerInterface {
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const localId = rtpParameters.mid ?? String(this._mapMidTransceiver.size);
 
 			mapLocalId.set(trackId, localId);
 
@@ -814,7 +813,7 @@ export class Safari12 extends HandlerInterface {
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId || rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
 			});
 		}
