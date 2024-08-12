@@ -179,7 +179,8 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 		}
 		// Best effort for Chromium based browsers.
 		else if (engineName === 'blink') {
-			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/gi);
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
 
 			if (match) {
 				const version = Number(match[1]);
