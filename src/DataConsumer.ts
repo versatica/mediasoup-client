@@ -72,7 +72,7 @@ export class DataConsumer<
 		this._dataProducerId = dataProducerId;
 		this._dataChannel = dataChannel;
 		this._sctpStreamParameters = sctpStreamParameters;
-		this._appData = appData || ({} as DataConsumerAppData);
+		this._appData = appData ?? ({} as DataConsumerAppData);
 
 		this.handleDataChannel();
 	}

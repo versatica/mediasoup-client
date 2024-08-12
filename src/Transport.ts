@@ -286,7 +286,7 @@ export class Transport<
 			: null;
 
 		// Clone and sanitize additionalSettings.
-		const clonedAdditionalSettings = utils.clone(additionalSettings) || {};
+		const clonedAdditionalSettings = utils.clone(additionalSettings) ?? {};
 
 		delete clonedAdditionalSettings.iceServers;
 		delete clonedAdditionalSettings.iceTransportPolicy;
@@ -309,7 +309,7 @@ export class Transport<
 			extendedRtpCapabilities,
 		});
 
-		this._appData = appData || ({} as TransportAppData);
+		this._appData = appData ?? ({} as TransportAppData);
 
 		this.handleHandler();
 	}
@@ -595,7 +595,7 @@ export class Transport<
 							}
 						);
 
-						const producer = new Producer<ProducerAppData>({
+						const producer: Producer<ProducerAppData> = new Producer({
 							id,
 							localId,
 							rtpSender,
@@ -700,7 +700,7 @@ export class Transport<
 			}
 
 			if (this._consumerCreationInProgress === false) {
-				this.createPendingConsumers<ConsumerAppData>();
+				void this.createPendingConsumers<ConsumerAppData>();
 			}
 		});
 
@@ -771,7 +771,7 @@ export class Transport<
 				);
 			});
 
-			const dataProducer = new DataProducer<DataProducerAppData>({
+			const dataProducer: DataProducer<DataProducerAppData> = new DataProducer({
 				id,
 				dataChannel,
 				sctpStreamParameters,
@@ -836,7 +836,7 @@ export class Transport<
 				protocol,
 			});
 
-			const dataConsumer = new DataConsumer<ConsumerAppData>({
+			const dataConsumer: DataConsumer<ConsumerAppData> = new DataConsumer({
 				id,
 				dataProducerId,
 				dataChannel,
@@ -887,7 +887,7 @@ export class Transport<
 
 					optionsList.push({
 						trackId: id!,
-						kind: kind as MediaKind,
+						kind: kind!,
 						rtpParameters,
 						streamId,
 						onRtpReceiver,
@@ -903,7 +903,7 @@ export class Transport<
 						const { id, producerId, kind, rtpParameters, appData } =
 							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;
-						const consumer = new Consumer<ConsumerAppData>({
+						const consumer: Consumer<ConsumerAppData> = new Consumer({
 							id: id!,
 							localId,
 							producerId: producerId!,
@@ -941,7 +941,7 @@ export class Transport<
 				if (videoConsumerForProbator) {
 					try {
 						const probatorRtpParameters = ortc.generateProbatorRtpParameters(
-							videoConsumerForProbator!.rtpParameters
+							videoConsumerForProbator.rtpParameters
 						);
 
 						await this._handler.receive([
@@ -970,7 +970,7 @@ export class Transport<
 
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0) {
-					this.createPendingConsumers<ConsumerAppData>();
+					void this.createPendingConsumers<ConsumerAppData>();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
@@ -1240,7 +1240,7 @@ export class Transport<
 
 		producer.on('@getstats', (callback, errback) => {
 			if (this._closed) {
-				return errback!(new InvalidStateError('closed'));
+				return errback(new InvalidStateError('closed'));
 			}
 
 			this._handler
@@ -1313,7 +1313,7 @@ export class Transport<
 
 		consumer.on('@getstats', (callback, errback) => {
 			if (this._closed) {
-				return errback!(new InvalidStateError('closed'));
+				return errback(new InvalidStateError('closed'));
 			}
 
 			this._handler

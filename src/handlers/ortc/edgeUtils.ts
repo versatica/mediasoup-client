@@ -11,14 +11,14 @@ export function getCapabilities(): RtpCapabilities {
 
 	for (const codec of caps.codecs ?? []) {
 		// Rename numChannels to channels.
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		codec.channels = codec.numChannels;
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		delete codec.numChannels;
 
 		// Add mimeType.
-		// @ts-ignore (due to codec.name).
-		codec.mimeType = codec.mimeType || `${codec.kind}/${codec.name}`;
+		// @ts-expect-error --- On purpose (due to codec.name).
+		codec.mimeType = codec.mimeType ?? `${codec.kind}/${codec.name}`;
 
 		// NOTE: Edge sets some numeric parameters as string rather than number. Fix them.
 		if (codec.parameters) {
@@ -36,7 +36,7 @@ export function getCapabilities(): RtpCapabilities {
 		}
 
 		// Delete emty parameter String in rtcpFeedback.
-		for (const feedback of codec.rtcpFeedback || []) {
+		for (const feedback of codec.rtcpFeedback ?? []) {
 			if (!feedback.parameter) {
 				feedback.parameter = '';
 			}
@@ -56,7 +56,7 @@ export function mangleRtpParameters(
 
 	// Rename mid to muxId.
 	if (params.mid) {
-		// @ts-ignore (due to muxId).
+		// @ts-expect-error --- On purpose (due to muxId).
 		params.muxId = params.mid;
 		delete params.mid;
 	}
@@ -64,20 +64,20 @@ export function mangleRtpParameters(
 	for (const codec of params.codecs) {
 		// Rename channels to numChannels.
 		if (codec.channels) {
-			// @ts-ignore.
+			// @ts-expect-error --- On purpose.
 			codec.numChannels = codec.channels;
 			delete codec.channels;
 		}
 
 		// Add codec.name (requried by Edge).
-		// @ts-ignore (due to name).
+		// @ts-expect-error --- On purpose (due to name).
 		if (codec.mimeType && !codec.name) {
-			// @ts-ignore (due to name).
+			// @ts-expect-error --- On purpose (due to name).
 			codec.name = codec.mimeType.split('/')[1];
 		}
 
 		// Remove mimeType.
-		// @ts-ignore
+		// @ts-expect-error --- On purpose.
 		delete codec.mimeType;
 	}
 

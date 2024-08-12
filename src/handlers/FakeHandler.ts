@@ -28,6 +28,8 @@ import { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('FakeHandler');
 
+const NAME = 'FakeHandler';
+
 class FakeDataChannel extends EnhancedEventEmitter {
 	id?: number;
 	ordered?: boolean;
@@ -113,7 +115,7 @@ export class FakeHandler extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'FakeHandler';
+		return NAME;
 	}
 
 	close(): void {
@@ -351,7 +353,7 @@ export class FakeHandler extends HandlerInterface {
 			maxRetransmits: maxRetransmits,
 		};
 
-		// @ts-ignore.
+		// @ts-expect-error --- On purpose.
 		return { dataChannel, sctpStreamParameters };
 	}
 
@@ -441,7 +443,7 @@ export class FakeHandler extends HandlerInterface {
 			protocol,
 		});
 
-		// @ts-ignore.
+		// @ts-expect-error --- On purpose.
 		return { dataChannel };
 	}
 

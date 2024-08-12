@@ -77,7 +77,7 @@ export class RemoteSdp {
 		};
 
 		// If ICE parameters are given, add ICE-Lite indicator.
-		if (iceParameters && iceParameters.iceLite) {
+		if (iceParameters?.iceLite) {
 			this._sdpObject.icelite = 'ice-lite';
 		}
 

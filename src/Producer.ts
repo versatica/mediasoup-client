@@ -142,7 +142,7 @@ export class Producer<
 		this._stopTracks = stopTracks;
 		this._disableTrackOnPause = disableTrackOnPause;
 		this._zeroRtpOnPause = zeroRtpOnPause;
-		this._appData = appData || ({} as ProducerAppData);
+		this._appData = appData ?? ({} as ProducerAppData);
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the

@@ -25,6 +25,7 @@ import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome70');
 
+const NAME = 'Chrome70';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
 export class Chrome70 extends HandlerInterface {
@@ -66,7 +67,7 @@ export class Chrome70 extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Chrome70';
+		return NAME;
 	}
 
 	close(): void {
@@ -172,8 +173,8 @@ export class Chrome70 extends HandlerInterface {
 
 		this._pc = new (RTCPeerConnection as any)(
 			{
-				iceServers: iceServers || [],
-				iceTransportPolicy: iceTransportPolicy || 'all',
+				iceServers: iceServers ?? [],
+				iceTransportPolicy: iceTransportPolicy ?? 'all',
 				bundlePolicy: 'max-bundle',
 				rtcpMuxPolicy: 'require',
 				sdpSemantics: 'unified-plan',
@@ -358,7 +359,7 @@ export class Chrome70 extends HandlerInterface {
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
 
-		const layers = parseScalabilityMode((encodings || [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
 
 		if (
 			encodings &&
@@ -390,7 +391,7 @@ export class Chrome70 extends HandlerInterface {
 
 			const parameters = transceiver.sender.getParameters();
 
-			for (let idx = 0; idx < (parameters.encodings || []).length; ++idx) {
+			for (let idx = 0; idx < (parameters.encodings ?? []).length; ++idx) {
 				const encoding = parameters.encodings[idx];
 				const desiredEncoding = encodings[idx];
 
@@ -488,7 +489,7 @@ export class Chrome70 extends HandlerInterface {
 			throw new Error('associated RTCRtpTransceiver not found');
 		}
 
-		transceiver.sender.replaceTrack(null);
+		void transceiver.sender.replaceTrack(null);
 
 		this._pc.removeTrack(transceiver.sender);
 
@@ -756,7 +757,7 @@ export class Chrome70 extends HandlerInterface {
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const localId = rtpParameters.mid || String(this._mapMidTransceiver.size);
+			const localId = rtpParameters.mid ?? String(this._mapMidTransceiver.size);
 
 			mapLocalId.set(trackId, localId);
 
@@ -764,7 +765,7 @@ export class Chrome70 extends HandlerInterface {
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId || rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
 			});
 		}
