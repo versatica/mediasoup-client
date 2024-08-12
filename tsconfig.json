@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions": {
 		"lib": ["es2022", "dom"],
-		"target": "es2021",
+		"target": "es2020",
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
