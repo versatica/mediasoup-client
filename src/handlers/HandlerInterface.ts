@@ -1,4 +1,4 @@
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import {
 	IceParameters,
 	IceCandidate,

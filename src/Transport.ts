@@ -1,7 +1,7 @@
 import { AwaitQueue } from 'awaitqueue';
 import queueMicrotask from 'queue-microtask';
 import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';

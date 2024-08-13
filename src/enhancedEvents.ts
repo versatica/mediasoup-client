@@ -1,7 +1,7 @@
 import { EventEmitter, Listener } from 'npm-events-package';
 import { Logger } from './Logger';
 
-const logger = new Logger('EnhancedEventEmitter');
+const enhancedEventEmitterLogger = new Logger('EnhancedEventEmitter');
 
 type Events = Record<string, any[]>;
 
@@ -21,18 +21,22 @@ export class EnhancedEventEmitter<
 	 * Special addition to the EventEmitter API.
 	 */
 	safeEmit<K extends keyof E & string>(eventName: K, ...args: E[K]): boolean {
-		const numListeners = super.listenerCount(eventName);
-
 		try {
 			return super.emit(eventName, ...args);
 		} catch (error) {
-			logger.error(
+			enhancedEventEmitterLogger.error(
 				'safeEmit() | event listener threw an error [eventName:%s]:%o',
 				eventName,
 				error
 			);
 
-			return Boolean(numListeners);
+			try {
+				super.emit('listenererror', eventName, error);
+			} catch (error2) {
+				// Ignore it.
+			}
+
+			return Boolean(super.listenerCount(eventName));
 		}
 	}
 

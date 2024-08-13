@@ -1,4 +1,4 @@
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as utils from '../utils';
