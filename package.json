@@ -82,8 +82,8 @@
 		"@types/node": "22",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
-		"@typescript-eslint/eslint-plugin": "^8.0.1",
-		"@typescript-eslint/parser": "^8.0.1",
+		"@typescript-eslint/eslint-plugin": "^8.1.0",
+		"@typescript-eslint/parser": "^8.1.0",
 		"eslint": "^8.57.0",
 		"eslint": "^9.9.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -95,6 +95,6 @@
 		"prettier": "^3.3.3",
 		"ts-jest": "^29.2.4",
 		"typescript": "^5.5.4",
-		"typescript-eslint": "^8.0.1"
+		"typescript-eslint": "^8.1.0"
 	}
 }
