@@ -1720,27 +1720,21 @@ test('parseScalabilityMode() works', () => {
 });
 
 describe('detectDevice() assigns proper handler based on UserAgent', () => {
-	const originalNavigator = global.navigator;
-
 	for (const uaTestCase of uaTestCases) {
 		test(
 			// eslint-disable-next-line jest/valid-title --- Jest is not that smart.
 			uaTestCase.desc,
 			() => {
-				// @ts-expect-error --- On purpose.
-				global.navigator = {
-					userAgent: uaTestCase.ua,
-				};
-
 				const originalRTCRtpTransceiver = global.RTCRtpTransceiver;
 
+				// We need to force presence of RTCRtpTransceiver to test Safari 12.
 				if (uaTestCase.expect === 'Safari12') {
 					global.RTCRtpTransceiver = class Dummy {
 						currentDirection() {}
 					} as any;
 				}
 
-				expect(detectDevice()).toBe(uaTestCase.expect);
+				expect(detectDevice(uaTestCase.ua)).toBe(uaTestCase.expect);
 
 				// Cleanup.
 				global.RTCRtpTransceiver = originalRTCRtpTransceiver;
@@ -1748,7 +1742,4 @@ describe('detectDevice() assigns proper handler based on UserAgent', () => {
 			100
 		);
 	}
-
-	// Cleanup.
-	global.navigator = originalNavigator;
 });

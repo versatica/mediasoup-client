@@ -87,4 +87,15 @@ export const uaTestCases: UATestCase[] = [
 		ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/114.0.5735.124 Mobile/15E148 Safari/604.1',
 		expect: 'Safari12',
 	},
+	{
+		desc: 'Fake Foo Invalid Browser',
+		ua: 'Fake/5.0 (Foo; Bar Lalala OS_19.5) Foo/22.2',
+		expect: undefined,
+	},
+	{
+		// Zoom App Marketplace browser.
+		desc: 'Zoom App Marketplace browser',
+		ua: 'Mozilla/5.0 ZoomWebKit/537.36 (KHTML, like Gecko) ZoomApps/1.0',
+		expect: undefined,
+	},
 ];

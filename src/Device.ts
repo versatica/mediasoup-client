@@ -47,18 +47,19 @@ export type DeviceOptions = {
 	 * Custom handler factory.
 	 */
 	handlerFactory?: HandlerFactory;
-	/**
-	 * DEPRECATED!
-	 * The name of one of the builtin handlers.
-	 */
-	Handler?: string;
 };
 
-export function detectDevice(): BuiltinHandlerName | undefined {
+export function detectDevice(
+	userAgent?: string
+): BuiltinHandlerName | undefined {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
 	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
-	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
+	if (
+		!userAgent &&
+		typeof navigator === 'object' &&
+		navigator.product === 'ReactNative'
+	) {
 		logger.debug('detectDevice() | React-Native detected');
 
 		if (typeof RTCPeerConnection === 'undefined') {
@@ -81,16 +82,16 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 	}
 	// Browser.
 	else if (
-		typeof navigator === 'object' &&
-		typeof navigator.userAgent === 'string'
+		userAgent ||
+		(typeof navigator === 'object' && typeof navigator.userAgent === 'string')
 	) {
-		const ua = navigator.userAgent;
+		userAgent ??= navigator.userAgent;
 
-		const uaParser = new UAParser(ua);
+		const uaParser = new UAParser(userAgent);
 
 		logger.debug(
-			'detectDevice() | browser detected [ua:%s, parsed:%o]',
-			ua,
+			'detectDevice() | browser detected [userAgent:%s, parsed:%o]',
+			userAgent,
 			uaParser.getResult()
 		);
 
@@ -180,7 +181,7 @@ export function detectDevice(): BuiltinHandlerName | undefined {
 		// Best effort for Chromium based browsers.
 		else if (engineName === 'blink') {
 			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+			const match = userAgent.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
 
 			if (match) {
 				const version = Number(match[1]);
@@ -250,23 +251,8 @@ export class Device {
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {}) {
+	constructor({ handlerName, handlerFactory }: DeviceOptions = {}) {
 		logger.debug('constructor()');
-
-		// Handle deprecated option.
-		if (Handler) {
-			logger.warn(
-				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead'
-			);
-
-			if (typeof Handler === 'string') {
-				handlerName = Handler as BuiltinHandlerName;
-			} else {
-				throw new TypeError(
-					'non string Handler option no longer supported, use handlerFactory instead'
-				);
-			}
-		}
 
 		if (handlerName && handlerFactory) {
 			throw new TypeError(
