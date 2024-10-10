@@ -82,19 +82,19 @@
 		"@types/node": "22",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
-		"@typescript-eslint/eslint-plugin": "^8.8.0",
-		"@typescript-eslint/parser": "^8.8.0",
+		"@typescript-eslint/eslint-plugin": "^8.8.1",
+		"@typescript-eslint/parser": "^8.8.1",
 		"eslint": "^8.57.0",
 		"eslint": "^9.12.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-jest": "^28.8.3",
 		"eslint-plugin-prettier": "^5.2.1",
-		"globals": "^15.10.0",
+		"globals": "^15.11.0",
 		"jest": "^29.7.0",
 		"open-cli": "^8.0.0",
 		"prettier": "^3.3.3",
 		"ts-jest": "^29.2.5",
-		"typescript": "^5.6.2",
-		"typescript-eslint": "^8.8.0"
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.8.1"
 	}
 }
