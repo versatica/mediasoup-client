@@ -19,14 +19,14 @@
 	"main": "./lib/index.js",
 	"types": "./lib/index.d.ts",
 	"exports": {
-	  ".": {
-	    "import": "./lib/index.js",
-	    "types": "./lib/index.d.ts"
-	  },
-	  "./types": {
-	  	"import": "./lib/types.js",
-	    "types": "./lib/types.d.ts"
-	  }
+		".": {
+			"import": "./lib/index.js",
+			"types": "./lib/index.d.ts"
+		},
+		"./types": {
+			"import": "./lib/types.js",
+			"types": "./lib/types.d.ts"
+		}
 	},
 	"files": [
 		"./npm-scripts.mjs",
