@@ -16,8 +16,6 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/mediasoup"
 	},
-	"main": "./lib/index.js",
-	"types": "./lib/index.d.ts",
 	"exports": {
 		".": {
 			"import": "./lib/index.js",
