@@ -16,11 +16,19 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/mediasoup"
 	},
-	"main": "lib/index.js",
-	"types": "lib/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./lib/index.js",
+			"types": "./lib/index.d.ts"
+		},
+		"./types": {
+			"import": "./lib/types.js",
+			"types": "./lib/types.d.ts"
+		}
+	},
 	"files": [
-		"npm-scripts.mjs",
-		"lib"
+		"./npm-scripts.mjs",
+		"./lib"
 	],
 	"engines": {
 		"node": ">=18"
