@@ -1,10 +1,8 @@
-export type SctpCapabilities =
-{
-  numStreams: NumSctpStreams;
-}
+export type SctpCapabilities = {
+	numStreams: NumSctpStreams;
+};
 
-export type NumSctpStreams =
-{
+export type NumSctpStreams = {
 	/**
 	 * Initially requested number of outgoing SCTP streams.
 	 */
@@ -13,10 +11,9 @@ export type NumSctpStreams =
 	 * Maximum number of incoming SCTP streams.
 	 */
 	MIS: number;
-}
+};
 
-export type SctpParameters =
-{
+export type SctpParameters = {
 	/**
 	 * Must always equal 5000.
 	 */
@@ -33,7 +30,7 @@ export type SctpParameters =
 	 * Maximum allowed size for SCTP messages.
 	 */
 	maxMessageSize: number;
-}
+};
 
 /**
  * SCTP stream parameters describe the reliability of a certain SCTP stream.
@@ -42,8 +39,7 @@ export type SctpParameters =
  * If ordered if false, only one of maxPacketLifeTime or maxRetransmits
  * can be true.
  */
-export type SctpStreamParameters =
-{
+export type SctpStreamParameters = {
 	/**
 	 * SCTP stream id.
 	 */
@@ -71,4 +67,4 @@ export type SctpStreamParameters =
 	 * Name of the sub-protocol used by this DataChannel.
 	 */
 	protocol?: string;
-}
+};

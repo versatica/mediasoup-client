@@ -1,8 +1,9 @@
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
+import { InvalidStateError } from '../errors';
 import {
 	HandlerInterface,
 	HandlerRunOptions,
@@ -13,20 +14,23 @@ import {
 	HandlerSendDataChannelOptions,
 	HandlerSendDataChannelResult,
 	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult
+	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import {
 	IceParameters,
 	DtlsParameters,
-	DtlsRole
+	DtlsRole,
+	IceGatheringState,
+	ConnectionState,
 } from '../Transport';
 import { RtpCapabilities, RtpParameters } from '../RtpParameters';
 import { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('FakeHandler');
 
-class FakeDataChannel extends EnhancedEventEmitter
-{
+const NAME = 'FakeHandler';
+
+class FakeDataChannel extends EnhancedEventEmitter {
 	id?: number;
 	ordered?: boolean;
 	maxPacketLifeTime?: number;
@@ -34,45 +38,41 @@ class FakeDataChannel extends EnhancedEventEmitter
 	label?: string;
 	protocol?: string;
 
-	constructor(
-		{
-			id,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			label,
-			protocol
-		}: {
-			id: number;
-			ordered?: boolean;
-			maxPacketLifeTime?: number;
-			maxRetransmits?: number;
-			label?: string;
-			protocol?: string;
-		})
-	{
+	constructor({
+		id,
+		ordered,
+		maxPacketLifeTime,
+		maxRetransmits,
+		label,
+		protocol,
+	}: {
+		id: number;
+		ordered?: boolean;
+		maxPacketLifeTime?: number;
+		maxRetransmits?: number;
+		label?: string;
+		protocol?: string;
+	}) {
 		super();
 
 		this.id = id;
-		this.ordered= ordered;
+		this.ordered = ordered;
 		this.maxPacketLifeTime = maxPacketLifeTime;
 		this.maxRetransmits = maxRetransmits;
 		this.label = label;
 		this.protocol = protocol;
 	}
 
-	close(): void
-	{
+	close(): void {
 		this.safeEmit('close');
+		this.emit('@close');
 	}
 
-	send(data: any): void
-	{
+	send(data: any): void {
 		this.safeEmit('message', data);
 	}
 
-	addEventListener(event: string, fn: () => void): void
-	{
+	addEventListener(event: string, fn: () => void): void {
 		this.on(event, fn);
 	}
 }
@@ -81,10 +81,11 @@ export type FakeParameters = {
 	generateNativeRtpCapabilities: () => RtpCapabilities;
 	generateNativeSctpCapabilities: () => SctpCapabilities;
 	generateLocalDtlsParameters: () => DtlsParameters;
-}
+};
 
-export class FakeHandler extends HandlerInterface
-{
+export class FakeHandler extends HandlerInterface {
+	// Closed flag.
+	private _closed = false;
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
 	private fakeParameters: any;
 	// Generic sending RTP parameters for audio and video.
@@ -103,132 +104,137 @@ export class FakeHandler extends HandlerInterface
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(fakeParameters: FakeParameters)
-	{
+	static createFactory(fakeParameters: FakeParameters) {
 		return (): FakeHandler => new FakeHandler(fakeParameters);
 	}
 
-	constructor(fakeParameters: any)
-	{
+	constructor(fakeParameters: any) {
 		super();
 
 		this.fakeParameters = fakeParameters;
 	}
 
-	get name(): string
-	{
-		return 'FakeHandler';
+	get name(): string {
+		return NAME;
 	}
 
-	close(): void
-	{
+	close(): void {
 		logger.debug('close()');
+
+		if (this._closed) {
+			return;
+		}
+
+		this._closed = true;
 	}
 
 	// NOTE: Custom method for simulation purposes.
-	setConnectionState(connectionState: string): void
-	{
+	setIceGatheringState(iceGatheringState: IceGatheringState): void {
+		this.emit('@icegatheringstatechange', iceGatheringState);
+	}
+
+	// NOTE: Custom method for simulation purposes.
+	setConnectionState(connectionState: ConnectionState): void {
 		this.emit('@connectionstatechange', connectionState);
 	}
 
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
-	{
+	async getNativeRtpCapabilities(): Promise<RtpCapabilities> {
 		logger.debug('getNativeRtpCapabilities()');
 
 		return this.fakeParameters.generateNativeRtpCapabilities();
 	}
 
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities>
-	{
+	async getNativeSctpCapabilities(): Promise<SctpCapabilities> {
 		logger.debug('getNativeSctpCapabilities()');
 
 		return this.fakeParameters.generateNativeSctpCapabilities();
 	}
 
-	run(
-		{
-			/* eslint-disable @typescript-eslint/no-unused-vars */
-			direction,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			proprietaryConstraints,
-			extendedRtpCapabilities
-			/* eslint-enable @typescript-eslint/no-unused-vars */
-		}: HandlerRunOptions
-	): void
-	{
+	run({
+		/* eslint-disable @typescript-eslint/no-unused-vars */
+		direction,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		iceServers,
+		iceTransportPolicy,
+		proprietaryConstraints,
+		extendedRtpCapabilities,
+		/* eslint-enable @typescript-eslint/no-unused-vars */
+	}: HandlerRunOptions): void {
+		this.assertNotClosed();
+
 		logger.debug('run()');
 
 		// Generic sending RTP parameters for audio and video.
 		// @type {Object}
-		this._rtpParametersByKind =
-		{
-			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
+		this._rtpParametersByKind = {
+			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
 		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async updateIceServers(iceServers: RTCIceServer[]): Promise<void>
-	{
-		logger.debug('updateIceServers()');
+	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
+		this.assertNotClosed();
 
-		return;
+		logger.debug('updateIceServers()');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async restartIce(iceParameters: IceParameters): Promise<void>
-	{
-		logger.debug('restartIce()');
+	async restartIce(iceParameters: IceParameters): Promise<void> {
+		this.assertNotClosed();
 
-		return;
+		logger.debug('restartIce()');
 	}
 
-	async getTransportStats(): Promise<RTCStatsReport>
-	{
+	async getTransportStats(): Promise<RTCStatsReport> {
+		this.assertNotClosed();
+
 		return new Map(); // NOTE: Whatever.
 	}
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
-	): Promise<HandlerSendResult>
-	{
+	): Promise<HandlerSendResult> {
+		this.assertNotClosed();
+
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+		if (!this._transportReady) {
+			await this.setupTransport({ localDtlsRole: 'server' });
+		}
 
-		const rtpParameters =
-			utils.clone(this._rtpParametersByKind![track.kind], {});
-		const useRtx = rtpParameters.codecs
-			.some((_codec: any) => /.+\/rtx$/i.test(_codec.mimeType));
+		const rtpParameters = utils.clone<RtpParameters>(
+			this._rtpParametersByKind![track.kind]
+		);
+		const useRtx = rtpParameters.codecs.some((_codec: any) =>
+			/.+\/rtx$/i.test(_codec.mimeType)
+		);
 
 		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
-		if (!encodings)
-			encodings = [ {} ];
+		if (!encodings) {
+			encodings = [{}];
+		}
 
-		for (const encoding of encodings)
-		{
+		for (const encoding of encodings) {
 			encoding.ssrc = utils.generateRandomNumber();
 
-			if (useRtx)
+			if (useRtx) {
 				encoding.rtx = { ssrc: utils.generateRandomNumber() };
+			}
 		}
 
 		rtpParameters.encodings = encodings;
 
 		// Fill RTCRtpParameters.rtcp.
-		rtpParameters.rtcp =
-		{
-			cname       : this._cname,
-			reducedSize : true,
-			mux         : true
+		rtpParameters.rtcp = {
+			cname: this._cname,
+			reducedSize: true,
+			mux: true,
 		};
 
 		const localId = this._nextLocalId++;
@@ -238,27 +244,47 @@ export class FakeHandler extends HandlerInterface
 		return { localId: String(localId), rtpParameters };
 	}
 
-	async stopSending(localId: string): Promise<void>
-	{
+	async stopSending(localId: string): Promise<void> {
 		logger.debug('stopSending() [localId:%s]', localId);
 
-		if (!this._tracks.has(Number(localId)))
+		if (this._closed) {
+			return;
+		}
+
+		if (!this._tracks.has(Number(localId))) {
 			throw new Error('local track not found');
+		}
 
 		this._tracks.delete(Number(localId));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void> {
+		this.assertNotClosed();
+
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void> {
+		this.assertNotClosed();
+
+		// Unimplemented.
+	}
+
 	async replaceTrack(
-		localId: string, track: MediaStreamTrack | null
-	): Promise<void>
-	{
-		if (track)
-		{
+		localId: string,
+		track: MediaStreamTrack | null
+	): Promise<void> {
+		this.assertNotClosed();
+
+		if (track) {
 			logger.debug(
-				'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
-		}
-		else
-		{
+				'replaceTrack() [localId:%s, track.id:%s]',
+				localId,
+				track.id
+			);
+		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
 		}
 
@@ -266,144 +292,192 @@ export class FakeHandler extends HandlerInterface
 		this._tracks.set(Number(localId), track);
 	}
 
-	async setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>
-	{
+	async setMaxSpatialLayer(
+		localId: string,
+		spatialLayer: number
+	): Promise<void> {
+		this.assertNotClosed();
+
 		logger.debug(
 			'setMaxSpatialLayer() [localId:%s, spatialLayer:%s]',
-			localId, spatialLayer);
+			localId,
+			spatialLayer
+		);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void>
-	{
+	async setRtpEncodingParameters(localId: string, params: any): Promise<void> {
+		this.assertNotClosed();
+
 		logger.debug(
 			'setRtpEncodingParameters() [localId:%s, params:%o]',
-			localId, params);
+			localId,
+			params
+		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async getSenderStats(localId: string): Promise<RTCStatsReport>
-	{
+	async getSenderStats(localId: string): Promise<RTCStatsReport> {
+		this.assertNotClosed();
+
 		return new Map(); // NOTE: Whatever.
 	}
 
-	async sendDataChannel(
-		{
+	async sendDataChannel({
+		ordered,
+		maxPacketLifeTime,
+		maxRetransmits,
+		label,
+		protocol,
+	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
+		this.assertNotClosed();
+
+		if (!this._transportReady) {
+			await this.setupTransport({ localDtlsRole: 'server' });
+		}
+
+		logger.debug('sendDataChannel()');
+
+		const dataChannel = new FakeDataChannel({
+			id: this._nextSctpStreamId++,
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol
-		}: HandlerSendDataChannelOptions
-	): Promise<HandlerSendDataChannelResult>
-	{
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server' });
+			protocol,
+		});
 
-		logger.debug('sendDataChannel()');
-
-		const dataChannel = new FakeDataChannel(
-			{
-				id : this._nextSctpStreamId++,
-				ordered,
-				maxPacketLifeTime,
-				maxRetransmits,
-				label,
-				protocol
-			});
-
-		const sctpStreamParameters =
-		{
-			streamId          : this._nextSctpStreamId,
-			ordered           : ordered,
-			maxPacketLifeTime : maxPacketLifeTime,
-			maxRetransmits    : maxRetransmits
+		const sctpStreamParameters = {
+			streamId: this._nextSctpStreamId,
+			ordered: ordered,
+			maxPacketLifeTime: maxPacketLifeTime,
+			maxRetransmits: maxRetransmits,
 		};
 
-		// @ts-ignore.
+		// @ts-expect-error --- On purpose.
 		return { dataChannel, sctpStreamParameters };
 	}
 
 	async receive(
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
-	{
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+		optionsList: HandlerReceiveOptions[]
+	): Promise<HandlerReceiveResult[]> {
+		this.assertNotClosed();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
 
-		const localId = this._nextLocalId++;
-		const track = new FakeMediaStreamTrack({ kind });
+		for (const options of optionsList) {
+			const { trackId, kind } = options;
 
-		this._tracks.set(localId, track);
+			if (!this._transportReady) {
+				await this.setupTransport({ localDtlsRole: 'client' });
+			}
 
-		return { localId: String(localId), track };
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const localId = this._nextLocalId++;
+			const track = new FakeMediaStreamTrack({ kind });
+
+			this._tracks.set(localId, track);
+
+			results.push({ localId: String(localId), track });
+		}
+
+		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
-	{
-		logger.debug('stopReceiving() [localId:%s]', localId);
+	async stopReceiving(localIds: string[]): Promise<void> {
+		if (this._closed) {
+			return;
+		}
 
-		this._tracks.delete(Number(localId));
+		for (const localId of localIds) {
+			logger.debug('stopReceiving() [localId:%s]', localId);
+
+			this._tracks.delete(Number(localId));
+		}
+	}
+
+	async pauseReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localIds: string[]
+	): Promise<void> {
+		this.assertNotClosed();
+
+		// Unimplemented.
+	}
+
+	async resumeReceiving(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localIds: string[]
+	): Promise<void> {
+		this.assertNotClosed();
+
+		// Unimplemented.
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async getReceiverStats(localId: string): Promise<RTCStatsReport>
-	{
+	async getReceiverStats(localId: string): Promise<RTCStatsReport> {
+		this.assertNotClosed();
+
 		return new Map(); //
 	}
 
-	async receiveDataChannel(
-		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
-	): Promise<HandlerReceiveDataChannelResult>
-	{
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client' });
+	async receiveDataChannel({
+		sctpStreamParameters,
+		label,
+		protocol,
+	}: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult> {
+		this.assertNotClosed();
+
+		if (!this._transportReady) {
+			await this.setupTransport({ localDtlsRole: 'client' });
+		}
 
 		logger.debug('receiveDataChannel()');
 
-		const dataChannel = new FakeDataChannel(
-			{
-				id                : sctpStreamParameters.streamId!,
-				ordered           : sctpStreamParameters.ordered,
-				maxPacketLifeTime : sctpStreamParameters.maxPacketLifeTime,
-				maxRetransmits    : sctpStreamParameters.maxRetransmits,
-				label,
-				protocol
-			});
+		const dataChannel = new FakeDataChannel({
+			id: sctpStreamParameters.streamId!,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			label,
+			protocol,
+		});
 
-		// @ts-ignore.
+		// @ts-expect-error --- On purpose.
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
-		{
-			localDtlsRole,
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			localSdpObject
-		}:
-		{
-			localDtlsRole: DtlsRole;
-			localSdpObject?: any;
-		}
-	): Promise<void>
-	{
-		const dtlsParameters =
-			utils.clone(this.fakeParameters.generateLocalDtlsParameters(), {});
+	private async setupTransport({
+		localDtlsRole,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localSdpObject,
+	}: {
+		localDtlsRole: DtlsRole;
+		localSdpObject?: any;
+	}): Promise<void> {
+		const dtlsParameters = utils.clone<DtlsParameters>(
+			this.fakeParameters.generateLocalDtlsParameters()
+		);
 
 		// Set our DTLS role.
-		if (localDtlsRole)
+		if (localDtlsRole) {
 			dtlsParameters.role = localDtlsRole;
+		}
 
 		// Assume we are connecting now.
 		this.emit('@connectionstatechange', 'connecting');
 
 		// Need to tell the remote transport about our parameters.
-		await new Promise((resolve, reject) => (
+		await new Promise<void>((resolve, reject) =>
 			this.emit('@connect', { dtlsParameters }, resolve, reject)
-		));
+		);
 
 		this._transportReady = true;
+	}
+
+	private assertNotClosed(): void {
+		if (this._closed) {
+			throw new InvalidStateError('method called in a closed handler');
+		}
 	}
 }

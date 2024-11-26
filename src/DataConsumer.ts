@@ -1,21 +1,40 @@
 import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { SctpStreamParameters } from './SctpParameters';
-
-export type DataConsumerOptions =
-{
-	id?: string;
-	dataProducerId?: string;
-	sctpStreamParameters: SctpStreamParameters;
-	label?: string;
-	protocol?: string;
-	appData?: any;
-}
+import { AppData } from './types';
 
 const logger = new Logger('DataConsumer');
 
-export class DataConsumer extends EnhancedEventEmitter
-{
+export type DataConsumerOptions<DataConsumerAppData extends AppData = AppData> =
+	{
+		id?: string;
+		dataProducerId?: string;
+		sctpStreamParameters: SctpStreamParameters;
+		label?: string;
+		protocol?: string;
+		appData?: DataConsumerAppData;
+	};
+
+export type DataConsumerObserver =
+	EnhancedEventEmitter<DataConsumerObserverEvents>;
+
+export type DataConsumerEvents = {
+	transportclose: [];
+	open: [];
+	error: [Error];
+	close: [];
+	message: [any];
+	// Private events.
+	'@close': [];
+};
+
+export type DataConsumerObserverEvents = {
+	close: [];
+};
+
+export class DataConsumer<
+	DataConsumerAppData extends AppData = AppData,
+> extends EnhancedEventEmitter<DataConsumerEvents> {
 	// Id.
 	private readonly _id: string;
 	// Associated DataProducer Id.
@@ -27,35 +46,24 @@ export class DataConsumer extends EnhancedEventEmitter
 	// SCTP stream parameters.
 	private readonly _sctpStreamParameters: SctpStreamParameters;
 	// App custom data.
-	private readonly _appData: any;
+	private _appData: DataConsumerAppData;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer: DataConsumerObserver =
+		new EnhancedEventEmitter<DataConsumerObserverEvents>();
 
-	/**
-	 * @emits transportclose
-	 * @emits open
-	 * @emits error - (error: Error)
-	 * @emits close
-	 * @emits message - (message: any)
-	 * @emits @close
-	 */
-	constructor(
-		{
-			id,
-			dataProducerId,
-			dataChannel,
-			sctpStreamParameters,
-			appData
-		}:
-		{
-			id: string;
-			dataProducerId: string;
-			dataChannel: RTCDataChannel;
-			sctpStreamParameters: SctpStreamParameters;
-			appData: any;
-		}
-	)
-	{
+	constructor({
+		id,
+		dataProducerId,
+		dataChannel,
+		sctpStreamParameters,
+		appData,
+	}: {
+		id: string;
+		dataProducerId: string;
+		dataChannel: RTCDataChannel;
+		sctpStreamParameters: SctpStreamParameters;
+		appData?: DataConsumerAppData;
+	}) {
 		super();
 
 		logger.debug('constructor()');
@@ -64,116 +72,99 @@ export class DataConsumer extends EnhancedEventEmitter
 		this._dataProducerId = dataProducerId;
 		this._dataChannel = dataChannel;
 		this._sctpStreamParameters = sctpStreamParameters;
-		this._appData = appData;
+		this._appData = appData ?? ({} as DataConsumerAppData);
 
-		this._handleDataChannel();
+		this.handleDataChannel();
 	}
 
 	/**
 	 * DataConsumer id.
 	 */
-	get id(): string
-	{
+	get id(): string {
 		return this._id;
 	}
 
 	/**
 	 * Associated DataProducer id.
 	 */
-	get dataProducerId(): string
-	{
+	get dataProducerId(): string {
 		return this._dataProducerId;
 	}
 
 	/**
 	 * Whether the DataConsumer is closed.
 	 */
-	get closed(): boolean
-	{
+	get closed(): boolean {
 		return this._closed;
 	}
 
 	/**
 	 * SCTP stream parameters.
 	 */
-	get sctpStreamParameters(): SctpStreamParameters
-	{
+	get sctpStreamParameters(): SctpStreamParameters {
 		return this._sctpStreamParameters;
 	}
 
 	/**
 	 * DataChannel readyState.
 	 */
-	get readyState(): RTCDataChannelState
-	{
+	get readyState(): RTCDataChannelState {
 		return this._dataChannel.readyState;
 	}
 
 	/**
 	 * DataChannel label.
 	 */
-	get label(): string
-	{
+	get label(): string {
 		return this._dataChannel.label;
 	}
 
 	/**
 	 * DataChannel protocol.
 	 */
-	get protocol(): string
-	{
+	get protocol(): string {
 		return this._dataChannel.protocol;
 	}
 
 	/**
 	 * DataChannel binaryType.
 	 */
-	get binaryType(): string
-	{
+	get binaryType(): BinaryType {
 		return this._dataChannel.binaryType;
 	}
 
 	/**
 	 * Set DataChannel binaryType.
 	 */
-	set binaryType(binaryType: string)
-	{
+	set binaryType(binaryType: BinaryType) {
 		this._dataChannel.binaryType = binaryType;
 	}
 
 	/**
 	 * App custom data.
 	 */
-	get appData(): any
-	{
+	get appData(): DataConsumerAppData {
 		return this._appData;
 	}
 
 	/**
-	 * Invalid setter.
+	 * App custom data setter.
 	 */
-	set appData(appData: any) // eslint-disable-line @typescript-eslint/no-unused-vars
-	{
-		throw new Error('cannot override appData object');
+	set appData(appData: DataConsumerAppData) {
+		this._appData = appData;
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits close
-	 */
-	get observer(): EnhancedEventEmitter
-	{
+	get observer(): DataConsumerObserver {
 		return this._observer;
 	}
 
 	/**
 	 * Closes the DataConsumer.
 	 */
-	close(): void
-	{
-		if (this._closed)
+	close(): void {
+		if (this._closed) {
 			return;
+		}
 
 		logger.debug('close()');
 
@@ -190,10 +181,10 @@ export class DataConsumer extends EnhancedEventEmitter
 	/**
 	 * Transport was closed.
 	 */
-	transportClosed(): void
-	{
-		if (this._closed)
+	transportClosed(): void {
+		if (this._closed) {
 			return;
+		}
 
 		logger.debug('transportClosed()');
 
@@ -207,46 +198,45 @@ export class DataConsumer extends EnhancedEventEmitter
 		this._observer.safeEmit('close');
 	}
 
-	private _handleDataChannel(): void
-	{
-		this._dataChannel.addEventListener('open', () =>
-		{
-			if (this._closed)
+	private handleDataChannel(): void {
+		this._dataChannel.addEventListener('open', () => {
+			if (this._closed) {
 				return;
+			}
 
 			logger.debug('DataChannel "open" event');
 
 			this.safeEmit('open');
 		});
 
-		this._dataChannel.addEventListener('error', (event: any) =>
-		{
-			if (this._closed)
+		this._dataChannel.addEventListener('error', (event: any) => {
+			if (this._closed) {
 				return;
+			}
 
 			let { error } = event;
 
-			if (!error)
+			if (!error) {
 				error = new Error('unknown DataChannel error');
+			}
 
-			if (error.errorDetail === 'sctp-failure')
-			{
+			if (error.errorDetail === 'sctp-failure') {
 				logger.error(
 					'DataChannel SCTP error [sctpCauseCode:%s]: %s',
-					error.sctpCauseCode, error.message);
-			}
-			else
-			{
+					error.sctpCauseCode,
+					error.message
+				);
+			} else {
 				logger.error('DataChannel "error" event: %o', error);
 			}
 
 			this.safeEmit('error', error);
 		});
 
-		this._dataChannel.addEventListener('close', () =>
-		{
-			if (this._closed)
+		this._dataChannel.addEventListener('close', () => {
+			if (this._closed) {
 				return;
+			}
 
 			logger.warn('DataChannel "close" event');
 
@@ -254,12 +244,15 @@ export class DataConsumer extends EnhancedEventEmitter
 
 			this.emit('@close');
 			this.safeEmit('close');
+
+			// Emit observer event.
+			this._observer.safeEmit('close');
 		});
 
-		this._dataChannel.addEventListener('message', (event: any) =>
-		{
-			if (this._closed)
+		this._dataChannel.addEventListener('message', (event: any) => {
+			if (this._closed) {
 				return;
+			}
 
 			this.safeEmit('message', event.data);
 		});

@@ -1,40 +1,44 @@
-/* global RTCRtpTransceiver */
-
-import Bowser from 'bowser';
+import { UAParser } from 'ua-parser-js';
 import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
 import { Transport, TransportOptions, CanProduceByKind } from './Transport';
 import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
+import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
 import { Chrome67 } from './handlers/Chrome67';
 import { Chrome55 } from './handlers/Chrome55';
+import { Firefox120 } from './handlers/Firefox120';
 import { Firefox60 } from './handlers/Firefox60';
 import { Safari12 } from './handlers/Safari12';
 import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
+import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
 import { RtpCapabilities, MediaKind } from './RtpParameters';
 import { SctpCapabilities } from './SctpParameters';
+import { AppData } from './types';
 
 const logger = new Logger('Device');
 
 export type BuiltinHandlerName =
+	| 'Chrome111'
 	| 'Chrome74'
 	| 'Chrome70'
 	| 'Chrome67'
 	| 'Chrome55'
+	| 'Firefox120'
 	| 'Firefox60'
 	| 'Safari12'
 	| 'Safari11'
 	| 'Edge11'
+	| 'ReactNativeUnifiedPlan'
 	| 'ReactNative';
 
-export type DeviceOptions =
-{
+export type DeviceOptions = {
 	/**
 	 * The name of one of the builtin handlers.
 	 */
@@ -43,139 +47,186 @@ export type DeviceOptions =
 	 * Custom handler factory.
 	 */
 	handlerFactory?: HandlerFactory;
-	/**
-	 * DEPRECATED!
-	 * The name of one of the builtin handlers.
-	 */
-	Handler?: string;
 };
 
-interface InternalTransportOptions extends TransportOptions
-{
-	direction: 'send' | 'recv';
-}
-
-export function detectDevice(): BuiltinHandlerName | undefined
-{
+export function detectDevice(
+	userAgent?: string
+): BuiltinHandlerName | undefined {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
-	if (typeof navigator === 'object' && navigator.product === 'ReactNative')
-	{
-		if (typeof RTCPeerConnection === 'undefined')
-		{
+	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
+	if (
+		!userAgent &&
+		typeof navigator === 'object' &&
+		navigator.product === 'ReactNative'
+	) {
+		logger.debug('detectDevice() | React-Native detected');
+
+		if (typeof RTCPeerConnection === 'undefined') {
 			logger.warn(
-				'this._detectDevice() | unsupported ReactNative without RTCPeerConnection');
+				'detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?'
+			);
 
 			return undefined;
 		}
 
-		logger.debug('this._detectDevice() | ReactNative handler chosen');
+		if (typeof RTCRtpTransceiver !== 'undefined') {
+			logger.debug('detectDevice() | ReactNative UnifiedPlan handler chosen');
 
-		return 'ReactNative';
+			return 'ReactNativeUnifiedPlan';
+		} else {
+			logger.debug('detectDevice() | ReactNative PlanB handler chosen');
+
+			return 'ReactNative';
+		}
 	}
 	// Browser.
-	else if (typeof navigator === 'object' && typeof navigator.userAgent === 'string')
-	{
-		const ua = navigator.userAgent;
-		const browser = Bowser.getParser(ua);
-		const engine = browser.getEngine();
+	else if (
+		userAgent ||
+		(typeof navigator === 'object' && typeof navigator.userAgent === 'string')
+	) {
+		userAgent ??= navigator.userAgent;
 
-		// Chrome and Chromium.
-		if (browser.satisfies({ chrome: '>=74', chromium: '>=74' }))
-		{
+		const uaParser = new UAParser(userAgent);
+
+		logger.debug(
+			'detectDevice() | browser detected [userAgent:%s, parsed:%o]',
+			userAgent,
+			uaParser.getResult()
+		);
+
+		const browser = uaParser.getBrowser();
+		const browserName = browser.name?.toLowerCase();
+		const browserVersion = parseInt(browser.major ?? '0');
+		const engine = uaParser.getEngine();
+		const engineName = engine.name?.toLowerCase();
+		const os = uaParser.getOS();
+		const osName = os.name?.toLowerCase();
+		const osVersion = parseFloat(os.version ?? '0');
+		const device = uaParser.getDevice();
+		const deviceModel = device.model?.toLowerCase();
+
+		const isIOS = osName === 'ios' || deviceModel === 'ipad';
+
+		const isChrome =
+			browserName &&
+			[
+				'chrome',
+				'chromium',
+				'mobile chrome',
+				'chrome webview',
+				'chrome headless',
+			].includes(browserName);
+
+		const isFirefox =
+			browserName &&
+			['firefox', 'mobile firefox', 'mobile focus'].includes(browserName);
+
+		const isSafari =
+			browserName && ['safari', 'mobile safari'].includes(browserName);
+
+		const isEdge = browserName && ['edge'].includes(browserName);
+
+		// Chrome, Chromium, and Edge.
+		if ((isChrome || isEdge) && !isIOS && browserVersion >= 111) {
+			return 'Chrome111';
+		} else if (
+			(isChrome && !isIOS && browserVersion >= 74) ||
+			(isEdge && !isIOS && browserVersion >= 88)
+		) {
 			return 'Chrome74';
-		}
-		else if (browser.satisfies({ chrome: '>=70', chromium: '>=70' }))
-		{
+		} else if (isChrome && !isIOS && browserVersion >= 70) {
 			return 'Chrome70';
-		}
-		else if (browser.satisfies({ chrome: '>=67', chromium: '>=67' }))
-		{
+		} else if (isChrome && !isIOS && browserVersion >= 67) {
 			return 'Chrome67';
-		}
-		else if (browser.satisfies({ chrome: '>=55', chromium: '>=55' }))
-		{
+		} else if (isChrome && !isIOS && browserVersion >= 55) {
 			return 'Chrome55';
 		}
 		// Firefox.
-		else if (browser.satisfies({ firefox: '>=60' }))
-		{
+		else if (isFirefox && !isIOS && browserVersion >= 120) {
+			return 'Firefox120';
+		} else if (isFirefox && !isIOS && browserVersion >= 60) {
 			return 'Firefox60';
+		}
+		// Firefox on iOS (so Safari).
+		else if (isFirefox && isIOS && osVersion >= 14.3) {
+			return 'Safari12';
 		}
 		// Safari with Unified-Plan support enabled.
 		else if (
-			browser.satisfies({ safari: '>=12.0' }) &&
+			isSafari &&
+			browserVersion >= 12 &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		)
-		{
+		) {
 			return 'Safari12';
 		}
 		// Safari with Plab-B support.
-		else if (browser.satisfies({ safari: '>=11' }))
-		{
+		else if (isSafari && browserVersion >= 11) {
 			return 'Safari11';
 		}
 		// Old Edge with ORTC support.
-		else if (
-			browser.satisfies({ 'microsoft edge': '>=11' }) &&
-			browser.satisfies({ 'microsoft edge': '<=18' })
-		)
-		{
+		else if (isEdge && !isIOS && browserVersion >= 11 && browserVersion <= 18) {
 			return 'Edge11';
 		}
+		// Best effort for WebKit based browsers in iOS.
+		else if (
+			engineName === 'webkit' &&
+			isIOS &&
+			typeof RTCRtpTransceiver !== 'undefined' &&
+			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+		) {
+			return 'Safari12';
+		}
 		// Best effort for Chromium based browsers.
-		else if (engine.name && engine.name.toLowerCase() === 'blink')
-		{
-			const match = ua.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
+		else if (engineName === 'blink') {
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+			const match = userAgent.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
 
-			if (match)
-			{
+			if (match) {
 				const version = Number(match[1]);
 
-				if (version >= 74)
-				{
+				if (version >= 111) {
+					return 'Chrome111';
+				} else if (version >= 74) {
 					return 'Chrome74';
-				}
-				else if (version >= 70)
-				{
+				} else if (version >= 70) {
 					return 'Chrome70';
-				}
-				else if (version >= 67)
-				{
+				} else if (version >= 67) {
 					return 'Chrome67';
-				}
-				else
-				{
+				} else {
 					return 'Chrome55';
 				}
-			}
-			else
-			{
-				return 'Chrome74';
+			} else {
+				return 'Chrome111';
 			}
 		}
 		// Unsupported browser.
-		else
-		{
+		else {
 			logger.warn(
-				'this._detectDevice() | browser not supported [name:%s, version:%s]',
-				browser.getBrowserName(), browser.getBrowserVersion());
+				'detectDevice() | browser not supported [name:%s, version:%s]',
+				browserName,
+				browserVersion
+			);
 
 			return undefined;
 		}
 	}
 	// Unknown device.
-	else
-	{
-		logger.warn('this._detectDevice() | unknown device');
+	else {
+		logger.warn('detectDevice() | unknown device');
 
 		return undefined;
 	}
 }
 
-export class Device
-{
+export type DeviceObserver = EnhancedEventEmitter<DeviceObserverEvents>;
+
+export type DeviceObserverEvents = {
+	newtransport: [Transport];
+};
+
+export class Device {
 	// RTC handler factory.
 	private readonly _handlerFactory: HandlerFactory;
 	// Handler name.
@@ -192,87 +243,102 @@ export class Device
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter();
+	protected readonly _observer: DeviceObserver =
+		new EnhancedEventEmitter<DeviceObserverEvents>();
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ handlerName, handlerFactory, Handler }: DeviceOptions = {})
-	{
+	constructor({ handlerName, handlerFactory }: DeviceOptions = {}) {
 		logger.debug('constructor()');
 
-		// Handle deprecated option.
-		if (Handler)
-		{
-			logger.warn(
-				'constructor() | Handler option is DEPRECATED, use handlerName or handlerFactory instead');
-
-			if (typeof Handler === 'string')
-				handlerName = Handler as BuiltinHandlerName;
-			else
-				throw new TypeError(
-					'non string Handler option no longer supported, use handlerFactory instead');
-		}
-
-		if (handlerName && handlerFactory)
-		{
+		if (handlerName && handlerFactory) {
 			throw new TypeError(
-				'just one of handlerName or handlerInterface can be given');
+				'just one of handlerName or handlerInterface can be given'
+			);
 		}
 
-		if (handlerFactory)
-		{
+		if (handlerFactory) {
 			this._handlerFactory = handlerFactory;
-		}
-		else
-		{
-			if (handlerName)
-			{
+		} else {
+			if (handlerName) {
 				logger.debug('constructor() | handler given: %s', handlerName);
-			}
-			else
-			{
+			} else {
 				handlerName = detectDevice();
 
-				if (handlerName)
+				if (handlerName) {
 					logger.debug('constructor() | detected handler: %s', handlerName);
-				else
+				} else {
 					throw new UnsupportedError('device not supported');
+				}
 			}
 
-			switch (handlerName)
-			{
-				case 'Chrome74':
+			switch (handlerName) {
+				case 'Chrome111': {
+					this._handlerFactory = Chrome111.createFactory();
+					break;
+				}
+
+				case 'Chrome74': {
 					this._handlerFactory = Chrome74.createFactory();
 					break;
-				case 'Chrome70':
+				}
+
+				case 'Chrome70': {
 					this._handlerFactory = Chrome70.createFactory();
 					break;
-				case 'Chrome67':
+				}
+
+				case 'Chrome67': {
 					this._handlerFactory = Chrome67.createFactory();
 					break;
-				case 'Chrome55':
+				}
+
+				case 'Chrome55': {
 					this._handlerFactory = Chrome55.createFactory();
 					break;
-				case 'Firefox60':
+				}
+
+				case 'Firefox120': {
+					this._handlerFactory = Firefox120.createFactory();
+					break;
+				}
+
+				case 'Firefox60': {
 					this._handlerFactory = Firefox60.createFactory();
 					break;
-				case 'Safari12':
+				}
+
+				case 'Safari12': {
 					this._handlerFactory = Safari12.createFactory();
 					break;
-				case 'Safari11':
+				}
+
+				case 'Safari11': {
 					this._handlerFactory = Safari11.createFactory();
 					break;
-				case 'Edge11':
+				}
+
+				case 'Edge11': {
 					this._handlerFactory = Edge11.createFactory();
 					break;
-				case 'ReactNative':
+				}
+
+				case 'ReactNativeUnifiedPlan': {
+					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
+					break;
+				}
+
+				case 'ReactNative': {
 					this._handlerFactory = ReactNative.createFactory();
 					break;
-				default:
+				}
+
+				default: {
 					throw new TypeError(`unknown handlerName "${handlerName}"`);
+				}
 			}
 		}
 
@@ -285,10 +351,9 @@ export class Device
 
 		this._extendedRtpCapabilities = undefined;
 		this._recvRtpCapabilities = undefined;
-		this._canProduceByKind =
-		{
-			audio : false,
-			video : false
+		this._canProduceByKind = {
+			audio: false,
+			video: false,
 		};
 		this._sctpCapabilities = undefined;
 	}
@@ -296,16 +361,14 @@ export class Device
 	/**
 	 * The RTC handler name.
 	 */
-	get handlerName(): string
-	{
+	get handlerName(): string {
 		return this._handlerName;
 	}
 
 	/**
 	 * Whether the Device is loaded.
 	 */
-	get loaded(): boolean
-	{
+	get loaded(): boolean {
 		return this._loaded;
 	}
 
@@ -314,10 +377,10 @@ export class Device
 	 *
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get rtpCapabilities(): RtpCapabilities
-	{
-		if (!this._loaded)
+	get rtpCapabilities(): RtpCapabilities {
+		if (!this._loaded) {
 			throw new InvalidStateError('not loaded');
+		}
 
 		return this._recvRtpCapabilities!;
 	}
@@ -327,87 +390,102 @@ export class Device
 	 *
 	 * @throws {InvalidStateError} if not loaded.
 	 */
-	get sctpCapabilities(): SctpCapabilities
-	{
-		if (!this._loaded)
+	get sctpCapabilities(): SctpCapabilities {
+		if (!this._loaded) {
 			throw new InvalidStateError('not loaded');
+		}
 
 		return this._sctpCapabilities!;
 	}
 
-	/**
-	 * Observer.
-	 *
-	 * @emits newtransport - (transport: Transport)
-	 */
-	get observer(): EnhancedEventEmitter
-	{
+	get observer(): DeviceObserver {
 		return this._observer;
 	}
 
 	/**
 	 * Initialize the Device.
 	 */
-	async load(
-		{ routerRtpCapabilities }:
-		{ routerRtpCapabilities: RtpCapabilities }
-	): Promise<void>
-	{
+	async load({
+		routerRtpCapabilities,
+	}: {
+		routerRtpCapabilities: RtpCapabilities;
+	}): Promise<void> {
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
-
-		routerRtpCapabilities = utils.clone(routerRtpCapabilities, undefined);
 
 		// Temporal handler to get its capabilities.
 		let handler: HandlerInterface | undefined;
 
-		try
-		{
-			if (this._loaded)
+		try {
+			if (this._loaded) {
 				throw new InvalidStateError('already loaded');
+			}
+
+			// Clone given router RTP capabilities to not modify input data.
+			const clonedRouterRtpCapabilities = utils.clone<RtpCapabilities>(
+				routerRtpCapabilities
+			);
 
 			// This may throw.
-			ortc.validateRtpCapabilities(routerRtpCapabilities);
+			ortc.validateRtpCapabilities(clonedRouterRtpCapabilities);
 
 			handler = this._handlerFactory();
 
 			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities();
 
 			logger.debug(
-				'load() | got native RTP capabilities:%o', nativeRtpCapabilities);
+				'load() | got native RTP capabilities:%o',
+				nativeRtpCapabilities
+			);
+
+			// Clone obtained native RTP capabilities to not modify input data.
+			const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
+				nativeRtpCapabilities
+			);
 
 			// This may throw.
-			ortc.validateRtpCapabilities(nativeRtpCapabilities);
+			ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
 
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
-				nativeRtpCapabilities, routerRtpCapabilities);
+				clonedNativeRtpCapabilities,
+				clonedRouterRtpCapabilities
+			);
 
 			logger.debug(
 				'load() | got extended RTP capabilities:%o',
-				this._extendedRtpCapabilities);
+				this._extendedRtpCapabilities
+			);
 
 			// Check whether we can produce audio/video.
-			this._canProduceByKind.audio =
-				ortc.canSend('audio', this._extendedRtpCapabilities);
-			this._canProduceByKind.video =
-				ortc.canSend('video', this._extendedRtpCapabilities);
+			this._canProduceByKind.audio = ortc.canSend(
+				'audio',
+				this._extendedRtpCapabilities
+			);
+			this._canProduceByKind.video = ortc.canSend(
+				'video',
+				this._extendedRtpCapabilities
+			);
 
 			// Generate our receiving RTP capabilities for receiving media.
-			this._recvRtpCapabilities =
-				ortc.getRecvRtpCapabilities(this._extendedRtpCapabilities);
+			this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
+				this._extendedRtpCapabilities
+			);
 
 			// This may throw.
 			ortc.validateRtpCapabilities(this._recvRtpCapabilities);
 
 			logger.debug(
 				'load() | got receiving RTP capabilities:%o',
-				this._recvRtpCapabilities);
+				this._recvRtpCapabilities
+			);
 
 			// Generate our SCTP capabilities.
 			this._sctpCapabilities = await handler.getNativeSctpCapabilities();
 
 			logger.debug(
-				'load() | got native SCTP capabilities:%o', this._sctpCapabilities);
+				'load() | got native SCTP capabilities:%o',
+				this._sctpCapabilities
+			);
 
 			// This may throw.
 			ortc.validateSctpCapabilities(this._sctpCapabilities);
@@ -417,11 +495,10 @@ export class Device
 			this._loaded = true;
 
 			handler.close();
-		}
-		catch (error)
-		{
-			if (handler)
+		} catch (error) {
+			if (handler) {
 				handler.close();
+			}
 
 			throw error;
 		}
@@ -433,12 +510,12 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	canProduce(kind: MediaKind): boolean
-	{
-		if (!this._loaded)
+	canProduce(kind: MediaKind): boolean {
+		if (!this._loaded) {
 			throw new InvalidStateError('not loaded');
-		else if (kind !== 'audio' && kind !== 'video')
+		} else if (kind !== 'audio' && kind !== 'video') {
 			throw new TypeError(`invalid kind "${kind}"`);
+		}
 
 		return this._canProduceByKind[kind];
 	}
@@ -449,37 +526,33 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	createSendTransport(
-		{
-			id,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings,
-			proprietaryConstraints,
-			appData = {}
-		}: TransportOptions
-	): Transport
-	{
+	createSendTransport<TransportAppData extends AppData = AppData>({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		iceServers,
+		iceTransportPolicy,
+		additionalSettings,
+		proprietaryConstraints,
+		appData,
+	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
 		logger.debug('createSendTransport()');
 
-		return this._createTransport(
-			{
-				direction              : 'send',
-				id                     : id,
-				iceParameters          : iceParameters,
-				iceCandidates          : iceCandidates,
-				dtlsParameters         : dtlsParameters,
-				sctpParameters         : sctpParameters,
-				iceServers             : iceServers,
-				iceTransportPolicy     : iceTransportPolicy,
-				additionalSettings     : additionalSettings,
-				proprietaryConstraints : proprietaryConstraints,
-				appData                : appData
-			});
+		return this.createTransport<TransportAppData>({
+			direction: 'send',
+			id: id,
+			iceParameters: iceParameters,
+			iceCandidates: iceCandidates,
+			dtlsParameters: dtlsParameters,
+			sctpParameters: sctpParameters,
+			iceServers: iceServers,
+			iceTransportPolicy: iceTransportPolicy,
+			additionalSettings: additionalSettings,
+			proprietaryConstraints: proprietaryConstraints,
+			appData: appData,
+		});
 	}
 
 	/**
@@ -488,41 +561,68 @@ export class Device
 	 * @throws {InvalidStateError} if not loaded.
 	 * @throws {TypeError} if wrong arguments.
 	 */
-	createRecvTransport(
-		{
-			id,
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			iceServers,
-			iceTransportPolicy,
-			additionalSettings,
-			proprietaryConstraints,
-			appData = {}
-		}: TransportOptions
-	): Transport
-	{
+	createRecvTransport<TransportAppData extends AppData = AppData>({
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		iceServers,
+		iceTransportPolicy,
+		additionalSettings,
+		proprietaryConstraints,
+		appData,
+	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
 		logger.debug('createRecvTransport()');
 
-		return this._createTransport(
-			{
-				direction              : 'recv',
-				id                     : id,
-				iceParameters          : iceParameters,
-				iceCandidates          : iceCandidates,
-				dtlsParameters         : dtlsParameters,
-				sctpParameters         : sctpParameters,
-				iceServers             : iceServers,
-				iceTransportPolicy     : iceTransportPolicy,
-				additionalSettings     : additionalSettings,
-				proprietaryConstraints : proprietaryConstraints,
-				appData                : appData
-			});
+		return this.createTransport<TransportAppData>({
+			direction: 'recv',
+			id: id,
+			iceParameters: iceParameters,
+			iceCandidates: iceCandidates,
+			dtlsParameters: dtlsParameters,
+			sctpParameters: sctpParameters,
+			iceServers: iceServers,
+			iceTransportPolicy: iceTransportPolicy,
+			additionalSettings: additionalSettings,
+			proprietaryConstraints: proprietaryConstraints,
+			appData: appData,
+		});
 	}
 
-	private _createTransport(
-		{
+	private createTransport<TransportAppData extends AppData>({
+		direction,
+		id,
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		iceServers,
+		iceTransportPolicy,
+		additionalSettings,
+		proprietaryConstraints,
+		appData,
+	}: {
+		direction: 'send' | 'recv';
+	} & TransportOptions<TransportAppData>): Transport<TransportAppData> {
+		if (!this._loaded) {
+			throw new InvalidStateError('not loaded');
+		} else if (typeof id !== 'string') {
+			throw new TypeError('missing id');
+		} else if (typeof iceParameters !== 'object') {
+			throw new TypeError('missing iceParameters');
+		} else if (!Array.isArray(iceCandidates)) {
+			throw new TypeError('missing iceCandidates');
+		} else if (typeof dtlsParameters !== 'object') {
+			throw new TypeError('missing dtlsParameters');
+		} else if (sctpParameters && typeof sctpParameters !== 'object') {
+			throw new TypeError('wrong sctpParameters');
+		} else if (appData && typeof appData !== 'object') {
+			throw new TypeError('if given, appData must be an object');
+		}
+
+		// Create a new Transport.
+		const transport: Transport<TransportAppData> = new Transport({
 			direction,
 			id,
 			iceParameters,
@@ -533,43 +633,11 @@ export class Device
 			iceTransportPolicy,
 			additionalSettings,
 			proprietaryConstraints,
-			appData = {}
-		}: InternalTransportOptions
-	): Transport
-	{
-		if (!this._loaded)
-			throw new InvalidStateError('not loaded');
-		else if (typeof id !== 'string')
-			throw new TypeError('missing id');
-		else if (typeof iceParameters !== 'object')
-			throw new TypeError('missing iceParameters');
-		else if (!Array.isArray(iceCandidates))
-			throw new TypeError('missing iceCandidates');
-		else if (typeof dtlsParameters !== 'object')
-			throw new TypeError('missing dtlsParameters');
-		else if (sctpParameters && typeof sctpParameters !== 'object')
-			throw new TypeError('wrong sctpParameters');
-		else if (appData && typeof appData !== 'object')
-			throw new TypeError('if given, appData must be an object');
-
-		// Create a new Transport.
-		const transport = new Transport(
-			{
-				direction,
-				id,
-				iceParameters,
-				iceCandidates,
-				dtlsParameters,
-				sctpParameters,
-				iceServers,
-				iceTransportPolicy,
-				additionalSettings,
-				proprietaryConstraints,
-				appData,
-				handlerFactory          : this._handlerFactory,
-				extendedRtpCapabilities : this._extendedRtpCapabilities,
-				canProduceByKind        : this._canProduceByKind
-			});
+			appData,
+			handlerFactory: this._handlerFactory,
+			extendedRtpCapabilities: this._extendedRtpCapabilities,
+			canProduceByKind: this._canProduceByKind,
+		});
 
 		// Emit observer event.
 		this._observer.safeEmit('newtransport', transport);
