@@ -265,8 +265,9 @@ export function applyCodecParameters({
 			case 'audio/opus': {
 				const spropStereo = codec.parameters['sprop-stereo'];
 
-				if (spropStereo !== undefined)
+				if (spropStereo !== undefined) {
 					parameters.stereo = Number(spropStereo) ? 1 : 0;
+				}
 
 				break;
 			}
