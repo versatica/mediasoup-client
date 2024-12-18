@@ -1,11 +1,17 @@
 import debug from 'debug';
 import { Device, detectDevice } from './Device';
 import * as types from './types';
+import * as extras from './extras';
 
 /**
  * Expose all types.
  */
 export { types };
+
+/**
+ * Expose all extras.
+ */
+export { extras };
 
 /**
  * Expose mediasoup-client version.

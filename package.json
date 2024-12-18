@@ -16,6 +16,8 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/mediasoup"
 	},
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
 	"exports": {
 		".": {
 			"import": "./lib/index.js",
@@ -24,6 +26,18 @@
 		"./types": {
 			"import": "./lib/types.js",
 			"types": "./lib/types.d.ts"
+		},
+		"./extras/HandlerInterface": {
+			"import": "./lib/handlers/HandlerInterface.js",
+			"types": "./lib/handlers/HandlerInterface.d.ts"
+		},
+		"./extras/FakeHandler": {
+			"import": "./lib/handlers/FakeHandler.js",
+			"types": "./lib/handlers/FakeHandler.d.ts"
+		},
+		"./extras/fakeParameters": {
+			"import": "./lib/test/fakeParameters.js",
+			"types": "./lib/test/fakeParameters.d.ts"
 		}
 	},
 	"files": [
