@@ -266,7 +266,7 @@ export function applyCodecParameters({
 				const spropStereo = codec.parameters['sprop-stereo'];
 
 				if (spropStereo !== undefined) {
-					parameters.stereo = spropStereo ? 1 : 0;
+					parameters.stereo = Number(spropStereo) ? 1 : 0;
 				}
 
 				break;
