@@ -3,7 +3,7 @@ import { RtpCapabilities } from '../../RtpParameters';
 /**
  * This function adds RTCP NACK support for OPUS codec in given capabilities.
  */
-export function addNackSuppportForOpus(rtpCapabilities: RtpCapabilities): void {
+export function addNackSupportForOpus(rtpCapabilities: RtpCapabilities): void {
 	for (const codec of rtpCapabilities.codecs ?? []) {
 		if (
 			(codec.mimeType.toLowerCase() === 'audio/opus' ||
