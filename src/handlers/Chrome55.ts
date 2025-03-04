@@ -199,6 +199,13 @@ export class Chrome55 extends HandlerInterface {
 			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
 		});
 
+		this._pc.addEventListener(
+			'icecandidateerror',
+			(event: RTCPeerConnectionIceErrorEvent) => {
+				this.emit('@icecandidateerror', event);
+			}
+		);
+
 		if (this._pc.connectionState) {
 			this._pc.addEventListener('connectionstatechange', () => {
 				this.emit('@connectionstatechange', this._pc.connectionState);

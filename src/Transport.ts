@@ -149,6 +149,7 @@ export type TransportEvents = {
 		(error: Error) => void,
 	];
 	icegatheringstatechange: [IceGatheringState];
+	icecandidateerror: [RTCPeerConnectionIceErrorEvent];
 	connectionstatechange: [ConnectionState];
 	produce: [
 		{
@@ -1143,6 +1144,19 @@ export class Transport<
 
 				if (!this._closed) {
 					this.safeEmit('icegatheringstatechange', iceGatheringState);
+				}
+			}
+		);
+
+		handler.on(
+			'@icecandidateerror',
+			(event: RTCPeerConnectionIceErrorEvent) => {
+				logger.warn(
+					`ICE candidate error [url:${event.url}, localAddress:${event.address}, localPort:${event.port}]: ${event.errorCode} "${event.errorText}"`
+				);
+
+				if (!this._closed) {
+					this.safeEmit('icecandidateerror', event);
 				}
 			}
 		);
