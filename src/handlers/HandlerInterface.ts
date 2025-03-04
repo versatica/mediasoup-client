@@ -94,6 +94,7 @@ export type HandlerEvents = {
 		(error: Error) => void,
 	];
 	'@icegatheringstatechange': [IceGatheringState];
+	'@icecandidateerror': [RTCPeerConnectionIceErrorEvent];
 	'@connectionstatechange': [ConnectionState];
 };
 
