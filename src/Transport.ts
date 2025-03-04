@@ -1155,9 +1155,7 @@ export class Transport<
 					`ICE candidate error [url:${event.url}, localAddress:${event.address}, localPort:${event.port}]: ${event.errorCode} "${event.errorText}"`
 				);
 
-				if (!this._closed) {
-					this.safeEmit('icecandidateerror', event);
-				}
+				this.safeEmit('icecandidateerror', event);
 			}
 		);
 
