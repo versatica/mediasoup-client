@@ -70,7 +70,7 @@
 		"debug": "^4.4.0",
 		"npm-events-package": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^1.2.0",
-		"h264-profile-level-id": "^2.0.0",
+		"h264-profile-level-id": "^2.2.0",
 		"queue-microtask": "^1.2.3",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.0.0",
