@@ -17,9 +17,9 @@ jobs:
     strategy:
       matrix:
         ci:
-          - os: ubuntu-20.04
-            node: 18
           - os: ubuntu-22.04
+            node: 18
+          - os: ubuntu-24.04
             node: 20
           - os: ubuntu-24.04
             node: 22
@@ -30,6 +30,8 @@ jobs:
           - os: macos-15
             node: 22
           - os: windows-2022
+            node: 20
+          - os: windows-2025
             node: 22
 
     runs-on: ${{ matrix.ci.os }}
