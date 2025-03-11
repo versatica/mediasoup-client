@@ -395,6 +395,12 @@ export class Chrome111 extends HandlerInterface {
 		const offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
+		// @ts-expect-error --- sdpTransform.SessionDescription type doesn't
+		// define extmapAllowMixed field.
+		if (localSdpObject.extmapAllowMixed) {
+			this._remoteSdp!.setSessionExtmapAllowMixed();
+		}
+
 		if (!this._transportReady) {
 			await this.setupTransport({
 				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
@@ -449,7 +455,6 @@ export class Chrome111 extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: true,
 		});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };

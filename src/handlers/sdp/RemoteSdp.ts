@@ -124,6 +124,15 @@ export class RemoteSdp {
 		}
 	}
 
+	/**
+	 * Set session level a=extmap-allow-mixed attibute.
+	 */
+	setSessionExtmapAllowMixed(): void {
+		logger.debug('setSessionExtmapAllowMixed()');
+
+		this._sdpObject.extmapAllowMixed = 'extmap-allow-mixed';
+	}
+
 	getNextMediaSectionIdx(): { idx: number; reuseMid?: string } {
 		// If a closed media section is found, return its index.
 		for (let idx = 0; idx < this._mediaSections.length; ++idx) {
@@ -144,14 +153,12 @@ export class RemoteSdp {
 		offerRtpParameters,
 		answerRtpParameters,
 		codecOptions,
-		extmapAllowMixed = false,
 	}: {
 		offerMediaObject: any;
 		reuseMid?: string;
 		offerRtpParameters: RtpParameters;
 		answerRtpParameters: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
-		extmapAllowMixed?: boolean;
 	}): void {
 		const mediaSection = new AnswerMediaSection({
 			iceParameters: this._iceParameters,
@@ -163,7 +170,6 @@ export class RemoteSdp {
 			offerRtpParameters,
 			answerRtpParameters,
 			codecOptions,
-			extmapAllowMixed,
 		});
 
 		// Unified-Plan with closed media section replacement.

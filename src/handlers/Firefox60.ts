@@ -411,6 +411,12 @@ export class Firefox60 extends HandlerInterface {
 		const offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
+		// @ts-expect-error --- sdpTransform.SessionDescription type doesn't
+		// define extmapAllowMixed field.
+		if (localSdpObject.extmapAllowMixed) {
+			this._remoteSdp!.setSessionExtmapAllowMixed();
+		}
+
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady) {
@@ -483,7 +489,6 @@ export class Firefox60 extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: true,
 		});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
