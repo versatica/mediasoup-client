@@ -366,6 +366,13 @@ export class Safari12 extends HandlerInterface {
 
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
+
+		// @ts-expect-error --- sdpTransport.SessionDescription type doesn't
+		// define extmapAllowMixed field.
+		if (localSdpObject.extmapAllowMixed) {
+			this._remoteSdp!.setSessionExtmapAllowMixed();
+		}
+
 		let offerMediaObject;
 
 		if (!this._transportReady) {

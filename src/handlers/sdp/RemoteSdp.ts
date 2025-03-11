@@ -124,6 +124,15 @@ export class RemoteSdp {
 		}
 	}
 
+	/**
+	 * Set session level a=extmap-allow-mixed attibute.
+	 */
+	setSessionExtmapAllowMixed(): void {
+		logger.debug('setSessionExtmapAllowMixed()');
+
+		this._sdpObject.extmapAllowMixed = 'extmap-allow-mixed';
+	}
+
 	getNextMediaSectionIdx(): { idx: number; reuseMid?: string } {
 		// If a closed media section is found, return its index.
 		for (let idx = 0; idx < this._mediaSections.length; ++idx) {
