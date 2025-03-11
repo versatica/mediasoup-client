@@ -472,7 +472,6 @@ export class Firefox120 extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: true,
 		});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };

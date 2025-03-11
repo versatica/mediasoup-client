@@ -498,7 +498,6 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: true,
 		});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };

@@ -144,14 +144,12 @@ export class RemoteSdp {
 		offerRtpParameters,
 		answerRtpParameters,
 		codecOptions,
-		extmapAllowMixed = false,
 	}: {
 		offerMediaObject: any;
 		reuseMid?: string;
 		offerRtpParameters: RtpParameters;
 		answerRtpParameters: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
-		extmapAllowMixed?: boolean;
 	}): void {
 		const mediaSection = new AnswerMediaSection({
 			iceParameters: this._iceParameters,
@@ -163,7 +161,6 @@ export class RemoteSdp {
 			offerRtpParameters,
 			answerRtpParameters,
 			codecOptions,
-			extmapAllowMixed,
 		});
 
 		// Unified-Plan with closed media section replacement.

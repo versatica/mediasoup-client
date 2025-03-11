@@ -449,7 +449,6 @@ export class Chrome111 extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: true,
 		});
 
 		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };

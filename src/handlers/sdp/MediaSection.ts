@@ -131,7 +131,6 @@ export class AnswerMediaSection extends MediaSection {
 		offerRtpParameters,
 		answerRtpParameters,
 		codecOptions,
-		extmapAllowMixed = false,
 	}: {
 		iceParameters?: IceParameters;
 		iceCandidates?: IceCandidate[];
@@ -143,7 +142,6 @@ export class AnswerMediaSection extends MediaSection {
 		offerRtpParameters?: RtpParameters;
 		answerRtpParameters?: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
-		extmapAllowMixed?: boolean;
 	}) {
 		super({ iceParameters, iceCandidates, dtlsParameters, planB });
 
@@ -324,11 +322,9 @@ export class AnswerMediaSection extends MediaSection {
 					});
 				}
 
-				// Allow both 1 byte and 2 bytes length header extensions.
-				if (
-					extmapAllowMixed &&
-					offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed'
-				) {
+				// Allow both 1 byte and 2 bytes length header extensions since
+				// mediasoup can receive both at any time.
+				if (offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed') {
 					this._mediaObject.extmapAllowMixed = 'extmap-allow-mixed';
 				}
 
