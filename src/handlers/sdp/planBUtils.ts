@@ -11,7 +11,7 @@ export function getRtpEncodings({
 	let firstSsrc;
 	const ssrcs = new Set();
 
-	for (const line of offerMediaObject.ssrcs || []) {
+	for (const line of offerMediaObject.ssrcs ?? []) {
 		if (line.attribute !== 'msid') {
 			continue;
 		}
@@ -38,7 +38,7 @@ export function getRtpEncodings({
 	const ssrcToRtxSsrc = new Map();
 
 	// First assume RTX is used.
-	for (const line of offerMediaObject.ssrcGroups || []) {
+	for (const line of offerMediaObject.ssrcGroups ?? []) {
 		if (line.semantics !== 'FID') {
 			continue;
 		}
@@ -102,7 +102,7 @@ export function addLegacySimulcast({
 	let streamId: any;
 
 	// Get the SSRC.
-	const ssrcMsidLine = (offerMediaObject.ssrcs || []).find((line: any) => {
+	const ssrcMsidLine = (offerMediaObject.ssrcs ?? []).find((line: any) => {
 		if (line.attribute !== 'msid') {
 			return false;
 		}
@@ -126,7 +126,7 @@ export function addLegacySimulcast({
 	}
 
 	// Get the SSRC for RTX.
-	(offerMediaObject.ssrcGroups || []).some((line: any) => {
+	(offerMediaObject.ssrcGroups ?? []).some((line: any) => {
 		if (line.semantics !== 'FID') {
 			return false;
 		}
@@ -164,8 +164,8 @@ export function addLegacySimulcast({
 		}
 	}
 
-	offerMediaObject.ssrcGroups = offerMediaObject.ssrcGroups || [];
-	offerMediaObject.ssrcs = offerMediaObject.ssrcs || [];
+	offerMediaObject.ssrcGroups = offerMediaObject.ssrcGroups ?? [];
+	offerMediaObject.ssrcs = offerMediaObject.ssrcs ?? [];
 
 	offerMediaObject.ssrcGroups.push({
 		semantics: 'SIM',

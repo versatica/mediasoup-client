@@ -11,13 +11,13 @@ export function extractPlainRtpParameters({
 	ipVersion: 4 | 6;
 	port: number;
 } {
-	const mediaObject = (sdpObject.media || []).find((m: any) => m.type === kind);
+	const mediaObject = (sdpObject.media ?? []).find((m: any) => m.type === kind);
 
 	if (!mediaObject) {
 		throw new Error(`m=${kind} section not found`);
 	}
 
-	const connectionObject = mediaObject.connection || sdpObject.connection;
+	const connectionObject = mediaObject.connection ?? sdpObject.connection;
 
 	return {
 		ip: connectionObject.ip,
@@ -33,13 +33,13 @@ export function getRtpEncodings({
 	sdpObject: any;
 	kind: MediaKind;
 }): RtpEncodingParameters[] {
-	const mediaObject = (sdpObject.media || []).find((m: any) => m.type === kind);
+	const mediaObject = (sdpObject.media ?? []).find((m: any) => m.type === kind);
 
 	if (!mediaObject) {
 		throw new Error(`m=${kind} section not found`);
 	}
 
-	const ssrcCnameLine = (mediaObject.ssrcs || [])[0];
+	const ssrcCnameLine = (mediaObject.ssrcs ?? [])[0];
 	const ssrc = ssrcCnameLine ? ssrcCnameLine.id : null;
 
 	if (ssrc) {

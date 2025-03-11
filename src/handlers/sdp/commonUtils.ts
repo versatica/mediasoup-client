@@ -70,7 +70,7 @@ export function extractRtpCapabilities({
 		}
 
 		// Get codec parameters.
-		for (const fmtp of m.fmtp || []) {
+		for (const fmtp of m.fmtp ?? []) {
 			const parameters = sdpTransform.parseParams(fmtp.config);
 			const codec = codecsMap.get(fmtp.payload);
 
@@ -87,7 +87,7 @@ export function extractRtpCapabilities({
 		}
 
 		// Get RTCP feedback for each codec.
-		for (const fb of m.rtcpFb || []) {
+		for (const fb of m.rtcpFb ?? []) {
 			const feedback: RtcpFeedback = {
 				type: fb.type,
 				parameter: fb.subtype,
@@ -120,7 +120,7 @@ export function extractRtpCapabilities({
 		}
 
 		// Get RTP header extensions.
-		for (const ext of m.ext || []) {
+		for (const ext of m.ext ?? []) {
 			// Ignore encrypted extensions (not yet supported in mediasoup).
 			if (ext['encrypt-uri']) {
 				continue;
@@ -153,7 +153,7 @@ export function extractDtlsParameters({
 	let fingerprint = sdpObject.fingerprint;
 
 	if (!setup || !fingerprint) {
-		const mediaObject = (sdpObject.media || []).find(
+		const mediaObject = (sdpObject.media ?? []).find(
 			(m: { port: number }) => m.port !== 0
 		);
 
@@ -209,7 +209,7 @@ export function getCname({
 }: {
 	offerMediaObject: any;
 }): string {
-	const ssrcCnameLine = (offerMediaObject.ssrcs || []).find(
+	const ssrcCnameLine = (offerMediaObject.ssrcs ?? []).find(
 		(line: { attribute: string }) => line.attribute === 'cname'
 	);
 
@@ -239,7 +239,7 @@ export function applyCodecParameters({
 			continue;
 		}
 
-		const rtp = (answerMediaObject.rtp || []).find(
+		const rtp = (answerMediaObject.rtp ?? []).find(
 			(r: { payload: number }) => r.payload === codec.payloadType
 		);
 
@@ -248,7 +248,7 @@ export function applyCodecParameters({
 		}
 
 		// Just in case.
-		answerMediaObject.fmtp = answerMediaObject.fmtp || [];
+		answerMediaObject.fmtp = answerMediaObject.fmtp ?? [];
 
 		let fmtp = answerMediaObject.fmtp.find(
 			(f: { payload: number }) => f.payload === codec.payloadType

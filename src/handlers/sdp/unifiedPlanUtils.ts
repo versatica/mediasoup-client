@@ -7,7 +7,7 @@ export function getRtpEncodings({
 }): RtpEncodingParameters[] {
 	const ssrcs = new Set();
 
-	for (const line of offerMediaObject.ssrcs || []) {
+	for (const line of offerMediaObject.ssrcs ?? []) {
 		const ssrc = line.id;
 
 		ssrcs.add(ssrc);
@@ -20,7 +20,7 @@ export function getRtpEncodings({
 	const ssrcToRtxSsrc = new Map();
 
 	// First assume RTX is used.
-	for (const line of offerMediaObject.ssrcGroups || []) {
+	for (const line of offerMediaObject.ssrcGroups ?? []) {
 		if (line.semantics !== 'FID') {
 			continue;
 		}
@@ -78,7 +78,7 @@ export function addLegacySimulcast({
 	}
 
 	// Get the SSRC.
-	const ssrcMsidLine = (offerMediaObject.ssrcs || []).find(
+	const ssrcMsidLine = (offerMediaObject.ssrcs ?? []).find(
 		(line: any) => line.attribute === 'msid'
 	);
 
@@ -91,7 +91,7 @@ export function addLegacySimulcast({
 	let firstRtxSsrc: number | undefined;
 
 	// Get the SSRC for RTX.
-	(offerMediaObject.ssrcGroups || []).some((line: any) => {
+	(offerMediaObject.ssrcGroups ?? []).some((line: any) => {
 		if (line.semantics !== 'FID') {
 			return false;
 		}
