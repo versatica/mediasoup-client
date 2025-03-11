@@ -159,6 +159,7 @@ function buildTypescript({ force = false } = { force: false }) {
 
 	deleteLib();
 	executeCmd('tsc');
+	executeCmd('tsc -p ./tsconfig.esm.json');
 }
 
 function lint() {

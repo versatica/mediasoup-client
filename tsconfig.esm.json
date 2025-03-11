@@ -1,0 +1,23 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"lib": ["es2022", "dom"],
+		"target": "es2020",
+		"module": "ES2015",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"strict": true,
+		"outDir": "lib/esm",
+		"declaration": true,
+		"declarationMap": true
+	},
+	"include": ["src"],
+	"watchOptions": {
+		"watchFile": "useFsEvents",
+		"watchDirectory": "useFsEvents",
+		"fallbackPolling": "dynamicPriority",
+		"synchronousWatchDirectory": true
+	}
+}
+

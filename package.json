@@ -18,6 +18,28 @@
 	},
 	"main": "lib/index.js",
 	"types": "lib/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./lib/esm/index.js",
+			"require": "./lib/index.js"
+		},
+		"./lib/*": {
+			"import": "./lib/esm/*.js",
+			"require": "./lib/*.js"
+		},
+		"./lib/handlers/*": {
+			"import": "./lib/esm/handlers/*.js",
+			"require": "./lib/handlers/*.js"
+		},
+		"./lib/handlers/ortc/*": {
+			"import": "./lib/esm/handlers/ortc/*.js",
+			"require": "./lib/handlers/ortc/*.js"
+		},
+		"./lib/handlers/sdp/*": {
+			"import": "./lib/esm/handlers/sdp/*.js",
+			"require": "./lib/handlers/sdp/*.js"
+		}
+	},
 	"files": [
 		"npm-scripts.mjs",
 		"lib"
