@@ -385,7 +385,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
-		// @ts-expect-error --- sdpTransport.SessionDescription type doesn't
+		// @ts-expect-error --- sdpTransform.SessionDescription type doesn't
 		// define extmapAllowMixed field.
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp!.setSessionExtmapAllowMixed();
