@@ -21,7 +21,6 @@
 	"types": "lib/index.d.mts",
 	"exports": {
 		".": {
-			"typedoc": "./src/index.mts",
 			"types": "./lib/index.d.mts",
 			"import": "./lib/index.mjs",
 			"require": "./lib/index.cjs"
