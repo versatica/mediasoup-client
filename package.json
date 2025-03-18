@@ -60,7 +60,6 @@
 		"fake-mediastreamtrack": "^1.2.0",
 		"h264-profile-level-id": "^2.2.0",
 		"npm-events-package": "npm:events@^3.3.0",
-		"queue-microtask": "^1.2.3",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.0.0",
 		"ua-parser-js": "^2.0.3"
@@ -87,7 +86,6 @@
 		"jest": "^29.7.0",
 		"open-cli": "^8.0.0",
 		"prettier": "^3.5.3",
-		"ts-node": "^10.9.2",
 		"typescript": "^5.8.2",
 		"typescript-eslint": "^8.26.1"
 	}
