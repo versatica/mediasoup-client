@@ -13,7 +13,10 @@ export class EnhancedEventEmitter<
 		this.setMaxListeners(Infinity);
 	}
 
-	emit<K extends keyof E & string>(eventName: K, ...args: E[K]): boolean {
+	override emit<K extends keyof E & string>(
+		eventName: K,
+		...args: E[K]
+	): boolean {
 		return super.emit(eventName, ...args);
 	}
 
@@ -40,7 +43,7 @@ export class EnhancedEventEmitter<
 		}
 	}
 
-	on<K extends keyof E & string>(
+	override on<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -49,7 +52,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	off<K extends keyof E & string>(
+	override off<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -58,7 +61,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	addListener<K extends keyof E & string>(
+	override addListener<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -67,7 +70,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	prependListener<K extends keyof E & string>(
+	override prependListener<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -76,7 +79,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	once<K extends keyof E & string>(
+	override once<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -85,7 +88,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	prependOnceListener<K extends keyof E & string>(
+	override prependOnceListener<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -94,7 +97,7 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	removeListener<K extends keyof E & string>(
+	override removeListener<K extends keyof E & string>(
 		eventName: K,
 		listener: (...args: E[K]) => void
 	): this {
@@ -103,21 +106,21 @@ export class EnhancedEventEmitter<
 		return this;
 	}
 
-	removeAllListeners<K extends keyof E & string>(eventName?: K): this {
+	override removeAllListeners<K extends keyof E & string>(eventName?: K): this {
 		super.removeAllListeners(eventName);
 
 		return this;
 	}
 
-	listenerCount<K extends keyof E & string>(eventName: K): number {
+	override listenerCount<K extends keyof E & string>(eventName: K): number {
 		return super.listenerCount(eventName);
 	}
 
-	listeners<K extends keyof E & string>(eventName: K): Listener[] {
+	override listeners<K extends keyof E & string>(eventName: K): Listener[] {
 		return super.listeners(eventName);
 	}
 
-	rawListeners<K extends keyof E & string>(eventName: K): Listener[] {
+	override rawListeners<K extends keyof E & string>(eventName: K): Listener[] {
 		return super.rawListeners(eventName);
 	}
 }

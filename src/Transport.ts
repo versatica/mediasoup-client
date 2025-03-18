@@ -1,5 +1,4 @@
 import { AwaitQueue } from 'awaitqueue';
-import queueMicrotask from 'queue-microtask';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -899,8 +898,8 @@ export class Transport<
 					const results = await this._handler.receive(optionsList);
 
 					for (let idx = 0; idx < results.length; ++idx) {
-						const task = pendingConsumerTasks[idx];
-						const result = results[idx];
+						const task = pendingConsumerTasks[idx]!;
+						const result = results[idx]!;
 						const { id, producerId, kind, rtpParameters, appData } =
 							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;

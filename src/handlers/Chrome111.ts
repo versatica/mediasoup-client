@@ -361,7 +361,7 @@ export class Chrome111 extends HandlerInterface {
 		}
 
 		const sendingRtpParameters: RtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -372,7 +372,7 @@ export class Chrome111 extends HandlerInterface {
 
 		const sendingRemoteRtpParameters: RtpParameters =
 			utils.clone<RtpParameters>(
-				this._sendingRemoteRtpParametersByKind![track.kind]
+				this._sendingRemoteRtpParametersByKind![track.kind]!
 			);
 
 		// This may throw.
@@ -440,7 +440,7 @@ export class Chrome111 extends HandlerInterface {
 				offerMediaObject,
 			});
 
-			Object.assign(newEncodings[0], encodings[0]);
+			Object.assign(newEncodings[0]!, encodings[0]);
 
 			sendingRtpParameters.encodings = newEncodings;
 		}

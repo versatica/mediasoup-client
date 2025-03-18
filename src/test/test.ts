@@ -245,8 +245,8 @@ test('device.load() with invalid routerRtpCapabilities rejects with TypeError', 
 	);
 
 	for (const codec of routerRtpCapabilities.codecs!) {
-		// @ts-expect-error --- On purpose.
-		delete codec!.mimeType;
+		// @ts-expect-error --- Removing mandatory field.
+		delete codec.mimeType;
 	}
 
 	await expect(ctx.device!.load({ routerRtpCapabilities })).rejects.toThrow(
@@ -470,9 +470,9 @@ test('transport.produce() succeeds', async () => {
 
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
-	expect(typeof encodings?.[0]).toBe('object');
-	expect(Object.keys(encodings![0])).toEqual(['ssrc', 'dtx']);
-	expect(typeof encodings?.[0].ssrc).toBe('number');
+	expect(typeof encodings![0]).toBe('object');
+	expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'dtx']);
+	expect(typeof encodings![0]!.ssrc).toBe('number');
 
 	rtcp = audioProducer.rtpParameters.rtcp;
 
@@ -575,16 +575,16 @@ test('transport.produce() succeeds', async () => {
 
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(2);
-	expect(typeof encodings?.[0]).toBe('object');
-	expect(typeof encodings?.[0].ssrc).toBe('number');
-	expect(typeof encodings?.[0].rtx).toBe('object');
-	expect(Object.keys(encodings![0].rtx!)).toEqual(['ssrc']);
-	expect(typeof encodings?.[0].rtx?.ssrc).toBe('number');
-	expect(typeof encodings?.[1]).toBe('object');
-	expect(typeof encodings?.[1].ssrc).toBe('number');
-	expect(typeof encodings?.[1].rtx).toBe('object');
-	expect(Object.keys(encodings![1].rtx!)).toEqual(['ssrc']);
-	expect(typeof encodings?.[1].rtx?.ssrc).toBe('number');
+	expect(typeof encodings![0]).toBe('object');
+	expect(typeof encodings![0]!.ssrc).toBe('number');
+	expect(typeof encodings![0]!.rtx).toBe('object');
+	expect(Object.keys(encodings![0]!.rtx!)).toEqual(['ssrc']);
+	expect(typeof encodings![0]!.rtx!.ssrc).toBe('number');
+	expect(typeof encodings![1]).toBe('object');
+	expect(typeof encodings![1]!.ssrc).toBe('number');
+	expect(typeof encodings![1]!.rtx).toBe('object');
+	expect(Object.keys(encodings![1]!.rtx!)).toEqual(['ssrc']);
+	expect(typeof encodings![1]!.rtx!.ssrc).toBe('number');
 
 	rtcp = videoProducer.rtpParameters.rtcp;
 
@@ -714,9 +714,9 @@ test('transport.consume() succeeds', async () => {
 
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
-	expect(typeof encodings?.[0]).toBe('object');
-	expect(Object.keys(encodings![0])).toEqual(['ssrc', 'dtx']);
-	expect(typeof encodings![0].ssrc).toBe('number');
+	expect(typeof encodings![0]).toBe('object');
+	expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'dtx']);
+	expect(typeof encodings![0]!.ssrc).toBe('number');
 
 	rtcp = audioConsumer.rtpParameters.rtcp;
 
@@ -813,12 +813,12 @@ test('transport.consume() succeeds', async () => {
 
 	expect(Array.isArray(encodings)).toBe(true);
 	expect(encodings!.length).toBe(1);
-	expect(typeof encodings?.[0]).toBe('object');
-	expect(Object.keys(encodings![0])).toEqual(['ssrc', 'rtx', 'dtx']);
-	expect(typeof encodings?.[0].ssrc).toBe('number');
-	expect(typeof encodings?.[0].rtx).toBe('object');
-	expect(Object.keys(encodings![0].rtx!)).toEqual(['ssrc']);
-	expect(typeof encodings?.[0].rtx?.ssrc).toBe('number');
+	expect(typeof encodings![0]).toBe('object');
+	expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'rtx', 'dtx']);
+	expect(typeof encodings![0]!.ssrc).toBe('number');
+	expect(typeof encodings![0]!.rtx).toBe('object');
+	expect(Object.keys(encodings![0]!.rtx!)).toEqual(['ssrc']);
+	expect(typeof encodings![0]!.rtx!.ssrc).toBe('number');
 
 	rtcp = videoConsumer.rtpParameters.rtcp;
 
@@ -1571,13 +1571,13 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', ()
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
-	expect(sdpObject.media[0].payloads).toBe('101 102');
-	expect(sdpObject.media[0].rtp.length).toBe(2);
-	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
-	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
-	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
-	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
-	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
+	expect(sdpObject.media[0]!.payloads).toBe('101 102');
+	expect(sdpObject.media[0]!.rtp.length).toBe(2);
+	expect(sdpObject.media[0]!.rtp[0]!.payload).toBe(101);
+	expect(sdpObject.media[0]!.rtp[0]!.codec).toBe('VP8');
+	expect(sdpObject.media[0]!.rtp[1]!.payload).toBe(102);
+	expect(sdpObject.media[0]!.rtp[1]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.ssrcs?.length).toBe(4);
 
 	remoteSdp.receive({
 		mid: 'video',
@@ -1593,17 +1593,17 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', ()
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
-	expect(sdpObject.media[0].payloads).toBe('101 102 103 104');
-	expect(sdpObject.media[0].rtp.length).toBe(4);
-	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
-	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
-	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
-	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
-	expect(sdpObject.media[0].rtp[2].payload).toBe(103);
-	expect(sdpObject.media[0].rtp[2].codec).toBe('H264');
-	expect(sdpObject.media[0].rtp[3].payload).toBe(104);
-	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
-	expect(sdpObject.media[0].ssrcs?.length).toBe(8);
+	expect(sdpObject.media[0]!.payloads).toBe('101 102 103 104');
+	expect(sdpObject.media[0]!.rtp.length).toBe(4);
+	expect(sdpObject.media[0]!.rtp[0]!.payload).toBe(101);
+	expect(sdpObject.media[0]!.rtp[0]!.codec).toBe('VP8');
+	expect(sdpObject.media[0]!.rtp[1]!.payload).toBe(102);
+	expect(sdpObject.media[0]!.rtp[1]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.rtp[2]!.payload).toBe(103);
+	expect(sdpObject.media[0]!.rtp[2]!.codec).toBe('H264');
+	expect(sdpObject.media[0]!.rtp[3]!.payload).toBe(104);
+	expect(sdpObject.media[0]!.rtp[3]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.ssrcs?.length).toBe(8);
 
 	remoteSdp.planBStopReceiving({
 		mid: 'video',
@@ -1616,17 +1616,17 @@ test('RemoteSdp properly handles multiple streams of the same type in planB', ()
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
-	expect(sdpObject.media[0].payloads).toBe('101 102 103 104');
-	expect(sdpObject.media[0].rtp.length).toBe(4);
-	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
-	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
-	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
-	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
-	expect(sdpObject.media[0].rtp[2].payload).toBe(103);
-	expect(sdpObject.media[0].rtp[2].codec).toBe('H264');
-	expect(sdpObject.media[0].rtp[3].payload).toBe(104);
-	expect(sdpObject.media[0].rtp[3].codec).toBe('rtx');
-	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
+	expect(sdpObject.media[0]!.payloads).toBe('101 102 103 104');
+	expect(sdpObject.media[0]!.rtp.length).toBe(4);
+	expect(sdpObject.media[0]!.rtp[0]!.payload).toBe(101);
+	expect(sdpObject.media[0]!.rtp[0]!.codec).toBe('VP8');
+	expect(sdpObject.media[0]!.rtp[1]!.payload).toBe(102);
+	expect(sdpObject.media[0]!.rtp[1]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.rtp[2]!.payload).toBe(103);
+	expect(sdpObject.media[0]!.rtp[2]!.codec).toBe('H264');
+	expect(sdpObject.media[0]!.rtp[3]!.payload).toBe(104);
+	expect(sdpObject.media[0]!.rtp[3]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.ssrcs?.length).toBe(4);
 }, 500);
 
 test('RemoteSdp does not duplicate codec descriptions', () => {
@@ -1649,13 +1649,13 @@ test('RemoteSdp does not duplicate codec descriptions', () => {
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
-	expect(sdpObject.media[0].payloads).toBe('101 102');
-	expect(sdpObject.media[0].rtp.length).toBe(2);
-	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
-	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
-	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
-	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
-	expect(sdpObject.media[0].ssrcs?.length).toBe(4);
+	expect(sdpObject.media[0]!.payloads).toBe('101 102');
+	expect(sdpObject.media[0]!.rtp.length).toBe(2);
+	expect(sdpObject.media[0]!.rtp[0]!.payload).toBe(101);
+	expect(sdpObject.media[0]!.rtp[0]!.codec).toBe('VP8');
+	expect(sdpObject.media[0]!.rtp[1]!.payload).toBe(102);
+	expect(sdpObject.media[0]!.rtp[1]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.ssrcs?.length).toBe(4);
 
 	remoteSdp.receive({
 		mid: 'video',
@@ -1671,13 +1671,13 @@ test('RemoteSdp does not duplicate codec descriptions', () => {
 	sdpObject = sdpTransform.parse(sdp);
 
 	expect(sdpObject.media.length).toBe(1);
-	expect(sdpObject.media[0].payloads).toBe('101 102');
-	expect(sdpObject.media[0].rtp.length).toBe(2);
-	expect(sdpObject.media[0].rtp[0].payload).toBe(101);
-	expect(sdpObject.media[0].rtp[0].codec).toBe('VP8');
-	expect(sdpObject.media[0].rtp[1].payload).toBe(102);
-	expect(sdpObject.media[0].rtp[1].codec).toBe('rtx');
-	expect(sdpObject.media[0].ssrcs?.length).toBe(8);
+	expect(sdpObject.media[0]!.payloads).toBe('101 102');
+	expect(sdpObject.media[0]!.rtp.length).toBe(2);
+	expect(sdpObject.media[0]!.rtp[0]!.payload).toBe(101);
+	expect(sdpObject.media[0]!.rtp[0]!.codec).toBe('VP8');
+	expect(sdpObject.media[0]!.rtp[1]!.payload).toBe(102);
+	expect(sdpObject.media[0]!.rtp[1]!.codec).toBe('rtx');
+	expect(sdpObject.media[0]!.ssrcs?.length).toBe(8);
 }, 500);
 
 test('parseScalabilityMode() works', () => {

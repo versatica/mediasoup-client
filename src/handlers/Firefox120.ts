@@ -362,7 +362,7 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		const sendingRtpParameters: RtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -373,7 +373,7 @@ export class Firefox120 extends HandlerInterface {
 
 		const sendingRemoteRtpParameters: RtpParameters =
 			utils.clone<RtpParameters>(
-				this._sendingRemoteRtpParametersByKind![track.kind]
+				this._sendingRemoteRtpParametersByKind![track.kind]!
 			);
 
 		// This may throw.
@@ -413,7 +413,9 @@ export class Firefox120 extends HandlerInterface {
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
 
-		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
@@ -448,7 +450,7 @@ export class Firefox120 extends HandlerInterface {
 				offerMediaObject,
 			});
 
-			Object.assign(newEncodings[0], encodings[0]);
+			Object.assign(newEncodings[0]!, encodings[0]);
 
 			sendingRtpParameters.encodings = newEncodings;
 		}
@@ -461,8 +463,8 @@ export class Firefox120 extends HandlerInterface {
 		// each encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
 		) {
 			for (const encoding of sendingRtpParameters.encodings) {
 				if (encoding.scalabilityMode) {

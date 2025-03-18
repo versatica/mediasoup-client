@@ -89,8 +89,8 @@ export class RemoteSdp {
 			const numFingerprints = this._dtlsParameters!.fingerprints.length;
 
 			this._sdpObject.fingerprint = {
-				type: dtlsParameters.fingerprints[numFingerprints - 1].algorithm,
-				hash: dtlsParameters.fingerprints[numFingerprints - 1].value,
+				type: dtlsParameters.fingerprints[numFingerprints - 1]!.algorithm,
+				hash: dtlsParameters.fingerprints[numFingerprints - 1]!.value,
 			};
 
 			this._sdpObject.groups = [{ type: 'BUNDLE', mids: '' }];
@@ -136,7 +136,7 @@ export class RemoteSdp {
 	getNextMediaSectionIdx(): { idx: number; reuseMid?: string } {
 		// If a closed media section is found, return its index.
 		for (let idx = 0; idx < this._mediaSections.length; ++idx) {
-			const mediaSection = this._mediaSections[idx];
+			const mediaSection = this._mediaSections[idx]!;
 
 			if (mediaSection.closed) {
 				return { idx, reuseMid: mediaSection.mid };
@@ -383,7 +383,7 @@ export class RemoteSdp {
 				throw new Error(`no media section found for reuseMid '${reuseMid}'`);
 			}
 
-			const oldMediaSection = this._mediaSections[idx];
+			const oldMediaSection = this._mediaSections[idx]!;
 
 			// Replace the index in the vector with the new media section.
 			this._mediaSections[idx] = newMediaSection;
@@ -421,7 +421,7 @@ export class RemoteSdp {
 			throw new Error(`no media section found with mid '${mid}'`);
 		}
 
-		return this._mediaSections[idx];
+		return this._mediaSections[idx]!;
 	}
 
 	_regenerateBundleMids(): void {

@@ -77,7 +77,7 @@ export function mangleRtpParameters(
 		}
 
 		// Remove mimeType.
-		// @ts-expect-error --- On purpose.
+		// @ts-expect-error --- Removing mandatory field.
 		delete codec.mimeType;
 	}
 

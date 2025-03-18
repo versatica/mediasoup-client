@@ -314,7 +314,7 @@ export class Chrome70 extends HandlerInterface {
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -324,7 +324,7 @@ export class Chrome70 extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind]
+			this._sendingRemoteRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -373,13 +373,15 @@ export class Chrome70 extends HandlerInterface {
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
 
-		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
 
 		if (
 			encodings &&
 			encodings.length === 1 &&
 			layers.spatialLayers > 1 &&
-			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp9'
+			sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp9'
 		) {
 			logger.debug('send() | enabling legacy simulcast for VP9 SVC');
 
@@ -443,24 +445,24 @@ export class Chrome70 extends HandlerInterface {
 		if (encodings) {
 			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx) {
 				if (encodings[idx]) {
-					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
+					Object.assign(sendingRtpParameters.encodings[idx]!, encodings[idx]);
 				}
 			}
 		}
 
 		// Hack for VP9 SVC.
 		if (hackVp9Svc) {
-			sendingRtpParameters.encodings = [sendingRtpParameters.encodings[0]];
+			sendingRtpParameters.encodings = [sendingRtpParameters.encodings[0]!];
 		}
 
 		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
 		// each encoding.
 		if (
-			sendingRtpParameters.encodings.length > 1 &&
-			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+			sendingRtpParameters.encodings!.length > 1 &&
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
 		) {
-			for (const encoding of sendingRtpParameters.encodings) {
+			for (const encoding of sendingRtpParameters.encodings!) {
 				encoding.scalabilityMode = 'L1T3';
 			}
 		}

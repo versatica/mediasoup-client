@@ -208,7 +208,7 @@ export class FakeHandler extends HandlerInterface {
 		}
 
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._rtpParametersByKind![track.kind]
+			this._rtpParametersByKind![track.kind]!
 		);
 		const useRtx = rtpParameters.codecs.some((_codec: any) =>
 			/.+\/rtx$/i.test(_codec.mimeType)

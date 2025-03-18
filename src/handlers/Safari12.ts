@@ -335,7 +335,7 @@ export class Safari12 extends HandlerInterface {
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -345,7 +345,7 @@ export class Safari12 extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind]
+			this._sendingRemoteRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -382,7 +382,9 @@ export class Safari12 extends HandlerInterface {
 			});
 		}
 
-		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
 
 		if (encodings && encodings.length > 1) {
 			logger.debug('send() | enabling legacy simulcast');
@@ -425,7 +427,7 @@ export class Safari12 extends HandlerInterface {
 		if (encodings) {
 			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx) {
 				if (encodings[idx]) {
-					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
+					Object.assign(sendingRtpParameters.encodings[idx]!, encodings[idx]);
 				}
 			}
 		}
@@ -434,8 +436,8 @@ export class Safari12 extends HandlerInterface {
 		// each encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
 		) {
 			for (const encoding of sendingRtpParameters.encodings) {
 				if (encoding.scalabilityMode) {

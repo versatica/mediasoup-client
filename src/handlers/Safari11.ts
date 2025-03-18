@@ -345,7 +345,7 @@ export class Safari11 extends HandlerInterface {
 
 		let offerMediaObject;
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		sendingRtpParameters.codecs = ortc.reduceCodecs(
@@ -353,7 +353,7 @@ export class Safari11 extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind]
+			this._sendingRemoteRtpParametersByKind![track.kind]!
 		);
 
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
@@ -408,7 +408,7 @@ export class Safari11 extends HandlerInterface {
 		if (encodings) {
 			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx) {
 				if (encodings[idx]) {
-					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
+					Object.assign(sendingRtpParameters.encodings[idx]!, encodings[idx]);
 				}
 			}
 		}
@@ -417,7 +417,7 @@ export class Safari11 extends HandlerInterface {
 		// encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8'
+			sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8'
 		) {
 			for (const encoding of sendingRtpParameters.encodings) {
 				encoding.scalabilityMode = 'L1T3';

@@ -576,7 +576,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				const encoding = offerRtpParameters!.encodings![0];
+				const encoding = offerRtpParameters!.encodings![0]!;
 				const ssrc = encoding.ssrc;
 				const rtxSsrc = encoding.rtx?.ssrc;
 
@@ -667,7 +667,7 @@ export class OfferMediaSection extends MediaSection {
 		streamId: string;
 		trackId: string;
 	}): void {
-		const encoding = offerRtpParameters.encodings![0];
+		const encoding = offerRtpParameters.encodings![0]!;
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = encoding.rtx?.ssrc;
 		const payloads = this._mediaObject.payloads.split(' ');
@@ -767,7 +767,7 @@ export class OfferMediaSection extends MediaSection {
 	}: {
 		offerRtpParameters: RtpParameters;
 	}): void {
-		const encoding = offerRtpParameters.encodings![0];
+		const encoding = offerRtpParameters.encodings![0]!;
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = encoding.rtx?.ssrc;
 
@@ -791,5 +791,5 @@ function getCodecName(codec: RtpCodecParameters): string {
 		throw new TypeError('invalid codec.mimeType');
 	}
 
-	return mimeTypeMatch[2];
+	return mimeTypeMatch[2]!;
 }

@@ -16,9 +16,20 @@
 		"type": "opencollective",
 		"url": "https://opencollective.com/mediasoup"
 	},
-	"main": "lib/index.js",
-	"types": "lib/index.d.ts",
+	"main": "lib/index.cjs",
+	"module": "lib/index.mjs",
+	"types": "lib/index.d.mts",
+	"exports": {
+		".": {
+			"typedoc": "./src/index.mts",
+			"types": "./lib/index.d.mts",
+			"import": "./lib/index.mjs",
+			"require": "./lib/index.cjs"
+		}
+	},
 	"files": [
+		"LICENSE",
+		"README.md",
 		"npm-scripts.mjs",
 		"lib"
 	],
@@ -68,18 +79,18 @@
 		"@types/npm-events-package": "npm:@types/events@^3.0.3",
 		"awaitqueue": "^3.1.0",
 		"debug": "^4.4.0",
-		"npm-events-package": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^1.2.0",
 		"h264-profile-level-id": "^2.2.0",
+		"npm-events-package": "npm:events@^3.3.0",
 		"queue-microtask": "^1.2.3",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.0.0",
-		"ua-parser-js": "^2.0.2"
+		"ua-parser-js": "^2.0.3"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.22.0",
 		"@types/jest": "^29.5.14",
-		"@types/node": "22",
+		"@types/node": "^22.13.10",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
 		"@typescript-eslint/eslint-plugin": "^8.26.1",
