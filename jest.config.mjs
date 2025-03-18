@@ -1,7 +1,7 @@
 const config = {
 	verbose: true,
 	testEnvironment: 'node',
-	testRegex: 'src/test/.*.test.mts',
+	testRegex: 'src/test/test.mts',
 	// Make Jest consider .mts files as if they were ES modules.
 	moduleFileExtensions: ['mts', 'mjs', 'js', 'ts'],
 	transform: {
@@ -15,7 +15,11 @@ const config = {
 			},
 		],
 	},
-	coveragePathIgnorePatterns: ['src/Logger.mts', 'src/test'],
+	coveragePathIgnorePatterns: [
+		'src/Logger.mts',
+		'src/enhancedEvents.mts.mts',
+		'src/test',
+	],
 	cacheDirectory: '.cache/jest',
 };
 

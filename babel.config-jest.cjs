@@ -1,6 +1,6 @@
 /**
  * This is Babel configuration for transpilation of TypeScript files into
- * JavaScript CJS files when running Jest with ts-jest.
+ * JavaScript CJS files when running Jest.
  *
  * In this case we don't want to replace the .mts extension of imports/exports
  * (otherwise Jest will fail to locate them).

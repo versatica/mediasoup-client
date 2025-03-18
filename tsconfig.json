@@ -32,10 +32,8 @@
 		"useUnknownInCatchVariables": true,
 		"noUncheckedSideEffectImports": true,
 		"isolatedModules": true,
-		"verbatimModuleSyntax": false,
-		"useDefineForClassFields": true,
-		"emitDeclarationOnly": true,
-		"declaration": true,
+		"verbatimModuleSyntax": true,
+		"useDefineForClassFields": true
 	},
 	"include": ["src"]
 }

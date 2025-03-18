@@ -7,21 +7,33 @@ const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
 const MAYOR_VERSION = PKG.version.split('.')[0];
 
 // Paths for ESLint to check. Converted to string for convenience.
-const ESLINT_PATHS = ['eslint.config.mjs', 'src', 'npm-scripts.mjs'].join(' ');
+const ESLINT_PATHS = [
+	'babel.config-cjs.mjs',
+	'babel.config-esm.mjs',
+	'babel.config-jest.cjs',
+	'eslint.config.mjs',
+	'jest.config.mjs',
+	'npm-scripts.mjs',
+	'src',
+].join(' ');
+
 // Paths for ESLint to ignore. Converted to string argument for convenience.
 const ESLINT_IGNORE_PATTERN_ARGS = []
 	.map(entry => `--ignore-pattern ${entry}`)
 	.join(' ');
+
 // Paths for Prettier to check/write. Converted to string for convenience.
-// NOTE: Prettier ignores paths in .gitignore so we don't need to care about
-// node/src/fbs.
 const PRETTIER_PATHS = [
 	'README.md',
+	'babel.config-cjs.mjs',
+	'babel.config-esm.mjs',
+	'babel.config-jest.cjs',
 	'eslint.config.mjs',
-	'src',
+	'jest.config.mjs',
 	'npm-scripts.mjs',
 	'package.json',
 	'tsconfig.json',
+	'src',
 ].join(' ');
 
 const task = process.argv[2];
@@ -36,30 +48,30 @@ async function run() {
 		// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
 		// `prepare` script:
 		//
-		// - Runs BEFORE the package is packed, i.e. during `npm publish` and `npm pack`.
+		// - Runs BEFORE the package is packed, i.e. during `npm publish` and
+		//   `npm pack`.
 		// - Runs on local `npm install` without any arguments.
-		// - NOTE: If a package being installed through git contains a `prepare` script,
-		//   its dependencies and devDependencies will be installed, and the `prepare`
-		//   script will be run, before the package is packaged and installed.
+		// - NOTE: If a package being installed through git contains a `prepare`
+		//   script, its dependencies and devDependencies will be installed, and
+		//   the `prepare` script will be run, before the package is packaged and
+		//   installed.
 		//
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare': {
-			buildTypescript({ force: false });
+			buildTypescript();
 
 			break;
 		}
 
 		case 'typescript:build': {
-			installDeps();
-			buildTypescript({ force: true });
+			buildTypescript();
 			replaceVersion();
 
 			break;
 		}
 
 		case 'typescript:watch': {
-			deleteLib();
-			executeCmd(`tsc --watch ${args}`);
+			void watchTypescript();
 
 			break;
 		}
@@ -77,7 +89,6 @@ async function run() {
 		}
 
 		case 'test': {
-			buildTypescript({ force: false });
 			replaceVersion();
 			test();
 
@@ -85,7 +96,6 @@ async function run() {
 		}
 
 		case 'coverage': {
-			buildTypescript({ force: false });
 			replaceVersion();
 			executeCmd(`jest --coverage ${args}`);
 			executeCmd('open-cli coverage/lcov-report/index.html');
@@ -150,15 +160,55 @@ function deleteLib() {
 	fs.rmSync('lib', { recursive: true, force: true });
 }
 
-function buildTypescript({ force = false } = { force: false }) {
-	if (!force && fs.existsSync('lib')) {
-		return;
-	}
-
+function buildTypescript() {
 	logInfo('buildTypescript()');
 
 	deleteLib();
+
+	// Generate .mjs ESM files in lib/.
+	executeCmd(
+		'babel ./src --config-file "./babel.config-esm.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .mjs --source-maps true'
+	);
+
+	// Generate .cjs CJS files in lib/.
+	executeCmd(
+		'babel ./src --config-file "./babel.config-cjs.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .cjs --source-maps true'
+	);
+
+	// Generate .d.mts TypeScript declaration files in lib/.
 	executeCmd('tsc');
+
+	// Delete generated TypeScript declaration files in lib/test/ because we don't
+	// want to expose them.
+	fs.rmSync('lib/test', { recursive: true, force: true });
+}
+
+async function watchTypescript() {
+	logInfo('watchTypescript()');
+
+	// NOTE: Load dep on demand since it's a devDependency.
+	const { concurrently } = await import('concurrently');
+
+	deleteLib();
+
+	concurrently([
+		// Generate .mjs ESM files in lib/ and watch for changes.
+		{
+			name: 'babel ESM',
+			command:
+				'babel ./src --config-file "./babel.config-esm.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .mjs --source-maps true --watch',
+			raw: true,
+		},
+		// Generate .cjs CJS files in lib/ and watch for changes.
+		{
+			name: 'babel CJS',
+			command:
+				'babel ./src --config-file "./babel.config-cjs.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .cjs --source-maps true --watch',
+			raw: true,
+		},
+		// Generate .d.mts TypeScript declaration files in lib/ and watch for changes.
+		{ name: 'tsc', command: 'tsc --watch', prefixColors: 'auto', raw: true },
+	]);
 }
 
 function lint() {
@@ -200,25 +250,21 @@ function checkRelease() {
 	logInfo('checkRelease()');
 
 	installDeps();
-	buildTypescript({ force: true });
+	buildTypescript();
 	replaceVersion();
 	lint();
 	test();
 }
 
-function executeCmd(command, exitOnError = true) {
+function executeCmd(command) {
 	logInfo(`executeCmd(): ${command}`);
 
 	try {
 		execSync(command, { stdio: ['ignore', process.stdout, process.stderr] });
 	} catch (error) {
-		if (exitOnError) {
-			logError(`executeCmd() failed, exiting: ${error}`);
+		logError(`executeCmd() failed, exiting: ${error}`);
 
-			exitWithError();
-		} else {
-			logInfo(`executeCmd() failed, ignoring: ${error}`);
-		}
+		exitWithError();
 	}
 }
 
