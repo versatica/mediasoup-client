@@ -24,6 +24,11 @@
 			"types": "./lib/index.d.mts",
 			"import": "./lib/index.mjs",
 			"require": "./lib/index.cjs"
+		},
+		"./handlers/*": {
+			"types": "./lib/handlers/*.d.mts",
+			"import": "./lib/handlers/*.mjs",
+			"require": "./lib/handlers/*.cjs"
 		}
 	},
 	"files": [
