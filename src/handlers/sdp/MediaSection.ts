@@ -253,7 +253,8 @@ export class AnswerMediaSection extends MediaSection {
 							case 'video/vp8':
 							case 'video/vp9':
 							case 'video/h264':
-							case 'video/h265': {
+							case 'video/h265':
+							case 'video/av1': {
 								if (videoGoogleStartBitrate !== undefined) {
 									codecParameters['x-google-start-bitrate'] =
 										videoGoogleStartBitrate;

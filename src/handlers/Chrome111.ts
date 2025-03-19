@@ -106,7 +106,11 @@ export class Chrome111 extends HandlerInterface {
 
 		try {
 			pc.addTransceiver('audio');
-			pc.addTransceiver('video');
+			// Create video transceiver with scalability mode in order to retrieve
+			// Dependency Descriptor header extension.
+			pc.addTransceiver('video', {
+				sendEncodings: [{ scalabilityMode: 'L3T3' }],
+			});
 
 			const offer = await pc.createOffer();
 

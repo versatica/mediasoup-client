@@ -139,6 +139,10 @@ export class Firefox120 extends HandlerInterface {
 			} catch (error) {}
 
 			const sdpObject = sdpTransform.parse(offer.sdp);
+
+			// Remove AV1 codec since Firefox does not provide SVC for this codec.
+			sdpCommonUtils.removeCodec('video', 'av1', sdpObject.media);
+
 			const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 				sdpObject,
 			});
