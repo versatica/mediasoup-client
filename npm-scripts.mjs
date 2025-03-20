@@ -8,9 +8,6 @@ const MAYOR_VERSION = PKG.version.split('.')[0];
 
 // Paths for ESLint to check. Converted to string for convenience.
 const ESLINT_PATHS = [
-	'babel.config-cjs.mjs',
-	'babel.config-esm.mjs',
-	'babel.config-jest.cjs',
 	'eslint.config.mjs',
 	'jest.config.mjs',
 	'npm-scripts.mjs',
@@ -25,9 +22,6 @@ const ESLINT_IGNORE_PATTERN_ARGS = []
 // Paths for Prettier to check/write. Converted to string for convenience.
 const PRETTIER_PATHS = [
 	'README.md',
-	'babel.config-cjs.mjs',
-	'babel.config-esm.mjs',
-	'babel.config-jest.cjs',
 	'eslint.config.mjs',
 	'jest.config.mjs',
 	'npm-scripts.mjs',
@@ -71,7 +65,7 @@ async function run() {
 		}
 
 		case 'typescript:watch': {
-			void watchTypescript();
+			watchTypescript();
 
 			break;
 		}
@@ -165,50 +159,20 @@ function buildTypescript() {
 
 	deleteLib();
 
-	// Generate .mjs ESM files in lib/.
-	executeCmd(
-		'babel ./src --config-file "./babel.config-esm.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .mjs --source-maps true'
-	);
-
-	// Generate .cjs CJS files in lib/.
-	executeCmd(
-		'babel ./src --config-file "./babel.config-cjs.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .cjs --source-maps true'
-	);
-
-	// Generate .d.mts TypeScript declaration files in lib/.
+	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
 	executeCmd('tsc');
 
-	// Delete generated TypeScript declaration files in lib/test/ because we don't
-	// want to expose them.
+	// Delete generated lib/test because we don't to expose them in the published
+	// library.
 	fs.rmSync('lib/test', { recursive: true, force: true });
 }
 
-async function watchTypescript() {
+function watchTypescript() {
 	logInfo('watchTypescript()');
-
-	// NOTE: Load dep on demand since it's a devDependency.
-	const { concurrently } = await import('concurrently');
 
 	deleteLib();
 
-	concurrently([
-		// Generate .mjs ESM files in lib/ and watch for changes.
-		{
-			name: 'babel ESM',
-			command:
-				'babel ./src --config-file "./babel.config-esm.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .mjs --source-maps true --watch',
-			raw: true,
-		},
-		// Generate .cjs CJS files in lib/ and watch for changes.
-		{
-			name: 'babel CJS',
-			command:
-				'babel ./src --config-file "./babel.config-cjs.mjs" --out-dir "./lib" --ignore "./src/test/**" --extensions .mts --out-file-extension .cjs --source-maps true --watch',
-			raw: true,
-		},
-		// Generate .d.mts TypeScript declaration files in lib/ and watch for changes.
-		{ name: 'tsc', command: 'tsc --watch', prefixColors: 'auto', raw: true },
-	]);
+	executeCmd('tsc --watch');
 }
 
 function lint() {

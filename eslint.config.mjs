@@ -107,21 +107,21 @@ const config = tsEslint.config(
 			yoda: 2,
 		},
 	},
-	// NOTE: We need to apply this only to .mts source files (and not to .mjs
+	// NOTE: We need to apply this only to .ts source files (and not to .mjs
 	// files).
 	...tsEslint.configs.recommendedTypeChecked.map(item => ({
 		...item,
-		files: ['src/**/*.mts'],
+		files: ['src/**/*.ts'],
 	})),
-	// NOTE: We need to apply this only to .mts source files (and not to .mjs
+	// NOTE: We need to apply this only to .ts source files (and not to .mjs
 	// files).
 	...tsEslint.configs.stylisticTypeChecked.map(item => ({
 		...item,
-		files: ['src/**/*.mts'],
+		files: ['src/**/*.ts'],
 	})),
 	{
-		name: '.mts source files',
-		files: ['src/**/*.mts'],
+		name: '.ts source files',
+		files: ['src/**/*.ts'],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
@@ -164,9 +164,9 @@ const config = tsEslint.config(
 		},
 	},
 	{
-		name: '.mts test files',
+		name: '.ts test files',
 		...jestEslint.configs['flat/recommended'],
-		files: ['src/test/**/*.mts'],
+		files: ['src/test/**/*.ts'],
 		rules: {
 			...jestEslint.configs['flat/recommended'].rules,
 			'jest/no-disabled-tests': 2,

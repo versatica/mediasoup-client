@@ -1,23 +1,13 @@
 const config = {
 	verbose: true,
 	testEnvironment: 'node',
-	testRegex: 'src/test/test.mts',
-	// Make Jest consider .mts files as if they were ES modules.
-	moduleFileExtensions: ['mts', 'mjs', 'js', 'ts'],
+	testRegex: 'src/test/*.test.ts',
 	transform: {
-		'^.+\\.mts?$': [
-			'babel-jest',
-			{
-				// We need special Babel settings for Jest plust we need it to be in
-				// a CJS configuration file, otherwise old versions of Node will fail
-				// to run Jest.
-				configFile: './babel.config-jest.cjs',
-			},
-		],
+		'^.+\\.ts?$': ['ts-jest'],
 	},
 	coveragePathIgnorePatterns: [
-		'src/Logger.mts',
-		'src/enhancedEvents.mts.mts',
+		'src/Logger.ts',
+		'src/enhancedEvents.ts',
 		'src/test',
 	],
 	cacheDirectory: '.cache/jest',
