@@ -61,7 +61,8 @@ export function detectDevice(
 ): BuiltinHandlerName | undefined {
 	// React-Native.
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
-	// NOTE: react-native-webrtc with Unified Plan requires version >= 106.0.0.
+	// NOTE: For Unified-Plan support, react-native-webrtc version >= 106.0.0 is
+	// required.
 	if (
 		!userAgent &&
 		typeof navigator === 'object' &&
