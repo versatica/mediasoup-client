@@ -23,9 +23,17 @@
 			"types": "./lib/index.d.ts",
 			"default": "./lib/index.js"
 		},
+		"./types": {
+			"types": "./lib/types.d.ts",
+			"default": "./lib/types.js"
+		},
 		"./handlers/*": {
 			"types": "./lib/handlers/*.d.ts",
 			"default": "./lib/handlers/*.js"
+		},
+		"./testFakeParameters": {
+			"types": "./lib/test/fakeParameters.d.ts",
+			"default": "./lib/test/fakeParameters.js"
 		}
 	},
 	"files": [

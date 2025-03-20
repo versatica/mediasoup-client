@@ -161,10 +161,6 @@ function buildTypescript() {
 
 	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
 	executeCmd('tsc');
-
-	// Delete generated lib/test because we don't to expose them in the published
-	// library.
-	fs.rmSync('lib/test', { recursive: true, force: true });
 }
 
 function watchTypescript() {

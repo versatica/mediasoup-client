@@ -21,6 +21,16 @@ export { Device, detectDevice } from './Device';
 export { parse as parseScalabilityMode } from './scalabilityModes';
 
 /**
+ * Expose FakeHandler.
+ */
+export { FakeHandler } from './handlers/FakeHandler';
+
+/**
+ * Expose test/fakeParameters utils.
+ */
+export * as testFakeParameters from './test/fakeParameters';
+
+/**
  * Expose the debug module.
  */
 export { debug };
