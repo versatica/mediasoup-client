@@ -31,7 +31,7 @@
 			"types": "./lib/handlers/*.d.ts",
 			"default": "./lib/handlers/*.js"
 		},
-		"./testFakeParameters": {
+		"./fakeParameters": {
 			"types": "./lib/test/fakeParameters.d.ts",
 			"default": "./lib/test/fakeParameters.js"
 		}
