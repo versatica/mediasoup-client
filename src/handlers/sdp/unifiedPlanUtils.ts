@@ -1,4 +1,4 @@
-import { RtpEncodingParameters } from '../../RtpParameters';
+import type { RtpEncodingParameters } from '../../RtpParameters';
 
 export function getRtpEncodings({
 	offerMediaObject,

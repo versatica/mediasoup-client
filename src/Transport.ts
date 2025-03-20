@@ -1,22 +1,21 @@
 import { AwaitQueue } from 'awaitqueue';
-import queueMicrotask from 'queue-microtask';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
 import {
-	HandlerFactory,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerReceiveOptions,
+	type HandlerReceiveOptions,
 } from './handlers/HandlerInterface';
-import { Producer, ProducerOptions } from './Producer';
-import { Consumer, ConsumerOptions } from './Consumer';
-import { DataProducer, DataProducerOptions } from './DataProducer';
-import { DataConsumer, DataConsumerOptions } from './DataConsumer';
-import { RtpParameters, MediaKind } from './RtpParameters';
-import { SctpParameters, SctpStreamParameters } from './SctpParameters';
-import { AppData } from './types';
+import { Producer, type ProducerOptions } from './Producer';
+import { Consumer, type ConsumerOptions } from './Consumer';
+import { DataProducer, type DataProducerOptions } from './DataProducer';
+import { DataConsumer, type DataConsumerOptions } from './DataConsumer';
+import type { RtpParameters, MediaKind } from './RtpParameters';
+import type { SctpParameters, SctpStreamParameters } from './SctpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('Transport');
 
@@ -899,8 +898,8 @@ export class Transport<
 					const results = await this._handler.receive(optionsList);
 
 					for (let idx = 0; idx < results.length; ++idx) {
-						const task = pendingConsumerTasks[idx];
-						const result = results[idx];
+						const task = pendingConsumerTasks[idx]!;
+						const result = results[idx]!;
 						const { id, producerId, kind, rtpParameters, appData } =
 							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;

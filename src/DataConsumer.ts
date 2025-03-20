@@ -1,7 +1,7 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
-import { SctpStreamParameters } from './SctpParameters';
-import { AppData } from './types';
+import type { SctpStreamParameters } from './SctpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('DataConsumer');
 

@@ -18,7 +18,27 @@
 	},
 	"main": "lib/index.js",
 	"types": "lib/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./lib/index.d.ts",
+			"default": "./lib/index.js"
+		},
+		"./types": {
+			"types": "./lib/types.d.ts",
+			"default": "./lib/types.js"
+		},
+		"./handlers/*": {
+			"types": "./lib/handlers/*.d.ts",
+			"default": "./lib/handlers/*.js"
+		},
+		"./fakeParameters": {
+			"types": "./lib/test/fakeParameters.d.ts",
+			"default": "./lib/test/fakeParameters.js"
+		}
+	},
 	"files": [
+		"LICENSE",
+		"README.md",
 		"npm-scripts.mjs",
 		"lib"
 	],
@@ -42,48 +62,26 @@
 		"release:check": "node npm-scripts.mjs release:check",
 		"release": "node npm-scripts.mjs release"
 	},
-	"jest": {
-		"verbose": true,
-		"testEnvironment": "node",
-		"testRegex": "src/test/test.*\\.ts",
-		"transform": {
-			"^.*\\.ts$": [
-				"ts-jest",
-				{
-					"diagnostics": {
-						"ignoreCodes": [
-							"TS151001"
-						]
-					}
-				}
-			]
-		},
-		"coveragePathIgnorePatterns": [
-			"src/test"
-		],
-		"cacheDirectory": ".cache/jest"
-	},
 	"dependencies": {
 		"@types/debug": "^4.1.12",
 		"@types/npm-events-package": "npm:@types/events@^3.0.3",
 		"awaitqueue": "^3.1.0",
 		"debug": "^4.4.0",
-		"npm-events-package": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^1.2.0",
 		"h264-profile-level-id": "^2.2.0",
-		"queue-microtask": "^1.2.3",
+		"npm-events-package": "npm:events@^3.3.0",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.0.0",
-		"ua-parser-js": "^2.0.2"
+		"ua-parser-js": "^2.0.3"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.22.0",
 		"@types/jest": "^29.5.14",
-		"@types/node": "22",
+		"@types/node": "^22.13.10",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
-		"@typescript-eslint/eslint-plugin": "^8.26.1",
-		"@typescript-eslint/parser": "^8.26.1",
+		"@typescript-eslint/eslint-plugin": "^8.27.0",
+		"@typescript-eslint/parser": "^8.27.0",
 		"eslint": "^9.22.0",
 		"eslint-config-prettier": "^10.1.1",
 		"eslint-plugin-jest": "^28.11.0",
@@ -94,6 +92,6 @@
 		"prettier": "^3.5.3",
 		"ts-jest": "^29.2.6",
 		"typescript": "^5.8.2",
-		"typescript-eslint": "^8.26.1"
+		"typescript-eslint": "^8.27.0"
 	}
 }

@@ -7,23 +7,23 @@ import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import { InvalidStateError } from '../errors';
 import {
-	HandlerFactory,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerRunOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
-import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
-import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { IceParameters, DtlsRole } from '../Transport';
+import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Chrome111');
 
@@ -361,7 +361,7 @@ export class Chrome111 extends HandlerInterface {
 		}
 
 		const sendingRtpParameters: RtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -372,7 +372,7 @@ export class Chrome111 extends HandlerInterface {
 
 		const sendingRemoteRtpParameters: RtpParameters =
 			utils.clone<RtpParameters>(
-				this._sendingRemoteRtpParametersByKind![track.kind]
+				this._sendingRemoteRtpParametersByKind![track.kind]!
 			);
 
 		// This may throw.
@@ -440,7 +440,7 @@ export class Chrome111 extends HandlerInterface {
 				offerMediaObject,
 			});
 
-			Object.assign(newEncodings[0], encodings[0]);
+			Object.assign(newEncodings[0]!, encodings[0]);
 
 			sendingRtpParameters.encodings = newEncodings;
 		}

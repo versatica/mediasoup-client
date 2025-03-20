@@ -1,4 +1,4 @@
-import { MediaKind, RtpEncodingParameters } from '../../RtpParameters';
+import type { MediaKind, RtpEncodingParameters } from '../../RtpParameters';
 
 export function extractPlainRtpParameters({
 	sdpObject,

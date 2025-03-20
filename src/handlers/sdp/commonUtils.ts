@@ -1,6 +1,6 @@
 import * as sdpTransform from 'sdp-transform';
-import { DtlsParameters, DtlsRole } from '../../Transport';
-import {
+import type { DtlsParameters, DtlsRole } from '../../Transport';
+import type {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpHeaderExtension,
@@ -266,7 +266,7 @@ export function applyCodecParameters({
 				const spropStereo = codec.parameters['sprop-stereo'];
 
 				if (spropStereo !== undefined) {
-					parameters.stereo = Number(spropStereo) ? 1 : 0;
+					parameters['stereo'] = Number(spropStereo) ? 1 : 0;
 				}
 
 				break;

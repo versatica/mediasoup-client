@@ -7,27 +7,27 @@ import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import { InvalidStateError } from '../errors';
 import {
-	HandlerFactory,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerRunOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
-import { IceParameters, DtlsRole } from '../Transport';
-import {
+import type { IceParameters, DtlsRole } from '../Transport';
+import type {
 	RtpCapabilities,
 	RtpParameters,
 	RtpEncodingParameters,
 } from '../RtpParameters';
-import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('ReactNativeUnifiedPlan');
 
@@ -352,7 +352,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 		}
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -362,7 +362,7 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind]
+			this._sendingRemoteRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -403,13 +403,15 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 		// Special case for VP9 with SVC.
 		let hackVp9Svc = false;
 
-		const layers = parseScalabilityMode((encodings ?? [{}])[0].scalabilityMode);
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
 
 		if (
 			encodings &&
 			encodings.length === 1 &&
 			layers.spatialLayers > 1 &&
-			sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp9'
+			sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp9'
 		) {
 			logger.debug('send() | enabling legacy simulcast for VP9 SVC');
 
@@ -469,11 +471,11 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 				offerMediaObject,
 			});
 
-			Object.assign(newEncodings[0], encodings[0]);
+			Object.assign(newEncodings[0]!, encodings[0]);
 
 			// Hack for VP9 SVC.
 			if (hackVp9Svc) {
-				newEncodings = [newEncodings[0]];
+				newEncodings = [newEncodings[0]!];
 			}
 
 			sendingRtpParameters.encodings = newEncodings;
@@ -487,8 +489,8 @@ export class ReactNativeUnifiedPlan extends HandlerInterface {
 		// each encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
 		) {
 			for (const encoding of sendingRtpParameters.encodings) {
 				if (encoding.scalabilityMode) {

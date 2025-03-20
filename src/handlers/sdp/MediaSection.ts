@@ -1,21 +1,21 @@
 import * as sdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
-import {
+import type {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
 	DtlsRole,
 	PlainRtpParameters,
 } from '../../Transport';
-import { ProducerCodecOptions } from '../../Producer';
-import {
+import type { ProducerCodecOptions } from '../../Producer';
+import type {
 	MediaKind,
 	RtpParameters,
 	RtpCodecParameters,
 	RtcpFeedback,
 	RtpHeaderExtensionParameters,
 } from '../../RtpParameters';
-import { SctpParameters } from '../../SctpParameters';
+import type { SctpParameters } from '../../SctpParameters';
 
 export abstract class MediaSection {
 	// SDP media object.
@@ -576,7 +576,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				const encoding = offerRtpParameters!.encodings![0];
+				const encoding = offerRtpParameters!.encodings![0]!;
 				const ssrc = encoding.ssrc;
 				const rtxSsrc = encoding.rtx?.ssrc;
 
@@ -667,7 +667,7 @@ export class OfferMediaSection extends MediaSection {
 		streamId: string;
 		trackId: string;
 	}): void {
-		const encoding = offerRtpParameters.encodings![0];
+		const encoding = offerRtpParameters.encodings![0]!;
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = encoding.rtx?.ssrc;
 		const payloads = this._mediaObject.payloads.split(' ');
@@ -767,7 +767,7 @@ export class OfferMediaSection extends MediaSection {
 	}: {
 		offerRtpParameters: RtpParameters;
 	}): void {
-		const encoding = offerRtpParameters.encodings![0];
+		const encoding = offerRtpParameters.encodings![0]!;
 		const ssrc = encoding.ssrc;
 		const rtxSsrc = encoding.rtx?.ssrc;
 
@@ -791,5 +791,5 @@ function getCodecName(codec: RtpCodecParameters): string {
 		throw new TypeError('invalid codec.mimeType');
 	}
 
-	return mimeTypeMatch[2];
+	return mimeTypeMatch[2]!;
 }

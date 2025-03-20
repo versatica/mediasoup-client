@@ -1,8 +1,8 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { InvalidStateError } from './errors';
-import { SctpStreamParameters } from './SctpParameters';
-import { AppData } from './types';
+import type { SctpStreamParameters } from './SctpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('DataProducer');
 

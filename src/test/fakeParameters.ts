@@ -1,4 +1,4 @@
-import * as mediasoupClient from '../';
+import * as mediasoupClient from '../index';
 import * as utils from '../utils';
 
 function generateFakeUuid(): string {

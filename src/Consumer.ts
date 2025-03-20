@@ -1,8 +1,8 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { InvalidStateError } from './errors';
-import { MediaKind, RtpParameters } from './RtpParameters';
-import { AppData } from './types';
+import type { MediaKind, RtpParameters } from './RtpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('Consumer');
 

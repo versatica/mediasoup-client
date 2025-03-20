@@ -1,30 +1,30 @@
+import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
-import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import { InvalidStateError } from '../errors';
 import {
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerRunOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import {
+import type {
 	IceParameters,
 	DtlsParameters,
 	DtlsRole,
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
-import { SctpCapabilities } from '../SctpParameters';
+import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('FakeHandler');
 
@@ -208,7 +208,7 @@ export class FakeHandler extends HandlerInterface {
 		}
 
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._rtpParametersByKind![track.kind]
+			this._rtpParametersByKind![track.kind]!
 		);
 		const useRtx = rtpParameters.codecs.some((_codec: any) =>
 			/.+\/rtx$/i.test(_codec.mimeType)

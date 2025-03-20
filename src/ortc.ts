@@ -1,5 +1,5 @@
 import * as h264 from 'h264-profile-level-id';
-import {
+import type {
 	RtpCapabilities,
 	MediaKind,
 	RtpCodecCapability,
@@ -11,7 +11,7 @@ import {
 	RtpHeaderExtensionParameters,
 	RtcpParameters,
 } from './RtpParameters';
-import {
+import type {
 	SctpCapabilities,
 	NumSctpStreams,
 	SctpStreamParameters,
@@ -579,20 +579,20 @@ export function reduceCodecs(
 
 	// If no capability codec is given, take the first one (and RTX).
 	if (!capCodec) {
-		filteredCodecs.push(codecs[0]);
+		filteredCodecs.push(codecs[0]!);
 
 		if (isRtxCodec(codecs[1])) {
-			filteredCodecs.push(codecs[1]);
+			filteredCodecs.push(codecs[1]!);
 		}
 	}
 	// Otherwise look for a compatible set of codecs.
 	else {
 		for (let idx = 0; idx < codecs.length; ++idx) {
-			if (matchCodecs(codecs[idx], capCodec, { strict: true })) {
-				filteredCodecs.push(codecs[idx]);
+			if (matchCodecs(codecs[idx]!, capCodec, { strict: true })) {
+				filteredCodecs.push(codecs[idx]!);
 
 				if (isRtxCodec(codecs[idx + 1])) {
-					filteredCodecs.push(codecs[idx + 1]);
+					filteredCodecs.push(codecs[idx + 1]!);
 				}
 
 				break;
@@ -627,8 +627,8 @@ export function generateProbatorRtpParameters(
 		rtcp: { cname: 'probator' },
 	};
 
-	rtpParameters.codecs.push(videoRtpParameters.codecs[0]);
-	rtpParameters.codecs[0].payloadType = RTP_PROBATOR_CODEC_PAYLOAD_TYPE;
+	rtpParameters.codecs.push(videoRtpParameters.codecs[0]!);
+	rtpParameters.codecs[0]!.payloadType = RTP_PROBATOR_CODEC_PAYLOAD_TYPE;
 	rtpParameters.headerExtensions = videoRtpParameters.headerExtensions;
 
 	return rtpParameters;
@@ -661,7 +661,7 @@ export function canReceive(
 		return false;
 	}
 
-	const firstMediaCodec = rtpParameters.codecs[0];
+	const firstMediaCodec = rtpParameters.codecs[0]!;
 
 	return extendedRtpCapabilities.codecs.some(
 		(codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType
@@ -692,7 +692,7 @@ function validateRtpCodecCapability(codec: RtpCodecCapability): void {
 	}
 
 	// Just override kind with media component of mimeType.
-	codec.kind = mimeTypeMatch[1].toLowerCase() as MediaKind;
+	codec.kind = mimeTypeMatch[1]!.toLowerCase() as MediaKind;
 
 	// preferredPayloadType is optional.
 	if (
@@ -847,7 +847,7 @@ function validateRtpCodecParameters(codec: RtpCodecParameters): void {
 		throw new TypeError('missing codec.clockRate');
 	}
 
-	const kind = mimeTypeMatch[1].toLowerCase() as MediaKind;
+	const kind = mimeTypeMatch[1]!.toLowerCase() as MediaKind;
 
 	// channels is optional. If unset, set it to 1 (just if audio).
 	if (kind === 'audio') {

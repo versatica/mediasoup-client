@@ -4,8 +4,15 @@ import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
 import * as utils from './utils';
 import * as ortc from './ortc';
-import { Transport, TransportOptions, CanProduceByKind } from './Transport';
-import { HandlerFactory, HandlerInterface } from './handlers/HandlerInterface';
+import {
+	Transport,
+	type TransportOptions,
+	type CanProduceByKind,
+} from './Transport';
+import {
+	type HandlerFactory,
+	HandlerInterface,
+} from './handlers/HandlerInterface';
 import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Chrome70 } from './handlers/Chrome70';
@@ -18,9 +25,9 @@ import { Safari11 } from './handlers/Safari11';
 import { Edge11 } from './handlers/Edge11';
 import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
 import { ReactNative } from './handlers/ReactNative';
-import { RtpCapabilities, MediaKind } from './RtpParameters';
-import { SctpCapabilities } from './SctpParameters';
-import { AppData } from './types';
+import type { RtpCapabilities, MediaKind } from './RtpParameters';
+import type { SctpCapabilities } from './SctpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('Device');
 

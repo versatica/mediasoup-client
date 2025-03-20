@@ -1,5 +1,5 @@
 import * as utils from '../../utils';
-import { RtpCapabilities, RtpParameters } from '../../RtpParameters';
+import type { RtpCapabilities, RtpParameters } from '../../RtpParameters';
 
 /**
  * Normalize ORTC based Edge's RTCRtpReceiver.getCapabilities() to produce a full
@@ -77,7 +77,7 @@ export function mangleRtpParameters(
 		}
 
 		// Remove mimeType.
-		// @ts-expect-error --- On purpose.
+		// @ts-expect-error --- Removing mandatory field.
 		delete codec.mimeType;
 	}
 

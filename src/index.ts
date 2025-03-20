@@ -1,11 +1,9 @@
 import debug from 'debug';
-import { Device, detectDevice } from './Device';
-import * as types from './types';
 
 /**
  * Expose all types.
  */
-export { types };
+export * as types from './types';
 
 /**
  * Expose mediasoup-client version.
@@ -15,12 +13,22 @@ export const version = '__MEDIASOUP_CLIENT_VERSION__';
 /**
  * Expose Device class and detectDevice() helper.
  */
-export { Device, detectDevice };
+export { Device, detectDevice } from './Device';
 
 /**
  * Expose parseScalabilityMode() function.
  */
 export { parse as parseScalabilityMode } from './scalabilityModes';
+
+/**
+ * Expose FakeHandler.
+ */
+export { FakeHandler } from './handlers/FakeHandler';
+
+/**
+ * Expose test/fakeParameters utils.
+ */
+export * as testFakeParameters from './test/fakeParameters';
 
 /**
  * Expose the debug module.

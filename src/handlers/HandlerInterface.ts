@@ -1,20 +1,20 @@
 import { EnhancedEventEmitter } from '../enhancedEvents';
-import {
+import type {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
-import { OnRtpReceiverCallback } from '../Consumer';
-import {
+import type { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import type { OnRtpReceiverCallback } from '../Consumer';
+import type {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters,
 } from '../RtpParameters';
-import {
+import type {
 	SctpCapabilities,
 	SctpParameters,
 	SctpStreamParameters,

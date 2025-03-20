@@ -1,4 +1,4 @@
-import { RtpCapabilities } from '../../RtpParameters';
+import type { RtpCapabilities } from '../../RtpParameters';
 
 /**
  * This function adds RTCP NACK support for OPUS codec in given capabilities.

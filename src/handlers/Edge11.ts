@@ -4,26 +4,26 @@ import * as utils from '../utils';
 import * as ortc from '../ortc';
 import * as edgeUtils from './ortc/edgeUtils';
 import {
-	HandlerFactory,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerRunOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import {
+import type {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
 	DtlsRole,
 } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
-import { SctpCapabilities } from '../SctpParameters';
+import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('Edge11');
 
@@ -193,7 +193,7 @@ export class Edge11 extends HandlerInterface {
 
 		const rtpSender = new (RTCRtpSender as any)(track, this._dtlsTransport);
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		rtpParameters.codecs = ortc.reduceCodecs(rtpParameters.codecs, codec);

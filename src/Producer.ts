@@ -1,13 +1,13 @@
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
-import {
+import type {
 	MediaKind,
 	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters,
 } from './RtpParameters';
-import { AppData } from './types';
+import type { AppData } from './types';
 
 const logger = new Logger('Producer');
 

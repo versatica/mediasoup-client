@@ -6,22 +6,22 @@ import * as ortc from '../ortc';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpPlanBUtils from './sdp/planBUtils';
 import {
-	HandlerFactory,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerRunOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
-import { IceParameters, DtlsRole } from '../Transport';
-import { RtpCapabilities, RtpParameters } from '../RtpParameters';
-import { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { IceParameters, DtlsRole } from '../Transport';
+import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('ReactNative');
 
@@ -351,7 +351,7 @@ export class ReactNative extends HandlerInterface {
 
 		let offerMediaObject;
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]
+			this._sendingRtpParametersByKind![track.kind]!
 		);
 
 		sendingRtpParameters.codecs = ortc.reduceCodecs(
@@ -359,7 +359,7 @@ export class ReactNative extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind![track.kind]
+			this._sendingRemoteRtpParametersByKind![track.kind]!
 		);
 
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
@@ -414,7 +414,7 @@ export class ReactNative extends HandlerInterface {
 		if (encodings) {
 			for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx) {
 				if (encodings[idx]) {
-					Object.assign(sendingRtpParameters.encodings[idx], encodings[idx]);
+					Object.assign(sendingRtpParameters.encodings[idx]!, encodings[idx]);
 				}
 			}
 		}
@@ -423,8 +423,8 @@ export class ReactNative extends HandlerInterface {
 		// each encoding.
 		if (
 			sendingRtpParameters.encodings.length > 1 &&
-			(sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/vp8' ||
-				sendingRtpParameters.codecs[0].mimeType.toLowerCase() === 'video/h264')
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
 		) {
 			for (const encoding of sendingRtpParameters.encodings) {
 				encoding.scalabilityMode = 'L1T3';

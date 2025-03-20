@@ -1,4 +1,4 @@
-import { BuiltinHandlerName } from '../Device';
+import type { BuiltinHandlerName } from '../Device';
 
 type UATestCase = {
 	desc: string;
