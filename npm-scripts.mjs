@@ -53,6 +53,7 @@ async function run() {
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare': {
 			buildTypescript();
+			replaceVersion();
 
 			break;
 		}
