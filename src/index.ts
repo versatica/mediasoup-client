@@ -21,6 +21,11 @@ export { Device, detectDevice } from './Device';
 export { parse as parseScalabilityMode } from './scalabilityModes';
 
 /**
+ * Expose all ORTC functions.
+ */
+export * as ortc from './ortc';
+
+/**
  * Expose FakeHandler.
  */
 export { FakeHandler } from './handlers/FakeHandler';
