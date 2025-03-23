@@ -700,7 +700,7 @@ export class Transport<
 			}
 
 			if (this._consumerCreationInProgress === false) {
-				void this.createPendingConsumers<ConsumerAppData>();
+				this.createPendingConsumers<ConsumerAppData>();
 			}
 		});
 
@@ -855,9 +855,7 @@ export class Transport<
 	}
 
 	// This method is guaranteed to never throw.
-	private async createPendingConsumers<
-		ConsumerAppData extends AppData,
-	>(): Promise<void> {
+	private createPendingConsumers<ConsumerAppData extends AppData>(): void {
 		this._consumerCreationInProgress = true;
 
 		this._awaitQueue
@@ -970,14 +968,14 @@ export class Transport<
 
 				// There are pending Consumer tasks, enqueue their creation.
 				if (this._pendingConsumerTasks.length > 0) {
-					void this.createPendingConsumers<ConsumerAppData>();
+					this.createPendingConsumers<ConsumerAppData>();
 				}
 			})
 			// NOTE: We only get here when the await queue is closed.
 			.catch(() => {});
 	}
 
-	private pausePendingConsumers() {
+	private pausePendingConsumers(): void {
 		this._consumerPauseInProgress = true;
 
 		this._awaitQueue
@@ -1022,7 +1020,7 @@ export class Transport<
 			.catch(() => {});
 	}
 
-	private resumePendingConsumers() {
+	private resumePendingConsumers(): void {
 		this._consumerResumeInProgress = true;
 
 		this._awaitQueue
@@ -1067,7 +1065,7 @@ export class Transport<
 			.catch(() => {});
 	}
 
-	private closePendingConsumers() {
+	private closePendingConsumers(): void {
 		this._consumerCloseInProgress = true;
 
 		this._awaitQueue

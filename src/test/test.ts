@@ -1730,7 +1730,9 @@ describe('detectDevice() assigns proper handler based on UserAgent', () => {
 				// We need to force presence of RTCRtpTransceiver to test Safari 12.
 				if (uaTestCase.expect === 'Safari12') {
 					global.RTCRtpTransceiver = class Dummy {
-						currentDirection() {}
+						currentDirection(): RTCRtpTransceiverDirection {
+							return 'sendrecv';
+						}
 					} as any;
 				}
 
