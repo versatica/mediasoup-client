@@ -10,7 +10,7 @@ export function clone<T>(value: T): T {
 		// Available in Node >= 18.
 		return structuredClone(value);
 	} else {
-		return JSON.parse(JSON.stringify(value));
+		return JSON.parse(JSON.stringify(value)) as T;
 	}
 }
 
