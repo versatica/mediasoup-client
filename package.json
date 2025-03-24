@@ -69,7 +69,7 @@
 	"dependencies": {
 		"@types/debug": "^4.1.12",
 		"@types/npm-events-package": "npm:@types/events@^3.0.3",
-		"awaitqueue": "^3.1.0",
+		"awaitqueue": "^3.2.0",
 		"debug": "^4.4.0",
 		"fake-mediastreamtrack": "^2.0.0",
 		"h264-profile-level-id": "^2.2.0",
