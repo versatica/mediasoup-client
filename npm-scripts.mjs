@@ -164,7 +164,7 @@ function buildTypescript({ force }) {
 	deleteLib();
 
 	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
-	executeCmd('tsc');
+	executeCmd(`tsc ${args}`);
 }
 
 function watchTypescript() {
@@ -172,7 +172,7 @@ function watchTypescript() {
 
 	deleteLib();
 
-	executeCmd('tsc --watch');
+	executeCmd(`tsc --watch ${args}`);
 }
 
 function lint() {
