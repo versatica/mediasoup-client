@@ -206,6 +206,7 @@ function installDeps() {
 
 	// Install/update deps.
 	executeCmd('npm ci --ignore-scripts');
+
 	// Update package-lock.json.
 	executeCmd('npm install --package-lock-only --ignore-scripts');
 }
