@@ -139,7 +139,6 @@ export class Firefox120 extends HandlerInterface {
 			} catch (error) {}
 
 			const sdpObject = sdpTransform.parse(offer.sdp);
-
 			const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 				sdpObject,
 			});
