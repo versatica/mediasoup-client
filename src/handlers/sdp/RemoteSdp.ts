@@ -16,7 +16,7 @@ import { ProducerCodecOptions } from '../../Producer';
 import { MediaKind, RtpParameters } from '../../RtpParameters';
 import { SctpParameters } from '../../SctpParameters';
 
-const DD_CODECS = ['av1'];
+const DD_CODECS = ['av1', 'h264'];
 
 const logger = new Logger('RemoteSdp');
 
