@@ -140,9 +140,6 @@ export class Firefox120 extends HandlerInterface {
 
 			const sdpObject = sdpTransform.parse(offer.sdp);
 
-			// Remove AV1 codec since Firefox does not provide SVC for this codec.
-			sdpCommonUtils.removeCodec('video', 'av1', sdpObject.media);
-
 			const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 				sdpObject,
 			});
@@ -358,6 +355,11 @@ export class Firefox120 extends HandlerInterface {
 		this.assertSendDirection();
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+
+		// Remove scalability mode as it is not supported.
+		encodings?.forEach((encoding: RtpEncodingParameters) => {
+			encoding.scalabilityMode = undefined;
+		});
 
 		if (encodings && encodings.length > 1) {
 			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
