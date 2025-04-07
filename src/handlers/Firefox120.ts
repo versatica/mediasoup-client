@@ -355,11 +355,6 @@ export class Firefox120 extends HandlerInterface {
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		// Remove scalability mode as it is not supported.
-		encodings?.forEach((encoding: RtpEncodingParameters) => {
-			encoding.scalabilityMode = undefined;
-		});
-
 		if (encodings && encodings.length > 1) {
 			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
 				encoding.rid = `r${idx}`;
