@@ -206,6 +206,8 @@ export class RemoteSdp {
 			mediaSection = this._mediaSections[idx] as OfferMediaSection;
 		}
 
+		this.setSessionExtmapAllowMixed();
+
 		// Unified-Plan or different media kind.
 		if (!mediaSection) {
 			mediaSection = new OfferMediaSection({
