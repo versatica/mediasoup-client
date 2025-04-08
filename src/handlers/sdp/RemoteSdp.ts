@@ -206,6 +206,10 @@ export class RemoteSdp {
 			mediaSection = this._mediaSections[idx] as OfferMediaSection;
 		}
 
+		// Allow both 1 byte and 2 bytes length header extensions since
+		// mediasoup can send both at any time.
+		this.setSessionExtmapAllowMixed();
+
 		// Unified-Plan or different media kind.
 		if (!mediaSection) {
 			mediaSection = new OfferMediaSection({

@@ -509,6 +509,10 @@ export class OfferMediaSection extends MediaSection {
 			this._mediaObject.port = plainRtpParameters.port;
 		}
 
+		// Allow both 1 byte and 2 bytes length header extensions since
+		// mediasoup can send both at any time.
+		this._mediaObject.extmapAllowMixed = 'extmap-allow-mixed';
+
 		switch (kind) {
 			case 'audio':
 			case 'video': {
