@@ -1,4 +1,4 @@
-import * as mediasoupClient from '../index';
+import * as mediasoupClient from '../';
 import * as utils from '../utils';
 
 function generateFakeUuid(): string {
@@ -72,6 +72,33 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				rtcpFeedback: [],
 				parameters: {
 					apt: 103,
+				},
+			},
+			{
+				mimeType: 'video/VP9',
+				kind: 'video',
+				preferredPayloadType: 105,
+				clockRate: 90000,
+				rtcpFeedback: [
+					{ type: 'nack' },
+					{ type: 'nack', parameter: 'pli' },
+					{ type: 'ccm', parameter: 'fir' },
+					{ type: 'goog-remb' },
+					{ type: 'transport-cc' },
+				],
+				parameters: {
+					'profile-id': 0,
+					'x-google-start-bitrate': 1500,
+				},
+			},
+			{
+				mimeType: 'video/rtx',
+				kind: 'video',
+				preferredPayloadType: 106,
+				clockRate: 90000,
+				rtcpFeedback: [],
+				parameters: {
+					apt: 105,
 				},
 			},
 		],
@@ -230,6 +257,32 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 					apt: 96,
 				},
 			},
+			{
+				mimeType: 'video/VP9',
+				kind: 'video',
+				preferredPayloadType: 98,
+				clockRate: 90000,
+				rtcpFeedback: [
+					{ type: 'goog-remb' },
+					{ type: 'transport-cc' },
+					{ type: 'ccm', parameter: 'fir' },
+					{ type: 'nack' },
+					{ type: 'nack', parameter: 'pli' },
+				],
+				parameters: {
+					'profile-id': 0,
+				},
+			},
+			{
+				mimeType: 'video/rtx',
+				kind: 'video',
+				preferredPayloadType: 99,
+				clockRate: 90000,
+				rtcpFeedback: [],
+				parameters: {
+					apt: 98,
+				},
+			}
 		],
 		headerExtensions: [
 			{
@@ -264,18 +317,19 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 			},
 			{
 				kind: 'video',
+				// @ts-ignore
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/playout-delay',
 				preferredId: 6,
 			},
 			{
 				kind: 'video',
-				// @ts-expect-error --- ON purpose.
+				// @ts-ignore
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-content-type',
 				preferredId: 7,
 			},
 			{
 				kind: 'video',
-				// @ts-expect-error --- ON purpose.
+				// @ts-ignore
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-timing',
 				preferredId: 8,
 			},
@@ -382,7 +436,7 @@ export function generateConsumerRemoteParameters({
 	switch (codecMimeType) {
 		case 'audio/opus': {
 			return {
-				id: id ?? generateFakeUuid(),
+				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -429,7 +483,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'audio/ISAC': {
 			return {
-				id: id ?? generateFakeUuid(),
+				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -469,7 +523,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'video/VP8': {
 			return {
-				id: id ?? generateFakeUuid(),
+				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -540,7 +594,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'video/H264': {
 			return {
-				id: id ?? generateFakeUuid(),
+				id: id || generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -627,7 +681,7 @@ export function generateDataConsumerRemoteParameters({
 	id,
 }: { id?: string } = {}): mediasoupClient.types.DataConsumerOptions {
 	return {
-		id: id ?? generateFakeUuid(),
+		id: id || generateFakeUuid(),
 		dataProducerId: generateFakeUuid(),
 		sctpStreamParameters:
 			utils.deepFreeze<mediasoupClient.types.SctpStreamParameters>({
