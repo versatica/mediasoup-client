@@ -282,7 +282,7 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				parameters: {
 					apt: 98,
 				},
-			}
+			},
 		],
 		headerExtensions: [
 			{
