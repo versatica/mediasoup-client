@@ -1,4 +1,4 @@
-import * as mediasoupClient from '../';
+import * as mediasoupClient from '../index';
 import * as utils from '../utils';
 
 function generateFakeUuid(): string {
@@ -317,19 +317,18 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 			},
 			{
 				kind: 'video',
-				// @ts-ignore
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/playout-delay',
 				preferredId: 6,
 			},
 			{
 				kind: 'video',
-				// @ts-ignore
+				// @ts-expect-error --- ON purpose.
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-content-type',
 				preferredId: 7,
 			},
 			{
 				kind: 'video',
-				// @ts-ignore
+				// @ts-expect-error --- ON purpose.
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/video-timing',
 				preferredId: 8,
 			},
@@ -436,7 +435,7 @@ export function generateConsumerRemoteParameters({
 	switch (codecMimeType) {
 		case 'audio/opus': {
 			return {
-				id: id || generateFakeUuid(),
+				id: id ?? generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -483,7 +482,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'audio/ISAC': {
 			return {
-				id: id || generateFakeUuid(),
+				id: id ?? generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'audio',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -523,7 +522,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'video/VP8': {
 			return {
-				id: id || generateFakeUuid(),
+				id: id ?? generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -594,7 +593,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'video/H264': {
 			return {
-				id: id || generateFakeUuid(),
+				id: id ?? generateFakeUuid(),
 				producerId: generateFakeUuid(),
 				kind: 'video',
 				rtpParameters: utils.deepFreeze<mediasoupClient.types.RtpParameters>({
@@ -681,7 +680,7 @@ export function generateDataConsumerRemoteParameters({
 	id,
 }: { id?: string } = {}): mediasoupClient.types.DataConsumerOptions {
 	return {
-		id: id || generateFakeUuid(),
+		id: id ?? generateFakeUuid(),
 		dataProducerId: generateFakeUuid(),
 		sctpStreamParameters:
 			utils.deepFreeze<mediasoupClient.types.SctpStreamParameters>({
