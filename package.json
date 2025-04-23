@@ -79,23 +79,23 @@
 		"ua-parser-js": "^2.0.3"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.23.0",
+		"@eslint/js": "^9.25.1",
 		"@types/jest": "^29.5.14",
-		"@types/node": "^22.13.12",
+		"@types/node": "^22.14.1",
 		"@types/sdp-transform": "^2.4.9",
 		"@types/ua-parser-js": "^0.7.39",
-		"@typescript-eslint/eslint-plugin": "^8.27.0",
-		"@typescript-eslint/parser": "^8.27.0",
-		"eslint": "^9.23.0",
-		"eslint-config-prettier": "^10.1.1",
+		"@typescript-eslint/eslint-plugin": "^8.31.0",
+		"@typescript-eslint/parser": "^8.31.0",
+		"eslint": "^9.25.1",
+		"eslint-config-prettier": "^10.1.2",
 		"eslint-plugin-jest": "^28.11.0",
-		"eslint-plugin-prettier": "^5.2.4",
+		"eslint-plugin-prettier": "^5.2.6",
 		"globals": "^16.0.0",
 		"jest": "^29.7.0",
 		"open-cli": "^8.0.0",
 		"prettier": "^3.5.3",
-		"ts-jest": "^29.3.0",
-		"typescript": "^5.8.2",
-		"typescript-eslint": "^8.27.0"
+		"ts-jest": "^29.3.2",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.31.0"
 	}
 }

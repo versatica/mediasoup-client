@@ -158,6 +158,7 @@ const config = tsEslint.config(
 			'@typescript-eslint/no-unsafe-argument': 0,
 			'@typescript-eslint/consistent-indexed-object-style': 0,
 			'@typescript-eslint/no-empty-function': 0,
+			'@typescript-eslint/prefer-nullish-coalescing': 0,
 			'@typescript-eslint/require-await': 0,
 			'@typescript-eslint/restrict-template-expressions': 0,
 			'@typescript-eslint/unbound-method': 0,
