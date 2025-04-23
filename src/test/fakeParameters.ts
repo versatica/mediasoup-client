@@ -74,6 +74,33 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 					apt: 103,
 				},
 			},
+			{
+				mimeType: 'video/VP9',
+				kind: 'video',
+				preferredPayloadType: 105,
+				clockRate: 90000,
+				rtcpFeedback: [
+					{ type: 'nack' },
+					{ type: 'nack', parameter: 'pli' },
+					{ type: 'ccm', parameter: 'fir' },
+					{ type: 'goog-remb' },
+					{ type: 'transport-cc' },
+				],
+				parameters: {
+					'profile-id': 0,
+					'x-google-start-bitrate': 1500,
+				},
+			},
+			{
+				mimeType: 'video/rtx',
+				kind: 'video',
+				preferredPayloadType: 106,
+				clockRate: 90000,
+				rtcpFeedback: [],
+				parameters: {
+					apt: 105,
+				},
+			},
 		],
 		headerExtensions: [
 			{
@@ -228,6 +255,32 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				rtcpFeedback: [],
 				parameters: {
 					apt: 96,
+				},
+			},
+			{
+				mimeType: 'video/VP9',
+				kind: 'video',
+				preferredPayloadType: 98,
+				clockRate: 90000,
+				rtcpFeedback: [
+					{ type: 'goog-remb' },
+					{ type: 'transport-cc' },
+					{ type: 'ccm', parameter: 'fir' },
+					{ type: 'nack' },
+					{ type: 'nack', parameter: 'pli' },
+				],
+				parameters: {
+					'profile-id': 0,
+				},
+			},
+			{
+				mimeType: 'video/rtx',
+				kind: 'video',
+				preferredPayloadType: 99,
+				clockRate: 90000,
+				rtcpFeedback: [],
+				parameters: {
+					apt: 98,
 				},
 			},
 		],

@@ -506,7 +506,7 @@ test('transport.produce() succeeds', async () => {
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(typeof videoProducer.rtpParameters).toBe('object');
 	expect(typeof videoProducer.rtpParameters.mid).toBe('string');
-	expect(videoProducer.rtpParameters.codecs.length).toBe(2);
+	expect(videoProducer.rtpParameters.codecs.length).toBe(4);
 
 	codecs = videoProducer.rtpParameters.codecs;
 
@@ -533,6 +533,32 @@ test('transport.produce() succeeds', async () => {
 		rtcpFeedback: [],
 		parameters: {
 			apt: 96,
+		},
+	});
+
+	expect(codecs[2]).toEqual({
+		mimeType: 'video/VP9',
+		payloadType: 98,
+		clockRate: 90000,
+		rtcpFeedback: [
+			{ type: 'goog-remb', parameter: '' },
+			{ type: 'transport-cc', parameter: '' },
+			{ type: 'ccm', parameter: 'fir' },
+			{ type: 'nack', parameter: '' },
+			{ type: 'nack', parameter: 'pli' },
+		],
+		parameters: {
+			'profile-id': 0,
+		},
+	});
+
+	expect(codecs[3]).toEqual({
+		mimeType: 'video/rtx',
+		payloadType: 99,
+		clockRate: 90000,
+		rtcpFeedback: [],
+		parameters: {
+			apt: 98,
 		},
 	});
 
