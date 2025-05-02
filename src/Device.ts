@@ -56,176 +56,38 @@ export type DeviceOptions = {
 	handlerFactory?: HandlerFactory;
 };
 
+/**
+ * Async mediasoup-client Handler detection. More powerful than
+ * `detectDevice()`.
+ */
+export async function detectDeviceAsync(
+	userAgent?: string
+): Promise<BuiltinHandlerName | undefined> {
+	logger.debug('detectDeviceAsync() [userAgent:%s]', userAgent);
+
+	userAgent ??= navigator?.userAgent;
+
+	const uaParserResult = await UAParser(userAgent).withFeatureCheck();
+
+	return detectDeviceImpl(uaParserResult);
+}
+
+/**
+ * Sync mediasoup-client Handler detection.
+ *
+ * @deprecated It only relies on navigator.userAgent. Use `detectDeviceAsync()`
+ * instead.
+ */
 export function detectDevice(
 	userAgent?: string
 ): BuiltinHandlerName | undefined {
-	// React-Native.
-	// NOTE: react-native-webrtc >= 1.75.0 is required.
-	// NOTE: For Unified-Plan support, react-native-webrtc version >= 106.0.0 is
-	// required.
-	if (
-		!userAgent &&
-		typeof navigator === 'object' &&
-		navigator.product === 'ReactNative'
-	) {
-		logger.debug('detectDevice() | React-Native detected');
+	logger.debug('detectDevice() [userAgent:%s]', userAgent);
 
-		if (typeof RTCPeerConnection === 'undefined') {
-			logger.warn(
-				'detectDevice() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?'
-			);
+	userAgent ??= navigator?.userAgent;
 
-			return undefined;
-		}
+	const uaParserResult = UAParser(userAgent);
 
-		if (typeof RTCRtpTransceiver !== 'undefined') {
-			logger.debug('detectDevice() | ReactNative UnifiedPlan handler chosen');
-
-			return 'ReactNativeUnifiedPlan';
-		} else {
-			logger.debug('detectDevice() | ReactNative PlanB handler chosen');
-
-			return 'ReactNative';
-		}
-	}
-	// Browser.
-	else if (
-		userAgent ||
-		(typeof navigator === 'object' && typeof navigator.userAgent === 'string')
-	) {
-		userAgent ??= navigator.userAgent;
-
-		const uaParser = new UAParser(userAgent);
-
-		logger.debug(
-			'detectDevice() | browser detected [userAgent:%s, parsed:%o]',
-			userAgent,
-			uaParser.getResult()
-		);
-
-		const browser = uaParser.getBrowser();
-		const browserName = browser.name?.toLowerCase();
-		const browserVersion = parseInt(browser.major ?? '0');
-		const engine = uaParser.getEngine();
-		const engineName = engine.name?.toLowerCase();
-		const os = uaParser.getOS();
-		const osName = os.name?.toLowerCase();
-		const osVersion = parseFloat(os.version ?? '0');
-		const device = uaParser.getDevice();
-		const deviceModel = device.model?.toLowerCase();
-
-		const isIOS = osName === 'ios' || deviceModel === 'ipad';
-
-		const isChrome =
-			browserName &&
-			[
-				'chrome',
-				'chromium',
-				'mobile chrome',
-				'chrome webview',
-				'chrome headless',
-			].includes(browserName);
-
-		const isFirefox =
-			browserName &&
-			['firefox', 'mobile firefox', 'mobile focus'].includes(browserName);
-
-		const isSafari =
-			browserName && ['safari', 'mobile safari'].includes(browserName);
-
-		const isEdge = browserName && ['edge'].includes(browserName);
-
-		// Chrome, Chromium, and Edge.
-		if ((isChrome || isEdge) && !isIOS && browserVersion >= 111) {
-			return 'Chrome111';
-		} else if (
-			(isChrome && !isIOS && browserVersion >= 74) ||
-			(isEdge && !isIOS && browserVersion >= 88)
-		) {
-			return 'Chrome74';
-		} else if (isChrome && !isIOS && browserVersion >= 70) {
-			return 'Chrome70';
-		} else if (isChrome && !isIOS && browserVersion >= 67) {
-			return 'Chrome67';
-		} else if (isChrome && !isIOS && browserVersion >= 55) {
-			return 'Chrome55';
-		}
-		// Firefox.
-		else if (isFirefox && !isIOS && browserVersion >= 120) {
-			return 'Firefox120';
-		} else if (isFirefox && !isIOS && browserVersion >= 60) {
-			return 'Firefox60';
-		}
-		// Firefox on iOS (so Safari).
-		else if (isFirefox && isIOS && osVersion >= 14.3) {
-			return 'Safari12';
-		}
-		// Safari with Unified-Plan support enabled.
-		else if (
-			isSafari &&
-			browserVersion >= 12 &&
-			typeof RTCRtpTransceiver !== 'undefined' &&
-			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		) {
-			return 'Safari12';
-		}
-		// Safari with Plab-B support.
-		else if (isSafari && browserVersion >= 11) {
-			return 'Safari11';
-		}
-		// Old Edge with ORTC support.
-		else if (isEdge && !isIOS && browserVersion >= 11 && browserVersion <= 18) {
-			return 'Edge11';
-		}
-		// Best effort for WebKit based browsers in iOS.
-		else if (
-			engineName === 'webkit' &&
-			isIOS &&
-			typeof RTCRtpTransceiver !== 'undefined' &&
-			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		) {
-			return 'Safari12';
-		}
-		// Best effort for Chromium based browsers.
-		else if (engineName === 'blink') {
-			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			const match = userAgent.match(/(?:(?:Chrome|Chromium))[ /](\w+)/i);
-
-			if (match) {
-				const version = Number(match[1]);
-
-				if (version >= 111) {
-					return 'Chrome111';
-				} else if (version >= 74) {
-					return 'Chrome74';
-				} else if (version >= 70) {
-					return 'Chrome70';
-				} else if (version >= 67) {
-					return 'Chrome67';
-				} else {
-					return 'Chrome55';
-				}
-			} else {
-				return 'Chrome111';
-			}
-		}
-		// Unsupported browser.
-		else {
-			logger.warn(
-				'detectDevice() | browser not supported [name:%s, version:%s]',
-				browserName,
-				browserVersion
-			);
-
-			return undefined;
-		}
-	}
-	// Unknown device.
-	else {
-		logger.warn('detectDevice() | unknown device');
-
-		return undefined;
-	}
+	return detectDeviceImpl(uaParserResult);
 }
 
 export type DeviceObserver = EnhancedEventEmitter<DeviceObserverEvents>;
@@ -253,6 +115,35 @@ export class Device {
 	// Observer instance.
 	protected readonly _observer: DeviceObserver =
 		new EnhancedEventEmitter<DeviceObserverEvents>();
+
+	/**
+	 * Create a new Device to connect to mediasoup server. It uses a more advanced
+	 * device detection.
+	 *
+	 * @throws {UnsupportedError} if device is not supported.
+	 */
+	static async factory({
+		handlerName,
+		handlerFactory,
+	}: DeviceOptions = {}): Promise<Device> {
+		logger.debug('factory()');
+
+		if (handlerName && handlerFactory) {
+			throw new TypeError(
+				'just one of handlerName or handlerInterface can be given'
+			);
+		}
+
+		if (!handlerName && !handlerFactory) {
+			handlerName = await detectDeviceAsync();
+
+			if (!handlerName) {
+				throw new UnsupportedError('device not supported');
+			}
+		}
+
+		return new Device({ handlerName, handlerFactory });
+	}
 
 	/**
 	 * Create a new Device to connect to mediasoup server.
@@ -663,5 +554,168 @@ export class Device {
 		this._observer.safeEmit('newtransport', transport);
 
 		return transport;
+	}
+}
+
+function detectDeviceImpl(
+	uaParserResult: UAParser.IResult
+): BuiltinHandlerName | undefined {
+	// React-Native.
+	// NOTE: react-native-webrtc >= 1.75.0 is required.
+	// NOTE: For Unified-Plan support, react-native-webrtc version >= 106.0.0 is
+	// required.
+	if (
+		!uaParserResult &&
+		typeof navigator === 'object' &&
+		navigator.product === 'ReactNative'
+	) {
+		logger.debug('detectDeviceImpl() | React-Native detected');
+
+		if (typeof RTCPeerConnection === 'undefined') {
+			logger.warn(
+				'detectDeviceImpl() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?'
+			);
+
+			return undefined;
+		}
+
+		if (typeof RTCRtpTransceiver !== 'undefined') {
+			logger.debug(
+				'detectDeviceImpl() | ReactNative UnifiedPlan handler chosen'
+			);
+
+			return 'ReactNativeUnifiedPlan';
+		} else {
+			logger.debug('detectDeviceImpl() | ReactNative PlanB handler chosen');
+
+			return 'ReactNative';
+		}
+	}
+	// Browser.
+	else {
+		logger.debug(
+			'detectDeviceImpl() | browser detected [userAgent:%s, parsed:%o]',
+			uaParserResult.ua,
+			uaParserResult
+		);
+
+		const browser = uaParserResult.browser;
+		const browserName = browser.name?.toLowerCase();
+		const browserVersion = parseInt(browser.major ?? '0');
+		const engine = uaParserResult.engine;
+		const engineName = engine.name?.toLowerCase();
+		const os = uaParserResult.os;
+		const osName = os.name?.toLowerCase();
+		const osVersion = parseFloat(os.version ?? '0');
+		const device = uaParserResult.device;
+		const deviceModel = device.model?.toLowerCase();
+
+		const isIOS = osName === 'ios' || deviceModel === 'ipad';
+
+		const isChrome =
+			browserName &&
+			[
+				'chrome',
+				'chromium',
+				'mobile chrome',
+				'chrome webview',
+				'chrome headless',
+			].includes(browserName);
+
+		const isFirefox =
+			browserName &&
+			['firefox', 'mobile firefox', 'mobile focus'].includes(browserName);
+
+		const isSafari =
+			browserName && ['safari', 'mobile safari'].includes(browserName);
+
+		const isEdge = browserName && ['edge'].includes(browserName);
+
+		// Chrome, Chromium, and Edge.
+		if ((isChrome || isEdge) && !isIOS && browserVersion >= 111) {
+			return 'Chrome111';
+		} else if (
+			(isChrome && !isIOS && browserVersion >= 74) ||
+			(isEdge && !isIOS && browserVersion >= 88)
+		) {
+			return 'Chrome74';
+		} else if (isChrome && !isIOS && browserVersion >= 70) {
+			return 'Chrome70';
+		} else if (isChrome && !isIOS && browserVersion >= 67) {
+			return 'Chrome67';
+		} else if (isChrome && !isIOS && browserVersion >= 55) {
+			return 'Chrome55';
+		}
+		// Firefox.
+		else if (isFirefox && !isIOS && browserVersion >= 120) {
+			return 'Firefox120';
+		} else if (isFirefox && !isIOS && browserVersion >= 60) {
+			return 'Firefox60';
+		}
+		// Firefox on iOS (so Safari).
+		else if (isFirefox && isIOS && osVersion >= 14.3) {
+			return 'Safari12';
+		}
+		// Safari with Unified-Plan support enabled.
+		else if (
+			isSafari &&
+			browserVersion >= 12 &&
+			typeof RTCRtpTransceiver !== 'undefined' &&
+			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+		) {
+			return 'Safari12';
+		}
+		// Safari with Plab-B support.
+		else if (isSafari && browserVersion >= 11) {
+			return 'Safari11';
+		}
+		// Old Edge with ORTC support.
+		else if (isEdge && !isIOS && browserVersion >= 11 && browserVersion <= 18) {
+			return 'Edge11';
+		}
+		// Best effort for WebKit based browsers in iOS.
+		else if (
+			engineName === 'webkit' &&
+			isIOS &&
+			typeof RTCRtpTransceiver !== 'undefined' &&
+			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
+		) {
+			return 'Safari12';
+		}
+		// Best effort for Chromium based browsers.
+		else if (engineName === 'blink') {
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+			const match = uaParserResult.ua.match(
+				/(?:(?:Chrome|Chromium))[ /](\w+)/i
+			);
+
+			if (match) {
+				const version = Number(match[1]);
+
+				if (version >= 111) {
+					return 'Chrome111';
+				} else if (version >= 74) {
+					return 'Chrome74';
+				} else if (version >= 70) {
+					return 'Chrome70';
+				} else if (version >= 67) {
+					return 'Chrome67';
+				} else {
+					return 'Chrome55';
+				}
+			} else {
+				return 'Chrome111';
+			}
+		}
+		// Unsupported browser.
+		else {
+			logger.warn(
+				'detectDeviceImpl() | browser not supported [name:%s, version:%s]',
+				browserName,
+				browserVersion
+			);
+
+			return undefined;
+		}
 	}
 }
