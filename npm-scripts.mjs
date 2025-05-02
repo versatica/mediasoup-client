@@ -156,7 +156,7 @@ function deleteLib() {
 }
 
 function buildTypescript({ force }) {
-	if (!force && fs.existsSync('node/lib')) {
+	if (!force && fs.existsSync('lib')) {
 		return;
 	}
 
