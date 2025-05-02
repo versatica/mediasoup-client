@@ -65,7 +65,9 @@ export async function detectDeviceAsync(
 ): Promise<BuiltinHandlerName | undefined> {
 	logger.debug('detectDeviceAsync() [userAgent:%s]', userAgent);
 
-	userAgent ??= navigator?.userAgent;
+	if (!userAgent && typeof navigator === 'object') {
+		userAgent = navigator.userAgent;
+	}
 
 	const uaParserResult = await UAParser(userAgent).withFeatureCheck();
 
@@ -83,7 +85,9 @@ export function detectDevice(
 ): BuiltinHandlerName | undefined {
 	logger.debug('detectDevice() [userAgent:%s]', userAgent);
 
-	userAgent ??= navigator?.userAgent;
+	if (!userAgent && typeof navigator === 'object') {
+		userAgent = navigator.userAgent;
+	}
 
 	const uaParserResult = UAParser(userAgent);
 
@@ -564,11 +568,7 @@ function detectDeviceImpl(
 	// NOTE: react-native-webrtc >= 1.75.0 is required.
 	// NOTE: For Unified-Plan support, react-native-webrtc version >= 106.0.0 is
 	// required.
-	if (
-		!uaParserResult &&
-		typeof navigator === 'object' &&
-		navigator.product === 'ReactNative'
-	) {
+	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
 		logger.debug('detectDeviceImpl() | React-Native detected');
 
 		if (typeof RTCPeerConnection === 'undefined') {
