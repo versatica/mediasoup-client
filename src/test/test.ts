@@ -14,7 +14,8 @@ import type { RtpCapabilities } from '../RtpParameters';
 import * as fakeParameters from './fakeParameters';
 import { uaTestCases } from './uaTestCases';
 
-const { Device, detectDevice, parseScalabilityMode, debug } = mediasoupClient;
+const { Device, detectDevice, detectDeviceAsync, parseScalabilityMode, debug } =
+	mediasoupClient;
 
 type TestContext = {
 	device?: mediasoupClient.types.Device;
@@ -1745,12 +1746,12 @@ test('parseScalabilityMode() works', () => {
 	});
 });
 
-describe('detectDevice() assigns proper handler based on UserAgent', () => {
+describe('detectDevice() and detectDeviceAsync() assign proper handler based on UserAgent', () => {
 	for (const uaTestCase of uaTestCases) {
 		test(
 			// eslint-disable-next-line jest/valid-title --- Jest is not that smart.
 			uaTestCase.desc,
-			() => {
+			async () => {
 				const originalRTCRtpTransceiver = global.RTCRtpTransceiver;
 
 				// We need to force presence of RTCRtpTransceiver to test Safari 12.
@@ -1763,6 +1764,9 @@ describe('detectDevice() assigns proper handler based on UserAgent', () => {
 				}
 
 				expect(detectDevice(uaTestCase.ua)).toBe(uaTestCase.expect);
+				await expect(detectDeviceAsync(uaTestCase.ua)).resolves.toBe(
+					uaTestCase.expect
+				);
 
 				// Cleanup.
 				global.RTCRtpTransceiver = originalRTCRtpTransceiver;

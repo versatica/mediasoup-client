@@ -11,9 +11,9 @@ export * as types from './types';
 export const version = '__MEDIASOUP_CLIENT_VERSION__';
 
 /**
- * Expose Device class and detectDevice() helper.
+ * Expose Device class and device detector helpers.
  */
-export { Device, detectDevice } from './Device';
+export { Device, detectDevice, detectDeviceAsync } from './Device';
 
 /**
  * Expose parseScalabilityMode() function.
