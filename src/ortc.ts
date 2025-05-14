@@ -202,46 +202,85 @@ export function validateSctpCapabilities(caps: SctpCapabilities): void {
 
 /**
  * Generate extended RTP capabilities for sending and receiving.
+ *
+ * Resulting codecs keep order preferrred by local or remote capabilities
+ * depending on `preferLocalCodecsOrder`.
  */
 export function getExtendedRtpCapabilities(
 	localCaps: RtpCapabilities,
-	remoteCaps: RtpCapabilities
+	remoteCaps: RtpCapabilities,
+	preferLocalCodecsOrder: boolean
 ): any {
 	const extendedRtpCapabilities: any = {
 		codecs: [],
 		headerExtensions: [],
 	};
 
-	// Match media codecs and keep the order preferred by remoteCaps.
-	for (const remoteCodec of remoteCaps.codecs ?? []) {
-		if (isRtxCodec(remoteCodec)) {
-			continue;
+	// Match media codecs and keep the order preferred by local capabilities.
+	if (preferLocalCodecsOrder) {
+		for (const localCodec of localCaps.codecs ?? []) {
+			if (isRtxCodec(localCodec)) {
+				continue;
+			}
+
+			const matchingRemoteCodec = (remoteCaps.codecs ?? []).find(
+				(remoteCodec: RtpCodecCapability) =>
+					matchCodecs(remoteCodec, localCodec, { strict: true, modify: true })
+			);
+
+			if (!matchingRemoteCodec) {
+				continue;
+			}
+
+			const extendedCodec: any = {
+				mimeType: localCodec.mimeType,
+				kind: localCodec.kind,
+				clockRate: localCodec.clockRate,
+				channels: localCodec.channels,
+				localPayloadType: localCodec.preferredPayloadType,
+				localRtxPayloadType: undefined,
+				remotePayloadType: matchingRemoteCodec.preferredPayloadType,
+				remoteRtxPayloadType: undefined,
+				localParameters: localCodec.parameters,
+				remoteParameters: matchingRemoteCodec.parameters,
+				rtcpFeedback: reduceRtcpFeedback(localCodec, matchingRemoteCodec),
+			};
+
+			extendedRtpCapabilities.codecs.push(extendedCodec);
 		}
+	}
+	// Match media codecs and keep the order preferred by remote capabilities.
+	else {
+		for (const remoteCodec of remoteCaps.codecs ?? []) {
+			if (isRtxCodec(remoteCodec)) {
+				continue;
+			}
 
-		const matchingLocalCodec = (localCaps.codecs ?? []).find(
-			(localCodec: RtpCodecCapability) =>
-				matchCodecs(localCodec, remoteCodec, { strict: true, modify: true })
-		);
+			const matchingLocalCodec = (localCaps.codecs ?? []).find(
+				(localCodec: RtpCodecCapability) =>
+					matchCodecs(localCodec, remoteCodec, { strict: true, modify: true })
+			);
 
-		if (!matchingLocalCodec) {
-			continue;
+			if (!matchingLocalCodec) {
+				continue;
+			}
+
+			const extendedCodec: any = {
+				mimeType: matchingLocalCodec.mimeType,
+				kind: matchingLocalCodec.kind,
+				clockRate: matchingLocalCodec.clockRate,
+				channels: matchingLocalCodec.channels,
+				localPayloadType: matchingLocalCodec.preferredPayloadType,
+				localRtxPayloadType: undefined,
+				remotePayloadType: remoteCodec.preferredPayloadType,
+				remoteRtxPayloadType: undefined,
+				localParameters: matchingLocalCodec.parameters,
+				remoteParameters: remoteCodec.parameters,
+				rtcpFeedback: reduceRtcpFeedback(matchingLocalCodec, remoteCodec),
+			};
+
+			extendedRtpCapabilities.codecs.push(extendedCodec);
 		}
-
-		const extendedCodec: any = {
-			mimeType: matchingLocalCodec.mimeType,
-			kind: matchingLocalCodec.kind,
-			clockRate: matchingLocalCodec.clockRate,
-			channels: matchingLocalCodec.channels,
-			localPayloadType: matchingLocalCodec.preferredPayloadType,
-			localRtxPayloadType: undefined,
-			remotePayloadType: remoteCodec.preferredPayloadType,
-			remoteRtxPayloadType: undefined,
-			localParameters: matchingLocalCodec.parameters,
-			remoteParameters: remoteCodec.parameters,
-			rtcpFeedback: reduceRtcpFeedback(matchingLocalCodec, remoteCodec),
-		};
-
-		extendedRtpCapabilities.codecs.push(extendedCodec);
 	}
 
 	// Match RTX codecs.
