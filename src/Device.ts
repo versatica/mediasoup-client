@@ -322,8 +322,10 @@ export class Device {
 	 */
 	async load({
 		routerRtpCapabilities,
+		preferLocalCodecsOrder = false,
 	}: {
 		routerRtpCapabilities: RtpCapabilities;
+		preferLocalCodecsOrder?: boolean;
 	}): Promise<void> {
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
@@ -363,7 +365,8 @@ export class Device {
 			// Get extended RTP capabilities.
 			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
 				clonedNativeRtpCapabilities,
-				clonedRouterRtpCapabilities
+				clonedRouterRtpCapabilities,
+				preferLocalCodecsOrder
 			);
 
 			logger.debug(
