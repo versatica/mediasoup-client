@@ -1,4 +1,4 @@
-import { EventEmitter, type Listener } from 'npm-events-package';
+import { EventEmitter, type Listener } from 'events-alias';
 import { Logger } from './Logger';
 
 const enhancedEventEmitterLogger = new Logger('EnhancedEventEmitter');
