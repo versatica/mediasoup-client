@@ -72,7 +72,7 @@
 		"awaitqueue": "^3.2.1",
 		"debug": "^4.4.1",
 		"events-alias": "npm:events@^3.3.0",
-		"fake-mediastreamtrack": "^2.1.0",
+		"fake-mediastreamtrack": "^2.1.1",
 		"h264-profile-level-id": "^2.2.0",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.0.0",
