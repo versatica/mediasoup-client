@@ -160,20 +160,6 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				direction: 'sendrecv',
 			},
 			{
-				kind: 'video',
-				uri: 'http://tools.ietf.org/html/draft-ietf-avtext-framemarking-07',
-				preferredId: 6,
-				preferredEncrypt: false,
-				direction: 'sendrecv',
-			},
-			{
-				kind: 'video',
-				uri: 'urn:ietf:params:rtp-hdrext:framemarking',
-				preferredId: 7,
-				preferredEncrypt: false,
-				direction: 'sendrecv',
-			},
-			{
 				kind: 'audio',
 				uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
 				preferredId: 10,
