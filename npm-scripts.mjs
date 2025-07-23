@@ -137,7 +137,7 @@ function replaceVersion() {
 		}
 
 		// NOTE: dirent.path is only available in Node >= 20.
-		const filePath = path.join(file.path ?? 'lib', file.name);
+		const filePath = path.join(file.parentPath ?? 'lib', file.name);
 		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
 		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
 
