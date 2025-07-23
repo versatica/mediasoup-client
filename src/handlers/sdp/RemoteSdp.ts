@@ -31,8 +31,6 @@ export class RemoteSdp {
 	private readonly _sctpParameters?: SctpParameters;
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE).
 	private readonly _plainRtpParameters?: PlainRtpParameters;
-	// Whether this is Plan-B SDP.
-	private readonly _planB: boolean;
 	// MediaSection instances with same order as in the SDP.
 	private readonly _mediaSections: MediaSection[] = [];
 	// MediaSection indices indexed by MID.
@@ -48,21 +46,18 @@ export class RemoteSdp {
 		dtlsParameters,
 		sctpParameters,
 		plainRtpParameters,
-		planB = false,
 	}: {
 		iceParameters?: IceParameters;
 		iceCandidates?: IceCandidate[];
 		dtlsParameters?: DtlsParameters;
 		sctpParameters?: SctpParameters;
 		plainRtpParameters?: PlainRtpParameters;
-		planB?: boolean;
 	}) {
 		this._iceParameters = iceParameters;
 		this._iceCandidates = iceCandidates;
 		this._dtlsParameters = dtlsParameters;
 		this._sctpParameters = sctpParameters;
 		this._plainRtpParameters = plainRtpParameters;
-		this._planB = planB;
 		this._sdpObject = {
 			version: 0,
 			origin: {
@@ -167,7 +162,6 @@ export class RemoteSdp {
 			iceCandidates: this._iceCandidates,
 			dtlsParameters: this._dtlsParameters,
 			plainRtpParameters: this._plainRtpParameters,
-			planB: this._planB,
 			offerMediaObject,
 			offerRtpParameters,
 			answerRtpParameters,
@@ -219,47 +213,30 @@ export class RemoteSdp {
 		streamId: string;
 		trackId: string;
 	}): void {
-		const idx = this._midToIndex.get(mid);
-		let mediaSection: OfferMediaSection | undefined;
-
-		if (idx !== undefined) {
-			mediaSection = this._mediaSections[idx] as OfferMediaSection;
-		}
-
 		// Allow both 1 byte and 2 bytes length header extensions since
 		// mediasoup can send both at any time.
 		this.setSessionExtmapAllowMixed();
 
-		// Unified-Plan or different media kind.
-		if (!mediaSection) {
-			mediaSection = new OfferMediaSection({
-				iceParameters: this._iceParameters,
-				iceCandidates: this._iceCandidates,
-				dtlsParameters: this._dtlsParameters,
-				plainRtpParameters: this._plainRtpParameters,
-				planB: this._planB,
-				mid,
-				kind,
-				offerRtpParameters,
-				streamId,
-				trackId,
-			});
+		const mediaSection = new OfferMediaSection({
+			iceParameters: this._iceParameters,
+			iceCandidates: this._iceCandidates,
+			dtlsParameters: this._dtlsParameters,
+			plainRtpParameters: this._plainRtpParameters,
+			mid,
+			kind,
+			offerRtpParameters,
+			streamId,
+			trackId,
+		});
 
-			// Let's try to recycle a closed media section (if any).
-			// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
-			const oldMediaSection = this._mediaSections.find(m => m.closed);
+		// Let's try to recycle a closed media section (if any).
+		// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
+		const oldMediaSection = this._mediaSections.find(m => m.closed);
 
-			if (oldMediaSection) {
-				this._replaceMediaSection(mediaSection, oldMediaSection.mid);
-			} else {
-				this._addMediaSection(mediaSection);
-			}
-		}
-		// Plan-B.
-		else {
-			mediaSection.planBReceive({ offerRtpParameters, streamId, trackId });
-
-			this._replaceMediaSection(mediaSection);
+		if (oldMediaSection) {
+			this._replaceMediaSection(mediaSection, oldMediaSection.mid);
+		} else {
+			this._addMediaSection(mediaSection);
 		}
 	}
 
@@ -325,20 +302,6 @@ export class RemoteSdp {
 		const mediaSection = this._findMediaSection(mid) as AnswerMediaSection;
 
 		mediaSection.muxSimulcastStreams(encodings);
-
-		this._replaceMediaSection(mediaSection);
-	}
-
-	planBStopReceiving({
-		mid,
-		offerRtpParameters,
-	}: {
-		mid: string;
-		offerRtpParameters: RtpParameters;
-	}): void {
-		const mediaSection = this._findMediaSection(mid) as OfferMediaSection;
-
-		mediaSection.planBStopReceiving({ offerRtpParameters });
 
 		this._replaceMediaSection(mediaSection);
 	}

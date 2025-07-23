@@ -20,22 +20,17 @@ import type { SctpParameters } from '../../SctpParameters';
 export abstract class MediaSection {
 	// SDP media object.
 	protected readonly _mediaObject: any;
-	// Whether this is Plan-B SDP.
-	protected readonly _planB: boolean;
 
 	constructor({
 		iceParameters,
 		iceCandidates,
 		dtlsParameters,
-		planB = false,
 	}: {
 		iceParameters?: IceParameters;
 		iceCandidates?: IceCandidate[];
 		dtlsParameters?: DtlsParameters;
-		planB: boolean;
 	}) {
 		this._mediaObject = {};
-		this._planB = planB;
 
 		if (iceParameters) {
 			this.setIceParameters(iceParameters);
@@ -126,7 +121,6 @@ export class AnswerMediaSection extends MediaSection {
 		dtlsParameters,
 		sctpParameters,
 		plainRtpParameters,
-		planB = false,
 		offerMediaObject,
 		offerRtpParameters,
 		answerRtpParameters,
@@ -137,13 +131,12 @@ export class AnswerMediaSection extends MediaSection {
 		dtlsParameters?: DtlsParameters;
 		sctpParameters?: SctpParameters;
 		plainRtpParameters?: PlainRtpParameters;
-		planB?: boolean;
 		offerMediaObject: any;
 		offerRtpParameters?: RtpParameters;
 		answerRtpParameters?: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
 	}) {
-		super({ iceParameters, iceCandidates, dtlsParameters, planB });
+		super({ iceParameters, iceCandidates, dtlsParameters });
 
 		this._mediaObject.mid = String(offerMediaObject.mid);
 		this._mediaObject.type = offerMediaObject.type;
@@ -372,10 +365,6 @@ export class AnswerMediaSection extends MediaSection {
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				if (this._planB && this._mediaObject.type === 'video') {
-					this._mediaObject.xGoogleFlag = 'conference';
-				}
-
 				break;
 			}
 
@@ -465,7 +454,6 @@ export class OfferMediaSection extends MediaSection {
 		dtlsParameters,
 		sctpParameters,
 		plainRtpParameters,
-		planB = false,
 		mid,
 		kind,
 		offerRtpParameters,
@@ -478,7 +466,6 @@ export class OfferMediaSection extends MediaSection {
 		dtlsParameters?: DtlsParameters;
 		sctpParameters?: SctpParameters;
 		plainRtpParameters?: PlainRtpParameters;
-		planB?: boolean;
 		mid: string;
 		kind: MediaKind | 'application';
 		offerRtpParameters?: RtpParameters;
@@ -486,7 +473,7 @@ export class OfferMediaSection extends MediaSection {
 		trackId?: string;
 		oldDataChannelSpec?: boolean;
 	}) {
-		super({ iceParameters, iceCandidates, dtlsParameters, planB });
+		super({ iceParameters, iceCandidates, dtlsParameters });
 
 		this._mediaObject.mid = String(mid);
 		this._mediaObject.type = kind;
@@ -521,10 +508,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
-
-				if (!this._planB) {
-					this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
-				}
+				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
 
 				for (const codec of offerRtpParameters!.codecs) {
 					const rtp: any = {
@@ -596,28 +580,12 @@ export class OfferMediaSection extends MediaSection {
 					});
 				}
 
-				if (this._planB) {
-					this._mediaObject.ssrcs.push({
-						id: ssrc,
-						attribute: 'msid',
-						value: `${streamId ?? '-'} ${trackId}`,
-					});
-				}
-
 				if (rtxSsrc) {
 					if (offerRtpParameters!.rtcp!.cname) {
 						this._mediaObject.ssrcs.push({
 							id: rtxSsrc,
 							attribute: 'cname',
 							value: offerRtpParameters!.rtcp!.cname,
-						});
-					}
-
-					if (this._planB) {
-						this._mediaObject.ssrcs.push({
-							id: rtxSsrc,
-							attribute: 'msid',
-							value: `${streamId ?? '-'} ${trackId}`,
 						});
 					}
 
@@ -661,130 +629,6 @@ export class OfferMediaSection extends MediaSection {
 
 	resume(): void {
 		this._mediaObject.direction = 'sendonly';
-	}
-
-	planBReceive({
-		offerRtpParameters,
-		streamId,
-		trackId,
-	}: {
-		offerRtpParameters: RtpParameters;
-		streamId: string;
-		trackId: string;
-	}): void {
-		const encoding = offerRtpParameters.encodings![0]!;
-		const ssrc = encoding.ssrc;
-		const rtxSsrc = encoding.rtx?.ssrc;
-		const payloads = this._mediaObject.payloads.split(' ');
-
-		for (const codec of offerRtpParameters.codecs) {
-			if (payloads.includes(String(codec.payloadType))) {
-				continue;
-			}
-
-			const rtp: any = {
-				payload: codec.payloadType,
-				codec: getCodecName(codec),
-				rate: codec.clockRate,
-			};
-
-			if (codec.channels! > 1) {
-				rtp.encoding = codec.channels;
-			}
-
-			this._mediaObject.rtp.push(rtp);
-
-			const fmtp = {
-				payload: codec.payloadType,
-				config: '',
-			};
-
-			for (const key of Object.keys(codec.parameters)) {
-				if (fmtp.config) {
-					fmtp.config += ';';
-				}
-
-				fmtp.config += `${key}=${codec.parameters[key]}`;
-			}
-
-			if (fmtp.config) {
-				this._mediaObject.fmtp.push(fmtp);
-			}
-
-			for (const fb of codec.rtcpFeedback!) {
-				this._mediaObject.rtcpFb.push({
-					payload: codec.payloadType,
-					type: fb.type,
-					subtype: fb.parameter,
-				});
-			}
-		}
-
-		this._mediaObject.payloads += ` ${offerRtpParameters.codecs
-			.filter(
-				(codec: RtpCodecParameters) =>
-					!this._mediaObject.payloads.includes(codec.payloadType)
-			)
-			.map((codec: RtpCodecParameters) => codec.payloadType)
-			.join(' ')}`;
-
-		this._mediaObject.payloads = this._mediaObject.payloads.trim();
-
-		if (offerRtpParameters.rtcp!.cname) {
-			this._mediaObject.ssrcs.push({
-				id: ssrc,
-				attribute: 'cname',
-				value: offerRtpParameters.rtcp!.cname,
-			});
-		}
-
-		this._mediaObject.ssrcs.push({
-			id: ssrc,
-			attribute: 'msid',
-			value: `${streamId ?? '-'} ${trackId}`,
-		});
-
-		if (rtxSsrc) {
-			if (offerRtpParameters.rtcp!.cname) {
-				this._mediaObject.ssrcs.push({
-					id: rtxSsrc,
-					attribute: 'cname',
-					value: offerRtpParameters.rtcp!.cname,
-				});
-			}
-
-			this._mediaObject.ssrcs.push({
-				id: rtxSsrc,
-				attribute: 'msid',
-				value: `${streamId ?? '-'} ${trackId}`,
-			});
-
-			// Associate original and retransmission SSRCs.
-			this._mediaObject.ssrcGroups.push({
-				semantics: 'FID',
-				ssrcs: `${ssrc} ${rtxSsrc}`,
-			});
-		}
-	}
-
-	planBStopReceiving({
-		offerRtpParameters,
-	}: {
-		offerRtpParameters: RtpParameters;
-	}): void {
-		const encoding = offerRtpParameters.encodings![0]!;
-		const ssrc = encoding.ssrc;
-		const rtxSsrc = encoding.rtx?.ssrc;
-
-		this._mediaObject.ssrcs = this._mediaObject.ssrcs.filter(
-			(s: any) => s.id !== ssrc && s.id !== rtxSsrc
-		);
-
-		if (rtxSsrc) {
-			this._mediaObject.ssrcGroups = this._mediaObject.ssrcGroups.filter(
-				(group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`
-			);
-		}
 	}
 }
 
