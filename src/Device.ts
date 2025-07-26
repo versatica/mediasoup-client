@@ -15,16 +15,9 @@ import {
 } from './handlers/HandlerInterface';
 import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
-import { Chrome70 } from './handlers/Chrome70';
-import { Chrome67 } from './handlers/Chrome67';
-import { Chrome55 } from './handlers/Chrome55';
 import { Firefox120 } from './handlers/Firefox120';
-import { Firefox60 } from './handlers/Firefox60';
 import { Safari12 } from './handlers/Safari12';
-import { Safari11 } from './handlers/Safari11';
-import { Edge11 } from './handlers/Edge11';
-import { ReactNativeUnifiedPlan } from './handlers/ReactNativeUnifiedPlan';
-import { ReactNative } from './handlers/ReactNative';
+import { ReactNative106 } from './handlers/ReactNative106';
 import type { RtpCapabilities, MediaKind } from './RtpParameters';
 import type { SctpCapabilities } from './SctpParameters';
 import type { AppData } from './types';
@@ -34,16 +27,9 @@ const logger = new Logger('Device');
 export type BuiltinHandlerName =
 	| 'Chrome111'
 	| 'Chrome74'
-	| 'Chrome70'
-	| 'Chrome67'
-	| 'Chrome55'
 	| 'Firefox120'
-	| 'Firefox60'
 	| 'Safari12'
-	| 'Safari11'
-	| 'Edge11'
-	| 'ReactNativeUnifiedPlan'
-	| 'ReactNative';
+	| 'ReactNative106';
 
 export type DeviceOptions = {
 	/**
@@ -191,32 +177,8 @@ export class Device {
 					break;
 				}
 
-				case 'Chrome70': {
-					this._handlerFactory = Chrome70.createFactory();
-
-					break;
-				}
-
-				case 'Chrome67': {
-					this._handlerFactory = Chrome67.createFactory();
-
-					break;
-				}
-
-				case 'Chrome55': {
-					this._handlerFactory = Chrome55.createFactory();
-
-					break;
-				}
-
 				case 'Firefox120': {
 					this._handlerFactory = Firefox120.createFactory();
-
-					break;
-				}
-
-				case 'Firefox60': {
-					this._handlerFactory = Firefox60.createFactory();
 
 					break;
 				}
@@ -227,26 +189,8 @@ export class Device {
 					break;
 				}
 
-				case 'Safari11': {
-					this._handlerFactory = Safari11.createFactory();
-
-					break;
-				}
-
-				case 'Edge11': {
-					this._handlerFactory = Edge11.createFactory();
-
-					break;
-				}
-
-				case 'ReactNativeUnifiedPlan': {
-					this._handlerFactory = ReactNativeUnifiedPlan.createFactory();
-
-					break;
-				}
-
-				case 'ReactNative': {
-					this._handlerFactory = ReactNative.createFactory();
+				case 'ReactNative106': {
+					this._handlerFactory = ReactNative106.createFactory();
 
 					break;
 				}
@@ -568,31 +512,21 @@ function detectDeviceImpl(
 	uaParserResult: UAParser.IResult
 ): BuiltinHandlerName | undefined {
 	// React-Native.
-	// NOTE: react-native-webrtc >= 1.75.0 is required.
-	// NOTE: For Unified-Plan support, react-native-webrtc version >= 106.0.0 is
-	// required.
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
 		logger.debug('detectDeviceImpl() | React-Native detected');
 
-		if (typeof RTCPeerConnection === 'undefined') {
+		if (
+			typeof RTCPeerConnection === 'undefined' ||
+			typeof RTCRtpTransceiver === 'undefined'
+		) {
 			logger.warn(
-				'detectDeviceImpl() | unsupported react-native-webrtc without RTCPeerConnection, forgot to call registerGlobals()?'
+				'detectDeviceImpl() | unsupported react-native-webrtc without RTCPeerConnection or RTCRtpTransceiver, forgot to call registerGlobals() on it?'
 			);
 
 			return undefined;
 		}
 
-		if (typeof RTCRtpTransceiver !== 'undefined') {
-			logger.debug(
-				'detectDeviceImpl() | ReactNative UnifiedPlan handler chosen'
-			);
-
-			return 'ReactNativeUnifiedPlan';
-		} else {
-			logger.debug('detectDeviceImpl() | ReactNative PlanB handler chosen');
-
-			return 'ReactNative';
-		}
+		return 'ReactNative106';
 	}
 	// Browser.
 	else {
@@ -642,18 +576,10 @@ function detectDeviceImpl(
 			(isEdge && !isIOS && browserVersion >= 88)
 		) {
 			return 'Chrome74';
-		} else if (isChrome && !isIOS && browserVersion >= 70) {
-			return 'Chrome70';
-		} else if (isChrome && !isIOS && browserVersion >= 67) {
-			return 'Chrome67';
-		} else if (isChrome && !isIOS && browserVersion >= 55) {
-			return 'Chrome55';
 		}
 		// Firefox.
 		else if (isFirefox && !isIOS && browserVersion >= 120) {
 			return 'Firefox120';
-		} else if (isFirefox && !isIOS && browserVersion >= 60) {
-			return 'Firefox60';
 		}
 		// Firefox on iOS (so Safari).
 		else if (isFirefox && isIOS && osVersion >= 14.3) {
@@ -667,14 +593,6 @@ function detectDeviceImpl(
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
 		) {
 			return 'Safari12';
-		}
-		// Safari with Plab-B support.
-		else if (isSafari && browserVersion >= 11) {
-			return 'Safari11';
-		}
-		// Old Edge with ORTC support.
-		else if (isEdge && !isIOS && browserVersion >= 11 && browserVersion <= 18) {
-			return 'Edge11';
 		}
 		// Best effort for WebKit based browsers in iOS.
 		else if (
@@ -697,14 +615,8 @@ function detectDeviceImpl(
 
 				if (version >= 111) {
 					return 'Chrome111';
-				} else if (version >= 74) {
-					return 'Chrome74';
-				} else if (version >= 70) {
-					return 'Chrome70';
-				} else if (version >= 67) {
-					return 'Chrome67';
 				} else {
-					return 'Chrome55';
+					return 'Chrome74';
 				}
 			} else {
 				return 'Chrome111';
