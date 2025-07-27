@@ -397,23 +397,21 @@ export class Device {
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		proprietaryConstraints,
 		appData,
 	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
 		logger.debug('createSendTransport()');
 
 		return this.createTransport<TransportAppData>({
 			direction: 'send',
-			id: id,
-			iceParameters: iceParameters,
-			iceCandidates: iceCandidates,
-			dtlsParameters: dtlsParameters,
-			sctpParameters: sctpParameters,
-			iceServers: iceServers,
-			iceTransportPolicy: iceTransportPolicy,
-			additionalSettings: additionalSettings,
-			proprietaryConstraints: proprietaryConstraints,
-			appData: appData,
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters,
+			iceServers,
+			iceTransportPolicy,
+			additionalSettings,
+			appData,
 		});
 	}
 
@@ -432,23 +430,21 @@ export class Device {
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		proprietaryConstraints,
 		appData,
 	}: TransportOptions<TransportAppData>): Transport<TransportAppData> {
 		logger.debug('createRecvTransport()');
 
 		return this.createTransport<TransportAppData>({
 			direction: 'recv',
-			id: id,
-			iceParameters: iceParameters,
-			iceCandidates: iceCandidates,
-			dtlsParameters: dtlsParameters,
-			sctpParameters: sctpParameters,
-			iceServers: iceServers,
-			iceTransportPolicy: iceTransportPolicy,
-			additionalSettings: additionalSettings,
-			proprietaryConstraints: proprietaryConstraints,
-			appData: appData,
+			id,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters,
+			iceServers,
+			iceTransportPolicy,
+			additionalSettings,
+			appData,
 		});
 	}
 
@@ -462,7 +458,6 @@ export class Device {
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		proprietaryConstraints,
 		appData,
 	}: {
 		direction: 'send' | 'recv';
@@ -494,7 +489,6 @@ export class Device {
 			iceServers,
 			iceTransportPolicy,
 			additionalSettings,
-			proprietaryConstraints,
 			appData,
 			handlerFactory: this._handlerFactory,
 			extendedRtpCapabilities: this._extendedRtpCapabilities,

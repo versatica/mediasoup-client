@@ -4,6 +4,15 @@ import { Logger } from '../Logger';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
 import { InvalidStateError } from '../errors';
+import type {
+	IceParameters,
+	DtlsParameters,
+	DtlsRole,
+	IceGatheringState,
+	ConnectionState,
+} from '../Transport';
+import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type { SctpCapabilities } from '../SctpParameters';
 import {
 	HandlerInterface,
 	type HandlerRunOptions,
@@ -16,15 +25,6 @@ import {
 	type HandlerReceiveDataChannelOptions,
 	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import type {
-	IceParameters,
-	DtlsParameters,
-	DtlsRole,
-	IceGatheringState,
-	ConnectionState,
-} from '../Transport';
-import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
-import type { SctpCapabilities } from '../SctpParameters';
 
 const logger = new Logger('FakeHandler');
 
@@ -159,7 +159,6 @@ export class FakeHandler extends HandlerInterface {
 		sctpParameters,
 		iceServers,
 		iceTransportPolicy,
-		proprietaryConstraints,
 		extendedRtpCapabilities,
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 	}: HandlerRunOptions): void {
@@ -305,7 +304,10 @@ export class FakeHandler extends HandlerInterface {
 		);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void> {
+	async setRtpEncodingParameters(
+		localId: string,
+		params: Partial<RTCRtpEncodingParameters>
+	): Promise<void> {
 		this.assertNotClosed();
 
 		logger.debug(

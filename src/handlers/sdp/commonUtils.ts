@@ -1,9 +1,15 @@
 import * as sdpTransform from 'sdp-transform';
-import type { DtlsParameters, DtlsRole } from '../../Transport';
+import type * as SdpTransform from 'sdp-transform';
+import type {
+	DtlsParameters,
+	DtlsRole,
+	FingerprintAlgorithm,
+} from '../../Transport';
 import type {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpHeaderExtension,
+	RtpHeaderExtensionUri,
 	RtpParameters,
 	RtcpFeedback,
 } from '../../RtpParameters';
@@ -15,7 +21,7 @@ import type {
 export function extractRtpCapabilities({
 	sdpObject,
 }: {
-	sdpObject: any;
+	sdpObject: SdpTransform.SessionDescription;
 }): RtpCapabilities {
 	// Map of RtpCodecParameters indexed by payload type.
 	const codecsMap: Map<number, RtpCodecCapability> = new Map();
@@ -60,7 +66,7 @@ export function extractRtpCapabilities({
 				kind: kind,
 				mimeType: `${kind}/${rtp.codec}`,
 				preferredPayloadType: rtp.payload,
-				clockRate: rtp.rate,
+				clockRate: rtp.rate!,
 				channels: rtp.encoding,
 				parameters: {},
 				rtcpFeedback: [],
@@ -100,7 +106,7 @@ export function extractRtpCapabilities({
 			// rtcp-fb payload is not '*', so just apply it to its corresponding
 			// codec.
 			if (fb.payload !== '*') {
-				const codec = codecsMap.get(fb.payload);
+				const codec = codecsMap.get(Number(fb.payload));
 
 				if (!codec) {
 					continue;
@@ -128,7 +134,7 @@ export function extractRtpCapabilities({
 
 			const headerExtension: RtpHeaderExtension = {
 				kind: kind,
-				uri: ext.uri,
+				uri: ext.uri as RtpHeaderExtensionUri,
 				preferredId: ext.value,
 			};
 
@@ -147,7 +153,7 @@ export function extractRtpCapabilities({
 export function extractDtlsParameters({
 	sdpObject,
 }: {
-	sdpObject: any;
+	sdpObject: SdpTransform.SessionDescription;
 }): DtlsParameters {
 	let setup = sdpObject.setup;
 	let fingerprint = sdpObject.fingerprint;
@@ -195,7 +201,7 @@ export function extractDtlsParameters({
 		role,
 		fingerprints: [
 			{
-				algorithm: fingerprint.type,
+				algorithm: fingerprint.type as FingerprintAlgorithm,
 				value: fingerprint.hash,
 			},
 		],
@@ -207,7 +213,7 @@ export function extractDtlsParameters({
 export function getCname({
 	offerMediaObject,
 }: {
-	offerMediaObject: any;
+	offerMediaObject: SdpTransform.MediaDescription;
 }): string {
 	const ssrcCnameLine = (offerMediaObject.ssrcs ?? []).find(
 		(line: { attribute: string }) => line.attribute === 'cname'
@@ -217,7 +223,7 @@ export function getCname({
 		return '';
 	}
 
-	return ssrcCnameLine.value;
+	return ssrcCnameLine.value!;
 }
 
 /**
@@ -229,7 +235,7 @@ export function applyCodecParameters({
 	answerMediaObject,
 }: {
 	offerRtpParameters: RtpParameters;
-	answerMediaObject: any;
+	answerMediaObject: SdpTransform.MediaDescription;
 }): void {
 	for (const codec of offerRtpParameters.codecs) {
 		const mimeType = codec.mimeType.toLowerCase();

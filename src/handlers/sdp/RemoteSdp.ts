@@ -1,4 +1,5 @@
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import { Logger } from '../../Logger';
 import {
 	MediaSection,
@@ -38,7 +39,7 @@ export class RemoteSdp {
 	// First MID.
 	private _firstMid?: string;
 	// SDP object.
-	private readonly _sdpObject: any;
+	private readonly _sdpObject: SdpTransform.SessionDescription;
 
 	constructor({
 		iceParameters,
@@ -64,7 +65,7 @@ export class RemoteSdp {
 				address: '0.0.0.0',
 				ipVer: 4,
 				netType: 'IN',
-				sessionId: 10000,
+				sessionId: '10000',
 				sessionVersion: 0,
 				username: 'mediasoup-client',
 			},
@@ -95,8 +96,8 @@ export class RemoteSdp {
 
 		// If there are plain RPT parameters, override SDP origin.
 		if (plainRtpParameters) {
-			this._sdpObject.origin.address = plainRtpParameters.ip;
-			this._sdpObject.origin.ipVer = plainRtpParameters.ipVersion;
+			this._sdpObject.origin!.address = plainRtpParameters.ip;
+			this._sdpObject.origin!.ipVer = plainRtpParameters.ipVersion;
 		}
 	}
 
@@ -151,7 +152,7 @@ export class RemoteSdp {
 		answerRtpParameters,
 		codecOptions,
 	}: {
-		offerMediaObject: any;
+		offerMediaObject: SdpTransform.MediaDescription;
 		reuseMid?: string;
 		offerRtpParameters: RtpParameters;
 		answerRtpParameters: RtpParameters;
@@ -172,15 +173,13 @@ export class RemoteSdp {
 
 		// Remove Dependency Descriptor extension unless there is support for
 		// the codec in mediasoup.
-		// @ts-expect-error --- mediaObject type is 'any'.
-		const ddCodec = mediaObject.rtp.find((rtp: any) =>
+		const ddCodec = mediaObject.rtp.find(rtp =>
 			DD_CODECS.includes(rtp.codec.toLowerCase())
 		);
 
 		if (!ddCodec) {
-			// @ts-expect-error --- mediaObject type is 'any'.
-			mediaObject.ext = mediaObject.ext.filter(
-				(extmap: any) =>
+			mediaObject.ext = mediaObject.ext?.filter(
+				extmap =>
 					extmap.uri !==
 					'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension'
 			);
@@ -306,7 +305,11 @@ export class RemoteSdp {
 		this._replaceMediaSection(mediaSection);
 	}
 
-	sendSctpAssociation({ offerMediaObject }: { offerMediaObject: any }): void {
+	sendSctpAssociation({
+		offerMediaObject,
+	}: {
+		offerMediaObject: SdpTransform.MediaDescription;
+	}): void {
 		const mediaSection = new AnswerMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
@@ -338,7 +341,7 @@ export class RemoteSdp {
 
 	getSdp(): string {
 		// Increase SDP version.
-		this._sdpObject.origin.sessionVersion++;
+		this._sdpObject.origin!.sessionVersion++;
 
 		return sdpTransform.write(this._sdpObject);
 	}
@@ -416,7 +419,7 @@ export class RemoteSdp {
 			return;
 		}
 
-		this._sdpObject.groups[0].mids = this._mediaSections
+		this._sdpObject.groups![0]!.mids = this._mediaSections
 			.filter((mediaSection: MediaSection) => !mediaSection.closed)
 			.map((mediaSection: MediaSection) => mediaSection.mid)
 			.join(' ');

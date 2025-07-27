@@ -1,4 +1,5 @@
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
 import type {
 	IceParameters,
@@ -19,7 +20,7 @@ import type { SctpParameters } from '../../SctpParameters';
 
 export abstract class MediaSection {
 	// SDP media object.
-	protected readonly _mediaObject: any;
+	protected readonly _mediaObject: SdpTransform.MediaDescription;
 
 	constructor({
 		iceParameters,
@@ -30,7 +31,14 @@ export abstract class MediaSection {
 		iceCandidates?: IceCandidate[];
 		dtlsParameters?: DtlsParameters;
 	}) {
-		this._mediaObject = {};
+		this._mediaObject = {
+			type: '',
+			port: 0,
+			protocol: '',
+			payloads: '',
+			rtp: [],
+			fmtp: [],
+		};
 
 		if (iceParameters) {
 			this.setIceParameters(iceParameters);
@@ -62,6 +70,7 @@ export abstract class MediaSection {
 			}
 
 			this._mediaObject.endOfCandidates = 'end-of-candidates';
+
 			this._mediaObject.iceOptions = 'renomination';
 		}
 
@@ -80,7 +89,7 @@ export abstract class MediaSection {
 		return this._mediaObject.port === 0;
 	}
 
-	getObject(): object {
+	getObject(): SdpTransform.MediaDescription {
 		return this._mediaObject;
 	}
 
@@ -377,7 +386,7 @@ export class AnswerMediaSection extends MediaSection {
 				}
 				// Old spec.
 				else if (offerMediaObject.sctpmap) {
-					this._mediaObject.payloads = sctpParameters!.port;
+					this._mediaObject.payloads = String(sctpParameters!.port);
 					this._mediaObject.sctpmap = {
 						app: 'webrtc-datachannel',
 						sctpmapNumber: sctpParameters!.port,
@@ -572,7 +581,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.ssrcs = [];
 				this._mediaObject.ssrcGroups = [];
 
-				if (offerRtpParameters!.rtcp!.cname) {
+				if (ssrc && offerRtpParameters!.rtcp!.cname) {
 					this._mediaObject.ssrcs.push({
 						id: ssrc,
 						attribute: 'cname',
@@ -590,10 +599,12 @@ export class OfferMediaSection extends MediaSection {
 					}
 
 					// Associate original and retransmission SSRCs.
-					this._mediaObject.ssrcGroups.push({
-						semantics: 'FID',
-						ssrcs: `${ssrc} ${rtxSsrc}`,
-					});
+					if (ssrc) {
+						this._mediaObject.ssrcGroups.push({
+							semantics: 'FID',
+							ssrcs: `${ssrc} ${rtxSsrc}`,
+						});
+					}
 				}
 
 				break;
@@ -608,7 +619,7 @@ export class OfferMediaSection extends MediaSection {
 				}
 				// Old spec.
 				else {
-					this._mediaObject.payloads = sctpParameters!.port;
+					this._mediaObject.payloads = String(sctpParameters!.port);
 					this._mediaObject.sctpmap = {
 						app: 'webrtc-datachannel',
 						sctpmapNumber: sctpParameters!.port,

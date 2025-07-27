@@ -1,16 +1,19 @@
 import type { RtpEncodingParameters } from '../../RtpParameters';
+import type * as SdpTransform from 'sdp-transform';
 
 export function getRtpEncodings({
 	offerMediaObject,
 }: {
-	offerMediaObject: any;
+	offerMediaObject: SdpTransform.MediaDescription;
 }): RtpEncodingParameters[] {
-	const ssrcs = new Set();
+	const ssrcs: Set<number> = new Set();
 
 	for (const line of offerMediaObject.ssrcs ?? []) {
 		const ssrc = line.id;
 
-		ssrcs.add(ssrc);
+		if (ssrc) {
+			ssrcs.add(Number(ssrc));
+		}
 	}
 
 	if (ssrcs.size === 0) {

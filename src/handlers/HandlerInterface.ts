@@ -30,8 +30,7 @@ export type HandlerRunOptions = {
 	sctpParameters?: SctpParameters;
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
-	additionalSettings?: any;
-	proprietaryConstraints?: any;
+	additionalSettings?: Partial<RTCConfiguration>;
 	extendedRtpCapabilities: any;
 };
 
@@ -139,7 +138,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract setRtpEncodingParameters(
 		localId: string,
-		params: any
+		params: Partial<RTCRtpEncodingParameters>
 	): Promise<void>;
 
 	abstract getSenderStats(localId: string): Promise<RTCStatsReport>;

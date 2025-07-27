@@ -28,7 +28,6 @@ export type TransportOptions<TransportAppData extends AppData = AppData> = {
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: any;
-	proprietaryConstraints?: any;
 	appData?: TransportAppData;
 };
 
@@ -262,7 +261,6 @@ export class Transport<
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		proprietaryConstraints,
 		appData,
 		handlerFactory,
 		extendedRtpCapabilities,
@@ -305,7 +303,6 @@ export class Transport<
 			iceServers,
 			iceTransportPolicy,
 			additionalSettings: clonedAdditionalSettings,
-			proprietaryConstraints,
 			extendedRtpCapabilities,
 		});
 
