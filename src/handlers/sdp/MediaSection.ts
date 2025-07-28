@@ -204,44 +204,44 @@ export class AnswerMediaSection extends MediaSection {
 
 						const offerCodec = offerRtpParameters!.codecs.find(
 							(c: RtpCodecParameters) => c.payloadType === codec.payloadType
-						);
+						)!;
 
 						switch (codec.mimeType.toLowerCase()) {
 							case 'audio/opus':
 							case 'audio/multiopus': {
 								if (opusStereo !== undefined) {
-									offerCodec!.parameters['sprop-stereo'] = opusStereo ? 1 : 0;
-									codecParameters.stereo = opusStereo ? 1 : 0;
+									offerCodec.parameters!['sprop-stereo'] = opusStereo ? 1 : 0;
+									codecParameters['stereo'] = opusStereo ? 1 : 0;
 								}
 
 								if (opusFec !== undefined) {
-									offerCodec!.parameters.useinbandfec = opusFec ? 1 : 0;
-									codecParameters.useinbandfec = opusFec ? 1 : 0;
+									offerCodec.parameters!['useinbandfec'] = opusFec ? 1 : 0;
+									codecParameters['useinbandfec'] = opusFec ? 1 : 0;
 								}
 
 								if (opusDtx !== undefined) {
-									offerCodec!.parameters.usedtx = opusDtx ? 1 : 0;
-									codecParameters.usedtx = opusDtx ? 1 : 0;
+									offerCodec.parameters!['usedtx'] = opusDtx ? 1 : 0;
+									codecParameters['usedtx'] = opusDtx ? 1 : 0;
 								}
 
 								if (opusMaxPlaybackRate !== undefined) {
-									codecParameters.maxplaybackrate = opusMaxPlaybackRate;
+									codecParameters['maxplaybackrate'] = opusMaxPlaybackRate;
 								}
 
 								if (opusMaxAverageBitrate !== undefined) {
-									codecParameters.maxaveragebitrate = opusMaxAverageBitrate;
+									codecParameters['maxaveragebitrate'] = opusMaxAverageBitrate;
 								}
 
 								if (opusPtime !== undefined) {
-									offerCodec!.parameters.ptime = opusPtime;
-									codecParameters.ptime = opusPtime;
+									offerCodec.parameters!['ptime'] = opusPtime;
+									codecParameters['ptime'] = opusPtime;
 								}
 
 								// If opusNack is not set, we must remove NACK support for OPUS.
 								// Otherwise it would be enabled for those handlers that artificially
 								// announce it in their RTP capabilities.
 								if (!opusNack) {
-									offerCodec!.rtcpFeedback = offerCodec!.rtcpFeedback!.filter(
+									offerCodec.rtcpFeedback = offerCodec.rtcpFeedback!.filter(
 										fb => fb.type !== 'nack' || fb.parameter
 									);
 
@@ -538,12 +538,12 @@ export class OfferMediaSection extends MediaSection {
 						config: '',
 					};
 
-					for (const key of Object.keys(codec.parameters)) {
+					for (const key of Object.keys(codec.parameters ?? {})) {
 						if (fmtp.config) {
 							fmtp.config += ';';
 						}
 
-						fmtp.config += `${key}=${codec.parameters[key]}`;
+						fmtp.config += `${key}=${codec.parameters![key]}`;
 					}
 
 					if (fmtp.config) {

@@ -19,6 +19,7 @@ import type {
 	SctpParameters,
 	SctpStreamParameters,
 } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 
 export type HandlerFactory = () => HandlerInterface;
 
@@ -31,7 +32,7 @@ export type HandlerRunOptions = {
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: Partial<RTCConfiguration>;
-	extendedRtpCapabilities: any;
+	extendedRtpCapabilities: ExtendedRtpCapabilities;
 };
 
 export type HandlerSendOptions = {

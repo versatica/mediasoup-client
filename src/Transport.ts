@@ -13,9 +13,14 @@ import { Producer, type ProducerOptions } from './Producer';
 import { Consumer, type ConsumerOptions } from './Consumer';
 import { DataProducer, type DataProducerOptions } from './DataProducer';
 import { DataConsumer, type DataConsumerOptions } from './DataConsumer';
-import type { RtpParameters, MediaKind } from './RtpParameters';
+import type {
+	RtpParameters,
+	MediaKind,
+	RtpEncodingParameters,
+} from './RtpParameters';
 import type { SctpParameters, SctpStreamParameters } from './SctpParameters';
 import type { AppData } from './types';
+import type { ExtendedRtpCapabilities } from './privateTypes';
 
 const logger = new Logger('Transport');
 
@@ -27,7 +32,7 @@ export type TransportOptions<TransportAppData extends AppData = AppData> = {
 	sctpParameters?: SctpParameters;
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
-	additionalSettings?: any;
+	additionalSettings?: Partial<RTCConfiguration>;
 	appData?: TransportAppData;
 };
 
@@ -205,7 +210,7 @@ export class Transport<
 	// Direction.
 	private readonly _direction: 'send' | 'recv';
 	// Extended RTP capabilities.
-	private readonly _extendedRtpCapabilities: any;
+	private readonly _extendedRtpCapabilities: ExtendedRtpCapabilities;
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
@@ -268,7 +273,7 @@ export class Transport<
 	}: {
 		direction: 'send' | 'recv';
 		handlerFactory: HandlerFactory;
-		extendedRtpCapabilities: any;
+		extendedRtpCapabilities: ExtendedRtpCapabilities;
 		canProduceByKind: CanProduceByKind;
 	} & TransportOptions<TransportAppData>) {
 		super();
@@ -290,7 +295,6 @@ export class Transport<
 		delete clonedAdditionalSettings.iceTransportPolicy;
 		delete clonedAdditionalSettings.bundlePolicy;
 		delete clonedAdditionalSettings.rtcpMuxPolicy;
-		delete clonedAdditionalSettings.sdpSemantics;
 
 		this._handler = handlerFactory();
 
@@ -528,8 +532,10 @@ export class Transport<
 					} else if (encodings && encodings.length === 0) {
 						normalizedEncodings = undefined;
 					} else if (encodings) {
-						normalizedEncodings = encodings.map((encoding: any) => {
-							const normalizedEncoding: any = { active: true };
+						normalizedEncodings = encodings.map(encoding => {
+							const normalizedEncoding: RtpEncodingParameters = {
+								active: true,
+							};
 
 							if (encoding.active === false) {
 								normalizedEncoding.active = false;

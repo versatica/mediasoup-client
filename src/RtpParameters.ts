@@ -31,10 +31,6 @@ export type MediaKind = 'audio' | 'video';
  * - Multiple H264 codecs, each with their own distinct 'packetization-mode' and
  *   'profile-level-id' values.
  * - Multiple VP9 codecs, each with their own distinct 'profile-id' value.
- *
- * RtpCodecCapability entries in the mediaCodecs array of RouterOptions do not
- * require preferredPayloadType field (if unset, mediasoup will choose a random
- * one). If given, make sure it's in the 96-127 range.
  */
 export type RtpCodecCapability = {
 	/**
@@ -48,7 +44,7 @@ export type RtpCodecCapability = {
 	/**
 	 * The preferred RTP payload type.
 	 */
-	preferredPayloadType?: number;
+	preferredPayloadType: number;
 	/**
 	 * Codec clock rate expressed in Hertz.
 	 */
@@ -63,7 +59,7 @@ export type RtpCodecCapability = {
 	 * and 'profile-level-id' in H264 or 'profile-id' in VP9) are critical for
 	 * codec matching.
 	 */
-	parameters?: any;
+	parameters?: Record<string, unknown>;
 	/**
 	 * Transport layer and codec-specific feedback messages for this codec.
 	 */
@@ -198,7 +194,7 @@ export type RtpCodecParameters = {
 	 * as 'packetization-mode' and 'profile-level-id' in H264 or 'profile-id' in
 	 * VP9) are critical for codec matching.
 	 */
-	parameters?: any;
+	parameters?: Record<string, unknown>;
 	/**
 	 * Transport layer and codec-specific feedback messages for this codec.
 	 */
@@ -227,6 +223,10 @@ export type RtcpFeedback = {
  * stream and its associated RTX stream (if any).
  */
 export type RtpEncodingParameters = {
+	/**
+	 * Whether the stream is active or not. Defaults to true.
+	 */
+	active?: boolean;
 	/**
 	 * The media SSRC.
 	 */
@@ -308,7 +308,7 @@ export type RtpHeaderExtensionParameters = {
 	/**
 	 * Configuration parameters for the header extension.
 	 */
-	parameters?: any;
+	parameters?: Record<string, unknown>;
 };
 
 /**

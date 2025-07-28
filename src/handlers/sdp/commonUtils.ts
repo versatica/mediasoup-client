@@ -72,7 +72,7 @@ export function extractRtpCapabilities({
 				rtcpFeedback: [],
 			};
 
-			codecsMap.set(codec.preferredPayloadType!, codec);
+			codecsMap.set(codec.preferredPayloadType, codec);
 		}
 
 		// Get codec parameters.
@@ -269,7 +269,7 @@ export function applyCodecParameters({
 
 		switch (mimeType) {
 			case 'audio/opus': {
-				const spropStereo = codec.parameters['sprop-stereo'];
+				const spropStereo = codec.parameters?.['sprop-stereo'];
 
 				if (spropStereo !== undefined) {
 					parameters['stereo'] = Number(spropStereo) ? 1 : 0;

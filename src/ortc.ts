@@ -16,6 +16,11 @@ import type {
 	NumSctpStreams,
 	SctpStreamParameters,
 } from './SctpParameters';
+import type {
+	ExtendedRtpCapabilities,
+	ExtendedRtpCodecCapability,
+	ExtendedRtpHeaderExtension,
+} from './privateTypes';
 import * as utils from './utils';
 
 const RTP_PROBATOR_MID = 'probator';
@@ -210,8 +215,8 @@ export function getExtendedRtpCapabilities(
 	localCaps: RtpCapabilities,
 	remoteCaps: RtpCapabilities,
 	preferLocalCodecsOrder: boolean
-): any {
-	const extendedRtpCapabilities: any = {
+): ExtendedRtpCapabilities {
+	const extendedRtpCapabilities: ExtendedRtpCapabilities = {
 		codecs: [],
 		headerExtensions: [],
 	};
@@ -232,7 +237,7 @@ export function getExtendedRtpCapabilities(
 				continue;
 			}
 
-			const extendedCodec: any = {
+			const extendedCodec: ExtendedRtpCodecCapability = {
 				mimeType: localCodec.mimeType,
 				kind: localCodec.kind,
 				clockRate: localCodec.clockRate,
@@ -241,8 +246,8 @@ export function getExtendedRtpCapabilities(
 				localRtxPayloadType: undefined,
 				remotePayloadType: matchingRemoteCodec.preferredPayloadType,
 				remoteRtxPayloadType: undefined,
-				localParameters: localCodec.parameters,
-				remoteParameters: matchingRemoteCodec.parameters,
+				localParameters: localCodec.parameters ?? {},
+				remoteParameters: matchingRemoteCodec.parameters ?? {},
 				rtcpFeedback: reduceRtcpFeedback(localCodec, matchingRemoteCodec),
 			};
 
@@ -265,7 +270,7 @@ export function getExtendedRtpCapabilities(
 				continue;
 			}
 
-			const extendedCodec: any = {
+			const extendedCodec: ExtendedRtpCodecCapability = {
 				mimeType: matchingLocalCodec.mimeType,
 				kind: matchingLocalCodec.kind,
 				clockRate: matchingLocalCodec.clockRate,
@@ -274,8 +279,8 @@ export function getExtendedRtpCapabilities(
 				localRtxPayloadType: undefined,
 				remotePayloadType: remoteCodec.preferredPayloadType,
 				remoteRtxPayloadType: undefined,
-				localParameters: matchingLocalCodec.parameters,
-				remoteParameters: remoteCodec.parameters,
+				localParameters: matchingLocalCodec.parameters ?? {},
+				remoteParameters: remoteCodec.parameters ?? {},
 				rtcpFeedback: reduceRtcpFeedback(matchingLocalCodec, remoteCodec),
 			};
 
@@ -288,13 +293,13 @@ export function getExtendedRtpCapabilities(
 		const matchingLocalRtxCodec = localCaps.codecs!.find(
 			(localCodec: RtpCodecCapability) =>
 				isRtxCodec(localCodec) &&
-				localCodec.parameters.apt === extendedCodec.localPayloadType
+				localCodec.parameters?.['apt'] === extendedCodec.localPayloadType
 		);
 
 		const matchingRemoteRtxCodec = remoteCaps.codecs!.find(
 			(remoteCodec: RtpCodecCapability) =>
 				isRtxCodec(remoteCodec) &&
-				remoteCodec.parameters.apt === extendedCodec.remotePayloadType
+				remoteCodec.parameters?.['apt'] === extendedCodec.remotePayloadType
 		);
 
 		if (matchingLocalRtxCodec && matchingRemoteRtxCodec) {
@@ -316,12 +321,12 @@ export function getExtendedRtpCapabilities(
 			continue;
 		}
 
-		const extendedExt = {
+		const extendedExt: ExtendedRtpHeaderExtension = {
 			kind: remoteExt.kind,
 			uri: remoteExt.uri,
 			sendId: matchingLocalExt.preferredId,
 			recvId: remoteExt.preferredId,
-			encrypt: matchingLocalExt.preferredEncrypt,
+			encrypt: matchingLocalExt.preferredEncrypt ?? false,
 			direction: 'sendrecv',
 		};
 
@@ -362,7 +367,7 @@ export function getExtendedRtpCapabilities(
  * RTP capabilities.
  */
 export function getRecvRtpCapabilities(
-	extendedRtpCapabilities: any
+	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): RtpCapabilities {
 	const rtpCapabilities: RtpCapabilities = {
 		codecs: [],
@@ -416,7 +421,7 @@ export function getRecvRtpCapabilities(
 			kind: extendedExtension.kind,
 			uri: extendedExtension.uri,
 			preferredId: extendedExtension.recvId,
-			preferredEncrypt: extendedExtension.encrypt,
+			preferredEncrypt: extendedExtension.encrypt ?? false,
 			direction: extendedExtension.direction,
 		};
 
@@ -432,7 +437,7 @@ export function getRecvRtpCapabilities(
  */
 export function getSendingRtpParameters(
 	kind: MediaKind,
-	extendedRtpCapabilities: any
+	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): RtpParameters {
 	const rtpParameters: RtpParameters = {
 		mid: undefined,
@@ -502,7 +507,7 @@ export function getSendingRtpParameters(
  */
 export function getSendingRemoteRtpParameters(
 	kind: MediaKind,
-	extendedRtpCapabilities: any
+	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): RtpParameters {
 	const rtpParameters: RtpParameters = {
 		mid: undefined,
@@ -678,11 +683,9 @@ export function generateProbatorRtpParameters(
  */
 export function canSend(
 	kind: MediaKind,
-	extendedRtpCapabilities: any
+	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): boolean {
-	return extendedRtpCapabilities.codecs.some(
-		(codec: any) => codec.kind === kind
-	);
+	return extendedRtpCapabilities.codecs.some(codec => codec.kind === kind);
 }
 
 /**
@@ -691,7 +694,7 @@ export function canSend(
  */
 export function canReceive(
 	rtpParameters: RtpParameters,
-	extendedRtpCapabilities: any
+	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): boolean {
 	// This may throw.
 	validateRtpParameters(rtpParameters);
@@ -703,7 +706,7 @@ export function canReceive(
 	const firstMediaCodec = rtpParameters.codecs[0]!;
 
 	return extendedRtpCapabilities.codecs.some(
-		(codec: any) => codec.remotePayloadType === firstMediaCodec.payloadType
+		codec => codec.remotePayloadType === firstMediaCodec.payloadType
 	);
 }
 
@@ -733,12 +736,9 @@ function validateRtpCodecCapability(codec: RtpCodecCapability): void {
 	// Just override kind with media component of mimeType.
 	codec.kind = mimeTypeMatch[1]!.toLowerCase() as MediaKind;
 
-	// preferredPayloadType is optional.
-	if (
-		codec.preferredPayloadType &&
-		typeof codec.preferredPayloadType !== 'number'
-	) {
-		throw new TypeError('invalid codec.preferredPayloadType');
+	// preferredPayloadType is mandatory.
+	if (typeof codec.preferredPayloadType !== 'number') {
+		throw new TypeError('missing codec.preferredPayloadType');
 	}
 
 	// clockRate is mandatory.
@@ -1100,8 +1100,10 @@ function matchCodecs(
 	switch (aMimeType) {
 		case 'video/h264': {
 			if (strict) {
-				const aPacketizationMode = aCodec.parameters['packetization-mode'] ?? 0;
-				const bPacketizationMode = bCodec.parameters['packetization-mode'] ?? 0;
+				const aPacketizationMode =
+					aCodec.parameters!['packetization-mode'] ?? 0;
+				const bPacketizationMode =
+					bCodec.parameters!['packetization-mode'] ?? 0;
 
 				if (aPacketizationMode !== bPacketizationMode) {
 					return false;
@@ -1124,11 +1126,11 @@ function matchCodecs(
 
 				if (modify) {
 					if (selectedProfileLevelId) {
-						aCodec.parameters['profile-level-id'] = selectedProfileLevelId;
-						bCodec.parameters['profile-level-id'] = selectedProfileLevelId;
+						aCodec.parameters!['profile-level-id'] = selectedProfileLevelId;
+						bCodec.parameters!['profile-level-id'] = selectedProfileLevelId;
 					} else {
-						delete aCodec.parameters['profile-level-id'];
-						delete bCodec.parameters['profile-level-id'];
+						delete aCodec.parameters!['profile-level-id'];
+						delete bCodec.parameters!['profile-level-id'];
 					}
 				}
 			}
@@ -1138,8 +1140,8 @@ function matchCodecs(
 
 		case 'video/vp9': {
 			if (strict) {
-				const aProfileId = aCodec.parameters['profile-id'] ?? 0;
-				const bProfileId = bCodec.parameters['profile-id'] ?? 0;
+				const aProfileId = aCodec.parameters!['profile-id'] ?? 0;
+				const bProfileId = bCodec.parameters!['profile-id'] ?? 0;
 
 				if (aProfileId !== bProfileId) {
 					return false;

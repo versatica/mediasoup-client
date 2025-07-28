@@ -21,6 +21,7 @@ import { ReactNative106 } from './handlers/ReactNative106';
 import type { RtpCapabilities, MediaKind } from './RtpParameters';
 import type { SctpCapabilities } from './SctpParameters';
 import type { AppData } from './types';
+import type { ExtendedRtpCapabilities } from './privateTypes';
 
 const logger = new Logger('Device');
 
@@ -94,7 +95,7 @@ export class Device {
 	// Loaded flag.
 	private _loaded = false;
 	// Extended RTP capabilities.
-	private _extendedRtpCapabilities?: any;
+	private _extendedRtpCapabilities?: ExtendedRtpCapabilities;
 	// Local RTP capabilities for receiving media.
 	private _recvRtpCapabilities?: RtpCapabilities;
 	// Whether we can produce audio/video based on computed extended RTP
@@ -491,7 +492,7 @@ export class Device {
 			additionalSettings,
 			appData,
 			handlerFactory: this._handlerFactory,
-			extendedRtpCapabilities: this._extendedRtpCapabilities,
+			extendedRtpCapabilities: this._extendedRtpCapabilities!,
 			canProduceByKind: this._canProduceByKind,
 		});
 

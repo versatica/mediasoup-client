@@ -1,5 +1,5 @@
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { EnhancedEventEmitter } from '../enhancedEvents';
+import type * as SdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
@@ -30,52 +30,257 @@ const logger = new Logger('FakeHandler');
 
 const NAME = 'FakeHandler';
 
-class FakeDataChannel extends EnhancedEventEmitter {
-	id?: number;
+type FakeRTCDataChannelOptions = {
+	id: number;
 	ordered?: boolean;
-	maxPacketLifeTime?: number;
-	maxRetransmits?: number;
+	maxPacketLifeTime?: number | null;
+	maxRetransmits?: number | null;
 	label?: string;
 	protocol?: string;
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
+	// Members for RTCDataChannel standard public getters/setters.
+	private readonly _id: number;
+	private readonly _negotiated = true; // mediasoup just uses negotiated DataChannels.
+	private readonly _ordered: boolean;
+	private readonly _maxPacketLifeTime: number | null;
+	private readonly _maxRetransmits: number | null;
+	private readonly _label: string;
+	private readonly _protocol: string;
+	private _readyState: RTCDataChannelState = 'connecting';
+	private _bufferedAmount = 0;
+	private _bufferedAmountLowThreshold = 0;
+	private _binaryType: BinaryType = 'arraybuffer';
+	// Events.
+	private _onopen: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
+	private _onclosing: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onclose: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onmessage: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onbufferedamountlow:
+		| ((this: FakeRTCDataChannel, ev: Event) => any)
+		| null = null;
+	private _onerror: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
 
 	constructor({
 		id,
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
-	}: {
-		id: number;
-		ordered?: boolean;
-		maxPacketLifeTime?: number;
-		maxRetransmits?: number;
-		label?: string;
-		protocol?: string;
-	}) {
+		ordered = true,
+		maxPacketLifeTime = null,
+		maxRetransmits = null,
+		label = '',
+		protocol = '',
+	}: FakeRTCDataChannelOptions) {
 		super();
 
-		this.id = id;
-		this.ordered = ordered;
-		this.maxPacketLifeTime = maxPacketLifeTime;
-		this.maxRetransmits = maxRetransmits;
-		this.label = label;
-		this.protocol = protocol;
+		logger.debug(
+			`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`
+		);
+
+		this._id = id;
+		this._ordered = ordered;
+		this._maxPacketLifeTime = maxPacketLifeTime;
+		this._maxRetransmits = maxRetransmits;
+		this._label = label;
+		this._protocol = protocol;
+	}
+
+	get id(): number {
+		return this._id;
+	}
+
+	get negotiated(): boolean {
+		return this._negotiated;
+	}
+
+	get ordered(): boolean {
+		return this._ordered;
+	}
+
+	get maxPacketLifeTime(): number | null {
+		return this._maxPacketLifeTime;
+	}
+
+	get maxRetransmits(): number | null {
+		return this._maxRetransmits;
+	}
+
+	get label(): string {
+		return this._label;
+	}
+
+	get protocol(): string {
+		return this._protocol;
+	}
+
+	get readyState(): RTCDataChannelState {
+		return this._readyState;
+	}
+
+	get bufferedAmount(): number {
+		return this._bufferedAmount;
+	}
+
+	get bufferedAmountLowThreshold(): number {
+		return this._bufferedAmountLowThreshold;
+	}
+
+	set bufferedAmountLowThreshold(value: number) {
+		this._bufferedAmountLowThreshold = value;
+	}
+
+	get binaryType(): BinaryType {
+		return this._binaryType;
+	}
+
+	set binaryType(binaryType: BinaryType) {
+		this._binaryType = binaryType;
+	}
+
+	get onopen(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onopen as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onopen(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onopen) {
+			this.removeEventListener('open', this._onopen);
+		}
+
+		this._onopen = handler;
+
+		if (handler) {
+			this.addEventListener('open', handler);
+		}
+	}
+
+	get onclosing(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onclosing as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onclosing(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onclosing) {
+			this.removeEventListener('closing', this._onclosing);
+		}
+
+		this._onclosing = handler;
+
+		if (handler) {
+			this.addEventListener('closing', handler);
+		}
+	}
+
+	get onclose(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onclose as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onclose(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onclose) {
+			this.removeEventListener('close', this._onclose);
+		}
+
+		this._onclose = handler;
+
+		if (handler) {
+			this.addEventListener('close', handler);
+		}
+	}
+
+	get onmessage(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onmessage as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onmessage(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onmessage) {
+			this.removeEventListener('message', this._onmessage);
+		}
+
+		this._onmessage = handler;
+
+		if (handler) {
+			this.addEventListener('message', handler);
+		}
+	}
+
+	get onbufferedamountlow(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onbufferedamountlow as
+			| ((this: RTCDataChannel, ev: Event) => any)
+			| null;
+	}
+
+	set onbufferedamountlow(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onbufferedamountlow) {
+			this.removeEventListener('bufferedamountlow', this._onbufferedamountlow);
+		}
+
+		this._onbufferedamountlow = handler;
+
+		if (handler) {
+			this.addEventListener('bufferedamountlow', handler);
+		}
+	}
+
+	get onerror(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onerror as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onerror(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onerror) {
+			this.removeEventListener('error', this._onerror);
+		}
+
+		this._onerror = handler;
+
+		if (handler) {
+			this.addEventListener('error', handler);
+		}
+	}
+
+	override addEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | AddEventListenerOptions
+	): void {
+		super.addEventListener(type, listener as EventListener, options);
+	}
+
+	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | EventListenerOptions
+	): void {
+		super.removeEventListener(type, listener as EventListener, options);
 	}
 
 	close(): void {
-		this.safeEmit('close');
-		this.emit('@close');
+		if (['closing', 'closed'].includes(this._readyState)) {
+			return;
+		}
+
+		this._readyState = 'closed';
 	}
 
-	send(data: any): void {
-		this.safeEmit('message', data);
-	}
-
-	addEventListener(event: string, fn: () => void): void {
-		this.on(event, fn);
+	/**
+	 * We extend the definition of send() to allow Node Buffer. However
+	 * ArrayBufferView and Blob do not exist in Node.
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	send(data: string | Blob | ArrayBuffer | ArrayBufferView): void {
+		if (this._readyState !== 'open') {
+			throw new InvalidStateError('not open');
+		}
 	}
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export type FakeParameters = {
 	generateNativeRtpCapabilities: () => RtpCapabilities;
@@ -87,7 +292,7 @@ export class FakeHandler extends HandlerInterface {
 	// Closed flag.
 	private _closed = false;
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
-	private fakeParameters: any;
+	private fakeParameters: FakeParameters;
 	// Generic sending RTP parameters for audio and video.
 	private _rtpParametersByKind?: { [key: string]: RtpParameters };
 	// Local RTCP CNAME.
@@ -108,7 +313,7 @@ export class FakeHandler extends HandlerInterface {
 		return (): FakeHandler => new FakeHandler(fakeParameters);
 	}
 
-	constructor(fakeParameters: any) {
+	constructor(fakeParameters: FakeParameters) {
 		super();
 
 		this.fakeParameters = fakeParameters;
@@ -209,7 +414,7 @@ export class FakeHandler extends HandlerInterface {
 		const rtpParameters = utils.clone<RtpParameters>(
 			this._rtpParametersByKind![track.kind]!
 		);
-		const useRtx = rtpParameters.codecs.some((_codec: any) =>
+		const useRtx = rtpParameters.codecs.some(_codec =>
 			/.+\/rtx$/i.test(_codec.mimeType)
 		);
 
@@ -339,7 +544,7 @@ export class FakeHandler extends HandlerInterface {
 
 		logger.debug('sendDataChannel()');
 
-		const dataChannel = new FakeDataChannel({
+		const dataChannel = new FakeRTCDataChannel({
 			id: this._nextSctpStreamId++,
 			ordered,
 			maxPacketLifeTime,
@@ -355,7 +560,6 @@ export class FakeHandler extends HandlerInterface {
 			maxRetransmits: maxRetransmits,
 		};
 
-		// @ts-expect-error --- On purpose.
 		return { dataChannel, sctpStreamParameters };
 	}
 
@@ -436,7 +640,7 @@ export class FakeHandler extends HandlerInterface {
 
 		logger.debug('receiveDataChannel()');
 
-		const dataChannel = new FakeDataChannel({
+		const dataChannel = new FakeRTCDataChannel({
 			id: sctpStreamParameters.streamId!,
 			ordered: sctpStreamParameters.ordered,
 			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
@@ -445,7 +649,6 @@ export class FakeHandler extends HandlerInterface {
 			protocol,
 		});
 
-		// @ts-expect-error --- On purpose.
 		return { dataChannel };
 	}
 
@@ -455,7 +658,7 @@ export class FakeHandler extends HandlerInterface {
 		localSdpObject,
 	}: {
 		localDtlsRole: DtlsRole;
-		localSdpObject?: any;
+		localSdpObject?: SdpTransform.SessionDescription;
 	}): Promise<void> {
 		const dtlsParameters = utils.clone<DtlsParameters>(
 			this.fakeParameters.generateLocalDtlsParameters()

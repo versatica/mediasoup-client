@@ -95,7 +95,7 @@ export function addLegacySimulcast({
 	let firstRtxSsrc: number | undefined;
 
 	// Get the SSRC for RTX.
-	(offerMediaObject.ssrcGroups ?? []).some((line: any) => {
+	(offerMediaObject.ssrcGroups ?? []).some(line => {
 		if (line.semantics !== 'FID') {
 			return false;
 		}

@@ -23,6 +23,7 @@ export type DataConsumerEvents = {
 	open: [];
 	error: [Error];
 	close: [];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	message: [any];
 	// Private events.
 	'@close': [];
@@ -209,22 +210,19 @@ export class DataConsumer<
 			this.safeEmit('open');
 		});
 
-		this._dataChannel.addEventListener('error', (event: any) => {
+		this._dataChannel.addEventListener('error', event => {
 			if (this._closed) {
 				return;
 			}
 
-			let { error } = event;
+			const error: Error =
+				event.error ?? new Error('unknown DataChannel error');
 
-			if (!error) {
-				error = new Error('unknown DataChannel error');
-			}
-
-			if (error.errorDetail === 'sctp-failure') {
+			if (event.error?.errorDetail === 'sctp-failure') {
 				logger.error(
 					'DataChannel SCTP error [sctpCauseCode:%s]: %s',
-					error.sctpCauseCode,
-					error.message
+					event.error?.sctpCauseCode,
+					event.error.message
 				);
 			} else {
 				logger.error('DataChannel "error" event: %o', error);
@@ -249,7 +247,7 @@ export class DataConsumer<
 			this._observer.safeEmit('close');
 		});
 
-		this._dataChannel.addEventListener('message', (event: any) => {
+		this._dataChannel.addEventListener('message', event => {
 			if (this._closed) {
 				return;
 			}

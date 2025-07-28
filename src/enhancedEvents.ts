@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { EventEmitter, type Listener } from 'events-alias';
 import { Logger } from './Logger';
 

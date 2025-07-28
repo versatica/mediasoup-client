@@ -1626,10 +1626,33 @@ describe('detectDevice() and detectDeviceAsync() assign proper handler based on 
 				// We need to force presence of RTCRtpTransceiver to test Safari 12.
 				if (uaTestCase.expect === 'Safari12') {
 					global.RTCRtpTransceiver = class Dummy {
-						currentDirection(): RTCRtpTransceiverDirection {
+						// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+						get currentDirection(): RTCRtpTransceiverDirection {
 							return 'sendrecv';
 						}
-					} as any;
+
+						// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+						get direction(): RTCRtpTransceiverDirection {
+							return 'sendrecv';
+						}
+
+						// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+						get mid(): string {
+							return 'foo';
+						}
+
+						get receiver(): RTCRtpReceiver {
+							return {} as RTCRtpReceiver;
+						}
+
+						get sender(): RTCRtpSender {
+							return {} as RTCRtpSender;
+						}
+
+						setCodecPreferences(): void {}
+
+						stop(): void {}
+					};
 				}
 
 				expect(detectDevice(uaTestCase.ua)).toBe(uaTestCase.expect);
