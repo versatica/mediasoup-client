@@ -14,7 +14,6 @@ import type {
 	RtpParameters,
 	RtpCodecParameters,
 	RtcpFeedback,
-	RtpHeaderExtensionParameters,
 } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
 
@@ -48,19 +47,21 @@ export abstract class MediaSection {
 			this._mediaObject.candidates = [];
 
 			for (const candidate of iceCandidates) {
-				const candidateObject: any = {};
-
-				// mediasoup does mandates rtcp-mux so candidates component is always
-				// RTP (1).
-				candidateObject.component = 1;
-				candidateObject.foundation = candidate.foundation;
-				// Be ready for new candidate.address field in mediasoup server side
-				// field and keep backward compatibility with deprecated candidate.ip.
-				candidateObject.ip = candidate.address ?? candidate.ip;
-				candidateObject.port = candidate.port;
-				candidateObject.priority = candidate.priority;
-				candidateObject.transport = candidate.protocol;
-				candidateObject.type = candidate.type;
+				const candidateObject: NonNullable<
+					SdpTransform.MediaAttributes['candidates']
+				>[number] = {
+					foundation: candidate.foundation,
+					// mediasoup does mandates rtcp-mux so candidates component is always
+					// RTP (1).
+					component: 1,
+					// Be ready for new candidate.address field in mediasoup server side
+					// field and keep backward compatibility with deprecated candidate.ip.
+					ip: candidate.address ?? candidate.ip,
+					port: candidate.port,
+					priority: candidate.priority,
+					transport: candidate.protocol,
+					type: candidate.type,
+				};
 
 				if (candidate.tcpType) {
 					candidateObject.tcptype = candidate.tcpType;
@@ -140,7 +141,7 @@ export class AnswerMediaSection extends MediaSection {
 		dtlsParameters?: DtlsParameters;
 		sctpParameters?: SctpParameters;
 		plainRtpParameters?: PlainRtpParameters;
-		offerMediaObject: any;
+		offerMediaObject: SdpTransform.MediaDescription;
 		offerRtpParameters?: RtpParameters;
 		answerRtpParameters?: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
@@ -171,7 +172,7 @@ export class AnswerMediaSection extends MediaSection {
 				this._mediaObject.fmtp = [];
 
 				for (const codec of answerRtpParameters!.codecs) {
-					const rtp: any = {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
 						payload: codec.payloadType,
 						codec: getCodecName(codec),
 						rate: codec.clockRate,
@@ -312,7 +313,9 @@ export class AnswerMediaSection extends MediaSection {
 				for (const ext of answerRtpParameters!.headerExtensions!) {
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext ?? []).some(
-						(localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri
+						(
+							localExt: NonNullable<SdpTransform.MediaAttributes['ext']>[number]
+						) => localExt.uri === ext.uri
 					);
 
 					if (!found) {
@@ -468,7 +471,6 @@ export class OfferMediaSection extends MediaSection {
 		offerRtpParameters,
 		streamId,
 		trackId,
-		oldDataChannelSpec = false,
 	}: {
 		iceParameters?: IceParameters;
 		iceCandidates?: IceCandidate[];
@@ -480,7 +482,6 @@ export class OfferMediaSection extends MediaSection {
 		offerRtpParameters?: RtpParameters;
 		streamId?: string;
 		trackId?: string;
-		oldDataChannelSpec?: boolean;
 	}) {
 		super({ iceParameters, iceCandidates, dtlsParameters });
 
@@ -520,7 +521,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
 
 				for (const codec of offerRtpParameters!.codecs) {
-					const rtp: any = {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
 						payload: codec.payloadType,
 						codec: getCodecName(codec),
 						rate: codec.clockRate,
@@ -611,21 +612,9 @@ export class OfferMediaSection extends MediaSection {
 			}
 
 			case 'application': {
-				// New spec.
-				if (!oldDataChannelSpec) {
-					this._mediaObject.payloads = 'webrtc-datachannel';
-					this._mediaObject.sctpPort = sctpParameters!.port;
-					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
-				}
-				// Old spec.
-				else {
-					this._mediaObject.payloads = String(sctpParameters!.port);
-					this._mediaObject.sctpmap = {
-						app: 'webrtc-datachannel',
-						sctpmapNumber: sctpParameters!.port,
-						maxMessageSize: sctpParameters!.maxMessageSize,
-					};
-				}
+				this._mediaObject.payloads = 'webrtc-datachannel';
+				this._mediaObject.sctpPort = sctpParameters!.port;
+				this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 
 				break;
 			}

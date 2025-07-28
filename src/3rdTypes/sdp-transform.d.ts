@@ -84,6 +84,12 @@ declare module 'sdp-transform' {
 			rate?: number;
 			encoding?: number;
 		}[];
+		// a=fmtp:108 profile-level-id=24;object=23;bitrate=64000
+		// a=fmtp:111 minptime=10; useinbandfec=1
+		fmtp: {
+			payload: number;
+			config: string;
+		}[];
 		rtcp?: {
 			port: number;
 			netType?: string;
@@ -91,6 +97,7 @@ declare module 'sdp-transform' {
 			address?: string;
 		};
 		// a=rtcp-fb:98 nack rpsi
+		// a=rtcp-fb:* pli
 		rtcpFb?: {
 			payload: number | string;
 			type: string;
@@ -98,34 +105,37 @@ declare module 'sdp-transform' {
 		}[];
 		// a=rtcp-fb:98 trr-int 100
 		rtcpFbTrrInt?: {
-			payload: number;
+			payload: number | string;
 			value: number;
 		}[];
-		// a=fmtp
-		fmtp: {
-			payload: number;
-			config: string;
-		}[];
-		// a=mid
+		// a=mid:1
+		// a=mid:foo
 		mid?: string;
-		// a=msid
+		// a=msid:0c8b064d-d807-43b4-b434-f92a889d8587 98178685-d409-46e0-8e16-7ef0db0db64a
 		msid?: string;
+		// a=ptime:20
 		ptime?: number;
-		// a=maxptime
+		// a=maxptime:60
 		maxptime?: number;
-		// a=crypto
+		// a=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:PS1uQCVeeCFCanVmcjkpPywjNWhcYD0mXXtxaVBR|2^20|1:32
 		crypto?: {
 			id: number;
 			suite: string;
 			config: string;
 			sessionConfig?: string;
 		}[];
-		// a=candidate
+		// a=bundle-only
+		bundleOnly?: 'bundle-only';
+		// a=candidate:0 1 UDP 2113667327 203.0.113.1 54400 typ host
+		// a=candidate:1162875081 1 udp 2113937151 192.168.34.75 60017 typ host generation 0 network-id 3 network-cost 10
+		// a=candidate:3289912957 2 udp 1845501695 193.84.77.194 60017 typ srflx raddr 192.168.34.75 rport 60017 generation 0 network-id 3 network-cost 10
+		// a=candidate:229815620 1 tcp 1518280447 192.168.150.19 60017 typ host tcptype active generation 0 network-id 3 network-cost 10
+		// a=candidate:3289912957 2 tcp 1845501695 193.84.77.194 60017 typ srflx raddr 192.168.34.75 rport 60017 tcptype passive generation 0 network-id 3 network-cost 10
 		candidates?: {
 			foundation: string;
 			component: number;
 			transport: string;
-			priority: number | string;
+			priority: number;
 			ip: string;
 			port: number;
 			type: string;
@@ -137,55 +147,77 @@ declare module 'sdp-transform' {
 			'network-cost'?: number;
 		}[];
 		// a=end-of-candidates
-		endOfCandidates?: string;
-		// a=remote-candidates
+		endOfCandidates?: 'end-of-candidates';
+		// a=remote-candidates:1 203.0.113.1 54400 2 203.0.113.1 54401 ...
 		remoteCandidates?: string;
-		// a=ssrc:
+		// a=ssrc:2566107569 cname:t9YU8M1UxTF8Y1A1
 		ssrcs?: {
-			id: number | string;
+			id: number;
 			attribute: string;
 			value?: string;
 		}[];
-		// a=ssrc-group:
+		// a=ssrc-group:FEC 1 2
+		// a=ssrc-group:FEC-FR 3004364195 1080772241
 		ssrcGroups?: {
 			semantics: string;
 			ssrcs: string;
 		}[];
 		// a=rtcp-mux
-		rtcpMux?: string;
+		rtcpMux?: 'rtcp-mux';
 		// a=rtcp-rsize
-		rtcpRsize?: string;
-		// a=sctpmap
+		rtcpRsize?: 'rtcp-rsize';
+		// a=sctpmap:5000 webrtc-datachannel 1024
 		sctpmap?: {
-			sctpmapNumber: number | string;
+			sctpmapNumber: number;
 			app: string;
-			maxMessageSize: number;
+			maxMessageSize?: number;
 		};
-		// a=x-google-flag
-		xGoogleFlag?: string;
-		// a=rid
+		// a=x-google-flag:conference
+		xGoogleFlag?: 'conference';
+		// a=rid:1 send max-width=1280;max-height=720;max-fps=30;depend=0
 		rids?: {
 			id: number | string;
 			direction: string;
 			params?: string;
 		}[];
-		// a=imageattr
+		// a=imageattr:97 send [x=800,y=640,sar=1.1,q=0.6] [x=480,y=320] recv [x=330,y=250]
+		// a=imageattr:* send [x=800,y=640] recv *
+		// a=imageattr:100 recv [x=320,y=240]
 		imageattrs?: {
 			pt: number | string;
-			dir1: string;
+			dir1: 'send' | 'recv';
 			attrs1: string;
-			dir2?: string;
+			dir2?: 'send' | 'recv';
 			attrs2?: string;
 		}[];
+		// a=simulcast:send 1,2,3;~4,~5 recv 6;~7,~8
+		// a=simulcast:recv 1;4,5 send 6;7
 		simulcast?: {
-			dir1: string;
+			dir1: 'send' | 'recv';
 			list1: string;
-			dir2?: string;
+			dir2?: 'send' | 'recv';
 			list2?: string;
 		};
+		// Old simulcast draft 03 (implemented by old Firefox).
+		// @see https://tools.ietf.org/html/draft-ietf-mmusic-sdp-simulcast-03
+		// a=simulcast: recv pt=97;98 send pt=97
+		// a=simulcast: send rid=5;6;7 paused=6,7
 		simulcast_03?: { value: string };
-		// a=framerate
+		// a=framerate:25
+		// a=framerate:29.97
 		framerate?: number | string;
+		// a=label:1
+		label?: string;
+		// a=sctp-port
+		// @see https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-26#section-5
+		sctpPort?: number;
+		// a=max-message-size
+		// https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-26#section-6
+		maxMessageSize?: number;
+		bfcpFloorCtrl?: string;
+		bfcpConfId?: string;
+		bfcpUserId?: string;
+		bfcpFloorId?: string;
 	}
 
 	/**
@@ -204,7 +236,7 @@ declare module 'sdp-transform' {
 		// b=AS:4000
 		bandwidth?: {
 			type: 'TIAS' | 'AS' | 'CT' | 'RR' | 'RS';
-			limit: number | string;
+			limit: number;
 		}[];
 	}
 
@@ -219,9 +251,11 @@ declare module 'sdp-transform' {
 		// a=sendonly
 		// a=inactive
 		direction?: 'sendrecv' | 'recvonly' | 'sendonly' | 'inactive';
-		// a=control
+		// a=control:streamid=0
 		control?: string;
-		// a=extmap
+		// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
+		// a=extmap:1/recvonly URI-gps-string
+		// a=extmap:3 urn:ietf:params:rtp-hdrext:encrypt urn:ietf:params:rtp-hdrext:smpte-tc 25@600/24
 		ext?: {
 			value: number;
 			direction?: string;
@@ -229,11 +263,15 @@ declare module 'sdp-transform' {
 			uri: string;
 			config?: string;
 		}[];
-		// a=setup
+		// a=setup:actpass
 		setup?: string;
-
+		// a=connection:new
+		connectionType?: 'new' | 'existing';
+		// a=ice-ufrag:F7gI
 		iceUfrag?: string;
+		// a=ice-pwd:x9cml/YzichV2+XlhiMu8g
 		icePwd?: string;
+		// a=fingerprint:SHA-1 00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33
 		fingerprint?: {
 			type: string;
 			hash: string;
@@ -246,16 +284,19 @@ declare module 'sdp-transform' {
 			destAddress: string;
 			srcList: string;
 		};
-		// a=bundle-only
-		bundleOnly?: 'bundle-only';
-		// a=label:1
-		label?: string;
-		// a=sctp-port
-		// @see https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-26#section-5
-		sctpPort?: number;
-		// a=max-message-size
-		// https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-26#section-6
-		maxMessageSize?: number;
+		// a=ts-refclk:ptp=IEEE1588-2008:39-A7-94-FF-FE-07-CB-D0:37
+		tsRefClocks?: {
+			clksrc: string;
+			clksrcExt?: string;
+		};
+		// a=mediaclk:direct=963214424
+		mediaClk?: {
+			id?: string;
+			mediaClockName?: string;
+			mediaClockValue?: string;
+			rateNumerator?: string;
+			rateDenominator?: string;
+		};
 		// a=extmap-allow-mixed
 		extmapAllowMixed?: 'extmap-allow-mixed';
 		// a=ice-options:renomination

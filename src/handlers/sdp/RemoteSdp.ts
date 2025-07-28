@@ -96,8 +96,8 @@ export class RemoteSdp {
 
 		// If there are plain RPT parameters, override SDP origin.
 		if (plainRtpParameters) {
-			this._sdpObject.origin!.address = plainRtpParameters.ip;
-			this._sdpObject.origin!.ipVer = plainRtpParameters.ipVersion;
+			this._sdpObject.origin.address = plainRtpParameters.ip;
+			this._sdpObject.origin.ipVer = plainRtpParameters.ipVersion;
 		}
 	}
 
@@ -322,9 +322,7 @@ export class RemoteSdp {
 		this._addMediaSection(mediaSection);
 	}
 
-	receiveSctpAssociation({
-		oldDataChannelSpec = false,
-	}: { oldDataChannelSpec?: boolean } = {}): void {
+	receiveSctpAssociation(): void {
 		const mediaSection = new OfferMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
@@ -333,7 +331,6 @@ export class RemoteSdp {
 			plainRtpParameters: this._plainRtpParameters,
 			mid: 'datachannel',
 			kind: 'application',
-			oldDataChannelSpec,
 		});
 
 		this._addMediaSection(mediaSection);
@@ -341,7 +338,7 @@ export class RemoteSdp {
 
 	getSdp(): string {
 		// Increase SDP version.
-		this._sdpObject.origin!.sessionVersion++;
+		this._sdpObject.origin.sessionVersion++;
 
 		return sdpTransform.write(this._sdpObject);
 	}

@@ -391,7 +391,7 @@ export class Safari12 extends HandlerInterface {
 			logger.debug('send() | enabling legacy simulcast');
 
 			localSdpObject = sdpTransform.parse(offer.sdp!);
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
 			sdpUnifiedPlanUtils.addLegacySimulcast({
 				offerMediaObject,

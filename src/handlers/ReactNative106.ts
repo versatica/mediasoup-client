@@ -416,7 +416,7 @@ export class ReactNative106 extends HandlerInterface {
 
 			hackVp9Svc = true;
 			localSdpObject = sdpTransform.parse(offer.sdp!);
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx];
+			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
 			sdpUnifiedPlanUtils.addLegacySimulcast({
 				offerMediaObject,
