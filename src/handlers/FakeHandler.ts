@@ -35,258 +35,6 @@ const logger = new Logger('FakeHandler');
 
 const NAME = 'FakeHandler';
 
-type FakeRTCDataChannelOptions = {
-	id: number;
-	ordered?: boolean;
-	maxPacketLifeTime?: number | null;
-	maxRetransmits?: number | null;
-	label?: string;
-	protocol?: string;
-};
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
-	// Members for RTCDataChannel standard public getters/setters.
-	private readonly _id: number;
-	private readonly _negotiated = true; // mediasoup just uses negotiated DataChannels.
-	private readonly _ordered: boolean;
-	private readonly _maxPacketLifeTime: number | null;
-	private readonly _maxRetransmits: number | null;
-	private readonly _label: string;
-	private readonly _protocol: string;
-	private _readyState: RTCDataChannelState = 'connecting';
-	private _bufferedAmount = 0;
-	private _bufferedAmountLowThreshold = 0;
-	private _binaryType: BinaryType = 'arraybuffer';
-	// Events.
-	private _onopen: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	private _onclosing: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
-		null;
-	private _onclose: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
-		null;
-	private _onmessage: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
-		null;
-	private _onbufferedamountlow:
-		| ((this: FakeRTCDataChannel, ev: Event) => any)
-		| null = null;
-	private _onerror: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
-		null;
-
-	constructor({
-		id,
-		ordered = true,
-		maxPacketLifeTime = null,
-		maxRetransmits = null,
-		label = '',
-		protocol = '',
-	}: FakeRTCDataChannelOptions) {
-		super();
-
-		logger.debug(
-			`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`
-		);
-
-		this._id = id;
-		this._ordered = ordered;
-		this._maxPacketLifeTime = maxPacketLifeTime;
-		this._maxRetransmits = maxRetransmits;
-		this._label = label;
-		this._protocol = protocol;
-	}
-
-	get id(): number {
-		return this._id;
-	}
-
-	get negotiated(): boolean {
-		return this._negotiated;
-	}
-
-	get ordered(): boolean {
-		return this._ordered;
-	}
-
-	get maxPacketLifeTime(): number | null {
-		return this._maxPacketLifeTime;
-	}
-
-	get maxRetransmits(): number | null {
-		return this._maxRetransmits;
-	}
-
-	get label(): string {
-		return this._label;
-	}
-
-	get protocol(): string {
-		return this._protocol;
-	}
-
-	get readyState(): RTCDataChannelState {
-		return this._readyState;
-	}
-
-	get bufferedAmount(): number {
-		return this._bufferedAmount;
-	}
-
-	get bufferedAmountLowThreshold(): number {
-		return this._bufferedAmountLowThreshold;
-	}
-
-	set bufferedAmountLowThreshold(value: number) {
-		this._bufferedAmountLowThreshold = value;
-	}
-
-	get binaryType(): BinaryType {
-		return this._binaryType;
-	}
-
-	set binaryType(binaryType: BinaryType) {
-		this._binaryType = binaryType;
-	}
-
-	get onopen(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onopen as ((this: RTCDataChannel, ev: Event) => any) | null;
-	}
-
-	set onopen(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
-		if (this._onopen) {
-			this.removeEventListener('open', this._onopen);
-		}
-
-		this._onopen = handler;
-
-		if (handler) {
-			this.addEventListener('open', handler);
-		}
-	}
-
-	get onclosing(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onclosing as ((this: RTCDataChannel, ev: Event) => any) | null;
-	}
-
-	set onclosing(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
-	) {
-		if (this._onclosing) {
-			this.removeEventListener('closing', this._onclosing);
-		}
-
-		this._onclosing = handler;
-
-		if (handler) {
-			this.addEventListener('closing', handler);
-		}
-	}
-
-	get onclose(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onclose as ((this: RTCDataChannel, ev: Event) => any) | null;
-	}
-
-	set onclose(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
-		if (this._onclose) {
-			this.removeEventListener('close', this._onclose);
-		}
-
-		this._onclose = handler;
-
-		if (handler) {
-			this.addEventListener('close', handler);
-		}
-	}
-
-	get onmessage(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onmessage as ((this: RTCDataChannel, ev: Event) => any) | null;
-	}
-
-	set onmessage(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
-	) {
-		if (this._onmessage) {
-			this.removeEventListener('message', this._onmessage);
-		}
-
-		this._onmessage = handler;
-
-		if (handler) {
-			this.addEventListener('message', handler);
-		}
-	}
-
-	get onbufferedamountlow(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onbufferedamountlow as
-			| ((this: RTCDataChannel, ev: Event) => any)
-			| null;
-	}
-
-	set onbufferedamountlow(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
-	) {
-		if (this._onbufferedamountlow) {
-			this.removeEventListener('bufferedamountlow', this._onbufferedamountlow);
-		}
-
-		this._onbufferedamountlow = handler;
-
-		if (handler) {
-			this.addEventListener('bufferedamountlow', handler);
-		}
-	}
-
-	get onerror(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onerror as ((this: RTCDataChannel, ev: Event) => any) | null;
-	}
-
-	set onerror(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
-		if (this._onerror) {
-			this.removeEventListener('error', this._onerror);
-		}
-
-		this._onerror = handler;
-
-		if (handler) {
-			this.addEventListener('error', handler);
-		}
-	}
-
-	override addEventListener<K extends keyof RTCDataChannelEventMap>(
-		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
-		options?: boolean | AddEventListenerOptions
-	): void {
-		super.addEventListener(type, listener as EventListener, options);
-	}
-
-	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
-		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
-		options?: boolean | EventListenerOptions
-	): void {
-		super.removeEventListener(type, listener as EventListener, options);
-	}
-
-	close(): void {
-		if (['closing', 'closed'].includes(this._readyState)) {
-			return;
-		}
-
-		this._readyState = 'closed';
-	}
-
-	/**
-	 * We extend the definition of send() to allow Node Buffer. However
-	 * ArrayBufferView and Blob do not exist in Node.
-	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	send(data: string | Blob | ArrayBuffer | ArrayBufferView): void {
-		if (this._readyState !== 'open') {
-			throw new InvalidStateError('not open');
-		}
-	}
-}
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
 export type FakeParameters = {
 	generateNativeRtpCapabilities: () => RtpCapabilities;
 	generateNativeSctpCapabilities: () => SctpCapabilities;
@@ -332,7 +80,7 @@ export class FakeHandler extends HandlerInterface {
 		};
 	}
 
-	constructor(
+	private constructor(
 		{
 			// direction,
 			// iceParameters,
@@ -691,3 +439,255 @@ export class FakeHandler extends HandlerInterface {
 		}
 	}
 }
+
+type FakeRTCDataChannelOptions = {
+	id: number;
+	ordered?: boolean;
+	maxPacketLifeTime?: number | null;
+	maxRetransmits?: number | null;
+	label?: string;
+	protocol?: string;
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
+	// Members for RTCDataChannel standard public getters/setters.
+	private readonly _id: number;
+	private readonly _negotiated = true; // mediasoup just uses negotiated DataChannels.
+	private readonly _ordered: boolean;
+	private readonly _maxPacketLifeTime: number | null;
+	private readonly _maxRetransmits: number | null;
+	private readonly _label: string;
+	private readonly _protocol: string;
+	private _readyState: RTCDataChannelState = 'connecting';
+	private _bufferedAmount = 0;
+	private _bufferedAmountLowThreshold = 0;
+	private _binaryType: BinaryType = 'arraybuffer';
+	// Events.
+	private _onopen: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
+	private _onclosing: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onclose: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onmessage: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+	private _onbufferedamountlow:
+		| ((this: FakeRTCDataChannel, ev: Event) => any)
+		| null = null;
+	private _onerror: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+		null;
+
+	constructor({
+		id,
+		ordered = true,
+		maxPacketLifeTime = null,
+		maxRetransmits = null,
+		label = '',
+		protocol = '',
+	}: FakeRTCDataChannelOptions) {
+		super();
+
+		logger.debug(
+			`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`
+		);
+
+		this._id = id;
+		this._ordered = ordered;
+		this._maxPacketLifeTime = maxPacketLifeTime;
+		this._maxRetransmits = maxRetransmits;
+		this._label = label;
+		this._protocol = protocol;
+	}
+
+	get id(): number {
+		return this._id;
+	}
+
+	get negotiated(): boolean {
+		return this._negotiated;
+	}
+
+	get ordered(): boolean {
+		return this._ordered;
+	}
+
+	get maxPacketLifeTime(): number | null {
+		return this._maxPacketLifeTime;
+	}
+
+	get maxRetransmits(): number | null {
+		return this._maxRetransmits;
+	}
+
+	get label(): string {
+		return this._label;
+	}
+
+	get protocol(): string {
+		return this._protocol;
+	}
+
+	get readyState(): RTCDataChannelState {
+		return this._readyState;
+	}
+
+	get bufferedAmount(): number {
+		return this._bufferedAmount;
+	}
+
+	get bufferedAmountLowThreshold(): number {
+		return this._bufferedAmountLowThreshold;
+	}
+
+	set bufferedAmountLowThreshold(value: number) {
+		this._bufferedAmountLowThreshold = value;
+	}
+
+	get binaryType(): BinaryType {
+		return this._binaryType;
+	}
+
+	set binaryType(binaryType: BinaryType) {
+		this._binaryType = binaryType;
+	}
+
+	get onopen(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onopen as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onopen(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onopen) {
+			this.removeEventListener('open', this._onopen);
+		}
+
+		this._onopen = handler;
+
+		if (handler) {
+			this.addEventListener('open', handler);
+		}
+	}
+
+	get onclosing(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onclosing as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onclosing(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onclosing) {
+			this.removeEventListener('closing', this._onclosing);
+		}
+
+		this._onclosing = handler;
+
+		if (handler) {
+			this.addEventListener('closing', handler);
+		}
+	}
+
+	get onclose(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onclose as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onclose(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onclose) {
+			this.removeEventListener('close', this._onclose);
+		}
+
+		this._onclose = handler;
+
+		if (handler) {
+			this.addEventListener('close', handler);
+		}
+	}
+
+	get onmessage(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onmessage as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onmessage(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onmessage) {
+			this.removeEventListener('message', this._onmessage);
+		}
+
+		this._onmessage = handler;
+
+		if (handler) {
+			this.addEventListener('message', handler);
+		}
+	}
+
+	get onbufferedamountlow(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onbufferedamountlow as
+			| ((this: RTCDataChannel, ev: Event) => any)
+			| null;
+	}
+
+	set onbufferedamountlow(
+		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+	) {
+		if (this._onbufferedamountlow) {
+			this.removeEventListener('bufferedamountlow', this._onbufferedamountlow);
+		}
+
+		this._onbufferedamountlow = handler;
+
+		if (handler) {
+			this.addEventListener('bufferedamountlow', handler);
+		}
+	}
+
+	get onerror(): ((this: RTCDataChannel, ev: Event) => any) | null {
+		return this._onerror as ((this: RTCDataChannel, ev: Event) => any) | null;
+	}
+
+	set onerror(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+		if (this._onerror) {
+			this.removeEventListener('error', this._onerror);
+		}
+
+		this._onerror = handler;
+
+		if (handler) {
+			this.addEventListener('error', handler);
+		}
+	}
+
+	override addEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | AddEventListenerOptions
+	): void {
+		super.addEventListener(type, listener as EventListener, options);
+	}
+
+	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | EventListenerOptions
+	): void {
+		super.removeEventListener(type, listener as EventListener, options);
+	}
+
+	close(): void {
+		if (['closing', 'closed'].includes(this._readyState)) {
+			return;
+		}
+
+		this._readyState = 'closed';
+	}
+
+	/**
+	 * We extend the definition of send() to allow Node Buffer. However
+	 * ArrayBufferView and Blob do not exist in Node.
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	send(data: string | Blob | ArrayBuffer | ArrayBufferView): void {
+		if (this._readyState !== 'open') {
+			throw new InvalidStateError('not open');
+		}
+	}
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
