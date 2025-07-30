@@ -1,4 +1,5 @@
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
 import type {
 	IceParameters,
@@ -13,13 +14,12 @@ import type {
 	RtpParameters,
 	RtpCodecParameters,
 	RtcpFeedback,
-	RtpHeaderExtensionParameters,
 } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
 
 export abstract class MediaSection {
 	// SDP media object.
-	protected readonly _mediaObject: any;
+	protected readonly _mediaObject: SdpTransform.MediaDescription;
 
 	constructor({
 		iceParameters,
@@ -30,7 +30,14 @@ export abstract class MediaSection {
 		iceCandidates?: IceCandidate[];
 		dtlsParameters?: DtlsParameters;
 	}) {
-		this._mediaObject = {};
+		this._mediaObject = {
+			type: '',
+			port: 0,
+			protocol: '',
+			payloads: '',
+			rtp: [],
+			fmtp: [],
+		};
 
 		if (iceParameters) {
 			this.setIceParameters(iceParameters);
@@ -40,19 +47,21 @@ export abstract class MediaSection {
 			this._mediaObject.candidates = [];
 
 			for (const candidate of iceCandidates) {
-				const candidateObject: any = {};
-
-				// mediasoup does mandates rtcp-mux so candidates component is always
-				// RTP (1).
-				candidateObject.component = 1;
-				candidateObject.foundation = candidate.foundation;
-				// Be ready for new candidate.address field in mediasoup server side
-				// field and keep backward compatibility with deprecated candidate.ip.
-				candidateObject.ip = candidate.address ?? candidate.ip;
-				candidateObject.port = candidate.port;
-				candidateObject.priority = candidate.priority;
-				candidateObject.transport = candidate.protocol;
-				candidateObject.type = candidate.type;
+				const candidateObject: NonNullable<
+					SdpTransform.MediaAttributes['candidates']
+				>[number] = {
+					foundation: candidate.foundation,
+					// mediasoup does mandates rtcp-mux so candidates component is always
+					// RTP (1).
+					component: 1,
+					// Be ready for new candidate.address field in mediasoup server side
+					// field and keep backward compatibility with deprecated candidate.ip.
+					ip: candidate.address ?? candidate.ip,
+					port: candidate.port,
+					priority: candidate.priority,
+					transport: candidate.protocol,
+					type: candidate.type,
+				};
 
 				if (candidate.tcpType) {
 					candidateObject.tcptype = candidate.tcpType;
@@ -62,6 +71,7 @@ export abstract class MediaSection {
 			}
 
 			this._mediaObject.endOfCandidates = 'end-of-candidates';
+
 			this._mediaObject.iceOptions = 'renomination';
 		}
 
@@ -80,7 +90,7 @@ export abstract class MediaSection {
 		return this._mediaObject.port === 0;
 	}
 
-	getObject(): object {
+	getObject(): SdpTransform.MediaDescription {
 		return this._mediaObject;
 	}
 
@@ -131,7 +141,7 @@ export class AnswerMediaSection extends MediaSection {
 		dtlsParameters?: DtlsParameters;
 		sctpParameters?: SctpParameters;
 		plainRtpParameters?: PlainRtpParameters;
-		offerMediaObject: any;
+		offerMediaObject: SdpTransform.MediaDescription;
 		offerRtpParameters?: RtpParameters;
 		answerRtpParameters?: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
@@ -162,7 +172,7 @@ export class AnswerMediaSection extends MediaSection {
 				this._mediaObject.fmtp = [];
 
 				for (const codec of answerRtpParameters!.codecs) {
-					const rtp: any = {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
 						payload: codec.payloadType,
 						codec: getCodecName(codec),
 						rate: codec.clockRate,
@@ -194,44 +204,44 @@ export class AnswerMediaSection extends MediaSection {
 
 						const offerCodec = offerRtpParameters!.codecs.find(
 							(c: RtpCodecParameters) => c.payloadType === codec.payloadType
-						);
+						)!;
 
 						switch (codec.mimeType.toLowerCase()) {
 							case 'audio/opus':
 							case 'audio/multiopus': {
 								if (opusStereo !== undefined) {
-									offerCodec!.parameters['sprop-stereo'] = opusStereo ? 1 : 0;
-									codecParameters.stereo = opusStereo ? 1 : 0;
+									offerCodec.parameters!['sprop-stereo'] = opusStereo ? 1 : 0;
+									codecParameters['stereo'] = opusStereo ? 1 : 0;
 								}
 
 								if (opusFec !== undefined) {
-									offerCodec!.parameters.useinbandfec = opusFec ? 1 : 0;
-									codecParameters.useinbandfec = opusFec ? 1 : 0;
+									offerCodec.parameters!['useinbandfec'] = opusFec ? 1 : 0;
+									codecParameters['useinbandfec'] = opusFec ? 1 : 0;
 								}
 
 								if (opusDtx !== undefined) {
-									offerCodec!.parameters.usedtx = opusDtx ? 1 : 0;
-									codecParameters.usedtx = opusDtx ? 1 : 0;
+									offerCodec.parameters!['usedtx'] = opusDtx ? 1 : 0;
+									codecParameters['usedtx'] = opusDtx ? 1 : 0;
 								}
 
 								if (opusMaxPlaybackRate !== undefined) {
-									codecParameters.maxplaybackrate = opusMaxPlaybackRate;
+									codecParameters['maxplaybackrate'] = opusMaxPlaybackRate;
 								}
 
 								if (opusMaxAverageBitrate !== undefined) {
-									codecParameters.maxaveragebitrate = opusMaxAverageBitrate;
+									codecParameters['maxaveragebitrate'] = opusMaxAverageBitrate;
 								}
 
 								if (opusPtime !== undefined) {
-									offerCodec!.parameters.ptime = opusPtime;
-									codecParameters.ptime = opusPtime;
+									offerCodec.parameters!['ptime'] = opusPtime;
+									codecParameters['ptime'] = opusPtime;
 								}
 
 								// If opusNack is not set, we must remove NACK support for OPUS.
 								// Otherwise it would be enabled for those handlers that artificially
 								// announce it in their RTP capabilities.
 								if (!opusNack) {
-									offerCodec!.rtcpFeedback = offerCodec!.rtcpFeedback!.filter(
+									offerCodec.rtcpFeedback = offerCodec.rtcpFeedback!.filter(
 										fb => fb.type !== 'nack' || fb.parameter
 									);
 
@@ -303,7 +313,9 @@ export class AnswerMediaSection extends MediaSection {
 				for (const ext of answerRtpParameters!.headerExtensions!) {
 					// Don't add a header extension if not present in the offer.
 					const found = (offerMediaObject.ext ?? []).some(
-						(localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri
+						(
+							localExt: NonNullable<SdpTransform.MediaAttributes['ext']>[number]
+						) => localExt.uri === ext.uri
 					);
 
 					if (!found) {
@@ -377,7 +389,7 @@ export class AnswerMediaSection extends MediaSection {
 				}
 				// Old spec.
 				else if (offerMediaObject.sctpmap) {
-					this._mediaObject.payloads = sctpParameters!.port;
+					this._mediaObject.payloads = String(sctpParameters!.port);
 					this._mediaObject.sctpmap = {
 						app: 'webrtc-datachannel',
 						sctpmapNumber: sctpParameters!.port,
@@ -459,7 +471,6 @@ export class OfferMediaSection extends MediaSection {
 		offerRtpParameters,
 		streamId,
 		trackId,
-		oldDataChannelSpec = false,
 	}: {
 		iceParameters?: IceParameters;
 		iceCandidates?: IceCandidate[];
@@ -471,7 +482,6 @@ export class OfferMediaSection extends MediaSection {
 		offerRtpParameters?: RtpParameters;
 		streamId?: string;
 		trackId?: string;
-		oldDataChannelSpec?: boolean;
 	}) {
 		super({ iceParameters, iceCandidates, dtlsParameters });
 
@@ -511,7 +521,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
 
 				for (const codec of offerRtpParameters!.codecs) {
-					const rtp: any = {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
 						payload: codec.payloadType,
 						codec: getCodecName(codec),
 						rate: codec.clockRate,
@@ -528,12 +538,12 @@ export class OfferMediaSection extends MediaSection {
 						config: '',
 					};
 
-					for (const key of Object.keys(codec.parameters)) {
+					for (const key of Object.keys(codec.parameters ?? {})) {
 						if (fmtp.config) {
 							fmtp.config += ';';
 						}
 
-						fmtp.config += `${key}=${codec.parameters[key]}`;
+						fmtp.config += `${key}=${codec.parameters![key]}`;
 					}
 
 					if (fmtp.config) {
@@ -572,7 +582,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.ssrcs = [];
 				this._mediaObject.ssrcGroups = [];
 
-				if (offerRtpParameters!.rtcp!.cname) {
+				if (ssrc && offerRtpParameters!.rtcp!.cname) {
 					this._mediaObject.ssrcs.push({
 						id: ssrc,
 						attribute: 'cname',
@@ -590,31 +600,21 @@ export class OfferMediaSection extends MediaSection {
 					}
 
 					// Associate original and retransmission SSRCs.
-					this._mediaObject.ssrcGroups.push({
-						semantics: 'FID',
-						ssrcs: `${ssrc} ${rtxSsrc}`,
-					});
+					if (ssrc) {
+						this._mediaObject.ssrcGroups.push({
+							semantics: 'FID',
+							ssrcs: `${ssrc} ${rtxSsrc}`,
+						});
+					}
 				}
 
 				break;
 			}
 
 			case 'application': {
-				// New spec.
-				if (!oldDataChannelSpec) {
-					this._mediaObject.payloads = 'webrtc-datachannel';
-					this._mediaObject.sctpPort = sctpParameters!.port;
-					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
-				}
-				// Old spec.
-				else {
-					this._mediaObject.payloads = sctpParameters!.port;
-					this._mediaObject.sctpmap = {
-						app: 'webrtc-datachannel',
-						sctpmapNumber: sctpParameters!.port,
-						maxMessageSize: sctpParameters!.maxMessageSize,
-					};
-				}
+				this._mediaObject.payloads = 'webrtc-datachannel';
+				this._mediaObject.sctpPort = sctpParameters!.port;
+				this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 
 				break;
 			}

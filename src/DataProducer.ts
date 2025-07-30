@@ -199,6 +199,7 @@ export class DataProducer<
 	 *
 	 * @param {String|Blob|ArrayBuffer|ArrayBufferView} data.
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	send(data: any): void {
 		logger.debug('send()');
 
@@ -220,22 +221,19 @@ export class DataProducer<
 			this.safeEmit('open');
 		});
 
-		this._dataChannel.addEventListener('error', (event: any) => {
+		this._dataChannel.addEventListener('error', event => {
 			if (this._closed) {
 				return;
 			}
 
-			let { error } = event;
+			const error: Error =
+				event.error ?? new Error('unknown DataChannel error');
 
-			if (!error) {
-				error = new Error('unknown DataChannel error');
-			}
-
-			if (error.errorDetail === 'sctp-failure') {
+			if (event.error?.errorDetail === 'sctp-failure') {
 				logger.error(
 					'DataChannel SCTP error [sctpCauseCode:%s]: %s',
-					error.sctpCauseCode,
-					error.message
+					event.error?.sctpCauseCode,
+					event.error.message
 				);
 			} else {
 				logger.error('DataChannel "error" event: %o', error);

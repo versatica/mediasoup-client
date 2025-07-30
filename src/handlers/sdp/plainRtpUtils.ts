@@ -1,17 +1,18 @@
+import type * as SdpTransform from 'sdp-transform';
 import type { MediaKind, RtpEncodingParameters } from '../../RtpParameters';
 
 export function extractPlainRtpParameters({
 	sdpObject,
 	kind,
 }: {
-	sdpObject: any;
+	sdpObject: SdpTransform.SessionDescription;
 	kind: MediaKind;
 }): {
 	ip: string;
-	ipVersion: 4 | 6;
+	ipVersion: number;
 	port: number;
 } {
-	const mediaObject = (sdpObject.media ?? []).find((m: any) => m.type === kind);
+	const mediaObject = (sdpObject.media ?? []).find(m => m.type === kind);
 
 	if (!mediaObject) {
 		throw new Error(`m=${kind} section not found`);
@@ -20,8 +21,8 @@ export function extractPlainRtpParameters({
 	const connectionObject = mediaObject.connection ?? sdpObject.connection;
 
 	return {
-		ip: connectionObject.ip,
-		ipVersion: connectionObject.version,
+		ip: connectionObject!.ip,
+		ipVersion: connectionObject!.version,
 		port: mediaObject.port,
 	};
 }
@@ -30,10 +31,10 @@ export function getRtpEncodings({
 	sdpObject,
 	kind,
 }: {
-	sdpObject: any;
+	sdpObject: SdpTransform.SessionDescription;
 	kind: MediaKind;
 }): RtpEncodingParameters[] {
-	const mediaObject = (sdpObject.media ?? []).find((m: any) => m.type === kind);
+	const mediaObject = (sdpObject.media ?? []).find(m => m.type === kind);
 
 	if (!mediaObject) {
 		throw new Error(`m=${kind} section not found`);

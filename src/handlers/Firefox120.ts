@@ -1,14 +1,24 @@
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
 import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
+import { parse as parseScalabilityMode } from '../scalabilityModes';
+import type { IceParameters, DtlsRole } from '../Transport';
+import type {
+	RtpCapabilities,
+	MediaKind,
+	RtpParameters,
+	RtpEncodingParameters,
+} from '../RtpParameters';
+import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import {
 	type HandlerFactory,
 	HandlerInterface,
-	type HandlerRunOptions,
+	type HandlerOptions,
 	type HandlerSendOptions,
 	type HandlerSendResult,
 	type HandlerReceiveOptions,
@@ -19,14 +29,6 @@ import {
 	type HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
-import { parse as parseScalabilityMode } from '../scalabilityModes';
-import type { IceParameters, DtlsRole } from '../Transport';
-import type {
-	RtpCapabilities,
-	RtpParameters,
-	RtpEncodingParameters,
-} from '../RtpParameters';
-import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 
 const logger = new Logger('Firefox120');
 
@@ -37,16 +39,18 @@ export class Firefox120 extends HandlerInterface {
 	// Closed flag.
 	private _closed = false;
 	// Handler direction.
-	private _direction?: 'send' | 'recv';
+	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
-	private _remoteSdp?: RemoteSdp;
+	private _remoteSdp: RemoteSdp;
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind?: { [key: string]: RtpParameters };
+	private _sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private _sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	private _sendingRemoteRtpParametersByKind: {
+		[K in MediaKind]: RtpParameters;
+	};
 	// RTCPeerConnection instance.
-	private _pc: any;
+	private _pc: RTCPeerConnection;
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
@@ -63,113 +67,87 @@ export class Firefox120 extends HandlerInterface {
 	 * Creates a factory function.
 	 */
 	static createFactory(): HandlerFactory {
-		return (): Firefox120 => new Firefox120();
-	}
-
-	constructor() {
-		super();
-	}
-
-	get name(): string {
-		return NAME;
-	}
-
-	close(): void {
-		logger.debug('close()');
-
-		if (this._closed) {
-			return;
-		}
-
-		this._closed = true;
-
-		// Close RTCPeerConnection.
-		if (this._pc) {
-			try {
-				this._pc.close();
-			} catch (error) {}
-		}
-
-		this.emit('@close');
-	}
-
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities> {
-		logger.debug('getNativeRtpCapabilities()');
-
-		const pc = new (RTCPeerConnection as any)({
-			iceServers: [],
-			iceTransportPolicy: 'all',
-			bundlePolicy: 'max-bundle',
-			rtcpMuxPolicy: 'require',
-		});
-
-		// NOTE: We need to add a real video track to get the RID extension mapping,
-		// otherwiser Firefox doesn't include it in the SDP.
-		const canvas = document.createElement('canvas');
-
-		// NOTE: Otherwise Firefox fails in next line.
-		canvas.getContext('2d');
-
-		const fakeStream = (canvas as any).captureStream();
-		const fakeVideoTrack = fakeStream.getVideoTracks()[0];
-
-		try {
-			pc.addTransceiver('audio', { direction: 'sendrecv' });
-
-			pc.addTransceiver(fakeVideoTrack, {
-				direction: 'sendrecv',
-				sendEncodings: [
-					{ rid: 'r0', maxBitrate: 100000 },
-					{ rid: 'r1', maxBitrate: 500000 },
-				],
-			});
-
-			const offer = await pc.createOffer();
-
-			try {
-				canvas.remove();
-			} catch (error) {}
-
-			try {
-				fakeVideoTrack.stop();
-			} catch (error) {}
-
-			try {
-				pc.close();
-			} catch (error) {}
-
-			const sdpObject = sdpTransform.parse(offer.sdp);
-			const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
-				sdpObject,
-			});
-
-			return nativeRtpCapabilities;
-		} catch (error) {
-			try {
-				canvas.remove();
-			} catch (error2) {}
-
-			try {
-				fakeVideoTrack.stop();
-			} catch (error2) {}
-
-			try {
-				pc.close();
-			} catch (error2) {}
-
-			throw error;
-		}
-	}
-
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities> {
-		logger.debug('getNativeSctpCapabilities()');
-
 		return {
-			numStreams: SCTP_NUM_STREAMS,
+			name: NAME,
+			factory: (options: HandlerOptions): Firefox120 => new Firefox120(options),
+			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities()');
+
+				const pc = new RTCPeerConnection({
+					iceServers: [],
+					iceTransportPolicy: 'all',
+					bundlePolicy: 'max-bundle',
+					rtcpMuxPolicy: 'require',
+				});
+
+				// NOTE: We need to add a real video track to get the RID extension mapping,
+				// otherwiser Firefox doesn't include it in the SDP.
+				const canvas = document.createElement('canvas');
+
+				// NOTE: Otherwise Firefox fails in next line.
+				canvas.getContext('2d');
+
+				const fakeStream = canvas.captureStream();
+				const fakeVideoTrack = fakeStream.getVideoTracks()[0]!;
+
+				try {
+					pc.addTransceiver('audio', { direction: 'sendrecv' });
+
+					pc.addTransceiver(fakeVideoTrack, {
+						direction: 'sendrecv',
+						sendEncodings: [
+							{ rid: 'r0', maxBitrate: 100000 },
+							{ rid: 'r1', maxBitrate: 500000 },
+						],
+					});
+
+					const offer = await pc.createOffer();
+
+					try {
+						canvas.remove();
+					} catch (error) {}
+
+					try {
+						fakeVideoTrack.stop();
+					} catch (error) {}
+
+					try {
+						pc.close();
+					} catch (error) {}
+
+					const sdpObject = sdpTransform.parse(offer.sdp!);
+					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+						sdpObject,
+					});
+
+					return nativeRtpCapabilities;
+				} catch (error) {
+					try {
+						canvas.remove();
+					} catch (error2) {}
+
+					try {
+						fakeVideoTrack.stop();
+					} catch (error2) {}
+
+					try {
+						pc.close();
+					} catch (error2) {}
+
+					throw error;
+				}
+			},
+			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
+				logger.debug('getNativeSctpCapabilities()');
+
+				return {
+					numStreams: SCTP_NUM_STREAMS,
+				};
+			},
 		};
 	}
 
-	run({
+	private constructor({
 		direction,
 		iceParameters,
 		iceCandidates,
@@ -178,12 +156,11 @@ export class Firefox120 extends HandlerInterface {
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		proprietaryConstraints,
 		extendedRtpCapabilities,
-	}: HandlerRunOptions): void {
-		this.assertNotClosed();
+	}: HandlerOptions) {
+		super();
 
-		logger.debug('run()');
+		logger.debug('constructor()');
 
 		this._direction = direction;
 
@@ -210,16 +187,13 @@ export class Firefox120 extends HandlerInterface {
 			),
 		};
 
-		this._pc = new (RTCPeerConnection as any)(
-			{
-				iceServers: iceServers ?? [],
-				iceTransportPolicy: iceTransportPolicy ?? 'all',
-				bundlePolicy: 'max-bundle',
-				rtcpMuxPolicy: 'require',
-				...additionalSettings,
-			},
-			proprietaryConstraints
-		);
+		this._pc = new RTCPeerConnection({
+			iceServers: iceServers ?? [],
+			iceTransportPolicy: iceTransportPolicy ?? 'all',
+			bundlePolicy: 'max-bundle',
+			rtcpMuxPolicy: 'require',
+			...additionalSettings,
+		});
 
 		this._pc.addEventListener('icegatheringstatechange', () => {
 			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
@@ -278,6 +252,29 @@ export class Firefox120 extends HandlerInterface {
 		}
 	}
 
+	get name(): string {
+		return NAME;
+	}
+
+	close(): void {
+		logger.debug('close()');
+
+		if (this._closed) {
+			return;
+		}
+
+		this._closed = true;
+
+		// Close RTCPeerConnection.
+		if (this._pc) {
+			try {
+				this._pc.close();
+			} catch (error) {}
+		}
+
+		this.emit('@close');
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		this.assertNotClosed();
@@ -292,7 +289,7 @@ export class Firefox120 extends HandlerInterface {
 		logger.debug('restartIce()');
 
 		// Provide the remote SDP handler with new remote ICE parameters.
-		this._remoteSdp!.updateIceParameters(iceParameters);
+		this._remoteSdp.updateIceParameters(iceParameters);
 
 		if (!this._transportReady) {
 			return;
@@ -308,7 +305,10 @@ export class Firefox120 extends HandlerInterface {
 
 			await this._pc.setLocalDescription(offer);
 
-			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+			const answer = {
+				type: 'answer' as RTCSdpType,
+				sdp: this._remoteSdp.getSdp(),
+			};
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [answer:%o]',
@@ -317,7 +317,10 @@ export class Firefox120 extends HandlerInterface {
 
 			await this._pc.setRemoteDescription(answer);
 		} else {
-			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+			const offer = {
+				type: 'offer' as RTCSdpType,
+				sdp: this._remoteSdp.getSdp(),
+			};
 
 			logger.debug(
 				'restartIce() | calling pc.setRemoteDescription() [offer:%o]',
@@ -362,7 +365,7 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		const sendingRtpParameters: RtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind![track.kind]!
+			this._sendingRtpParametersByKind[track.kind as MediaKind]
 		);
 
 		// This may throw.
@@ -373,7 +376,7 @@ export class Firefox120 extends HandlerInterface {
 
 		const sendingRemoteRtpParameters: RtpParameters =
 			utils.clone<RtpParameters>(
-				this._sendingRemoteRtpParametersByKind![track.kind]!
+				this._sendingRemoteRtpParametersByKind[track.kind as MediaKind]
 			);
 
 		// This may throw.
@@ -386,7 +389,7 @@ export class Firefox120 extends HandlerInterface {
 		// section that it should use, so don't reuse closed media sections.
 		//   https://github.com/versatica/mediasoup-client/issues/104
 		//
-		// const mediaSectionIdx = this._remoteSdp!.getNextMediaSectionIdx();
+		// const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
@@ -399,12 +402,10 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		const offer = await this._pc.createOffer();
-		let localSdpObject = sdpTransform.parse(offer.sdp);
+		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
-		// @ts-expect-error --- sdpTransform.SessionDescription type doesn't
-		// define extmapAllowMixed field.
 		if (localSdpObject.extmapAllowMixed) {
-			this._remoteSdp!.setSessionExtmapAllowMixed();
+			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
 		// In Firefox use DTLS role client even if we are the "offerer" since
@@ -422,15 +423,15 @@ export class Firefox120 extends HandlerInterface {
 		await this._pc.setLocalDescription(offer);
 
 		// We can now get the transceiver.mid.
-		const localId = transceiver.mid;
+		const localId = transceiver.mid!;
 
 		// Set MID.
 		sendingRtpParameters.mid = localId;
 
-		localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
 		const offerMediaObject =
-			localSdpObject.media[localSdpObject.media.length - 1];
+			localSdpObject.media[localSdpObject.media.length - 1]!;
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -475,14 +476,17 @@ export class Firefox120 extends HandlerInterface {
 			}
 		}
 
-		this._remoteSdp!.send({
+		this._remoteSdp.send({
 			offerMediaObject,
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
 		});
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'send() | calling pc.setRemoteDescription() [answer:%o]',
@@ -530,8 +534,8 @@ export class Firefox120 extends HandlerInterface {
 		this._pc.removeTrack(transceiver.sender);
 		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
 		// method.
-		// this._remoteSdp!.closeMediaSection(transceiver.mid);
-		this._remoteSdp!.disableMediaSection(transceiver.mid!);
+		// this._remoteSdp.closeMediaSection(transceiver.mid);
+		this._remoteSdp.disableMediaSection(transceiver.mid!);
 
 		const offer = await this._pc.createOffer();
 
@@ -542,7 +546,10 @@ export class Firefox120 extends HandlerInterface {
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'stopSending() | calling pc.setRemoteDescription() [answer:%o]',
@@ -567,7 +574,7 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		transceiver.direction = 'inactive';
-		this._remoteSdp!.pauseMediaSection(localId);
+		this._remoteSdp.pauseMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -578,7 +585,10 @@ export class Firefox120 extends HandlerInterface {
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'pauseSending() | calling pc.setRemoteDescription() [answer:%o]',
@@ -601,7 +611,7 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		transceiver.direction = 'sendonly';
-		this._remoteSdp!.resumeSendingMediaSection(localId);
+		this._remoteSdp.resumeSendingMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -612,7 +622,10 @@ export class Firefox120 extends HandlerInterface {
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'resumeSending() | calling pc.setRemoteDescription() [answer:%o]',
@@ -681,7 +694,7 @@ export class Firefox120 extends HandlerInterface {
 
 		await transceiver.sender.setParameters(parameters);
 
-		this._remoteSdp!.muxMediaSectionSimulcast(localId, parameters.encodings);
+		this._remoteSdp.muxMediaSectionSimulcast(localId, parameters.encodings);
 
 		const offer = await this._pc.createOffer();
 
@@ -692,7 +705,10 @@ export class Firefox120 extends HandlerInterface {
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'setMaxSpatialLayer() | calling pc.setRemoteDescription() [answer:%o]',
@@ -702,7 +718,10 @@ export class Firefox120 extends HandlerInterface {
 		await this._pc.setRemoteDescription(answer);
 	}
 
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void> {
+	async setRtpEncodingParameters(
+		localId: string,
+		params: Partial<RTCRtpEncodingParameters>
+	): Promise<void> {
 		this.assertNotClosed();
 		this.assertSendDirection();
 
@@ -728,7 +747,7 @@ export class Firefox120 extends HandlerInterface {
 
 		await transceiver.sender.setParameters(parameters);
 
-		this._remoteSdp!.muxMediaSectionSimulcast(localId, parameters.encodings);
+		this._remoteSdp.muxMediaSectionSimulcast(localId, parameters.encodings);
 
 		const offer = await this._pc.createOffer();
 
@@ -739,7 +758,10 @@ export class Firefox120 extends HandlerInterface {
 
 		await this._pc.setLocalDescription(offer);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+		const answer = {
+			type: 'answer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'setRtpEncodingParameters() | calling pc.setRemoteDescription() [answer:%o]',
@@ -783,7 +805,7 @@ export class Firefox120 extends HandlerInterface {
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const dataChannel = this._pc.createDataChannel(label, options);
+		const dataChannel = this._pc.createDataChannel(label!, options);
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
@@ -793,10 +815,10 @@ export class Firefox120 extends HandlerInterface {
 		// m=application section.
 		if (!this._hasDataChannelMediaSection) {
 			const offer = await this._pc.createOffer();
-			const localSdpObject = sdpTransform.parse(offer.sdp);
+			const localSdpObject = sdpTransform.parse(offer.sdp!);
 			const offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'application'
-			);
+				m => m.type === 'application'
+			)!;
 
 			if (!this._transportReady) {
 				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
@@ -809,9 +831,12 @@ export class Firefox120 extends HandlerInterface {
 
 			await this._pc.setLocalDescription(offer);
 
-			this._remoteSdp!.sendSctpAssociation({ offerMediaObject });
+			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
 
-			const answer = { type: 'answer', sdp: this._remoteSdp!.getSdp() };
+			const answer = {
+				type: 'answer' as RTCSdpType,
+				sdp: this._remoteSdp.getSdp(),
+			};
 
 			logger.debug(
 				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
@@ -851,7 +876,7 @@ export class Firefox120 extends HandlerInterface {
 
 			mapLocalId.set(trackId, localId);
 
-			this._remoteSdp!.receive({
+			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
@@ -860,7 +885,10 @@ export class Firefox120 extends HandlerInterface {
 			});
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+		const offer = {
+			type: 'offer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'receive() | calling pc.setRemoteDescription() [offer:%o]',
@@ -887,14 +915,14 @@ export class Firefox120 extends HandlerInterface {
 		}
 
 		let answer = await this._pc.createAnswer();
-		const localSdpObject = sdpTransform.parse(answer.sdp);
+		const localSdpObject = sdpTransform.parse(answer.sdp!);
 
 		for (const options of optionsList) {
 			const { trackId, rtpParameters } = options;
 			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media.find(
-				(m: any) => String(m.mid) === localId
-			);
+				m => String(m.mid) === localId
+			)!;
 
 			// May need to modify codec parameters in the answer based on codec
 			// parameters in the offer.
@@ -903,7 +931,10 @@ export class Firefox120 extends HandlerInterface {
 				answerMediaObject,
 			});
 
-			answer = { type: 'answer', sdp: sdpTransform.write(localSdpObject) };
+			answer = {
+				type: 'answer' as RTCSdpType,
+				sdp: sdpTransform.write(localSdpObject),
+			};
 		}
 
 		if (!this._transportReady) {
@@ -957,10 +988,13 @@ export class Firefox120 extends HandlerInterface {
 				throw new Error('associated RTCRtpTransceiver not found');
 			}
 
-			this._remoteSdp!.closeMediaSection(transceiver.mid!);
+			this._remoteSdp.closeMediaSection(transceiver.mid!);
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+		const offer = {
+			type: 'offer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'stopReceiving() | calling pc.setRemoteDescription() [offer:%o]',
@@ -997,10 +1031,13 @@ export class Firefox120 extends HandlerInterface {
 			}
 
 			transceiver.direction = 'inactive';
-			this._remoteSdp!.pauseMediaSection(localId);
+			this._remoteSdp.pauseMediaSection(localId);
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+		const offer = {
+			type: 'offer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'pauseReceiving() | calling pc.setRemoteDescription() [offer:%o]',
@@ -1033,10 +1070,13 @@ export class Firefox120 extends HandlerInterface {
 			}
 
 			transceiver.direction = 'recvonly';
-			this._remoteSdp!.resumeReceivingMediaSection(localId);
+			this._remoteSdp.resumeReceivingMediaSection(localId);
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+		const offer = {
+			type: 'offer' as RTCSdpType,
+			sdp: this._remoteSdp.getSdp(),
+		};
 
 		logger.debug(
 			'resumeReceiving() | calling pc.setRemoteDescription() [offer:%o]',
@@ -1093,14 +1133,17 @@ export class Firefox120 extends HandlerInterface {
 
 		logger.debug('receiveDataChannel() [options:%o]', options);
 
-		const dataChannel = this._pc.createDataChannel(label, options);
+		const dataChannel = this._pc.createDataChannel(label!, options);
 
 		// If this is the first DataChannel we need to create the SDP offer with
 		// m=application section.
 		if (!this._hasDataChannelMediaSection) {
-			this._remoteSdp!.receiveSctpAssociation();
+			this._remoteSdp.receiveSctpAssociation();
 
-			const offer = { type: 'offer', sdp: this._remoteSdp!.getSdp() };
+			const offer = {
+				type: 'offer' as RTCSdpType,
+				sdp: this._remoteSdp.getSdp(),
+			};
 
 			logger.debug(
 				'receiveDataChannel() | calling pc.setRemoteDescription() [offer:%o]',
@@ -1112,7 +1155,7 @@ export class Firefox120 extends HandlerInterface {
 			const answer = await this._pc.createAnswer();
 
 			if (!this._transportReady) {
-				const localSdpObject = sdpTransform.parse(answer.sdp);
+				const localSdpObject = sdpTransform.parse(answer.sdp!);
 
 				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
@@ -1135,10 +1178,10 @@ export class Firefox120 extends HandlerInterface {
 		localSdpObject,
 	}: {
 		localDtlsRole: DtlsRole;
-		localSdpObject?: any;
+		localSdpObject?: SdpTransform.SessionDescription;
 	}): Promise<void> {
 		if (!localSdpObject) {
-			localSdpObject = sdpTransform.parse(this._pc.localDescription.sdp);
+			localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 		}
 
 		// Get our local DTLS parameters.
@@ -1150,7 +1193,7 @@ export class Firefox120 extends HandlerInterface {
 		dtlsParameters.role = localDtlsRole;
 
 		// Update the remote DTLS role in the SDP.
-		this._remoteSdp!.updateDtlsRole(
+		this._remoteSdp.updateDtlsRole(
 			localDtlsRole === 'client' ? 'server' : 'client'
 		);
 

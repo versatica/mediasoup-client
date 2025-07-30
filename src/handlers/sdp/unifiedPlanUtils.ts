@@ -1,23 +1,26 @@
 import type { RtpEncodingParameters } from '../../RtpParameters';
+import type * as SdpTransform from 'sdp-transform';
 
 export function getRtpEncodings({
 	offerMediaObject,
 }: {
-	offerMediaObject: any;
+	offerMediaObject: SdpTransform.MediaDescription;
 }): RtpEncodingParameters[] {
-	const ssrcs = new Set();
+	const ssrcs: Set<number> = new Set();
 
 	for (const line of offerMediaObject.ssrcs ?? []) {
 		const ssrc = line.id;
 
-		ssrcs.add(ssrc);
+		if (ssrc) {
+			ssrcs.add(ssrc);
+		}
 	}
 
 	if (ssrcs.size === 0) {
 		throw new Error('no a=ssrc lines found');
 	}
 
-	const ssrcToRtxSsrc = new Map();
+	const ssrcToRtxSsrc: Map<number, number | undefined> = new Map();
 
 	// First assume RTX is used.
 	for (const line of offerMediaObject.ssrcGroups ?? []) {
@@ -25,10 +28,9 @@ export function getRtpEncodings({
 			continue;
 		}
 
-		let [ssrc, rtxSsrc] = line.ssrcs.split(/\s+/);
-
-		ssrc = Number(ssrc);
-		rtxSsrc = Number(rtxSsrc);
+		const ssrcsStr = line.ssrcs.split(/\s+/);
+		const ssrc = Number(ssrcsStr[0]!);
+		const rtxSsrc = Number(ssrcsStr[1]!);
 
 		if (ssrcs.has(ssrc)) {
 			// Remove both the SSRC and RTX SSRC from the set so later we know
@@ -45,7 +47,7 @@ export function getRtpEncodings({
 	// take media SSRCs from there.
 	for (const ssrc of ssrcs) {
 		// Add to the map.
-		ssrcToRtxSsrc.set(ssrc, null);
+		ssrcToRtxSsrc.set(ssrc, undefined);
 	}
 
 	const encodings: RtpEncodingParameters[] = [];
@@ -70,7 +72,7 @@ export function addLegacySimulcast({
 	offerMediaObject,
 	numStreams,
 }: {
-	offerMediaObject: any;
+	offerMediaObject: SdpTransform.MediaDescription;
 	numStreams: number;
 }): void {
 	if (numStreams <= 1) {
@@ -78,20 +80,22 @@ export function addLegacySimulcast({
 	}
 
 	// Get the SSRC.
-	const ssrcMsidLine = (offerMediaObject.ssrcs ?? []).find(
-		(line: any) => line.attribute === 'msid'
+	const ssrcMsidLine:
+		| NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number]
+		| undefined = (offerMediaObject.ssrcs ?? []).find(
+		line => line.attribute === 'msid'
 	);
 
 	if (!ssrcMsidLine) {
 		throw new Error('a=ssrc line with msid information not found');
 	}
 
-	const [streamId, trackId] = ssrcMsidLine.value.split(' ');
+	const [streamId, trackId] = ssrcMsidLine.value!.split(' ');
 	const firstSsrc = Number(ssrcMsidLine.id);
 	let firstRtxSsrc: number | undefined;
 
 	// Get the SSRC for RTX.
-	(offerMediaObject.ssrcGroups ?? []).some((line: any) => {
+	(offerMediaObject.ssrcGroups ?? []).some(line => {
 		if (line.semantics !== 'FID') {
 			return false;
 		}
@@ -107,8 +111,10 @@ export function addLegacySimulcast({
 		}
 	});
 
-	const ssrcCnameLine = offerMediaObject.ssrcs.find(
-		(line: any) => line.attribute === 'cname'
+	const ssrcCnameLine:
+		| NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number]
+		| undefined = (offerMediaObject.ssrcs ?? []).find(
+		line => line.attribute === 'cname'
 	);
 
 	if (!ssrcCnameLine) {
@@ -150,8 +156,8 @@ export function addLegacySimulcast({
 	}
 
 	for (let i = 0; i < rtxSsrcs.length; ++i) {
-		const ssrc = ssrcs[i];
-		const rtxSsrc = rtxSsrcs[i];
+		const ssrc = ssrcs[i]!;
+		const rtxSsrc = rtxSsrcs[i]!;
 
 		offerMediaObject.ssrcs.push({
 			id: rtxSsrc,

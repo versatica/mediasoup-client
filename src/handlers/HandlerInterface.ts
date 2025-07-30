@@ -19,10 +19,9 @@ import type {
 	SctpParameters,
 	SctpStreamParameters,
 } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 
-export type HandlerFactory = () => HandlerInterface;
-
-export type HandlerRunOptions = {
+export type HandlerOptions = {
 	direction: 'send' | 'recv';
 	iceParameters: IceParameters;
 	iceCandidates: IceCandidate[];
@@ -30,9 +29,15 @@ export type HandlerRunOptions = {
 	sctpParameters?: SctpParameters;
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
-	additionalSettings?: any;
-	proprietaryConstraints?: any;
-	extendedRtpCapabilities: any;
+	additionalSettings?: Partial<RTCConfiguration>;
+	extendedRtpCapabilities: ExtendedRtpCapabilities;
+};
+
+export type HandlerFactory = {
+	name: string;
+	factory: (options: HandlerOptions) => HandlerInterface;
+	getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 };
 
 export type HandlerSendOptions = {
@@ -107,12 +112,6 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract close(): void;
 
-	abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-
-	abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
-
-	abstract run(options: HandlerRunOptions): void;
-
 	abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
 
 	abstract restartIce(iceParameters: IceParameters): Promise<void>;
@@ -139,7 +138,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract setRtpEncodingParameters(
 		localId: string,
-		params: any
+		params: Partial<RTCRtpEncodingParameters>
 	): Promise<void>;
 
 	abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
