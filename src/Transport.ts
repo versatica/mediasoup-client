@@ -296,9 +296,7 @@ export class Transport<
 		delete clonedAdditionalSettings.bundlePolicy;
 		delete clonedAdditionalSettings.rtcpMuxPolicy;
 
-		this._handler = handlerFactory();
-
-		this._handler.run({
+		this._handler = handlerFactory.factory({
 			direction,
 			iceParameters,
 			iceCandidates,

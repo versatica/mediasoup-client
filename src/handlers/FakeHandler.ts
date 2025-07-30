@@ -11,11 +11,16 @@ import type {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import type { RtpCapabilities, RtpParameters } from '../RtpParameters';
+import type {
+	RtpCapabilities,
+	MediaKind,
+	RtpParameters,
+} from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
 import {
+	type HandlerFactory,
 	HandlerInterface,
-	type HandlerRunOptions,
+	type HandlerOptions,
 	type HandlerSendOptions,
 	type HandlerSendResult,
 	type HandlerReceiveOptions,
@@ -292,9 +297,9 @@ export class FakeHandler extends HandlerInterface {
 	// Closed flag.
 	private _closed = false;
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
-	private fakeParameters: FakeParameters;
+	private _fakeParameters: FakeParameters;
 	// Generic sending RTP parameters for audio and video.
-	private _rtpParametersByKind?: { [key: string]: RtpParameters };
+	private _rtpParametersByKind: { [K in MediaKind]: RtpParameters };
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
 	// Got transport local and remote parameters.
@@ -309,14 +314,50 @@ export class FakeHandler extends HandlerInterface {
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(fakeParameters: FakeParameters) {
-		return (): FakeHandler => new FakeHandler(fakeParameters);
+	static createFactory(fakeParameters: FakeParameters): HandlerFactory {
+		return {
+			name: NAME,
+			factory: (options: HandlerOptions): FakeHandler =>
+				new FakeHandler(options, fakeParameters),
+			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities()');
+
+				return fakeParameters.generateNativeRtpCapabilities();
+			},
+			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
+				logger.debug('getNativeSctpCapabilities()');
+
+				return fakeParameters.generateNativeSctpCapabilities();
+			},
+		};
 	}
 
-	constructor(fakeParameters: FakeParameters) {
+	constructor(
+		{
+			// direction,
+			// iceParameters,
+			// iceCandidates,
+			// dtlsParameters,
+			// sctpParameters,
+			// iceServers,
+			// iceTransportPolicy,
+			// additionalSettings,
+			extendedRtpCapabilities,
+		}: HandlerOptions,
+		fakeParameters: FakeParameters
+	) {
 		super();
 
-		this.fakeParameters = fakeParameters;
+		logger.debug('constructor()');
+
+		// Generic sending RTP parameters for audio and video.
+		// @type {Object}
+		this._rtpParametersByKind = {
+			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
+			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
+		};
+
+		this._fakeParameters = fakeParameters;
 	}
 
 	get name(): string {
@@ -341,42 +382,6 @@ export class FakeHandler extends HandlerInterface {
 	// NOTE: Custom method for simulation purposes.
 	setConnectionState(connectionState: ConnectionState): void {
 		this.emit('@connectionstatechange', connectionState);
-	}
-
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities> {
-		logger.debug('getNativeRtpCapabilities()');
-
-		return this.fakeParameters.generateNativeRtpCapabilities();
-	}
-
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities> {
-		logger.debug('getNativeSctpCapabilities()');
-
-		return this.fakeParameters.generateNativeSctpCapabilities();
-	}
-
-	run({
-		/* eslint-disable @typescript-eslint/no-unused-vars */
-		direction,
-		iceParameters,
-		iceCandidates,
-		dtlsParameters,
-		sctpParameters,
-		iceServers,
-		iceTransportPolicy,
-		extendedRtpCapabilities,
-		/* eslint-enable @typescript-eslint/no-unused-vars */
-	}: HandlerRunOptions): void {
-		this.assertNotClosed();
-
-		logger.debug('run()');
-
-		// Generic sending RTP parameters for audio and video.
-		// @type {Object}
-		this._rtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -412,7 +417,7 @@ export class FakeHandler extends HandlerInterface {
 		}
 
 		const rtpParameters = utils.clone<RtpParameters>(
-			this._rtpParametersByKind![track.kind]!
+			this._rtpParametersByKind[track.kind as MediaKind]
 		);
 		const useRtx = rtpParameters.codecs.some(_codec =>
 			/.+\/rtx$/i.test(_codec.mimeType)
@@ -661,7 +666,7 @@ export class FakeHandler extends HandlerInterface {
 		localSdpObject?: SdpTransform.SessionDescription;
 	}): Promise<void> {
 		const dtlsParameters = utils.clone<DtlsParameters>(
-			this.fakeParameters.generateLocalDtlsParameters()
+			this._fakeParameters.generateLocalDtlsParameters()
 		);
 
 		// Set our DTLS role.

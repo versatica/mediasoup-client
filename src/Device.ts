@@ -9,10 +9,7 @@ import {
 	type TransportOptions,
 	type CanProduceByKind,
 } from './Transport';
-import {
-	type HandlerFactory,
-	HandlerInterface,
-} from './handlers/HandlerInterface';
+import { type HandlerFactory } from './handlers/HandlerInterface';
 import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Firefox120 } from './handlers/Firefox120';
@@ -202,13 +199,7 @@ export class Device {
 			}
 		}
 
-		// Create a temporal handler to get its name.
-		const handler = this._handlerFactory();
-
-		this._handlerName = handler.name;
-
-		handler.close();
-
+		this._handlerName = this._handlerFactory.name;
 		this._extendedRtpCapabilities = undefined;
 		this._recvRtpCapabilities = undefined;
 		this._canProduceByKind = {
@@ -274,97 +265,85 @@ export class Device {
 	}): Promise<void> {
 		logger.debug('load() [routerRtpCapabilities:%o]', routerRtpCapabilities);
 
-		// Temporal handler to get its capabilities.
-		let handler: HandlerInterface | undefined;
-
-		try {
-			if (this._loaded) {
-				throw new InvalidStateError('already loaded');
-			}
-
-			// Clone given router RTP capabilities to not modify input data.
-			const clonedRouterRtpCapabilities = utils.clone<RtpCapabilities>(
-				routerRtpCapabilities
-			);
-
-			// This may throw.
-			ortc.validateRtpCapabilities(clonedRouterRtpCapabilities);
-
-			handler = this._handlerFactory();
-
-			const nativeRtpCapabilities = await handler.getNativeRtpCapabilities();
-
-			logger.debug(
-				'load() | got native RTP capabilities:%o',
-				nativeRtpCapabilities
-			);
-
-			// Clone obtained native RTP capabilities to not modify input data.
-			const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
-				nativeRtpCapabilities
-			);
-
-			// This may throw.
-			ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
-
-			// Get extended RTP capabilities.
-			this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
-				clonedNativeRtpCapabilities,
-				clonedRouterRtpCapabilities,
-				preferLocalCodecsOrder
-			);
-
-			logger.debug(
-				'load() | got extended RTP capabilities:%o',
-				this._extendedRtpCapabilities
-			);
-
-			// Check whether we can produce audio/video.
-			this._canProduceByKind.audio = ortc.canSend(
-				'audio',
-				this._extendedRtpCapabilities
-			);
-			this._canProduceByKind.video = ortc.canSend(
-				'video',
-				this._extendedRtpCapabilities
-			);
-
-			// Generate our receiving RTP capabilities for receiving media.
-			this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
-				this._extendedRtpCapabilities
-			);
-
-			// This may throw.
-			ortc.validateRtpCapabilities(this._recvRtpCapabilities);
-
-			logger.debug(
-				'load() | got receiving RTP capabilities:%o',
-				this._recvRtpCapabilities
-			);
-
-			// Generate our SCTP capabilities.
-			this._sctpCapabilities = await handler.getNativeSctpCapabilities();
-
-			logger.debug(
-				'load() | got native SCTP capabilities:%o',
-				this._sctpCapabilities
-			);
-
-			// This may throw.
-			ortc.validateSctpCapabilities(this._sctpCapabilities);
-
-			logger.debug('load() succeeded');
-
-			this._loaded = true;
-
-			handler.close();
-		} catch (error) {
-			if (handler) {
-				handler.close();
-			}
-
-			throw error;
+		if (this._loaded) {
+			throw new InvalidStateError('already loaded');
 		}
+
+		// Clone given router RTP capabilities to not modify input data.
+		const clonedRouterRtpCapabilities = utils.clone<RtpCapabilities>(
+			routerRtpCapabilities
+		);
+
+		// This may throw.
+		ortc.validateRtpCapabilities(clonedRouterRtpCapabilities);
+
+		const { getNativeRtpCapabilities, getNativeSctpCapabilities } =
+			this._handlerFactory;
+
+		const nativeRtpCapabilities = await getNativeRtpCapabilities();
+
+		logger.debug(
+			'load() | got native RTP capabilities:%o',
+			nativeRtpCapabilities
+		);
+
+		// Clone obtained native RTP capabilities to not modify input data.
+		const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
+			nativeRtpCapabilities
+		);
+
+		// This may throw.
+		ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
+
+		// Get extended RTP capabilities.
+		this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
+			clonedNativeRtpCapabilities,
+			clonedRouterRtpCapabilities,
+			preferLocalCodecsOrder
+		);
+
+		logger.debug(
+			'load() | got extended RTP capabilities:%o',
+			this._extendedRtpCapabilities
+		);
+
+		// Check whether we can produce audio/video.
+		this._canProduceByKind.audio = ortc.canSend(
+			'audio',
+			this._extendedRtpCapabilities
+		);
+		this._canProduceByKind.video = ortc.canSend(
+			'video',
+			this._extendedRtpCapabilities
+		);
+
+		// Generate our receiving RTP capabilities for receiving media.
+		this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
+			this._extendedRtpCapabilities
+		);
+
+		// This may throw.
+		ortc.validateRtpCapabilities(this._recvRtpCapabilities);
+
+		logger.debug(
+			'load() | got receiving RTP capabilities:%o',
+			this._recvRtpCapabilities
+		);
+
+		// Generate our SCTP capabilities.
+		this._sctpCapabilities = await getNativeSctpCapabilities();
+
+		logger.debug(
+			'load() | got native SCTP capabilities:%o',
+			this._sctpCapabilities
+		);
+
+		// This may throw.
+		ortc.validateSctpCapabilities(this._sctpCapabilities);
+
+		logger.debug('load() succeeded');
+
+		this._loaded = true;
 	}
 
 	/**
