@@ -1567,13 +1567,16 @@ test('connection state change does not fire "connectionstatechange" in closed Tr
 		}
 	);
 
-	ctx.connectedSendTransport!.close();
-
 	// @ts-expect-error --- On purpose.
 	ctx.connectedSendTransport!.handler.setConnectionState('disconnected');
 
-	expect(connectionStateChangeEventNumTimesCalled).toBe(0);
+	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
 	expect(ctx.connectedSendTransport!.connectionState).toBe('disconnected');
+
+	ctx.connectedSendTransport!.close();
+
+	expect(connectionStateChangeEventNumTimesCalled).toBe(1);
+	expect(ctx.connectedSendTransport!.connectionState).toBe('closed');
 });
 
 test('parseScalabilityMode() works', () => {

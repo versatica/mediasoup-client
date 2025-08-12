@@ -1,5 +1,6 @@
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import type * as SdpTransform from 'sdp-transform';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
@@ -17,18 +18,19 @@ import type {
 	RtpParameters,
 } from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
-import {
-	type HandlerFactory,
+import type {
+	HandlerFactory,
 	HandlerInterface,
-	type HandlerOptions,
-	type HandlerSendOptions,
-	type HandlerSendResult,
-	type HandlerReceiveOptions,
-	type HandlerReceiveResult,
-	type HandlerSendDataChannelOptions,
-	type HandlerSendDataChannelResult,
-	type HandlerReceiveDataChannelOptions,
-	type HandlerReceiveDataChannelResult,
+	HandlerEvents,
+	HandlerOptions,
+	HandlerSendOptions,
+	HandlerSendResult,
+	HandlerReceiveOptions,
+	HandlerReceiveResult,
+	HandlerSendDataChannelOptions,
+	HandlerSendDataChannelResult,
+	HandlerReceiveDataChannelOptions,
+	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 
 const logger = new Logger('FakeHandler');
@@ -41,7 +43,10 @@ export type FakeParameters = {
 	generateLocalDtlsParameters: () => DtlsParameters;
 };
 
-export class FakeHandler extends HandlerInterface {
+export class FakeHandler
+	extends EnhancedEventEmitter<HandlerEvents>
+	implements HandlerInterface
+{
 	// Closed flag.
 	private _closed = false;
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
@@ -112,7 +117,7 @@ export class FakeHandler extends HandlerInterface {
 		return NAME;
 	}
 
-	close(): void {
+	override close(): void {
 		logger.debug('close()');
 
 		if (this._closed) {
@@ -120,6 +125,9 @@ export class FakeHandler extends HandlerInterface {
 		}
 
 		this._closed = true;
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
 	}
 
 	// NOTE: Custom method for simulation purposes.

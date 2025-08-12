@@ -110,7 +110,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract get name(): string;
 
-	abstract close(): void;
+	abstract override close(): void;
 
 	abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
 

@@ -162,7 +162,7 @@ export class DataConsumer<
 	/**
 	 * Closes the DataConsumer.
 	 */
-	close(): void {
+	override close(): void {
 		if (this._closed) {
 			return;
 		}
@@ -177,6 +177,10 @@ export class DataConsumer<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**

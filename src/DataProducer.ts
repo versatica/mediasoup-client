@@ -157,7 +157,7 @@ export class DataProducer<
 	/**
 	 * Closes the DataProducer.
 	 */
-	close(): void {
+	override close(): void {
 		if (this._closed) {
 			return;
 		}
@@ -172,6 +172,10 @@ export class DataProducer<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**
