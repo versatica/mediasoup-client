@@ -254,6 +254,8 @@ export class ReactNative106 extends HandlerInterface {
 		if (this._pc) {
 			try {
 				this._pc.close();
+				// @ts-ignore
+				this._pc = null;
 			} catch (error) {}
 		}
 
