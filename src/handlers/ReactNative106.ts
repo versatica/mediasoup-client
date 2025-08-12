@@ -1,5 +1,6 @@
 import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import * as utils from '../utils';
 import * as ortc from '../ortc';
@@ -13,18 +14,19 @@ import type {
 	RtpEncodingParameters,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
-import {
-	type HandlerFactory,
+import type {
+	HandlerFactory,
 	HandlerInterface,
-	type HandlerOptions,
-	type HandlerSendOptions,
-	type HandlerSendResult,
-	type HandlerReceiveOptions,
-	type HandlerReceiveResult,
-	type HandlerSendDataChannelOptions,
-	type HandlerSendDataChannelResult,
-	type HandlerReceiveDataChannelOptions,
-	type HandlerReceiveDataChannelResult,
+	HandlerEvents,
+	HandlerOptions,
+	HandlerSendOptions,
+	HandlerSendResult,
+	HandlerReceiveOptions,
+	HandlerReceiveResult,
+	HandlerSendDataChannelOptions,
+	HandlerSendDataChannelResult,
+	HandlerReceiveDataChannelOptions,
+	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
@@ -36,7 +38,10 @@ const logger = new Logger('ReactNative106');
 const NAME = 'ReactNative106';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-export class ReactNative106 extends HandlerInterface {
+export class ReactNative106
+	extends EnhancedEventEmitter<HandlerEvents>
+	implements HandlerInterface
+{
 	// Closed flag.
 	private _closed = false;
 	// Handler direction.
@@ -78,7 +83,7 @@ export class ReactNative106 extends HandlerInterface {
 			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
-				const pc = new RTCPeerConnection({
+				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
 					iceTransportPolicy: 'all',
 					bundlePolicy: 'max-bundle',
@@ -95,6 +100,8 @@ export class ReactNative106 extends HandlerInterface {
 						pc.close();
 					} catch (error) {}
 
+					pc = undefined;
+
 					const sdpObject = sdpTransform.parse(offer.sdp!);
 					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 						sdpObject,
@@ -106,8 +113,10 @@ export class ReactNative106 extends HandlerInterface {
 					return nativeRtpCapabilities;
 				} catch (error) {
 					try {
-						pc.close();
+						pc?.close();
 					} catch (error2) {}
+
+					pc = undefined;
 
 					throw error;
 				}
@@ -175,60 +184,27 @@ export class ReactNative106 extends HandlerInterface {
 			...additionalSettings,
 		});
 
-		this._pc.addEventListener('icegatheringstatechange', () => {
-			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
-		});
-
 		this._pc.addEventListener(
-			'icecandidateerror',
-			(event: RTCPeerConnectionIceErrorEvent) => {
-				this.emit('@icecandidateerror', event);
-			}
+			'icegatheringstatechange',
+			this.onIceGatheringStateChange
 		);
 
+		this._pc.addEventListener('icecandidateerror', this.onIceCandidateError);
+
 		if (this._pc.connectionState) {
-			this._pc.addEventListener('connectionstatechange', () => {
-				this.emit('@connectionstatechange', this._pc.connectionState);
-			});
+			this._pc.addEventListener(
+				'connectionstatechange',
+				this.onConnectionStateChange
+			);
 		} else {
-			this._pc.addEventListener('iceconnectionstatechange', () => {
-				logger.warn(
-					'run() | pc.connectionState not supported, using pc.iceConnectionState'
-				);
+			logger.warn(
+				'run() | pc.connectionState not supported, using pc.iceConnectionState'
+			);
 
-				switch (this._pc.iceConnectionState) {
-					case 'checking': {
-						this.emit('@connectionstatechange', 'connecting');
-
-						break;
-					}
-
-					case 'connected':
-					case 'completed': {
-						this.emit('@connectionstatechange', 'connected');
-
-						break;
-					}
-
-					case 'failed': {
-						this.emit('@connectionstatechange', 'failed');
-
-						break;
-					}
-
-					case 'disconnected': {
-						this.emit('@connectionstatechange', 'disconnected');
-
-						break;
-					}
-
-					case 'closed': {
-						this.emit('@connectionstatechange', 'closed');
-
-						break;
-					}
-				}
-			});
+			this._pc.addEventListener(
+				'iceconnectionstatechange',
+				this.onIceConnectionStateChange
+			);
 		}
 	}
 
@@ -236,7 +212,7 @@ export class ReactNative106 extends HandlerInterface {
 		return NAME;
 	}
 
-	close(): void {
+	override close(): void {
 		logger.debug('close()');
 
 		if (this._closed) {
@@ -251,13 +227,31 @@ export class ReactNative106 extends HandlerInterface {
 		this._sendStream.release(/* releaseTracks */ false);
 
 		// Close RTCPeerConnection.
-		if (this._pc) {
-			try {
-				this._pc.close();
-			} catch (error) {}
-		}
+		try {
+			this._pc.close();
+		} catch (error) {}
+
+		this._pc.removeEventListener(
+			'icegatheringstatechange',
+			this.onIceGatheringStateChange
+		);
+
+		this._pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+
+		this._pc.removeEventListener(
+			'connectionstatechange',
+			this.onConnectionStateChange
+		);
+
+		this._pc.removeEventListener(
+			'iceconnectionstatechange',
+			this.onIceConnectionStateChange
+		);
 
 		this.emit('@close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
 	}
 
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
@@ -1250,6 +1244,55 @@ export class ReactNative106 extends HandlerInterface {
 
 		this._transportReady = true;
 	}
+
+	private onIceGatheringStateChange = (): void => {
+		this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
+	};
+
+	private onIceCandidateError = (
+		event: RTCPeerConnectionIceErrorEvent
+	): void => {
+		this.emit('@icecandidateerror', event);
+	};
+
+	private onConnectionStateChange = (): void => {
+		this.emit('@connectionstatechange', this._pc.connectionState);
+	};
+
+	private onIceConnectionStateChange = (): void => {
+		switch (this._pc.iceConnectionState) {
+			case 'checking': {
+				this.emit('@connectionstatechange', 'connecting');
+
+				break;
+			}
+
+			case 'connected':
+			case 'completed': {
+				this.emit('@connectionstatechange', 'connected');
+
+				break;
+			}
+
+			case 'failed': {
+				this.emit('@connectionstatechange', 'failed');
+
+				break;
+			}
+
+			case 'disconnected': {
+				this.emit('@connectionstatechange', 'disconnected');
+
+				break;
+			}
+
+			case 'closed': {
+				this.emit('@connectionstatechange', 'closed');
+
+				break;
+			}
+		}
+	};
 
 	private assertNotClosed(): void {
 		if (this._closed) {

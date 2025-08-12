@@ -1,5 +1,6 @@
 import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
+import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
@@ -15,18 +16,19 @@ import type {
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import {
-	type HandlerFactory,
+import type {
+	HandlerFactory,
 	HandlerInterface,
-	type HandlerOptions,
-	type HandlerSendOptions,
-	type HandlerSendResult,
-	type HandlerReceiveOptions,
-	type HandlerReceiveResult,
-	type HandlerSendDataChannelOptions,
-	type HandlerSendDataChannelResult,
-	type HandlerReceiveDataChannelOptions,
-	type HandlerReceiveDataChannelResult,
+	HandlerEvents,
+	HandlerOptions,
+	HandlerSendOptions,
+	HandlerSendResult,
+	HandlerReceiveOptions,
+	HandlerReceiveResult,
+	HandlerSendDataChannelOptions,
+	HandlerSendDataChannelResult,
+	HandlerReceiveDataChannelOptions,
+	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
 
@@ -35,7 +37,10 @@ const logger = new Logger('Firefox120');
 const NAME = 'Firefox120';
 const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
-export class Firefox120 extends HandlerInterface {
+export class Firefox120
+	extends EnhancedEventEmitter<HandlerEvents>
+	implements HandlerInterface
+{
 	// Closed flag.
 	private _closed = false;
 	// Handler direction.
@@ -73,7 +78,7 @@ export class Firefox120 extends HandlerInterface {
 			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
-				const pc = new RTCPeerConnection({
+				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
 					iceTransportPolicy: 'all',
 					bundlePolicy: 'max-bundle',
@@ -115,6 +120,8 @@ export class Firefox120 extends HandlerInterface {
 						pc.close();
 					} catch (error) {}
 
+					pc = undefined;
+
 					const sdpObject = sdpTransform.parse(offer.sdp!);
 					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 						sdpObject,
@@ -131,8 +138,10 @@ export class Firefox120 extends HandlerInterface {
 					} catch (error2) {}
 
 					try {
-						pc.close();
+						pc?.close();
 					} catch (error2) {}
+
+					pc = undefined;
 
 					throw error;
 				}
@@ -195,60 +204,27 @@ export class Firefox120 extends HandlerInterface {
 			...additionalSettings,
 		});
 
-		this._pc.addEventListener('icegatheringstatechange', () => {
-			this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
-		});
-
 		this._pc.addEventListener(
-			'icecandidateerror',
-			(event: RTCPeerConnectionIceErrorEvent) => {
-				this.emit('@icecandidateerror', event);
-			}
+			'icegatheringstatechange',
+			this.onIceGatheringStateChange
 		);
 
+		this._pc.addEventListener('icecandidateerror', this.onIceCandidateError);
+
 		if (this._pc.connectionState) {
-			this._pc.addEventListener('connectionstatechange', () => {
-				this.emit('@connectionstatechange', this._pc.connectionState);
-			});
+			this._pc.addEventListener(
+				'connectionstatechange',
+				this.onConnectionStateChange
+			);
 		} else {
-			this._pc.addEventListener('iceconnectionstatechange', () => {
-				logger.warn(
-					'run() | pc.connectionState not supported, using pc.iceConnectionState'
-				);
+			logger.warn(
+				'run() | pc.connectionState not supported, using pc.iceConnectionState'
+			);
 
-				switch (this._pc.iceConnectionState) {
-					case 'checking': {
-						this.emit('@connectionstatechange', 'connecting');
-
-						break;
-					}
-
-					case 'connected':
-					case 'completed': {
-						this.emit('@connectionstatechange', 'connected');
-
-						break;
-					}
-
-					case 'failed': {
-						this.emit('@connectionstatechange', 'failed');
-
-						break;
-					}
-
-					case 'disconnected': {
-						this.emit('@connectionstatechange', 'disconnected');
-
-						break;
-					}
-
-					case 'closed': {
-						this.emit('@connectionstatechange', 'closed');
-
-						break;
-					}
-				}
-			});
+			this._pc.addEventListener(
+				'iceconnectionstatechange',
+				this.onIceConnectionStateChange
+			);
 		}
 	}
 
@@ -256,7 +232,7 @@ export class Firefox120 extends HandlerInterface {
 		return NAME;
 	}
 
-	close(): void {
+	override close(): void {
 		logger.debug('close()');
 
 		if (this._closed) {
@@ -266,13 +242,31 @@ export class Firefox120 extends HandlerInterface {
 		this._closed = true;
 
 		// Close RTCPeerConnection.
-		if (this._pc) {
-			try {
-				this._pc.close();
-			} catch (error) {}
-		}
+		try {
+			this._pc.close();
+		} catch (error) {}
+
+		this._pc.removeEventListener(
+			'icegatheringstatechange',
+			this.onIceGatheringStateChange
+		);
+
+		this._pc.removeEventListener('icecandidateerror', this.onIceCandidateError);
+
+		this._pc.removeEventListener(
+			'connectionstatechange',
+			this.onConnectionStateChange
+		);
+
+		this._pc.removeEventListener(
+			'iceconnectionstatechange',
+			this.onIceConnectionStateChange
+		);
 
 		this.emit('@close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1204,6 +1198,55 @@ export class Firefox120 extends HandlerInterface {
 
 		this._transportReady = true;
 	}
+
+	private onIceGatheringStateChange = (): void => {
+		this.emit('@icegatheringstatechange', this._pc.iceGatheringState);
+	};
+
+	private onIceCandidateError = (
+		event: RTCPeerConnectionIceErrorEvent
+	): void => {
+		this.emit('@icecandidateerror', event);
+	};
+
+	private onConnectionStateChange = (): void => {
+		this.emit('@connectionstatechange', this._pc.connectionState);
+	};
+
+	private onIceConnectionStateChange = (): void => {
+		switch (this._pc.iceConnectionState) {
+			case 'checking': {
+				this.emit('@connectionstatechange', 'connecting');
+
+				break;
+			}
+
+			case 'connected':
+			case 'completed': {
+				this.emit('@connectionstatechange', 'connected');
+
+				break;
+			}
+
+			case 'failed': {
+				this.emit('@connectionstatechange', 'failed');
+
+				break;
+			}
+
+			case 'disconnected': {
+				this.emit('@connectionstatechange', 'disconnected');
+
+				break;
+			}
+
+			case 'closed': {
+				this.emit('@connectionstatechange', 'closed');
+
+				break;
+			}
+		}
+	};
 
 	private assertNotClosed(): void {
 		if (this._closed) {

@@ -15,6 +15,13 @@ export class EnhancedEventEmitter<
 		this.setMaxListeners(Infinity);
 	}
 
+	/**
+	 * Empties all stored event listeners.
+	 */
+	close(): void {
+		super.removeAllListeners();
+	}
+
 	override emit<K extends keyof E & string>(
 		eventName: K,
 		...args: E[K]

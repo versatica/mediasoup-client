@@ -376,7 +376,7 @@ export class Transport<
 	/**
 	 * Close the Transport.
 	 */
-	close(): void {
+	override close(): void {
 		if (this._closed) {
 			return;
 		}
@@ -421,6 +421,10 @@ export class Transport<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**
