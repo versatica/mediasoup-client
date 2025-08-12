@@ -26,6 +26,11 @@ export { parse as parseScalabilityMode } from './scalabilityModes';
 export * as ortc from './ortc';
 
 /**
+ * Expose enhanced events.
+ */
+export * as enhancedEvents from './enhancedEvents';
+
+/**
  * Expose FakeHandler.
  */
 export { FakeHandler } from './handlers/FakeHandler';

@@ -12,6 +12,7 @@ export class EnhancedEventEmitter<
 > extends EventEmitter {
 	constructor() {
 		super();
+
 		this.setMaxListeners(Infinity);
 	}
 
