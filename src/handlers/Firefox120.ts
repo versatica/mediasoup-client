@@ -3,17 +3,16 @@ import type * as SdpTransform from 'sdp-transform';
 import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
 import { UnsupportedError, InvalidStateError } from '../errors';
-import * as utils from '../utils';
 import * as ortc from '../ortc';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import type { IceParameters, DtlsRole } from '../Transport';
 import type {
 	RtpCapabilities,
 	MediaKind,
-	RtpParameters,
 	RtpEncodingParameters,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import type {
@@ -47,13 +46,10 @@ export class Firefox120
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
 	private _remoteSdp: RemoteSdp;
-	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
-	// Generic sending RTP parameters for audio and video suitable for the SDP
-	// remote answer.
-	private _sendingRemoteRtpParametersByKind: {
-		[K in MediaKind]: RtpParameters;
-	};
+	// Callback to request sending extended RTP capabilities on demand.
+	private _getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// RTCPeerConnection instance.
 	private _pc: RTCPeerConnection;
 	// Map of RTCTransceivers indexed by MID.
@@ -123,9 +119,8 @@ export class Firefox120
 					pc = undefined;
 
 					const sdpObject = sdpTransform.parse(offer.sdp!);
-					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
-						sdpObject,
-					});
+					const nativeRtpCapabilities =
+						Firefox120.getLocalRtpCapabilities(sdpObject);
 
 					return nativeRtpCapabilities;
 				} catch (error) {
@@ -156,6 +151,16 @@ export class Firefox120
 		};
 	}
 
+	private static getLocalRtpCapabilities(
+		localSdpObject: SdpTransform.SessionDescription
+	): RtpCapabilities {
+		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+			sdpObject: localSdpObject,
+		});
+
+		return nativeRtpCapabilities;
+	}
+
 	private constructor({
 		direction,
 		iceParameters,
@@ -165,7 +170,7 @@ export class Firefox120
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		extendedRtpCapabilities,
+		getSendExtendedRtpCapabilities,
 	}: HandlerOptions) {
 		super();
 
@@ -180,21 +185,7 @@ export class Firefox120
 			sctpParameters,
 		});
 
-		this._sendingRtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
-
-		this._sendingRemoteRtpParametersByKind = {
-			audio: ortc.getSendingRemoteRtpParameters(
-				'audio',
-				extendedRtpCapabilities
-			),
-			video: ortc.getSendingRemoteRtpParameters(
-				'video',
-				extendedRtpCapabilities
-			),
-		};
+		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 
 		this._pc = new RTCPeerConnection({
 			iceServers: iceServers ?? [],
@@ -358,27 +349,6 @@ export class Firefox120
 			});
 		}
 
-		const sendingRtpParameters: RtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind[track.kind as MediaKind]
-		);
-
-		// This may throw.
-		sendingRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRtpParameters.codecs,
-			codec
-		);
-
-		const sendingRemoteRtpParameters: RtpParameters =
-			utils.clone<RtpParameters>(
-				this._sendingRemoteRtpParametersByKind[track.kind as MediaKind]
-			);
-
-		// This may throw.
-		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRemoteRtpParameters.codecs,
-			codec
-		);
-
 		// NOTE: Firefox fails sometimes to properly anticipate the closed media
 		// section that it should use, so don't reuse closed media sections.
 		//   https://github.com/versatica/mediasoup-client/issues/104
@@ -401,6 +371,36 @@ export class Firefox120
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
+
+		const nativeRtpCapabilities =
+			Firefox120.getLocalRtpCapabilities(localSdpObject);
+		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
+			nativeRtpCapabilities
+		);
+
+		// Generic sending RTP parameters.
+		const sendingRtpParameters = ortc.getSendingRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRtpParameters.codecs,
+			codec
+		);
+
+		// Generic sending RTP parameters suitable for the SDP remote answer.
+		const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRemoteRtpParameters.codecs,
+			codec
+		);
 
 		// In Firefox use DTLS role client even if we are the "offerer" since
 		// Firefox does not respect ICE-Lite.

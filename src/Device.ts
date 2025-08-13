@@ -91,13 +91,18 @@ export class Device {
 	private readonly _handlerName: string;
 	// Loaded flag.
 	private _loaded = false;
-	// Extended RTP capabilities.
-	private _extendedRtpCapabilities?: ExtendedRtpCapabilities;
+	// Callback for sending Transports to request sending extended RTP capabilities
+	// on demand.
+	private _getSendExtendedRtpCapabilities?: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// Local RTP capabilities for receiving media.
 	private _recvRtpCapabilities?: RtpCapabilities;
-	// Whether we can produce audio/video based on computed extended RTP
-	// capabilities.
-	private readonly _canProduceByKind: CanProduceByKind;
+	// Whether we can produce audio/video based on remote RTP capabilities.
+	private readonly _canProduceByKind: CanProduceByKind = {
+		audio: false,
+		video: false,
+	};
 	// Local SCTP capabilities.
 	private _sctpCapabilities?: SctpCapabilities;
 	// Observer instance.
@@ -200,13 +205,6 @@ export class Device {
 		}
 
 		this._handlerName = this._handlerFactory.name;
-		this._extendedRtpCapabilities = undefined;
-		this._recvRtpCapabilities = undefined;
-		this._canProduceByKind = {
-			audio: false,
-			video: false,
-		};
-		this._sctpCapabilities = undefined;
 	}
 
 	/**
@@ -280,46 +278,39 @@ export class Device {
 		const { getNativeRtpCapabilities, getNativeSctpCapabilities } =
 			this._handlerFactory;
 
-		const nativeRtpCapabilities = await getNativeRtpCapabilities();
-
-		logger.debug(
-			'load() | got native RTP capabilities:%o',
-			nativeRtpCapabilities
-		);
-
-		// Clone obtained native RTP capabilities to not modify input data.
 		const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
-			nativeRtpCapabilities
+			await getNativeRtpCapabilities()
 		);
 
 		// This may throw.
 		ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
 
-		// Get extended RTP capabilities.
-		this._extendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
+		logger.debug(
+			'load() | got native RTP capabilities:%o',
+			clonedNativeRtpCapabilities
+		);
+
+		this._getSendExtendedRtpCapabilities = (
+			nativeRtpCapabilities: RtpCapabilities
+		) => {
+			return utils.clone<ExtendedRtpCapabilities>(
+				ortc.getExtendedRtpCapabilities(
+					nativeRtpCapabilities,
+					clonedRouterRtpCapabilities,
+					preferLocalCodecsOrder
+				)
+			);
+		};
+
+		const recvExtendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
 			clonedNativeRtpCapabilities,
 			clonedRouterRtpCapabilities,
-			preferLocalCodecsOrder
-		);
-
-		logger.debug(
-			'load() | got extended RTP capabilities:%o',
-			this._extendedRtpCapabilities
-		);
-
-		// Check whether we can produce audio/video.
-		this._canProduceByKind.audio = ortc.canSend(
-			'audio',
-			this._extendedRtpCapabilities
-		);
-		this._canProduceByKind.video = ortc.canSend(
-			'video',
-			this._extendedRtpCapabilities
+			/* preferLocalCodecsOrder */ false
 		);
 
 		// Generate our receiving RTP capabilities for receiving media.
 		this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
-			this._extendedRtpCapabilities
+			recvExtendedRtpCapabilities
 		);
 
 		// This may throw.
@@ -330,16 +321,26 @@ export class Device {
 			this._recvRtpCapabilities
 		);
 
+		// Check whether we can produce audio/video.
+		this._canProduceByKind.audio = ortc.canSend(
+			'audio',
+			this._recvRtpCapabilities
+		);
+		this._canProduceByKind.video = ortc.canSend(
+			'video',
+			this._recvRtpCapabilities
+		);
+
 		// Generate our SCTP capabilities.
 		this._sctpCapabilities = await getNativeSctpCapabilities();
+
+		// This may throw.
+		ortc.validateSctpCapabilities(this._sctpCapabilities);
 
 		logger.debug(
 			'load() | got native SCTP capabilities:%o',
 			this._sctpCapabilities
 		);
-
-		// This may throw.
-		ortc.validateSctpCapabilities(this._sctpCapabilities);
 
 		logger.debug('load() succeeded');
 
@@ -471,7 +472,8 @@ export class Device {
 			additionalSettings,
 			appData,
 			handlerFactory: this._handlerFactory,
-			extendedRtpCapabilities: this._extendedRtpCapabilities!,
+			getSendExtendedRtpCapabilities: this._getSendExtendedRtpCapabilities!,
+			recvRtpCapabilities: this._recvRtpCapabilities!,
 			canProduceByKind: this._canProduceByKind,
 		});
 

@@ -15,8 +15,10 @@ import type {
 } from '../../RtpParameters';
 
 /**
- * This function must be called with an SDP with 1 m=audio and 1 m=video
- * sections.
+ * This function extracs RTP capabilities from the given SDP.
+ *
+ * BUNDLE is assumed so, as per spec, all media sections in the SDP must share
+ * same ids for codecs and RTP extensions.
  */
 export function extractRtpCapabilities({
 	sdpObject,
@@ -25,33 +27,15 @@ export function extractRtpCapabilities({
 }): RtpCapabilities {
 	// Map of RtpCodecParameters indexed by payload type.
 	const codecsMap: Map<number, RtpCodecCapability> = new Map();
-	// Array of RtpHeaderExtensions.
-	const headerExtensions: RtpHeaderExtension[] = [];
-	// Whether a m=audio/video section has been already found.
-	let gotAudio = false;
-	let gotVideo = false;
+	// Map of RtpHeaderExtensions indexed by preferred id.
+	const headerExtensionMap: Map<number, RtpHeaderExtension> = new Map();
 
 	for (const m of sdpObject.media) {
 		const kind = m.type;
 
 		switch (kind) {
-			case 'audio': {
-				if (gotAudio) {
-					continue;
-				}
-
-				gotAudio = true;
-
-				break;
-			}
-
+			case 'audio':
 			case 'video': {
-				if (gotVideo) {
-					continue;
-				}
-
-				gotVideo = true;
-
 				break;
 			}
 
@@ -84,9 +68,13 @@ export function extractRtpCapabilities({
 				continue;
 			}
 
-			// Specials case to convert parameter value to string.
+			// Specials cases to convert parameter value to string.
 			if (parameters?.hasOwnProperty('profile-level-id')) {
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
+			}
+
+			if (parameters?.hasOwnProperty('profile-id')) {
+				parameters['profile-id'] = String(parameters['profile-id']);
 			}
 
 			codec.parameters = parameters;
@@ -138,13 +126,13 @@ export function extractRtpCapabilities({
 				preferredId: ext.value,
 			};
 
-			headerExtensions.push(headerExtension);
+			headerExtensionMap.set(headerExtension.preferredId, headerExtension);
 		}
 	}
 
 	const rtpCapabilities: RtpCapabilities = {
 		codecs: Array.from(codecsMap.values()),
-		headerExtensions: headerExtensions,
+		headerExtensions: Array.from(headerExtensionMap.values()),
 	};
 
 	return rtpCapabilities;

@@ -218,6 +218,43 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				parameters: {},
 			},
 			{
+				mimeType: 'audio/foo',
+				kind: 'audio',
+				preferredPayloadType: 107,
+				clockRate: 90000,
+				channels: 4,
+				rtcpFeedback: [{ type: 'foo-qwe-qwe' }],
+				parameters: {
+					foo: 'lalala',
+				},
+			},
+			{
+				mimeType: 'video/BAZCODEC',
+				kind: 'video',
+				preferredPayloadType: 100,
+				clockRate: 90000,
+				rtcpFeedback: [
+					{ type: 'foo' },
+					{ type: 'transport-cc' },
+					{ type: 'ccm', parameter: 'fir' },
+					{ type: 'nack' },
+					{ type: 'nack', parameter: 'pli' },
+				],
+				parameters: {
+					baz: '1234abcd',
+				},
+			},
+			{
+				mimeType: 'video/rtx',
+				kind: 'video',
+				preferredPayloadType: 101,
+				clockRate: 90000,
+				rtcpFeedback: [],
+				parameters: {
+					apt: 100,
+				},
+			},
+			{
 				mimeType: 'video/VP8',
 				kind: 'video',
 				preferredPayloadType: 96,

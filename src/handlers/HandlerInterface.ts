@@ -30,7 +30,9 @@ export type HandlerOptions = {
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: Partial<RTCConfiguration>;
-	extendedRtpCapabilities: ExtendedRtpCapabilities;
+	getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 };
 
 export type HandlerFactory = {

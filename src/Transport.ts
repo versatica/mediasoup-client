@@ -14,6 +14,7 @@ import { Consumer, type ConsumerOptions } from './Consumer';
 import { DataProducer, type DataProducerOptions } from './DataProducer';
 import { DataConsumer, type DataConsumerOptions } from './DataConsumer';
 import type {
+	RtpCapabilities,
 	RtpParameters,
 	MediaKind,
 	RtpEncodingParameters,
@@ -209,8 +210,13 @@ export class Transport<
 	private _closed = false;
 	// Direction.
 	private readonly _direction: 'send' | 'recv';
-	// Extended RTP capabilities.
-	private readonly _extendedRtpCapabilities: ExtendedRtpCapabilities;
+	// Callback for sending Transports to request sending extended RTP capabilities
+	// on demand.
+	private _getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
+	// Recv RTP capabilities.
+	private readonly _recvRtpCapabilities: RtpCapabilities;
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
@@ -268,12 +274,16 @@ export class Transport<
 		additionalSettings,
 		appData,
 		handlerFactory,
-		extendedRtpCapabilities,
+		getSendExtendedRtpCapabilities,
+		recvRtpCapabilities,
 		canProduceByKind,
 	}: {
 		direction: 'send' | 'recv';
 		handlerFactory: HandlerFactory;
-		extendedRtpCapabilities: ExtendedRtpCapabilities;
+		getSendExtendedRtpCapabilities: (
+			nativeRtpCapabilities: RtpCapabilities
+		) => ExtendedRtpCapabilities;
+		recvRtpCapabilities: RtpCapabilities;
 		canProduceByKind: CanProduceByKind;
 	} & TransportOptions<TransportAppData>) {
 		super();
@@ -282,7 +292,8 @@ export class Transport<
 
 		this._id = id;
 		this._direction = direction;
-		this._extendedRtpCapabilities = extendedRtpCapabilities;
+		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+		this._recvRtpCapabilities = recvRtpCapabilities;
 		this._canProduceByKind = canProduceByKind;
 		this._maxSctpMessageSize = sctpParameters
 			? sctpParameters.maxMessageSize
@@ -305,7 +316,7 @@ export class Transport<
 			iceServers,
 			iceTransportPolicy,
 			additionalSettings: clonedAdditionalSettings,
-			extendedRtpCapabilities,
+			getSendExtendedRtpCapabilities: this._getSendExtendedRtpCapabilities,
 		});
 
 		this._appData = appData ?? ({} as TransportAppData);
@@ -678,7 +689,7 @@ export class Transport<
 		// Ensure the device can consume it.
 		const canConsume = ortc.canReceive(
 			clonedRtpParameters,
-			this._extendedRtpCapabilities
+			this._recvRtpCapabilities
 		);
 
 		if (!canConsume) {

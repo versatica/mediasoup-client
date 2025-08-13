@@ -18,6 +18,7 @@ import type {
 	RtpParameters,
 } from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -51,8 +52,10 @@ export class FakeHandler
 	private _closed = false;
 	// Fake parameters source of RTP and SCTP parameters and capabilities.
 	private _fakeParameters: FakeParameters;
-	// Generic sending RTP parameters for audio and video.
-	private _rtpParametersByKind: { [K in MediaKind]: RtpParameters };
+	// Callback to request sending extended RTP capabilities on demand.
+	private _getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
 	// Got transport local and remote parameters.
@@ -75,7 +78,7 @@ export class FakeHandler
 			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
-				return fakeParameters.generateNativeRtpCapabilities();
+				return FakeHandler.getLocalRtpCapabilities(fakeParameters);
 			},
 			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
 				logger.debug('getNativeSctpCapabilities()');
@@ -83,6 +86,15 @@ export class FakeHandler
 				return fakeParameters.generateNativeSctpCapabilities();
 			},
 		};
+	}
+
+	private static getLocalRtpCapabilities(
+		fakeParameters: FakeParameters
+	): RtpCapabilities {
+		const nativeRtpCapabilities =
+			fakeParameters.generateNativeRtpCapabilities();
+
+		return nativeRtpCapabilities;
 	}
 
 	private constructor(
@@ -95,7 +107,7 @@ export class FakeHandler
 			// iceServers,
 			// iceTransportPolicy,
 			// additionalSettings,
-			extendedRtpCapabilities,
+			getSendExtendedRtpCapabilities,
 		}: HandlerOptions,
 		fakeParameters: FakeParameters
 	) {
@@ -103,12 +115,7 @@ export class FakeHandler
 
 		logger.debug('constructor()');
 
-		// Generic sending RTP parameters for audio and video.
-		// @type {Object}
-		this._rtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
+		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 
 		this._fakeParameters = fakeParameters;
 	}
@@ -172,14 +179,30 @@ export class FakeHandler
 			await this.setupTransport({ localDtlsRole: 'server' });
 		}
 
-		const rtpParameters = utils.clone<RtpParameters>(
-			this._rtpParametersByKind[track.kind as MediaKind]
+		const nativeRtpCapabilities = FakeHandler.getLocalRtpCapabilities(
+			this._fakeParameters
 		);
-		const useRtx = rtpParameters.codecs.some(_codec =>
+		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
+			nativeRtpCapabilities
+		);
+
+		// Generic sending RTP parameters.
+		const sendingRtpParameters: RtpParameters = ortc.getSendingRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRtpParameters.codecs,
+			codec
+		);
+
+		const useRtx = sendingRtpParameters.codecs.some(_codec =>
 			/.+\/rtx$/i.test(_codec.mimeType)
 		);
 
-		rtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
+		sendingRtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
 		if (!encodings) {
 			encodings = [{}];
@@ -193,10 +216,10 @@ export class FakeHandler
 			}
 		}
 
-		rtpParameters.encodings = encodings;
+		sendingRtpParameters.encodings = encodings;
 
 		// Fill RTCRtpParameters.rtcp.
-		rtpParameters.rtcp = {
+		sendingRtpParameters.rtcp = {
 			cname: this._cname,
 			reducedSize: true,
 			mux: true,
@@ -206,7 +229,7 @@ export class FakeHandler
 
 		this._tracks.set(localId, track);
 
-		return { localId: String(localId), rtpParameters };
+		return { localId: String(localId), rtpParameters: sendingRtpParameters };
 	}
 
 	async stopSending(localId: string): Promise<void> {

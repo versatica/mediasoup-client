@@ -188,8 +188,7 @@ export function validateSctpStreamParameters(
 }
 
 /**
- * Validates SctpCapabilities. It may modify given data by adding missing
- * fields with default values.
+ * Validates SctpCapabilities.
  * It throws if invalid.
  */
 export function validateSctpCapabilities(caps: SctpCapabilities): void {
@@ -208,7 +207,7 @@ export function validateSctpCapabilities(caps: SctpCapabilities): void {
 /**
  * Generate extended RTP capabilities for sending and receiving.
  *
- * Resulting codecs keep order preferrred by local or remote capabilities
+ * Resulting codecs keep order preferred by local or remote capabilities
  * depending on `preferLocalCodecsOrder`.
  */
 export function getExtendedRtpCapabilities(
@@ -376,8 +375,8 @@ export function getRecvRtpCapabilities(
 
 	for (const extendedCodec of extendedRtpCapabilities.codecs) {
 		const codec = {
-			mimeType: extendedCodec.mimeType,
 			kind: extendedCodec.kind,
+			mimeType: extendedCodec.mimeType,
 			preferredPayloadType: extendedCodec.remotePayloadType,
 			clockRate: extendedCodec.clockRate,
 			channels: extendedCodec.channels,
@@ -393,8 +392,8 @@ export function getRecvRtpCapabilities(
 		}
 
 		const rtxCodec: RtpCodecCapability = {
-			mimeType: `${extendedCodec.kind}/rtx`,
 			kind: extendedCodec.kind,
+			mimeType: `${extendedCodec.kind}/rtx`,
 			preferredPayloadType: extendedCodec.remoteRtxPayloadType,
 			clockRate: extendedCodec.clockRate,
 			parameters: {
@@ -683,9 +682,9 @@ export function generateProbatorRtpParameters(
  */
 export function canSend(
 	kind: MediaKind,
-	extendedRtpCapabilities: ExtendedRtpCapabilities
+	rtpCapabilities: RtpCapabilities
 ): boolean {
-	return extendedRtpCapabilities.codecs.some(codec => codec.kind === kind);
+	return (rtpCapabilities.codecs ?? []).some(codec => codec.kind === kind);
 }
 
 /**
@@ -694,7 +693,7 @@ export function canSend(
  */
 export function canReceive(
 	rtpParameters: RtpParameters,
-	extendedRtpCapabilities: ExtendedRtpCapabilities
+	rtpCapabilities: RtpCapabilities
 ): boolean {
 	// This may throw.
 	validateRtpParameters(rtpParameters);
@@ -705,8 +704,8 @@ export function canReceive(
 
 	const firstMediaCodec = rtpParameters.codecs[0]!;
 
-	return extendedRtpCapabilities.codecs.some(
-		codec => codec.remotePayloadType === firstMediaCodec.payloadType
+	return (rtpCapabilities.codecs ?? []).some(
+		codec => codec.preferredPayloadType === firstMediaCodec.payloadType
 	);
 }
 
@@ -1048,8 +1047,7 @@ function validateRtcpParameters(rtcp: RtcpParameters): void {
 }
 
 /**
- * Validates NumSctpStreams. It may modify given data by adding missing
- * fields with default values.
+ * Validates NumSctpStreams.
  * It throws if invalid.
  */
 function validateNumSctpStreams(numStreams: NumSctpStreams): void {

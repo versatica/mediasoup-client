@@ -5,6 +5,15 @@ import type {
 	RtpHeaderExtensionDirection,
 } from './RtpParameters';
 
+/**
+ * Extended RTP capabilities are a superset of RTP capabilities that include
+ * information about sending and receiving ids.
+ *
+ * @remarks
+ * - Only intended for internal purposes.
+ *
+ * @private
+ */
 export type ExtendedRtpCapabilities = {
 	codecs: ExtendedRtpCodecCapability[];
 	headerExtensions: ExtendedRtpHeaderExtension[];
