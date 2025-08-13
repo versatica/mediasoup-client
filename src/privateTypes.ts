@@ -11,8 +11,8 @@ export type ExtendedRtpCapabilities = {
 };
 
 export type ExtendedRtpCodecCapability = {
-	mimeType: string;
 	kind: MediaKind;
+	mimeType: string;
 	localPayloadType: number;
 	localRtxPayloadType?: number;
 	remotePayloadType: number;

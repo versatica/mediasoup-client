@@ -238,8 +238,8 @@ export function getExtendedRtpCapabilities(
 			}
 
 			const extendedCodec: ExtendedRtpCodecCapability = {
-				mimeType: localCodec.mimeType,
 				kind: localCodec.kind,
+				mimeType: localCodec.mimeType,
 				clockRate: localCodec.clockRate,
 				channels: localCodec.channels,
 				localPayloadType: localCodec.preferredPayloadType,
@@ -271,8 +271,8 @@ export function getExtendedRtpCapabilities(
 			}
 
 			const extendedCodec: ExtendedRtpCodecCapability = {
-				mimeType: matchingLocalCodec.mimeType,
 				kind: matchingLocalCodec.kind,
+				mimeType: matchingLocalCodec.mimeType,
 				clockRate: matchingLocalCodec.clockRate,
 				channels: matchingLocalCodec.channels,
 				localPayloadType: matchingLocalCodec.preferredPayloadType,
