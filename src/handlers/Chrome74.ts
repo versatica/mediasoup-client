@@ -2,7 +2,6 @@ import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
 import { Logger } from '../Logger';
 import { EnhancedEventEmitter } from '../enhancedEvents';
-import * as utils from '../utils';
 import * as ortc from '../ortc';
 import { InvalidStateError } from '../errors';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
@@ -10,10 +9,10 @@ import type { IceParameters, DtlsRole } from '../Transport';
 import type {
 	RtpCapabilities,
 	MediaKind,
-	RtpParameters,
 	RtpEncodingParameters,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
@@ -48,13 +47,10 @@ export class Chrome74
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
 	private _remoteSdp: RemoteSdp;
-	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
-	// Generic sending RTP parameters for audio and video suitable for the SDP
-	// remote answer.
-	private _sendingRemoteRtpParametersByKind: {
-		[K in MediaKind]: RtpParameters;
-	};
+	// Callback to request sending extended RTP capabilities on demand.
+	private _getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -102,12 +98,8 @@ export class Chrome74
 					pc = undefined;
 
 					const sdpObject = sdpTransform.parse(offer.sdp!);
-					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
-						sdpObject,
-					});
-
-					// libwebrtc supports NACK for OPUS but doesn't announce it.
-					ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+					const nativeRtpCapabilities =
+						Chrome74.getLocalRtpCapabilities(sdpObject);
 
 					return nativeRtpCapabilities;
 				} catch (error) {
@@ -130,6 +122,19 @@ export class Chrome74
 		};
 	}
 
+	private static getLocalRtpCapabilities(
+		localSdpObject: SdpTransform.SessionDescription
+	): RtpCapabilities {
+		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+			sdpObject: localSdpObject,
+		});
+
+		// libwebrtc supports NACK for OPUS but doesn't announce it.
+		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+
+		return nativeRtpCapabilities;
+	}
+
 	private constructor({
 		direction,
 		iceParameters,
@@ -139,7 +144,7 @@ export class Chrome74
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		extendedRtpCapabilities,
+		getSendExtendedRtpCapabilities,
 	}: HandlerOptions) {
 		super();
 
@@ -154,21 +159,7 @@ export class Chrome74
 			sctpParameters,
 		});
 
-		this._sendingRtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
-
-		this._sendingRemoteRtpParametersByKind = {
-			audio: ortc.getSendingRemoteRtpParameters(
-				'audio',
-				extendedRtpCapabilities
-			),
-			video: ortc.getSendingRemoteRtpParameters(
-				'video',
-				extendedRtpCapabilities
-			),
-		};
+		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -340,26 +331,6 @@ export class Chrome74
 			});
 		}
 
-		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind[track.kind as MediaKind]
-		);
-
-		// This may throw.
-		sendingRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRtpParameters.codecs,
-			codec
-		);
-
-		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind[track.kind as MediaKind]
-		);
-
-		// This may throw.
-		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRemoteRtpParameters.codecs,
-			codec
-		);
-
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
@@ -373,7 +344,35 @@ export class Chrome74
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		let offerMediaObject;
+		const nativeRtpCapabilities =
+			Chrome74.getLocalRtpCapabilities(localSdpObject);
+		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
+			nativeRtpCapabilities
+		);
+
+		// Generic sending RTP parameters.
+		const sendingRtpParameters = ortc.getSendingRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRtpParameters.codecs,
+			codec
+		);
+
+		// Generic sending RTP parameters suitable for the SDP remote answer.
+		const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRemoteRtpParameters.codecs,
+			codec
+		);
 
 		if (!this._transportReady) {
 			await this.setupTransport({
@@ -388,6 +387,8 @@ export class Chrome74
 		const layers = parseScalabilityMode(
 			(encodings ?? [{}])[0]!.scalabilityMode
 		);
+
+		let offerMediaObject;
 
 		if (
 			encodings &&

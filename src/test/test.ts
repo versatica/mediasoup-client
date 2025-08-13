@@ -491,6 +491,9 @@ test('transport.produce() succeeds', async () => {
 	// Use disableTrackOnPause: false and zeroRtpOnPause: true
 	const videoProducer = await ctx.connectedSendTransport!.produce({
 		track: videoTrack,
+		codec: ctx.loadedDevice!.rtpCapabilities.codecs!.find(
+			codec => codec.mimeType.toLowerCase() === 'video/vp9'
+		),
 		encodings: videoEncodings,
 		disableTrackOnPause: false,
 		zeroRtpOnPause: true,
@@ -505,37 +508,11 @@ test('transport.produce() succeeds', async () => {
 	expect(videoProducer.track).toBe(videoTrack);
 	expect(typeof videoProducer.rtpParameters).toBe('object');
 	expect(typeof videoProducer.rtpParameters.mid).toBe('string');
-	expect(videoProducer.rtpParameters.codecs.length).toBe(4);
+	expect(videoProducer.rtpParameters.codecs.length).toBe(2);
 
 	codecs = videoProducer.rtpParameters.codecs;
 
 	expect(codecs[0]).toEqual({
-		mimeType: 'video/VP8',
-		payloadType: 96,
-		clockRate: 90000,
-		rtcpFeedback: [
-			{ type: 'goog-remb', parameter: '' },
-			{ type: 'transport-cc', parameter: '' },
-			{ type: 'ccm', parameter: 'fir' },
-			{ type: 'nack', parameter: '' },
-			{ type: 'nack', parameter: 'pli' },
-		],
-		parameters: {
-			baz: '1234abcd',
-		},
-	});
-
-	expect(codecs[1]).toEqual({
-		mimeType: 'video/rtx',
-		payloadType: 97,
-		clockRate: 90000,
-		rtcpFeedback: [],
-		parameters: {
-			apt: 96,
-		},
-	});
-
-	expect(codecs[2]).toEqual({
 		mimeType: 'video/VP9',
 		payloadType: 98,
 		clockRate: 90000,
@@ -551,7 +528,7 @@ test('transport.produce() succeeds', async () => {
 		},
 	});
 
-	expect(codecs[3]).toEqual({
+	expect(codecs[1]).toEqual({
 		mimeType: 'video/rtx',
 		payloadType: 99,
 		clockRate: 90000,

@@ -2,17 +2,13 @@ import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
 import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
-import * as utils from '../utils';
 import * as ortc from '../ortc';
 import { InvalidStateError } from '../errors';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import type { IceParameters, DtlsRole } from '../Transport';
-import type {
-	RtpCapabilities,
-	MediaKind,
-	RtpParameters,
-} from '../RtpParameters';
+import type { RtpCapabilities, MediaKind } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { ExtendedRtpCapabilities } from '../privateTypes';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -47,13 +43,10 @@ export class Safari12
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
 	private _remoteSdp: RemoteSdp;
-	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
-	// Generic sending RTP parameters for audio and video suitable for the SDP
-	// remote answer.
-	private _sendingRemoteRtpParametersByKind: {
-		[K in MediaKind]: RtpParameters;
-	};
+	// Callback to request sending extended RTP capabilities on demand.
+	private _getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -101,12 +94,8 @@ export class Safari12
 					pc = undefined;
 
 					const sdpObject = sdpTransform.parse(offer.sdp!);
-					const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
-						sdpObject,
-					});
-
-					// libwebrtc supports NACK for OPUS but doesn't announce it.
-					ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+					const nativeRtpCapabilities =
+						Safari12.getLocalRtpCapabilities(sdpObject);
 
 					return nativeRtpCapabilities;
 				} catch (error) {
@@ -129,6 +118,19 @@ export class Safari12
 		};
 	}
 
+	private static getLocalRtpCapabilities(
+		localSdpObject: SdpTransform.SessionDescription
+	): RtpCapabilities {
+		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+			sdpObject: localSdpObject,
+		});
+
+		// libwebrtc supports NACK for OPUS but doesn't announce it.
+		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+
+		return nativeRtpCapabilities;
+	}
+
 	constructor({
 		direction,
 		iceParameters,
@@ -138,7 +140,7 @@ export class Safari12
 		iceServers,
 		iceTransportPolicy,
 		additionalSettings,
-		extendedRtpCapabilities,
+		getSendExtendedRtpCapabilities,
 	}: HandlerOptions) {
 		super();
 
@@ -153,21 +155,7 @@ export class Safari12
 			sctpParameters,
 		});
 
-		this._sendingRtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
-
-		this._sendingRemoteRtpParametersByKind = {
-			audio: ortc.getSendingRemoteRtpParameters(
-				'audio',
-				extendedRtpCapabilities
-			),
-			video: ortc.getSendingRemoteRtpParameters(
-				'video',
-				extendedRtpCapabilities
-			),
-		};
+		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -345,26 +333,6 @@ export class Safari12
 
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
-		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRtpParametersByKind[track.kind as MediaKind]
-		);
-
-		// This may throw.
-		sendingRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRtpParameters.codecs,
-			codec
-		);
-
-		const sendingRemoteRtpParameters = utils.clone<RtpParameters>(
-			this._sendingRemoteRtpParametersByKind[track.kind as MediaKind]
-		);
-
-		// This may throw.
-		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRemoteRtpParameters.codecs,
-			codec
-		);
-
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
@@ -381,6 +349,36 @@ export class Safari12
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
+
+		const nativeRtpCapabilities =
+			Safari12.getLocalRtpCapabilities(localSdpObject);
+		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
+			nativeRtpCapabilities
+		);
+
+		// Generic sending RTP parameters.
+		const sendingRtpParameters = ortc.getSendingRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRtpParameters.codecs,
+			codec
+		);
+
+		// Generic sending RTP parameters suitable for the SDP remote answer.
+		const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
+			sendingRemoteRtpParameters.codecs,
+			codec
+		);
 
 		let offerMediaObject;
 
