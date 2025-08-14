@@ -73,10 +73,6 @@ export function extractRtpCapabilities({
 				parameters['profile-level-id'] = String(parameters['profile-level-id']);
 			}
 
-			if (parameters?.hasOwnProperty('profile-id')) {
-				parameters['profile-id'] = String(parameters['profile-id']);
-			}
-
 			codec.parameters = parameters;
 		}
 
