@@ -2,9 +2,9 @@ import * as process from 'node:process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { execSync } from 'node:child_process';
+import pkg from './package.json' with { type: 'json' };
 
-const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
-const MAYOR_VERSION = PKG.version.split('.')[0];
+const MAYOR_VERSION = pkg.version.split('.')[0];
 
 // Paths for ESLint to check. Converted to string for convenience.
 const ESLINT_PATHS = [
@@ -106,10 +106,10 @@ async function run() {
 
 		case 'release': {
 			checkRelease();
-			executeCmd(`git commit -am '${PKG.version}'`);
-			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
+			executeCmd(`git commit -am '${pkg.version}'`);
+			executeCmd(`git tag -a ${pkg.version} -m '${pkg.version}'`);
 			executeCmd(`git push origin v${MAYOR_VERSION}`);
-			executeCmd(`git push origin '${PKG.version}'`);
+			executeCmd(`git push origin '${pkg.version}'`);
 			executeInteractiveCmd('npm publish');
 
 			break;
@@ -139,7 +139,7 @@ function replaceVersion() {
 		// NOTE: dirent.path is only available in Node >= 20.
 		const filePath = path.join(file.parentPath ?? 'lib', file.name);
 		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
-		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
+		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, pkg.version);
 
 		fs.writeFileSync(filePath, result, { encoding: 'utf8' });
 	}
