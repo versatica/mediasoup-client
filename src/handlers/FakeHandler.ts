@@ -16,9 +16,9 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	RtpParameters,
+	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
-import type { ExtendedRtpCapabilities } from '../privateTypes';
 import type {
 	HandlerFactory,
 	HandlerInterface,

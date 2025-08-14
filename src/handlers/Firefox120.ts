@@ -10,9 +10,9 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	RtpEncodingParameters,
+	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
-import type { ExtendedRtpCapabilities } from '../privateTypes';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import type {

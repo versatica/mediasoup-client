@@ -18,10 +18,10 @@ import type {
 	RtpParameters,
 	MediaKind,
 	RtpEncodingParameters,
+	ExtendedRtpCapabilities,
 } from './RtpParameters';
 import type { SctpParameters, SctpStreamParameters } from './SctpParameters';
 import type { AppData } from './types';
-import type { ExtendedRtpCapabilities } from './privateTypes';
 
 const logger = new Logger('Transport');
 

@@ -15,10 +15,13 @@ import { Chrome74 } from './handlers/Chrome74';
 import { Firefox120 } from './handlers/Firefox120';
 import { Safari12 } from './handlers/Safari12';
 import { ReactNative106 } from './handlers/ReactNative106';
-import type { RtpCapabilities, MediaKind } from './RtpParameters';
+import type {
+	RtpCapabilities,
+	MediaKind,
+	ExtendedRtpCapabilities,
+} from './RtpParameters';
 import type { SctpCapabilities } from './SctpParameters';
 import type { AppData } from './types';
-import type { ExtendedRtpCapabilities } from './privateTypes';
 
 const logger = new Logger('Device');
 

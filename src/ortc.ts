@@ -10,17 +10,15 @@ import type {
 	RtpEncodingParameters,
 	RtpHeaderExtensionParameters,
 	RtcpParameters,
+	ExtendedRtpCapabilities,
+	ExtendedRtpCodecCapability,
+	ExtendedRtpHeaderExtension,
 } from './RtpParameters';
 import type {
 	SctpCapabilities,
 	NumSctpStreams,
 	SctpStreamParameters,
 } from './SctpParameters';
-import type {
-	ExtendedRtpCapabilities,
-	ExtendedRtpCodecCapability,
-	ExtendedRtpHeaderExtension,
-} from './privateTypes';
 import * as utils from './utils';
 
 const RTP_PROBATOR_MID = 'probator';

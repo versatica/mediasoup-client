@@ -13,13 +13,13 @@ import type {
 	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters,
+	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type {
 	SctpCapabilities,
 	SctpParameters,
 	SctpStreamParameters,
 } from '../SctpParameters';
-import type { ExtendedRtpCapabilities } from '../privateTypes';
 
 export type HandlerOptions = {
 	direction: 'send' | 'recv';

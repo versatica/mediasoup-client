@@ -6,9 +6,12 @@ import * as ortc from '../ortc';
 import { InvalidStateError } from '../errors';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import type { IceParameters, DtlsRole } from '../Transport';
-import type { RtpCapabilities, MediaKind } from '../RtpParameters';
+import type {
+	RtpCapabilities,
+	MediaKind,
+	ExtendedRtpCapabilities,
+} from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
-import type { ExtendedRtpCapabilities } from '../privateTypes';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
