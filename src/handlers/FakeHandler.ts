@@ -33,6 +33,13 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
+import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
+import {
+	FakeEventListener,
+	FakeAddEventListenerOptions,
+	FakeEventListenerOptions,
+} from './fakeEvents/FakeEventListener';
+import { FakeEvent } from './fakeEvents/FakeEvent';
 
 const logger = new Logger('FakeHandler');
 
@@ -480,8 +487,12 @@ type FakeRTCDataChannelOptions = {
 	protocol?: string;
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
+/**
+ * @remarks
+ * - We use a custom FakeEventTarget class because Hermes JS engine in
+ *   React-Native doesn't implement EventListener.
+ */
+class FakeRTCDataChannel extends FakeEventTarget implements RTCDataChannel {
 	// Members for RTCDataChannel standard public getters/setters.
 	private readonly _id: number;
 	private readonly _negotiated = true; // mediasoup just uses negotiated DataChannels.
@@ -495,17 +506,18 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	private _bufferedAmountLowThreshold = 0;
 	private _binaryType: BinaryType = 'arraybuffer';
 	// Events.
-	private _onopen: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	private _onclosing: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+	private _onopen: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
-	private _onclose: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+	private _onclosing: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
-	private _onmessage: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+	private _onclose: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
+		null;
+	private _onmessage: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
 	private _onbufferedamountlow:
-		| ((this: FakeRTCDataChannel, ev: Event) => any)
+		| ((this: RTCDataChannel, ev: FakeEvent) => void)
 		| null = null;
-	private _onerror: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+	private _onerror: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
 
 	constructor({
@@ -582,11 +594,11 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		this._binaryType = binaryType;
 	}
 
-	get onopen(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onopen as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onopen(): ((this: RTCDataChannel, ev: FakeEvent) => void) | null {
+		return this._onopen;
 	}
 
-	set onopen(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onopen(handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null) {
 		if (this._onopen) {
 			this.removeEventListener('open', this._onopen);
 		}
@@ -598,12 +610,12 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onclosing(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onclosing as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onclosing(): ((this: RTCDataChannel, ev: FakeEvent) => void) | null {
+		return this._onclosing;
 	}
 
 	set onclosing(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+		handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null
 	) {
 		if (this._onclosing) {
 			this.removeEventListener('closing', this._onclosing);
@@ -616,11 +628,11 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onclose(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onclose as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onclose(): ((this: RTCDataChannel, ev: FakeEvent) => void) | null {
+		return this._onclose;
 	}
 
-	set onclose(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onclose(handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null) {
 		if (this._onclose) {
 			this.removeEventListener('close', this._onclose);
 		}
@@ -632,12 +644,12 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onmessage(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onmessage as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onmessage(): ((this: RTCDataChannel, ev: FakeEvent) => void) | null {
+		return this._onmessage;
 	}
 
 	set onmessage(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+		handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null
 	) {
 		if (this._onmessage) {
 			this.removeEventListener('message', this._onmessage);
@@ -650,14 +662,14 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onbufferedamountlow(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onbufferedamountlow as
-			| ((this: RTCDataChannel, ev: Event) => any)
-			| null;
+	get onbufferedamountlow():
+		| ((this: RTCDataChannel, ev: FakeEvent) => void)
+		| null {
+		return this._onbufferedamountlow;
 	}
 
 	set onbufferedamountlow(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+		handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null
 	) {
 		if (this._onbufferedamountlow) {
 			this.removeEventListener('bufferedamountlow', this._onbufferedamountlow);
@@ -670,11 +682,11 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onerror(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this._onerror as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onerror(): ((this: RTCDataChannel, ev: FakeEvent) => void) | null {
+		return this._onerror;
 	}
 
-	set onerror(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onerror(handler: ((this: RTCDataChannel, ev: FakeEvent) => void) | null) {
 		if (this._onerror) {
 			this.removeEventListener('error', this._onerror);
 		}
@@ -688,18 +700,18 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 
 	override addEventListener<K extends keyof RTCDataChannelEventMap>(
 		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
-		options?: boolean | AddEventListenerOptions
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => void,
+		options?: boolean | FakeAddEventListenerOptions
 	): void {
-		super.addEventListener(type, listener as EventListener, options);
+		super.addEventListener(type, listener as FakeEventListener, options);
 	}
 
 	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
 		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
-		options?: boolean | EventListenerOptions
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => void,
+		options?: boolean | FakeEventListenerOptions
 	): void {
-		super.removeEventListener(type, listener as EventListener, options);
+		super.removeEventListener(type, listener as FakeEventListener, options);
 	}
 
 	close(): void {
@@ -721,4 +733,3 @@ class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

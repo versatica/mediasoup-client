@@ -133,6 +133,7 @@ const config = tsEslint.config(
 				2,
 				'type-annotation',
 			],
+			'@typescript-eslint/prefer-function-type': 0,
 			'@typescript-eslint/dot-notation': 0,
 			'@typescript-eslint/no-unused-vars': [
 				2,
@@ -149,6 +150,7 @@ const config = tsEslint.config(
 				2,
 				{ allowExpressions: true },
 			],
+			'@typescript-eslint/no-inferrable-types': 0,
 			'@typescript-eslint/no-unsafe-member-access': 0,
 			'@typescript-eslint/no-unsafe-assignment': 0,
 			'@typescript-eslint/no-unsafe-call': 0,
