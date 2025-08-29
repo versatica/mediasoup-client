@@ -48,9 +48,9 @@ export const uaTestCases: UATestCase[] = [
 		expect: 'Chrome74',
 	},
 	{
-		desc: 'Firefox (iOS) - Unsupported',
-		ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/114.0 Mobile/15E148 Safari/605.1.15',
-		expect: undefined,
+		desc: 'Firefox (iOS)',
+		ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/142.0.1 Mobile/15E148 Safari/605.1.15',
+		expect: 'Safari12',
 	},
 	{
 		desc: 'In-app WKWebView (iOS) (TikTok)',
