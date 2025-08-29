@@ -18,6 +18,11 @@ export const uaTestCases: UATestCase[] = [
 		expect: 'Chrome111',
 	},
 	{
+		desc: 'iPhone iOS 16',
+		ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
+		expect: 'Safari12',
+	},
+	{
 		desc: 'Generic Android Chrome 112',
 		ua: 'Mozilla/5.0 (Linux; Android 13; M2012K11AG) AppleWebKit/537.36 (KHTML, like Gecko) Soul/4.0 Chrome/112.0.5615.135 Mobile Safari/537.36',
 		expect: 'Chrome111',
