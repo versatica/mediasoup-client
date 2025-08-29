@@ -68,13 +68,13 @@ export const uaTestCases: UATestCase[] = [
 		expect: 'Safari12',
 	},
 	{
-		desc: 'Fake Foo Invalid Browser',
+		desc: 'Fake Foo Invalid Browser - Unsupported',
 		ua: 'Fake/5.0 (Foo; Bar Lalala OS_19.5) Foo/22.2',
 		expect: undefined,
 	},
 	{
 		// Zoom App Marketplace browser.
-		desc: 'Zoom App Marketplace browser',
+		desc: 'Zoom App Marketplace browser - Unsupported',
 		ua: 'Mozilla/5.0 ZoomWebKit/537.36 (KHTML, like Gecko) ZoomApps/1.0',
 		expect: undefined,
 	},
