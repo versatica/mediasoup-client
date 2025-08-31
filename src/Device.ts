@@ -524,7 +524,9 @@ function detectDeviceImpl(
 			parsed.platform === KnownPlatforms.iphone ||
 			parsed.platform === KnownPlatforms.ipad ||
 			(parsed.platform === KnownPlatforms.mac &&
-				(parsed.isMobile || parsed.isTablet || navigator?.maxTouchPoints >= 2));
+				(parsed.isMobile ||
+					parsed.isTablet ||
+					(typeof navigator === 'object' && navigator?.maxTouchPoints >= 2)));
 
 		const isChrome = parsed.isChrome;
 		const isFirefox = parsed.isFireFox;
