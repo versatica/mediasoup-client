@@ -74,13 +74,13 @@
 		"@types/debug": "^4.1.12",
 		"@types/events-alias": "npm:@types/events@^3.0.3",
 		"awaitqueue": "^3.2.4",
+		"browser-dtector": "^4.1.0",
 		"debug": "^4.4.1",
 		"events-alias": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^2.1.4",
 		"h264-profile-level-id": "^2.2.3",
 		"sdp-transform": "^2.15.0",
-		"supports-color": "^10.2.0",
-		"ua-parser-js": "^2.0.4"
+		"supports-color": "^10.2.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.34.0",

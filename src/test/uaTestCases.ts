@@ -63,6 +63,11 @@ export const uaTestCases: UATestCase[] = [
 		expect: 'Safari12',
 	},
 	{
+		desc: 'Custom Webview in iPad',
+		ua: 'Mozilla/5.0 (iPad; CPU iPadOS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1 MyApp/1.0',
+		expect: 'Safari12',
+	},
+	{
 		desc: 'Chrome Mobile (iOS)',
 		ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/114.0.5735.124 Mobile/15E148 Safari/604.1',
 		expect: 'Safari12',
@@ -77,5 +82,10 @@ export const uaTestCases: UATestCase[] = [
 		desc: 'Zoom App Marketplace browser - Unsupported',
 		ua: 'Mozilla/5.0 ZoomWebKit/537.36 (KHTML, like Gecko) ZoomApps/1.0',
 		expect: undefined,
+	},
+	{
+		desc: 'Electron in Windows',
+		ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Electron/37.4.0 Chrome/138.0.7204.243 Safari/537.36',
+		expect: 'Chrome111',
 	},
 ];
