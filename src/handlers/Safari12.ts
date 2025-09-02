@@ -128,6 +128,9 @@ export class Safari12
 			sdpObject: localSdpObject,
 		});
 
+		// Need to validate and normalize native RTP capabilities.
+		ortc.validateAndNormalizeRtpCapabilities(nativeRtpCapabilities);
+
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
 

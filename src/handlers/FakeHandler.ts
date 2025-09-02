@@ -101,6 +101,9 @@ export class FakeHandler
 		const nativeRtpCapabilities =
 			fakeParameters.generateNativeRtpCapabilities();
 
+		// Need to validate and normalize native RTP capabilities.
+		ortc.validateAndNormalizeRtpCapabilities(nativeRtpCapabilities);
+
 		return nativeRtpCapabilities;
 	}
 
