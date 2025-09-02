@@ -184,8 +184,11 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 	});
 }
 
+// NOTE: We don't freeze these RTP capabilities because we do need to normalize
+// them as we do in real browser handlers (this is an object supposed to be
+// generated internally so it's ok).
 export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabilities {
-	return utils.deepFreeze<mediasoupClient.types.RtpCapabilities>({
+	return {
 		codecs: [
 			{
 				mimeType: 'audio/opus',
@@ -361,7 +364,7 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				preferredId: 10,
 			},
 		],
-	});
+	};
 }
 
 export function generateNativeSctpCapabilities(): mediasoupClient.types.SctpCapabilities {
