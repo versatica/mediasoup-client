@@ -1,4 +1,7 @@
-import { UAParser } from 'ua-parser-js';
+import BrowserDetector, {
+	KnownBrowsers,
+	KnownPlatforms,
+} from 'browser-dtector';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -44,28 +47,7 @@ export type DeviceOptions = {
 };
 
 /**
- * Async mediasoup-client Handler detection. More powerful than
- * `detectDevice()`.
- */
-export async function detectDeviceAsync(
-	userAgent?: string
-): Promise<BuiltinHandlerName | undefined> {
-	logger.debug('detectDeviceAsync() [userAgent:%s]', userAgent);
-
-	if (!userAgent && typeof navigator === 'object') {
-		userAgent = navigator.userAgent;
-	}
-
-	const uaParserResult = await UAParser(userAgent).withFeatureCheck();
-
-	return detectDeviceImpl(uaParserResult);
-}
-
-/**
  * Sync mediasoup-client Handler detection.
- *
- * @deprecated It only relies on navigator.userAgent. Use `detectDeviceAsync()`
- * instead.
  */
 export function detectDevice(
 	userAgent?: string
@@ -76,9 +58,30 @@ export function detectDevice(
 		userAgent = navigator.userAgent;
 	}
 
-	const uaParserResult = UAParser(userAgent);
+	const browserDetector = new BrowserDetector(userAgent);
 
-	return detectDeviceImpl(uaParserResult);
+	return detectDeviceImpl(browserDetector);
+}
+
+/**
+ * Async mediasoup-client Handler detection.
+ *
+ * @remarks
+ * - Currently it runs same logic than `detectDevice()`.
+ * - In the future this function could give better results than `detectDevice()`.
+ */
+export async function detectDeviceAsync(
+	userAgent?: string
+): Promise<BuiltinHandlerName | undefined> {
+	logger.debug('detectDeviceAsync() [userAgent:%s]', userAgent);
+
+	if (!userAgent && typeof navigator === 'object') {
+		userAgent = navigator.userAgent;
+	}
+
+	const browserDetector = new BrowserDetector(userAgent);
+
+	return detectDeviceImpl(browserDetector);
 }
 
 export type DeviceObserver = EnhancedEventEmitter<DeviceObserverEvents>;
@@ -488,7 +491,7 @@ export class Device {
 }
 
 function detectDeviceImpl(
-	uaParserResult: UAParser.IResult
+	browserDetector: BrowserDetector
 ): BuiltinHandlerName | undefined {
 	// React-Native.
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
@@ -509,65 +512,69 @@ function detectDeviceImpl(
 	}
 	// Browser.
 	else {
-		logger.debug(
-			'detectDeviceImpl() | browser detected [userAgent:%s, parsed:%o]',
-			uaParserResult.ua,
-			uaParserResult
+		const parsed = browserDetector.parseUserAgent();
+
+		const browserMajorVersionMatch = /^\d+/.exec(parsed?.shortVersion ?? '0');
+		const browserMajorVersion = parseInt(
+			browserMajorVersionMatch?.[0] ?? '0',
+			10
 		);
 
-		const browser = uaParserResult.browser;
-		const browserName = browser.name?.toLowerCase();
-		const browserVersion = parseInt(browser.major ?? '0');
-		const engine = uaParserResult.engine;
-		const engineName = engine.name?.toLowerCase();
-		const os = uaParserResult.os;
-		const osName = os.name?.toLowerCase();
-		const osVersion = parseFloat(os.version ?? '0');
-		const device = uaParserResult.device;
-		const deviceModel = device.model?.toLowerCase();
+		const isIOS =
+			parsed.platform === KnownPlatforms.iphone ||
+			parsed.platform === KnownPlatforms.ipad ||
+			(parsed.platform === KnownPlatforms.mac &&
+				(parsed.isMobile ||
+					parsed.isTablet ||
+					(typeof navigator === 'object' && navigator?.maxTouchPoints >= 2)));
 
-		const isIOS = osName === 'ios' || deviceModel === 'ipad';
+		const isChrome = parsed.isChrome;
+		const isFirefox = parsed.isFireFox;
+		const isSafari = parsed.isSafari;
+		const isEdge = parsed.isEdge;
+		const isElectron =
+			parsed.isDesktop && parsed.name === KnownBrowsers.electron;
+		const isWebkit = parsed.isWebkit;
 
-		const isChrome =
-			browserName &&
-			[
-				'chrome',
-				'chromium',
-				'mobile chrome',
-				'chrome webview',
-				'chrome headless',
-			].includes(browserName);
+		// For logging purposes.
+		const result = {
+			browserMajorVersion,
+			isIOS,
+			isChrome,
+			isFirefox,
+			isSafari,
+			isElectron,
+			isWebkit,
+		};
 
-		const isFirefox =
-			browserName &&
-			['firefox', 'mobile firefox', 'mobile focus'].includes(browserName);
-
-		const isSafari =
-			browserName && ['safari', 'mobile safari'].includes(browserName);
-
-		const isEdge = browserName && ['edge'].includes(browserName);
+		logger.debug(
+			'detectDeviceImpl() | detected browser [userAgent:%s, parsed:%o, result:%o]',
+			parsed.userAgent,
+			parsed,
+			result
+		);
 
 		// Chrome, Chromium, and Edge.
-		if ((isChrome || isEdge) && !isIOS && browserVersion >= 111) {
+		if ((isChrome || isEdge) && !isIOS && browserMajorVersion >= 111) {
 			return 'Chrome111';
 		} else if (
-			(isChrome && !isIOS && browserVersion >= 74) ||
-			(isEdge && !isIOS && browserVersion >= 88)
+			(isChrome && !isIOS && browserMajorVersion >= 74) ||
+			(isEdge && !isIOS && browserMajorVersion >= 88)
 		) {
 			return 'Chrome74';
 		}
+		// Electron.
+		else if (isElectron) {
+			return 'Chrome111';
+		}
 		// Firefox.
-		else if (isFirefox && !isIOS && browserVersion >= 120) {
+		else if (isFirefox && !isIOS && browserMajorVersion >= 120) {
 			return 'Firefox120';
 		}
-		// Firefox on iOS (so Safari).
-		else if (isFirefox && isIOS && osVersion >= 14.3) {
-			return 'Safari12';
-		}
-		// Safari with Unified-Plan support enabled.
+		// Safari.
 		else if (
 			isSafari &&
-			browserVersion >= 12 &&
+			browserMajorVersion >= 12 &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
 		) {
@@ -575,7 +582,6 @@ function detectDeviceImpl(
 		}
 		// Best effort for WebKit based browsers in iOS.
 		else if (
-			engineName === 'webkit' &&
 			isIOS &&
 			typeof RTCRtpTransceiver !== 'undefined' &&
 			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
@@ -583,9 +589,8 @@ function detectDeviceImpl(
 			return 'Safari12';
 		}
 		// Best effort for Chromium based browsers.
-		else if (engineName === 'blink') {
-			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			const match = uaParserResult.ua.match(
+		else if (isWebkit) {
+			const match = browserDetector.userAgent?.match(
 				/(?:(?:Chrome|Chromium))[ /](\w+)/i
 			);
 
@@ -604,9 +609,10 @@ function detectDeviceImpl(
 		// Unsupported browser.
 		else {
 			logger.warn(
-				'detectDeviceImpl() | browser not supported [name:%s, version:%s]',
-				browserName,
-				browserVersion
+				'detectDeviceImpl() | browser not supported [userAgent:%s, parsed:%o, result:%o]',
+				parsed.userAgent,
+				parsed,
+				result
 			);
 
 			return undefined;
