@@ -594,7 +594,7 @@ export class Transport<
 
 					try {
 						// This will fill rtpParameters's missing fields with default values.
-						ortc.validateRtpParameters(rtpParameters);
+						ortc.validateAndNormalizeRtpParameters(rtpParameters);
 
 						const { id } = await new Promise<{ id: string }>(
 							(resolve, reject) => {
@@ -771,7 +771,7 @@ export class Transport<
 				});
 
 			// This will fill sctpStreamParameters's missing fields with default values.
-			ortc.validateSctpStreamParameters(sctpStreamParameters);
+			ortc.validateAndNormalizeSctpStreamParameters(sctpStreamParameters);
 
 			const { id } = await new Promise<{ id: string }>((resolve, reject) => {
 				this.safeEmit(
@@ -842,7 +842,7 @@ export class Transport<
 		const clonedSctpStreamParameters = utils.clone(sctpStreamParameters);
 
 		// This may throw.
-		ortc.validateSctpStreamParameters(clonedSctpStreamParameters);
+		ortc.validateAndNormalizeSctpStreamParameters(clonedSctpStreamParameters);
 
 		// Enqueue command.
 		return this._awaitQueue.push(async () => {

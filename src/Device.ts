@@ -279,7 +279,7 @@ export class Device {
 		);
 
 		// This may throw.
-		ortc.validateRtpCapabilities(clonedRouterRtpCapabilities);
+		ortc.validateAndNormalizeRtpCapabilities(clonedRouterRtpCapabilities);
 
 		const { getNativeRtpCapabilities, getNativeSctpCapabilities } =
 			this._handlerFactory;
@@ -289,7 +289,7 @@ export class Device {
 		);
 
 		// This may throw.
-		ortc.validateRtpCapabilities(clonedNativeRtpCapabilities);
+		ortc.validateAndNormalizeRtpCapabilities(clonedNativeRtpCapabilities);
 
 		logger.debug(
 			'load() | got native RTP capabilities:%o',
@@ -320,7 +320,7 @@ export class Device {
 		);
 
 		// This may throw.
-		ortc.validateRtpCapabilities(this._recvRtpCapabilities);
+		ortc.validateAndNormalizeRtpCapabilities(this._recvRtpCapabilities);
 
 		logger.debug(
 			'load() | got receiving RTP capabilities:%o',

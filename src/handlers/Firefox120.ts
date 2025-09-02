@@ -158,6 +158,9 @@ export class Firefox120
 			sdpObject: localSdpObject,
 		});
 
+		// Need to validate and normalize native RTP capabilities.
+		ortc.validateAndNormalizeRtpCapabilities(nativeRtpCapabilities);
+
 		return nativeRtpCapabilities;
 	}
 

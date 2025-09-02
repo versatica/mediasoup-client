@@ -30,7 +30,9 @@ const RTP_PROBATOR_CODEC_PAYLOAD_TYPE = 127;
  * fields with default values.
  * It throws if invalid.
  */
-export function validateRtpCapabilities(caps: RtpCapabilities): void {
+export function validateAndNormalizeRtpCapabilities(
+	caps: RtpCapabilities
+): void {
 	if (typeof caps !== 'object') {
 		throw new TypeError('caps is not an object');
 	}
@@ -43,7 +45,7 @@ export function validateRtpCapabilities(caps: RtpCapabilities): void {
 	}
 
 	for (const codec of caps.codecs) {
-		validateRtpCodecCapability(codec);
+		validateAndNormalizeRtpCodecCapability(codec);
 	}
 
 	// headerExtensions is optional. If unset, fill with an empty array.
@@ -54,7 +56,7 @@ export function validateRtpCapabilities(caps: RtpCapabilities): void {
 	}
 
 	for (const ext of caps.headerExtensions) {
-		validateRtpHeaderExtension(ext);
+		validateAndNormalizeRtpHeaderExtension(ext);
 	}
 }
 
@@ -63,7 +65,7 @@ export function validateRtpCapabilities(caps: RtpCapabilities): void {
  * fields with default values.
  * It throws if invalid.
  */
-export function validateRtpParameters(params: RtpParameters): void {
+export function validateAndNormalizeRtpParameters(params: RtpParameters): void {
 	if (typeof params !== 'object') {
 		throw new TypeError('params is not an object');
 	}
@@ -79,7 +81,7 @@ export function validateRtpParameters(params: RtpParameters): void {
 	}
 
 	for (const codec of params.codecs) {
-		validateRtpCodecParameters(codec);
+		validateAndNormalizeRtpCodecParameters(codec);
 	}
 
 	// headerExtensions is optional. If unset, fill with an empty array.
@@ -101,7 +103,7 @@ export function validateRtpParameters(params: RtpParameters): void {
 	}
 
 	for (const encoding of params.encodings) {
-		validateRtpEncodingParameters(encoding);
+		validateAndNormalizeRtpEncodingParameters(encoding);
 	}
 
 	// rtcp is optional. If unset, fill with an empty object.
@@ -111,7 +113,7 @@ export function validateRtpParameters(params: RtpParameters): void {
 		params.rtcp = {};
 	}
 
-	validateRtcpParameters(params.rtcp);
+	validateAndNormalizeRtcpParameters(params.rtcp);
 }
 
 /**
@@ -119,7 +121,7 @@ export function validateRtpParameters(params: RtpParameters): void {
  * fields with default values.
  * It throws if invalid.
  */
-export function validateSctpStreamParameters(
+export function validateAndNormalizeSctpStreamParameters(
 	params: SctpStreamParameters
 ): void {
 	if (typeof params !== 'object') {
@@ -658,7 +660,7 @@ export function generateProbatorRtpParameters(
 	videoRtpParameters = utils.clone<RtpParameters>(videoRtpParameters);
 
 	// This may throw.
-	validateRtpParameters(videoRtpParameters);
+	validateAndNormalizeRtpParameters(videoRtpParameters);
 
 	const rtpParameters: RtpParameters = {
 		mid: RTP_PROBATOR_MID,
@@ -694,7 +696,7 @@ export function canReceive(
 	rtpCapabilities: RtpCapabilities
 ): boolean {
 	// This may throw.
-	validateRtpParameters(rtpParameters);
+	validateAndNormalizeRtpParameters(rtpParameters);
 
 	if (rtpParameters.codecs.length === 0) {
 		return false;
@@ -712,7 +714,9 @@ export function canReceive(
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtpCodecCapability(codec: RtpCodecCapability): void {
+function validateAndNormalizeRtpCodecCapability(
+	codec: RtpCodecCapability
+): void {
 	const MimeTypeRegex = new RegExp('^(audio|video)/(.+)', 'i');
 
 	if (typeof codec !== 'object') {
@@ -785,7 +789,7 @@ function validateRtpCodecCapability(codec: RtpCodecCapability): void {
 	}
 
 	for (const fb of codec.rtcpFeedback) {
-		validateRtcpFeedback(fb);
+		validateAndNormalizeRtcpFeedback(fb);
 	}
 }
 
@@ -794,7 +798,7 @@ function validateRtpCodecCapability(codec: RtpCodecCapability): void {
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtcpFeedback(fb: RtcpFeedback): void {
+function validateAndNormalizeRtcpFeedback(fb: RtcpFeedback): void {
 	if (typeof fb !== 'object') {
 		throw new TypeError('fb is not an object');
 	}
@@ -815,7 +819,7 @@ function validateRtcpFeedback(fb: RtcpFeedback): void {
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtpHeaderExtension(ext: RtpHeaderExtension): void {
+function validateAndNormalizeRtpHeaderExtension(ext: RtpHeaderExtension): void {
 	if (typeof ext !== 'object') {
 		throw new TypeError('ext is not an object');
 	}
@@ -855,7 +859,9 @@ function validateRtpHeaderExtension(ext: RtpHeaderExtension): void {
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtpCodecParameters(codec: RtpCodecParameters): void {
+function validateAndNormalizeRtpCodecParameters(
+	codec: RtpCodecParameters
+): void {
 	const MimeTypeRegex = new RegExp('^(audio|video)/(.+)', 'i');
 
 	if (typeof codec !== 'object') {
@@ -927,7 +933,7 @@ function validateRtpCodecParameters(codec: RtpCodecParameters): void {
 	}
 
 	for (const fb of codec.rtcpFeedback) {
-		validateRtcpFeedback(fb);
+		validateAndNormalizeRtcpFeedback(fb);
 	}
 }
 
@@ -984,7 +990,9 @@ function validateRtpHeaderExtensionParameters(
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtpEncodingParameters(encoding: RtpEncodingParameters): void {
+function validateAndNormalizeRtpEncodingParameters(
+	encoding: RtpEncodingParameters
+): void {
 	if (typeof encoding !== 'object') {
 		throw new TypeError('encoding is not an object');
 	}
@@ -1028,7 +1036,7 @@ function validateRtpEncodingParameters(encoding: RtpEncodingParameters): void {
  * fields with default values.
  * It throws if invalid.
  */
-function validateRtcpParameters(rtcp: RtcpParameters): void {
+function validateAndNormalizeRtcpParameters(rtcp: RtcpParameters): void {
 	if (typeof rtcp !== 'object') {
 		throw new TypeError('rtcp is not an object');
 	}
