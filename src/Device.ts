@@ -498,7 +498,7 @@ function detectDeviceImpl(
 	userAgentData?: NavigatorUAData
 ): BuiltinHandlerName | undefined {
 	logger.debug(
-		'detectDeviceImpl() [userAgent:%s, userAgentData:%o]',
+		'detectDeviceImpl() [userAgent:"%s", userAgentData:%o]',
 		userAgent,
 		userAgentData
 	);
@@ -508,59 +508,89 @@ function detectDeviceImpl(
 		userAgentData
 	);
 
-	if (chromiumMajorVersion && chromiumMajorVersion >= 111) {
-		logger.debug('detectDeviceImpl() | using Chrome111 handler');
+	if (chromiumMajorVersion) {
+		if (chromiumMajorVersion >= 111) {
+			logger.debug('detectDeviceImpl() | using Chrome111 handler');
 
-		return 'Chrome111';
-	} else if (chromiumMajorVersion && chromiumMajorVersion >= 74) {
-		logger.debug('detectDeviceImpl() | using Chrome74 handler');
+			return 'Chrome111';
+		} else if (chromiumMajorVersion >= 74) {
+			logger.debug('detectDeviceImpl() | using Chrome74 handler');
 
-		return 'Chrome74';
+			return 'Chrome74';
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported Chromium based browser/version'
+			);
+
+			return undefined;
+		}
 	}
 
 	const firefoxMajorVersion = getFirefoxMajorVersion(userAgent);
 
-	if (firefoxMajorVersion && firefoxMajorVersion >= 120) {
-		logger.debug('detectDeviceImpl() | using Firefox120 handler');
+	if (firefoxMajorVersion) {
+		if (firefoxMajorVersion >= 120) {
+			logger.debug('detectDeviceImpl() | using Firefox120 handler');
 
-		return 'Firefox120';
+			return 'Firefox120';
+		} else {
+			logger.warn('detectDeviceImpl() | unsupported Firefox browser/version');
+
+			return undefined;
+		}
 	}
 
 	const macOSWebKitMajorVersion = getMacOSWebKitMajorVersion(userAgent);
 
-	if (macOSWebKitMajorVersion && macOSWebKitMajorVersion >= 605) {
-		logger.debug('detectDeviceImpl() | using Safari12 handler');
+	if (macOSWebKitMajorVersion) {
+		if (macOSWebKitMajorVersion >= 605) {
+			logger.debug('detectDeviceImpl() | using Safari12 handler');
 
-		return 'Safari12';
+			return 'Safari12';
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported desktop Safari browser/version'
+			);
+
+			return undefined;
+		}
 	}
 
 	const iOSWebKitMajorVersion = getIOSWebKitMajorVersion(userAgent);
 
-	if (iOSWebKitMajorVersion && iOSWebKitMajorVersion >= 605) {
-		logger.debug('detectDeviceImpl() | using Safari12 handler');
+	if (iOSWebKitMajorVersion) {
+		if (iOSWebKitMajorVersion >= 605) {
+			logger.debug('detectDeviceImpl() | using Safari12 handler');
 
-		return 'Safari12';
+			return 'Safari12';
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported iOS Safari based browser/version'
+			);
+
+			return undefined;
+		}
 	}
 
 	if (isReactNative()) {
 		if (
-			typeof RTCPeerConnection === 'undefined' ||
-			typeof RTCRtpTransceiver === 'undefined'
+			typeof RTCPeerConnection !== 'undefined' &&
+			typeof RTCRtpTransceiver !== 'undefined'
 		) {
+			logger.debug('detectDeviceImpl() | using ReactNative106 handler');
+
+			return 'ReactNative106';
+		} else {
 			logger.warn(
 				'detectDeviceImpl() | unsupported react-native-webrtc version without RTCPeerConnection or RTCRtpTransceiver, forgot to call registerGlobals() on it?'
 			);
 
 			return undefined;
 		}
-
-		logger.debug('detectDeviceImpl() | using ReactNative106 handler');
-
-		return 'ReactNative106';
 	}
 
 	logger.warn(
-		'detectDeviceImpl() | device not supported [userAgent:%s, userAgentData:%o]',
+		'detectDeviceImpl() | device not supported [userAgent:"%s", userAgentData:%o]',
 		userAgent,
 		userAgentData
 	);
