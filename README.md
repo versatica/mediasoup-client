@@ -138,7 +138,7 @@ const dataProducer = await sendTransport.produceData({
 
 ## Social
 
-- Twitter: [@mediasoup_sfu](https://twitter.com/mediasoup_sfu)
+- Bluesky: [@mediasoup-sfu.bsky.social](https://bsky.app/profile/mediasoup-sfu.bsky.social)
 
 ## Sponsor
 
