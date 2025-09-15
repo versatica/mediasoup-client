@@ -4,7 +4,7 @@
  *
  * @see https://www.w3.org/TR/webrtc-svc/
  *
- * @note No need to extend from anywhere since by default TypeScript
+ * @remarks No need to extend from anywhere since by default TypeScript
  * automatically merges interfaces with the same name.
  */
 interface RTCRtpEncodingParameters {

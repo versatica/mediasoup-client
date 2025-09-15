@@ -1635,10 +1635,12 @@ describe('detectDevice() and detectDeviceAsync() assign proper handler based on 
 					};
 				}
 
-				expect(detectDevice(uaTestCase.ua)).toBe(uaTestCase.expect);
-				await expect(detectDeviceAsync(uaTestCase.ua)).resolves.toBe(
-					uaTestCase.expect
-				);
+				expect(
+					detectDevice(uaTestCase.userAgent, uaTestCase.userAgentData)
+				).toBe(uaTestCase.expect);
+				await expect(
+					detectDeviceAsync(uaTestCase.userAgent, uaTestCase.userAgentData)
+				).resolves.toBe(uaTestCase.expect);
 
 				// Cleanup.
 				global.RTCRtpTransceiver = originalRTCRtpTransceiver;
