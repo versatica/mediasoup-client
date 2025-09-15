@@ -1,7 +1,3 @@
-import BrowserDetector, {
-	KnownBrowsers,
-	KnownPlatforms,
-} from 'browser-dtector';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { UnsupportedError, InvalidStateError } from './errors';
@@ -50,17 +46,20 @@ export type DeviceOptions = {
  * Sync mediasoup-client Handler detection.
  */
 export function detectDevice(
-	userAgent?: string
+	userAgent?: string,
+	userAgentData?: NavigatorUAData
 ): BuiltinHandlerName | undefined {
-	logger.debug('detectDevice() [userAgent:%s]', userAgent);
+	logger.debug('detectDevice()');
 
 	if (!userAgent && typeof navigator === 'object') {
 		userAgent = navigator.userAgent;
 	}
 
-	const browserDetector = new BrowserDetector(userAgent);
+	if (!userAgentData && typeof navigator === 'object') {
+		userAgentData = navigator.userAgentData;
+	}
 
-	return detectDeviceImpl(browserDetector);
+	return detectDeviceImpl(userAgent, userAgentData);
 }
 
 /**
@@ -68,20 +67,24 @@ export function detectDevice(
  *
  * @remarks
  * - Currently it runs same logic than `detectDevice()`.
- * - In the future this function could give better results than `detectDevice()`.
+ * - In the future this function could give better results than
+ *   `detectDevice()`.
  */
 export async function detectDeviceAsync(
-	userAgent?: string
+	userAgent?: string,
+	userAgentData?: NavigatorUAData
 ): Promise<BuiltinHandlerName | undefined> {
-	logger.debug('detectDeviceAsync() [userAgent:%s]', userAgent);
+	logger.debug('detectDeviceAsync()');
 
 	if (!userAgent && typeof navigator === 'object') {
 		userAgent = navigator.userAgent;
 	}
 
-	const browserDetector = new BrowserDetector(userAgent);
+	if (!userAgentData && typeof navigator === 'object') {
+		userAgentData = navigator.userAgentData;
+	}
 
-	return detectDeviceImpl(browserDetector);
+	return detectDeviceImpl(userAgent, userAgentData);
 }
 
 export type DeviceObserver = EnhancedEventEmitter<DeviceObserverEvents>;
@@ -491,127 +494,324 @@ export class Device {
 }
 
 function detectDeviceImpl(
-	browserDetector: BrowserDetector
+	userAgent?: string,
+	userAgentData?: NavigatorUAData
 ): BuiltinHandlerName | undefined {
-	// React-Native.
-	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
-		logger.debug('detectDeviceImpl() | React-Native detected');
+	logger.debug(
+		'detectDeviceImpl() [userAgent:"%s", userAgentData:%o]',
+		userAgent,
+		userAgentData
+	);
 
-		if (
-			typeof RTCPeerConnection === 'undefined' ||
-			typeof RTCRtpTransceiver === 'undefined'
-		) {
+	const chromiumMajorVersion = getChromiumMajorVersion(
+		userAgent,
+		userAgentData
+	);
+
+	if (chromiumMajorVersion) {
+		if (chromiumMajorVersion >= 111) {
+			logger.debug('detectDeviceImpl() | using Chrome111 handler');
+
+			return 'Chrome111';
+		} else if (chromiumMajorVersion >= 74) {
+			logger.debug('detectDeviceImpl() | using Chrome74 handler');
+
+			return 'Chrome74';
+		} else {
 			logger.warn(
-				'detectDeviceImpl() | unsupported react-native-webrtc without RTCPeerConnection or RTCRtpTransceiver, forgot to call registerGlobals() on it?'
+				'detectDeviceImpl() | unsupported Chromium based browser/version'
 			);
 
 			return undefined;
 		}
-
-		return 'ReactNative106';
 	}
-	// Browser.
-	else {
-		const parsed = browserDetector.parseUserAgent();
 
-		const browserMajorVersionMatch = /^\d+/.exec(parsed?.shortVersion ?? '0');
-		const browserMajorVersion = parseInt(
-			browserMajorVersionMatch?.[0] ?? '0',
-			10
-		);
+	const firefoxMajorVersion = getFirefoxMajorVersion(userAgent);
 
-		const isIOS =
-			parsed.platform === KnownPlatforms.iphone ||
-			parsed.platform === KnownPlatforms.ipad ||
-			(parsed.platform === KnownPlatforms.mac &&
-				(parsed.isMobile ||
-					parsed.isTablet ||
-					(typeof navigator === 'object' && navigator?.maxTouchPoints >= 2)));
+	if (firefoxMajorVersion) {
+		if (firefoxMajorVersion >= 120) {
+			logger.debug('detectDeviceImpl() | using Firefox120 handler');
 
-		const isChrome = parsed.isChrome;
-		const isFirefox = parsed.isFireFox;
-		const isSafari = parsed.isSafari;
-		const isEdge = parsed.isEdge;
-		const isElectron =
-			parsed.isDesktop && parsed.name === KnownBrowsers.electron;
-
-		// For logging purposes.
-		const result = {
-			browserMajorVersion,
-			isIOS,
-			isChrome,
-			isFirefox,
-			isSafari,
-			isElectron,
-		};
-
-		logger.debug(
-			'detectDeviceImpl() | detected browser [userAgent:%s, parsed:%o, result:%o]',
-			parsed.userAgent,
-			parsed,
-			result
-		);
-
-		// Chrome, Chromium, and Edge.
-		if ((isChrome || isEdge) && !isIOS && browserMajorVersion >= 111) {
-			return 'Chrome111';
-		} else if (
-			(isChrome && !isIOS && browserMajorVersion >= 74) ||
-			(isEdge && !isIOS && browserMajorVersion >= 88)
-		) {
-			return 'Chrome74';
-		}
-		// Electron.
-		else if (isElectron) {
-			return 'Chrome111';
-		}
-		// Firefox.
-		else if (isFirefox && !isIOS && browserMajorVersion >= 120) {
 			return 'Firefox120';
+		} else {
+			logger.warn('detectDeviceImpl() | unsupported Firefox browser/version');
+
+			return undefined;
 		}
-		// Safari.
-		else if (
-			isSafari &&
-			browserMajorVersion >= 12 &&
-			typeof RTCRtpTransceiver !== 'undefined' &&
-			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		) {
+	}
+
+	const macOSWebKitMajorVersion = getMacOSWebKitMajorVersion(userAgent);
+
+	if (macOSWebKitMajorVersion) {
+		if (macOSWebKitMajorVersion >= 605) {
+			logger.debug('detectDeviceImpl() | using Safari12 handler');
+
 			return 'Safari12';
-		}
-		// Best effort for WebKit based browsers in iOS.
-		else if (
-			isIOS &&
-			typeof RTCRtpTransceiver !== 'undefined' &&
-			RTCRtpTransceiver.prototype.hasOwnProperty('currentDirection')
-		) {
-			return 'Safari12';
-		}
-		// Best effort for Chromium based browsers.
-		else {
-			const match = browserDetector.userAgent?.match(
-				/(?:(?:Chrome|Chromium))[ /](\w+)/i
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported desktop Safari browser/version'
 			);
 
-			if (match) {
-				const version = Number(match[1]);
-
-				if (version >= 111) {
-					return 'Chrome111';
-				} else {
-					return 'Chrome74';
-				}
-			}
-			// Unsupported browser.
-			else {
-				logger.warn(
-					'detectDeviceImpl() | browser not supported [userAgent:%s, parsed:%o, result:%o]',
-					parsed.userAgent,
-					parsed,
-					result
-				);
-
-				return undefined;
-			}
+			return undefined;
 		}
 	}
+
+	const iOSWebKitMajorVersion = getIOSWebKitMajorVersion(userAgent);
+
+	if (iOSWebKitMajorVersion) {
+		if (iOSWebKitMajorVersion >= 605) {
+			logger.debug('detectDeviceImpl() | using Safari12 handler');
+
+			return 'Safari12';
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported iOS Safari based browser/version'
+			);
+
+			return undefined;
+		}
+	}
+
+	if (isReactNative()) {
+		if (
+			typeof RTCPeerConnection !== 'undefined' &&
+			typeof RTCRtpTransceiver !== 'undefined'
+		) {
+			logger.debug('detectDeviceImpl() | using ReactNative106 handler');
+
+			return 'ReactNative106';
+		} else {
+			logger.warn(
+				'detectDeviceImpl() | unsupported react-native-webrtc version without RTCPeerConnection or RTCRtpTransceiver, forgot to call registerGlobals() on it?'
+			);
+
+			return undefined;
+		}
+	}
+
+	logger.warn(
+		'detectDeviceImpl() | device not supported [userAgent:"%s", userAgentData:%o]',
+		userAgent,
+		userAgentData
+	);
+
+	return undefined;
+}
+
+function getChromiumMajorVersion(
+	userAgent?: string,
+	userAgentData?: NavigatorUAData
+): number | undefined {
+	if (isIOS(userAgent, userAgentData)) {
+		logger.debug('getChromiumMajorVersion() | this is iOS => undefined');
+
+		return undefined;
+	}
+
+	if (isReactNative()) {
+		logger.debug(
+			'getChromiumMajorVersion() | this is React-Native => undefined'
+		);
+
+		return undefined;
+	}
+
+	if (userAgentData) {
+		const chromiumBrand = userAgentData.brands.find(
+			b => b.brand === 'Chromium'
+		);
+
+		if (chromiumBrand) {
+			const majorVersion = Number(chromiumBrand.version);
+
+			logger.debug(
+				`getChromiumMajorVersion() | Chromium major version based on NavigatorUAData => ${majorVersion}`
+			);
+
+			return majorVersion;
+		}
+	}
+
+	const match = userAgent?.match(/\b(?:Chrome|Chromium)\/(\w+)/i);
+
+	if (match?.[1]) {
+		const majorVersion = Number(match[1]);
+
+		logger.debug(
+			`getChromiumMajorVersion() | Chromium major version based on User-Agent => ${majorVersion}`
+		);
+
+		return majorVersion;
+	}
+
+	logger.debug('getChromiumMajorVersion() | this is not Chromium => undefined');
+
+	return undefined;
+}
+
+function getFirefoxMajorVersion(userAgent?: string): number | undefined {
+	if (isIOS(userAgent)) {
+		logger.debug('getFirefoxMajorVersion() | this is iOS => undefined');
+
+		return undefined;
+	}
+
+	if (isReactNative()) {
+		logger.debug(
+			'getFirefoxMajorVersion() | this is React-Native => undefined'
+		);
+
+		return undefined;
+	}
+
+	const match = userAgent?.match(/\bFirefox\/(\w+)/i);
+
+	if (match?.[1]) {
+		const majorVersion = Number(match[1]);
+
+		logger.debug(
+			`getFirefoxMajorVersion() | Firefox major version based on User-Agent => ${majorVersion}`
+		);
+
+		return majorVersion;
+	}
+
+	logger.debug('getFirefoxMajorVersion() | this is not Firefox => undefined');
+
+	return undefined;
+}
+
+function getMacOSWebKitMajorVersion(userAgent?: string): number | undefined {
+	if (isIOS(userAgent)) {
+		logger.debug('getMacOSWebKitMajorVersion() | this is iOS => undefined');
+
+		return undefined;
+	}
+
+	if (isReactNative()) {
+		logger.debug(
+			'getMacOSWebKitMajorVersion() | this is React-Native => undefined'
+		);
+
+		return undefined;
+	}
+
+	const isSafari =
+		userAgent &&
+		/\bSafari\b/i.test(userAgent) &&
+		!/\bChrome\b/i.test(userAgent) &&
+		!/\bChromium\b/i.test(userAgent) &&
+		!/\bFirefox\b/i.test(userAgent);
+
+	if (!isSafari) {
+		logger.debug(
+			'getMacOSWebKitMajorVersion() | this is not Safari => undefined'
+		);
+
+		return undefined;
+	}
+
+	const match = userAgent.match(/AppleWebKit\/(\w+)/i);
+
+	if (match?.[1]) {
+		const majorVersion = Number(match[1]);
+
+		logger.debug(
+			`getMacOSWebKitMajorVersion() | WebKit major version based on User-Agent => ${majorVersion}`
+		);
+
+		return majorVersion;
+	}
+
+	logger.debug(
+		'getMacOSWebKitMajorVersion() | this is not WebKit => undefined'
+	);
+
+	return undefined;
+}
+
+function getIOSWebKitMajorVersion(userAgent?: string): number | undefined {
+	if (!isIOS(userAgent)) {
+		logger.debug('getIOSWebKitMajorVersion() | this is not iOS => undefined');
+
+		return undefined;
+	}
+
+	if (isReactNative()) {
+		logger.debug(
+			'getIOSWebKitMajorVersion() | this is React-Native => undefined'
+		);
+
+		return undefined;
+	}
+
+	const match = userAgent?.match(/AppleWebKit\/(\w+)/i);
+
+	if (match?.[1]) {
+		const majorVersion = Number(match[1]);
+
+		logger.debug(
+			`getIOSWebKitMajorVersion() | WebKit major version based on User-Agent => ${majorVersion}`
+		);
+
+		return majorVersion;
+	}
+
+	logger.debug('getIOSWebKitMajorVersion() | this is not WebKit => undefined');
+
+	return undefined;
+}
+
+function isIOS(userAgent?: string, userAgentData?: NavigatorUAData): boolean {
+	if (userAgentData?.platform === 'iOS') {
+		logger.debug(
+			'isIOS() | this is iOS based on NavigatorUAData.platform => true'
+		);
+
+		return true;
+	}
+
+	if (userAgentData?.platform) {
+		logger.debug(
+			'isIOS() | this is not iOS based on NavigatorUAData.platform => false'
+		);
+
+		return false;
+	}
+
+	if (userAgent && /iPad|iPhone|iPod/.test(userAgent)) {
+		logger.debug('isIOS() | this is iOS based on User-Agent => true');
+
+		return true;
+	}
+
+	// iPadOS 13+ identifies itself as Mac (to force desktop view mode in some
+	// websites) but we know it's iOS if it has touch screen.
+	if (
+		typeof navigator === 'object' &&
+		navigator.platform === 'MacIntel' &&
+		navigator.maxTouchPoints > 1
+	) {
+		logger.debug('isIOS() | this is iPadOS 13+ based on User-Agent => true');
+
+		return true;
+	}
+
+	logger.debug('isIOS() | this is not iOS => false');
+
+	return false;
+}
+
+function isReactNative(): boolean {
+	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
+		logger.debug(
+			'isReactNative() | this is React-Native based on navigator.product'
+		);
+
+		return true;
+	}
+
+	logger.debug('isReactNative() | this is not React-Native => false');
+
+	return false;
 }
