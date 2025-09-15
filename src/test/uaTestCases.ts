@@ -88,4 +88,9 @@ export const uaTestCases: UATestCase[] = [
 		ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Electron/37.4.0 Chrome/138.0.7204.243 Safari/537.36',
 		expect: 'Chrome111',
 	},
+	{
+		desc: 'Samsung Browser (Android)',
+		ua: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/537.36',
+		expect: 'Chrome111',
+	},
 ];

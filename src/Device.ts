@@ -534,7 +534,6 @@ function detectDeviceImpl(
 		const isEdge = parsed.isEdge;
 		const isElectron =
 			parsed.isDesktop && parsed.name === KnownBrowsers.electron;
-		const isWebkit = parsed.isWebkit;
 
 		// For logging purposes.
 		const result = {
@@ -544,7 +543,6 @@ function detectDeviceImpl(
 			isFirefox,
 			isSafari,
 			isElectron,
-			isWebkit,
 		};
 
 		logger.debug(
@@ -589,7 +587,7 @@ function detectDeviceImpl(
 			return 'Safari12';
 		}
 		// Best effort for Chromium based browsers.
-		else if (isWebkit) {
+		else {
 			const match = browserDetector.userAgent?.match(
 				/(?:(?:Chrome|Chromium))[ /](\w+)/i
 			);
@@ -602,20 +600,18 @@ function detectDeviceImpl(
 				} else {
 					return 'Chrome74';
 				}
-			} else {
-				return 'Chrome111';
 			}
-		}
-		// Unsupported browser.
-		else {
-			logger.warn(
-				'detectDeviceImpl() | browser not supported [userAgent:%s, parsed:%o, result:%o]',
-				parsed.userAgent,
-				parsed,
-				result
-			);
+			// Unsupported browser.
+			else {
+				logger.warn(
+					'detectDeviceImpl() | browser not supported [userAgent:%s, parsed:%o, result:%o]',
+					parsed.userAgent,
+					parsed,
+					result
+				);
 
-			return undefined;
+				return undefined;
+			}
 		}
 	}
 }
