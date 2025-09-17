@@ -74,6 +74,9 @@ export class RemoteSdp {
 			media: [],
 		};
 
+		// Indicate support of RFC 8445 (ICE bis / ice2).
+		this._sdpObject.iceOptions = 'ice2';
+
 		// If ICE parameters are given, add ICE-Lite indicator.
 		if (iceParameters?.iceLite) {
 			this._sdpObject.icelite = 'ice-lite';
