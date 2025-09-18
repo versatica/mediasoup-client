@@ -43,6 +43,33 @@ export type DeviceOptions = {
 };
 
 /**
+ * @remarks
+ * - TypeScript DOM library doesn't contain types for navigator.userAgentData.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
+ */
+export type NavigatorUAData = {
+	brands: { brand: string; version: string }[];
+	platform: NavigatorUADataPlatform;
+	mobile: boolean;
+	getHighEntropyValues?(hints: string[]): Promise<Record<string, string>>;
+};
+
+export type NavigatorUADataPlatform =
+	| 'Android'
+	| 'Chrome OS'
+	| 'Chromium OS'
+	| 'iOS'
+	| 'Linux'
+	| 'macOS'
+	| 'Windows'
+	| 'Unknown';
+
+type ExtendedNavigator = Navigator & {
+	readonly userAgentData?: NavigatorUAData;
+};
+
+/**
  * Sync mediasoup-client Handler detection.
  */
 export function detectDevice(
@@ -56,7 +83,7 @@ export function detectDevice(
 	}
 
 	if (!userAgentData && typeof navigator === 'object') {
-		userAgentData = navigator.userAgentData;
+		userAgentData = (navigator as ExtendedNavigator).userAgentData;
 	}
 
 	return detectDeviceImpl(userAgent, userAgentData);
@@ -81,7 +108,7 @@ export async function detectDeviceAsync(
 	}
 
 	if (!userAgentData && typeof navigator === 'object') {
-		userAgentData = navigator.userAgentData;
+		userAgentData = (navigator as ExtendedNavigator).userAgentData;
 	}
 
 	return detectDeviceImpl(userAgent, userAgentData);

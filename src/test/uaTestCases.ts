@@ -1,4 +1,4 @@
-import type { BuiltinHandlerName } from '../Device';
+import type { BuiltinHandlerName, NavigatorUAData } from '../Device';
 
 type UATestCase = {
 	desc: string;
