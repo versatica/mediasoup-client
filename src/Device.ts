@@ -644,7 +644,10 @@ function getChromiumMajorVersion(
 	}
 
 	if (userAgentData) {
-		const chromiumBrand = userAgentData.brands.find(
+		// Some nasty browser extensions define their own custom
+		// navigator.userAgentData without mandatory `brands` field, so let's be
+		// ready for it.
+		const chromiumBrand = (userAgentData.brands ?? []).find(
 			b => b.brand === 'Chromium'
 		);
 
