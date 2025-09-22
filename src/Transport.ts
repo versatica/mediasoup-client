@@ -1023,7 +1023,7 @@ export class Transport<
 						error
 					);
 				}
-			}, 'transport.pausePendingConsumers')
+			}, 'transport.pausePendingConsumers()')
 			.then(() => {
 				this._consumerPauseInProgress = false;
 
@@ -1068,7 +1068,7 @@ export class Transport<
 						error
 					);
 				}
-			}, 'transport.resumePendingConsumers')
+			}, 'transport.resumePendingConsumers()')
 			.then(() => {
 				this._consumerResumeInProgress = false;
 
@@ -1111,7 +1111,7 @@ export class Transport<
 						error
 					);
 				}
-			}, 'transport.closePendingConsumers')
+			}, 'transport.closePendingConsumers()')
 			.then(() => {
 				this._consumerCloseInProgress = false;
 
