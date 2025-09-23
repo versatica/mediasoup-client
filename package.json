@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.16.4",
+	"version": "3.16.5",
 	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -76,8 +76,8 @@
 		"awaitqueue": "^3.3.0",
 		"debug": "^4.4.3",
 		"events-alias": "npm:events@^3.3.0",
-		"fake-mediastreamtrack": "^2.1.5",
-		"h264-profile-level-id": "^2.2.3",
+		"fake-mediastreamtrack": "^2.2.0",
+		"h264-profile-level-id": "^2.3.1",
 		"sdp-transform": "^2.15.0",
 		"supports-color": "^10.2.2"
 	},
