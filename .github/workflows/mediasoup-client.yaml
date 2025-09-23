@@ -50,8 +50,8 @@ jobs:
           restore-keys: |
             ${{ matrix.ci.os }}-node-
 
-      - name: npm ci
-        run: npm ci
+      - name: npm ci --foreground-scripts
+        run: npm ci --foreground-scripts
 
       - name: npm run lint
         run: npm run lint
