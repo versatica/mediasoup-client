@@ -23,7 +23,7 @@ export class FakeEventTarget implements EventTarget {
 			return;
 		}
 
-		this.listeners[type] ??= [];
+		this.listeners[type] = this.listeners[type] ?? [];
 
 		this.listeners[type].push({
 			callback:
