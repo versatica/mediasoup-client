@@ -148,8 +148,8 @@ export function extractDtlsParameters({
 		);
 
 		if (mediaObject) {
-			setup ??= mediaObject.setup;
-			fingerprint ??= mediaObject.fingerprint;
+			setup = setup ?? mediaObject.setup;
+			fingerprint = fingerprint ?? mediaObject.fingerprint;
 		}
 	}
 
