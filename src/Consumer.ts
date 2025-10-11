@@ -1,22 +1,28 @@
 import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { InvalidStateError } from './errors';
-import { MediaKind, RtpParameters } from './RtpParameters';
+import type { MediaKind, RtpParameters } from './RtpParameters';
+import type { AppData } from './types';
 
 const logger = new Logger('Consumer');
 
-export type ConsumerOptions =
-{
+export type ConsumerOptions<ConsumerAppData extends AppData = AppData> = {
 	id?: string;
 	producerId?: string;
 	kind?: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
-	appData?: Record<string, unknown>;
+	onRtpReceiver?: OnRtpReceiverCallback;
+	appData?: ConsumerAppData;
 };
 
-export type ConsumerEvents =
-{
+/**
+ * Invoked synchronously immediately after a new RTCRtpReceiver is created.
+ * This allows for creating encoded streams in chromium browsers.
+ */
+export type OnRtpReceiverCallback = (rtpReceiver: RTCRtpReceiver) => void;
+
+export type ConsumerEvents = {
 	transportclose: [];
 	trackended: [];
 	// Private events.
@@ -26,16 +32,18 @@ export type ConsumerEvents =
 	'@resume': [];
 };
 
-export type ConsumerObserverEvents =
-{
+export type ConsumerObserver = EnhancedEventEmitter<ConsumerObserverEvents>;
+
+export type ConsumerObserverEvents = {
 	close: [];
 	pause: [];
 	resume: [];
 	trackended: [];
 };
 
-export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
-{
+export class Consumer<
+	ConsumerAppData extends AppData = AppData,
+> extends EnhancedEventEmitter<ConsumerEvents> {
 	// Id.
 	private readonly _id: string;
 	// Local id.
@@ -53,31 +61,28 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	// Paused flag.
 	private _paused: boolean;
 	// App custom data.
-	private readonly _appData: Record<string, unknown>;
+	private _appData: ConsumerAppData;
 	// Observer instance.
-	protected readonly _observer = new EnhancedEventEmitter<ConsumerObserverEvents>();
+	protected readonly _observer: ConsumerObserver =
+		new EnhancedEventEmitter<ConsumerObserverEvents>();
 
-	constructor(
-		{
-			id,
-			localId,
-			producerId,
-			rtpReceiver,
-			track,
-			rtpParameters,
-			appData
-		}:
-		{
-			id: string;
-			localId: string;
-			producerId: string;
-			rtpReceiver?: RTCRtpReceiver;
-			track: MediaStreamTrack;
-			rtpParameters: RtpParameters;
-			appData?: Record<string, unknown>;
-		}
-	)
-	{
+	constructor({
+		id,
+		localId,
+		producerId,
+		rtpReceiver,
+		track,
+		rtpParameters,
+		appData,
+	}: {
+		id: string;
+		localId: string;
+		producerId: string;
+		rtpReceiver?: RTCRtpReceiver;
+		track: MediaStreamTrack;
+		rtpParameters: RtpParameters;
+		appData?: ConsumerAppData;
+	}) {
 		super();
 
 		logger.debug('constructor()');
@@ -89,7 +94,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._track = track;
 		this._rtpParameters = rtpParameters;
 		this._paused = !track.enabled;
-		this._appData = appData || {};
+		this._appData = appData ?? ({} as ConsumerAppData);
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		this.handleTrack();
@@ -98,104 +103,89 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	/**
 	 * Consumer id.
 	 */
-	get id(): string
-	{
+	get id(): string {
 		return this._id;
 	}
 
 	/**
 	 * Local id.
 	 */
-	get localId(): string
-	{
+	get localId(): string {
 		return this._localId;
 	}
 
 	/**
 	 * Associated Producer id.
 	 */
-	get producerId(): string
-	{
+	get producerId(): string {
 		return this._producerId;
 	}
 
 	/**
 	 * Whether the Consumer is closed.
 	 */
-	get closed(): boolean
-	{
+	get closed(): boolean {
 		return this._closed;
 	}
 
 	/**
 	 * Media kind.
 	 */
-	get kind(): MediaKind
-	{
+	get kind(): MediaKind {
 		return this._track.kind as MediaKind;
 	}
 
 	/**
 	 * Associated RTCRtpReceiver.
 	 */
-	get rtpReceiver(): RTCRtpReceiver | undefined
-	{
+	get rtpReceiver(): RTCRtpReceiver | undefined {
 		return this._rtpReceiver;
 	}
 
 	/**
 	 * The associated track.
 	 */
-	get track(): MediaStreamTrack
-	{
+	get track(): MediaStreamTrack {
 		return this._track;
 	}
 
 	/**
 	 * RTP parameters.
 	 */
-	get rtpParameters(): RtpParameters
-	{
+	get rtpParameters(): RtpParameters {
 		return this._rtpParameters;
 	}
 
 	/**
 	 * Whether the Consumer is paused.
 	 */
-	get paused(): boolean
-	{
+	get paused(): boolean {
 		return this._paused;
 	}
 
 	/**
 	 * App custom data.
 	 */
-	get appData(): Record<string, unknown>
-	{
+	get appData(): ConsumerAppData {
 		return this._appData;
 	}
 
 	/**
-	 * Invalid setter.
+	 * App custom data setter.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	set appData(appData: Record<string, unknown>)
-	{
-		throw new Error('cannot override appData object');
+	set appData(appData: ConsumerAppData) {
+		this._appData = appData;
 	}
 
-	get observer(): EnhancedEventEmitter
-	{
+	get observer(): ConsumerObserver {
 		return this._observer;
 	}
 
 	/**
 	 * Closes the Consumer.
 	 */
-	close(): void
-	{
-		if (this._closed)
-		{
+	override close(): void {
+		if (this._closed) {
 			return;
 		}
 
@@ -209,15 +199,17 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**
 	 * Transport was closed.
 	 */
-	transportClosed(): void
-	{
-		if (this._closed)
-		{
+	transportClosed(): void {
+		if (this._closed) {
 			return;
 		}
 
@@ -236,39 +228,29 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	/**
 	 * Get associated RTCRtpReceiver stats.
 	 */
-	async getStats(): Promise<RTCStatsReport>
-	{
-		if (this._closed)
-		{
+	async getStats(): Promise<RTCStatsReport> {
+		if (this._closed) {
 			throw new InvalidStateError('closed');
 		}
 
-		return new Promise<RTCStatsReport>((resolve, reject) =>
-		{
-			this.safeEmit(
-				'@getstats',
-				resolve,
-				reject
-			);
+		return new Promise<RTCStatsReport>((resolve, reject) => {
+			this.safeEmit('@getstats', resolve, reject);
 		});
 	}
 
 	/**
 	 * Pauses receiving media.
 	 */
-	pause(): void
-	{
+	pause(): void {
 		logger.debug('pause()');
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			logger.error('pause() | Consumer closed');
 
 			return;
 		}
 
-		if (this._paused)
-		{
+		if (this._paused) {
 			logger.debug('pause() | Consumer is already paused');
 
 			return;
@@ -286,19 +268,16 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 	/**
 	 * Resumes receiving media.
 	 */
-	resume(): void
-	{
+	resume(): void {
 		logger.debug('resume()');
 
-		if (this._closed)
-		{
+		if (this._closed) {
 			logger.error('resume() | Consumer closed');
 
 			return;
 		}
 
-		if (!this._paused)
-		{
+		if (!this._paused) {
 			logger.debug('resume() | Consumer is already resumed');
 
 			return;
@@ -313,8 +292,7 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._observer.safeEmit('resume');
 	}
 
-	private onTrackEnded(): void
-	{
+	private onTrackEnded(): void {
 		logger.debug('track "ended" event');
 
 		this.safeEmit('trackended');
@@ -323,19 +301,14 @@ export class Consumer extends EnhancedEventEmitter<ConsumerEvents>
 		this._observer.safeEmit('trackended');
 	}
 
-	private handleTrack(): void
-	{
+	private handleTrack(): void {
 		this._track.addEventListener('ended', this.onTrackEnded);
 	}
 
-	private destroyTrack(): void
-	{
-		try
-		{
+	private destroyTrack(): void {
+		try {
 			this._track.removeEventListener('ended', this.onTrackEnded);
 			this._track.stop();
-		}
-		catch (error)
-		{}
+		} catch (error) {}
 	}
 }

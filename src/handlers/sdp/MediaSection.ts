@@ -1,73 +1,69 @@
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import * as utils from '../../utils';
-import {
+import type {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
 	DtlsRole,
-	PlainRtpParameters
+	PlainRtpParameters,
 } from '../../Transport';
-import { ProducerCodecOptions } from '../../Producer';
-import {
+import type { ProducerCodecOptions } from '../../Producer';
+import type {
 	MediaKind,
 	RtpParameters,
 	RtpCodecParameters,
 	RtcpFeedback,
-	RtpHeaderExtensionParameters
 } from '../../RtpParameters';
-import { SctpParameters } from '../../SctpParameters';
-import { SimulcastStream } from './types';
+import type { SctpParameters } from '../../SctpParameters';
 
-export abstract class MediaSection
-{
+export abstract class MediaSection {
 	// SDP media object.
-	protected readonly _mediaObject: any;
-	// Whether this is Plan-B SDP.
-	protected readonly _planB: boolean;
+	protected readonly _mediaObject: SdpTransform.MediaDescription;
 
-	constructor(
-		{
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			planB = false
-		}:
-		{
-			iceParameters?: IceParameters;
-			iceCandidates?: IceCandidate[];
-			dtlsParameters?: DtlsParameters;
-			planB: boolean;
-		}
-	)
-	{
-		this._mediaObject = {};
-		this._planB = planB;
+	constructor({
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+	}: {
+		iceParameters?: IceParameters;
+		iceCandidates?: IceCandidate[];
+		dtlsParameters?: DtlsParameters;
+	}) {
+		this._mediaObject = {
+			type: '',
+			port: 0,
+			protocol: '',
+			payloads: '',
+			rtp: [],
+			fmtp: [],
+		};
 
-		if (iceParameters)
-		{
+		if (iceParameters) {
 			this.setIceParameters(iceParameters);
 		}
 
-		if (iceCandidates)
-		{
+		if (iceCandidates) {
 			this._mediaObject.candidates = [];
 
-			for (const candidate of iceCandidates)
-			{
-				const candidateObject: any = {};
+			for (const candidate of iceCandidates) {
+				const candidateObject: NonNullable<
+					SdpTransform.MediaAttributes['candidates']
+				>[number] = {
+					foundation: candidate.foundation,
+					// mediasoup does mandates rtcp-mux so candidates component is always
+					// RTP (1).
+					component: 1,
+					// Be ready for new candidate.address field in mediasoup server side
+					// field and keep backward compatibility with deprecated candidate.ip.
+					ip: candidate.address ?? candidate.ip,
+					port: candidate.port,
+					priority: candidate.priority,
+					transport: candidate.protocol,
+					type: candidate.type,
+				};
 
-				// mediasoup does mandates rtcp-mux so candidates component is always
-				// RTP (1).
-				candidateObject.component = 1;
-				candidateObject.foundation = candidate.foundation;
-				candidateObject.ip = candidate.ip;
-				candidateObject.port = candidate.port;
-				candidateObject.priority = candidate.priority;
-				candidateObject.transport = candidate.protocol;
-				candidateObject.type = candidate.type;
-
-				if (candidate.tcpType)
-				{
+				if (candidate.tcpType) {
 					candidateObject.tcptype = candidate.tcpType;
 				}
 
@@ -75,47 +71,41 @@ export abstract class MediaSection
 			}
 
 			this._mediaObject.endOfCandidates = 'end-of-candidates';
+
 			this._mediaObject.iceOptions = 'renomination';
 		}
 
-		if (dtlsParameters)
-		{
+		if (dtlsParameters) {
 			this.setDtlsRole(dtlsParameters.role!);
 		}
 	}
 
 	abstract setDtlsRole(role: DtlsRole): void;
 
-	get mid(): string
-	{
+	get mid(): string {
 		return String(this._mediaObject.mid);
 	}
 
-	get closed(): boolean
-	{
+	get closed(): boolean {
 		return this._mediaObject.port === 0;
 	}
 
-	getObject(): object
-	{
+	getObject(): SdpTransform.MediaDescription {
 		return this._mediaObject;
 	}
 
-	setIceParameters(iceParameters: IceParameters): void
-	{
+	setIceParameters(iceParameters: IceParameters): void {
 		this._mediaObject.iceUfrag = iceParameters.usernameFragment;
 		this._mediaObject.icePwd = iceParameters.password;
 	}
 
-	pause(): void
-	{
+	pause(): void {
 		this._mediaObject.direction = 'inactive';
 	}
 
 	abstract resume(): void;
 
-	disable(): void
-	{
+	disable(): void {
 		this.pause();
 
 		delete this._mediaObject.ext;
@@ -127,97 +117,78 @@ export abstract class MediaSection
 		delete this._mediaObject.extmapAllowMixed;
 	}
 
-	close(): void
-	{
+	close(): void {
 		this.disable();
 
 		this._mediaObject.port = 0;
 	}
 }
 
-export class AnswerMediaSection extends MediaSection
-{
-	constructor(
-		{
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			plainRtpParameters,
-			planB = false,
-			offerMediaObject,
-			offerRtpParameters,
-			answerRtpParameters,
-			codecOptions,
-			extmapAllowMixed = false
-		}:
-		{
-			iceParameters?: IceParameters;
-			iceCandidates?: IceCandidate[];
-			dtlsParameters?: DtlsParameters;
-			sctpParameters?: SctpParameters;
-			plainRtpParameters?: PlainRtpParameters;
-			planB?: boolean;
-			offerMediaObject: any;
-			offerRtpParameters?: RtpParameters;
-			answerRtpParameters?: RtpParameters;
-			codecOptions?: ProducerCodecOptions;
-			extmapAllowMixed?: boolean;
-		}
-	)
-	{
-		super({ iceParameters, iceCandidates, dtlsParameters, planB });
+export class AnswerMediaSection extends MediaSection {
+	constructor({
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		plainRtpParameters,
+		offerMediaObject,
+		offerRtpParameters,
+		answerRtpParameters,
+		codecOptions,
+	}: {
+		iceParameters?: IceParameters;
+		iceCandidates?: IceCandidate[];
+		dtlsParameters?: DtlsParameters;
+		sctpParameters?: SctpParameters;
+		plainRtpParameters?: PlainRtpParameters;
+		offerMediaObject: SdpTransform.MediaDescription;
+		offerRtpParameters?: RtpParameters;
+		answerRtpParameters?: RtpParameters;
+		codecOptions?: ProducerCodecOptions;
+	}) {
+		super({ iceParameters, iceCandidates, dtlsParameters });
 
 		this._mediaObject.mid = String(offerMediaObject.mid);
 		this._mediaObject.type = offerMediaObject.type;
 		this._mediaObject.protocol = offerMediaObject.protocol;
 
-		if (!plainRtpParameters)
-		{
+		if (!plainRtpParameters) {
 			this._mediaObject.connection = { ip: '127.0.0.1', version: 4 };
 			this._mediaObject.port = 7;
-		}
-		else
-		{
-			this._mediaObject.connection =
-			{
-				ip      : plainRtpParameters.ip,
-				version : plainRtpParameters.ipVersion
+		} else {
+			this._mediaObject.connection = {
+				ip: plainRtpParameters.ip,
+				version: plainRtpParameters.ipVersion,
 			};
 			this._mediaObject.port = plainRtpParameters.port;
 		}
 
-		switch (offerMediaObject.type)
-		{
+		switch (offerMediaObject.type) {
 			case 'audio':
-			case 'video':
-			{
+			case 'video': {
 				this._mediaObject.direction = 'recvonly';
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
 
-				for (const codec of answerRtpParameters!.codecs)
-				{
-					const rtp: any =
-					{
-						payload : codec.payloadType,
-						codec   : getCodecName(codec),
-						rate    : codec.clockRate
+				for (const codec of answerRtpParameters!.codecs) {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
+						payload: codec.payloadType,
+						codec: getCodecName(codec),
+						rate: codec.clockRate,
 					};
 
-					if (codec.channels! > 1)
-					{
+					if (codec.channels! > 1) {
 						rtp.encoding = codec.channels;
 					}
 
 					this._mediaObject.rtp.push(rtp);
 
-					const codecParameters = utils.clone(codec.parameters, {});
-					let codecRtcpFeedback: RtcpFeedback[] = utils.clone(codec.rtcpFeedback, []);
+					const codecParameters = utils.clone(codec.parameters) ?? {};
+					let codecRtcpFeedback: RtcpFeedback[] =
+						utils.clone(codec.rtcpFeedback) ?? [];
 
-					if (codecOptions)
-					{
+					if (codecOptions) {
 						const {
 							opusStereo,
 							opusFec,
@@ -228,64 +199,55 @@ export class AnswerMediaSection extends MediaSection
 							opusNack,
 							videoGoogleStartBitrate,
 							videoGoogleMaxBitrate,
-							videoGoogleMinBitrate
+							videoGoogleMinBitrate,
 						} = codecOptions;
 
-						const offerCodec = offerRtpParameters!.codecs
-							.find((c: RtpCodecParameters) => (
-								c.payloadType === codec.payloadType
-							));
+						const offerCodec = offerRtpParameters!.codecs.find(
+							(c: RtpCodecParameters) => c.payloadType === codec.payloadType
+						)!;
 
-						switch (codec.mimeType.toLowerCase())
-						{
+						switch (codec.mimeType.toLowerCase()) {
 							case 'audio/opus':
-							case 'audio/multiopus':
-							{
-								if (opusStereo !== undefined)
-								{
-									offerCodec!.parameters['sprop-stereo'] = opusStereo ? 1 : 0;
-									codecParameters.stereo = opusStereo ? 1 : 0;
+							case 'audio/multiopus': {
+								if (opusStereo !== undefined) {
+									offerCodec.parameters!['sprop-stereo'] = opusStereo ? 1 : 0;
+									codecParameters['stereo'] = opusStereo ? 1 : 0;
 								}
 
-								if (opusFec !== undefined)
-								{
-									offerCodec!.parameters.useinbandfec = opusFec ? 1 : 0;
-									codecParameters.useinbandfec = opusFec ? 1 : 0;
+								if (opusFec !== undefined) {
+									offerCodec.parameters!['useinbandfec'] = opusFec ? 1 : 0;
+									codecParameters['useinbandfec'] = opusFec ? 1 : 0;
 								}
 
-								if (opusDtx !== undefined)
-								{
-									offerCodec!.parameters.usedtx = opusDtx ? 1 : 0;
-									codecParameters.usedtx = opusDtx ? 1 : 0;
+								if (opusDtx !== undefined) {
+									offerCodec.parameters!['usedtx'] = opusDtx ? 1 : 0;
+									codecParameters['usedtx'] = opusDtx ? 1 : 0;
 								}
 
-								if (opusMaxPlaybackRate !== undefined)
-								{
-									codecParameters.maxplaybackrate = opusMaxPlaybackRate;
+								if (opusMaxPlaybackRate !== undefined) {
+									codecParameters['maxplaybackrate'] = opusMaxPlaybackRate;
 								}
 
-								if (opusMaxAverageBitrate !== undefined)
-								{
-									codecParameters.maxaveragebitrate = opusMaxAverageBitrate;
+								if (opusMaxAverageBitrate !== undefined) {
+									codecParameters['maxaveragebitrate'] = opusMaxAverageBitrate;
 								}
 
-								if (opusPtime !== undefined)
-								{
-									offerCodec!.parameters.ptime = opusPtime;
-									codecParameters.ptime = opusPtime;
+								if (opusPtime !== undefined) {
+									offerCodec.parameters!['ptime'] = opusPtime;
+									codecParameters['ptime'] = opusPtime;
 								}
 
 								// If opusNack is not set, we must remove NACK support for OPUS.
 								// Otherwise it would be enabled for those handlers that artificially
 								// announce it in their RTP capabilities.
-								if (!opusNack)
-								{
-									offerCodec!.rtcpFeedback = offerCodec!
-										.rtcpFeedback!
-										.filter((fb) => fb.type !== 'nack' || fb.parameter);
+								if (!opusNack) {
+									offerCodec.rtcpFeedback = offerCodec.rtcpFeedback!.filter(
+										fb => fb.type !== 'nack' || fb.parameter
+									);
 
-									codecRtcpFeedback = codecRtcpFeedback
-										.filter((fb) => fb.type !== 'nack' || fb.parameter);
+									codecRtcpFeedback = codecRtcpFeedback.filter(
+										fb => fb.type !== 'nack' || fb.parameter
+									);
 								}
 
 								break;
@@ -295,20 +257,20 @@ export class AnswerMediaSection extends MediaSection
 							case 'video/vp9':
 							case 'video/h264':
 							case 'video/h265':
-							{
-								if (videoGoogleStartBitrate !== undefined)
-								{
-									codecParameters['x-google-start-bitrate'] = videoGoogleStartBitrate;
+							case 'video/av1': {
+								if (videoGoogleStartBitrate !== undefined) {
+									codecParameters['x-google-start-bitrate'] =
+										videoGoogleStartBitrate;
 								}
 
-								if (videoGoogleMaxBitrate !== undefined)
-								{
-									codecParameters['x-google-max-bitrate'] = videoGoogleMaxBitrate;
+								if (videoGoogleMaxBitrate !== undefined) {
+									codecParameters['x-google-max-bitrate'] =
+										videoGoogleMaxBitrate;
 								}
 
-								if (videoGoogleMinBitrate !== undefined)
-								{
-									codecParameters['x-google-min-bitrate'] = videoGoogleMinBitrate;
+								if (videoGoogleMinBitrate !== undefined) {
+									codecParameters['x-google-min-bitrate'] =
+										videoGoogleMinBitrate;
 								}
 
 								break;
@@ -316,35 +278,29 @@ export class AnswerMediaSection extends MediaSection
 						}
 					}
 
-					const fmtp =
-					{
-						payload : codec.payloadType,
-						config  : ''
+					const fmtp = {
+						payload: codec.payloadType,
+						config: '',
 					};
 
-					for (const key of Object.keys(codecParameters))
-					{
-						if (fmtp.config)
-						{
+					for (const key of Object.keys(codecParameters)) {
+						if (fmtp.config) {
 							fmtp.config += ';';
 						}
 
 						fmtp.config += `${key}=${codecParameters[key]}`;
 					}
 
-					if (fmtp.config)
-					{
+					if (fmtp.config) {
 						this._mediaObject.fmtp.push(fmtp);
 					}
 
-					for (const fb of codecRtcpFeedback)
-					{
-						this._mediaObject.rtcpFb.push(
-							{
-								payload : codec.payloadType,
-								type    : fb.type,
-								subtype : fb.parameter
-							});
+					for (const fb of codecRtcpFeedback) {
+						this._mediaObject.rtcpFb.push({
+							payload: codec.payloadType,
+							type: fb.type,
+							subtype: fb.parameter,
+						});
 					}
 				}
 
@@ -354,113 +310,90 @@ export class AnswerMediaSection extends MediaSection
 
 				this._mediaObject.ext = [];
 
-				for (const ext of answerRtpParameters!.headerExtensions!)
-				{
+				for (const ext of answerRtpParameters!.headerExtensions!) {
 					// Don't add a header extension if not present in the offer.
-					const found = (offerMediaObject.ext || [])
-						.some((localExt: RtpHeaderExtensionParameters) => localExt.uri === ext.uri);
+					const found = (offerMediaObject.ext ?? []).some(
+						(
+							localExt: NonNullable<SdpTransform.MediaAttributes['ext']>[number]
+						) => localExt.uri === ext.uri
+					);
 
-					if (!found)
-					{
+					if (!found) {
 						continue;
 					}
 
-					this._mediaObject.ext.push(
-						{
-							uri   : ext.uri,
-							value : ext.id
-						});
+					this._mediaObject.ext.push({
+						uri: ext.uri,
+						value: ext.id,
+					});
 				}
 
-				// Allow both 1 byte and 2 bytes length header extensions.
-				if (
-					extmapAllowMixed &&
-					offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed'
-				)
-				{
+				// Allow both 1 byte and 2 bytes length header extensions since
+				// mediasoup can receive both at any time.
+				if (offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed') {
 					this._mediaObject.extmapAllowMixed = 'extmap-allow-mixed';
 				}
 
 				// Simulcast.
-				if (offerMediaObject.simulcast)
-				{
-					this._mediaObject.simulcast =
-					{
-						dir1  : 'recv',
-						list1 : offerMediaObject.simulcast.list1
+				if (offerMediaObject.simulcast) {
+					this._mediaObject.simulcast = {
+						dir1: 'recv',
+						list1: offerMediaObject.simulcast.list1,
 					};
 
 					this._mediaObject.rids = [];
 
-					for (const rid of offerMediaObject.rids || [])
-					{
-						if (rid.direction !== 'send')
-						{
+					for (const rid of offerMediaObject.rids ?? []) {
+						if (rid.direction !== 'send') {
 							continue;
 						}
 
-						this._mediaObject.rids.push(
-							{
-								id        : rid.id,
-								direction : 'recv'
-							});
+						this._mediaObject.rids.push({
+							id: rid.id,
+							direction: 'recv',
+						});
 					}
 				}
 				// Simulcast (draft version 03).
-				else if (offerMediaObject.simulcast_03)
-				{
-					// eslint-disable-next-line camelcase
-					this._mediaObject.simulcast_03 =
-					{
-						value : offerMediaObject.simulcast_03.value.replace(/send/g, 'recv')
+				else if (offerMediaObject.simulcast_03) {
+					this._mediaObject.simulcast_03 = {
+						value: offerMediaObject.simulcast_03.value.replace(/send/g, 'recv'),
 					};
 
 					this._mediaObject.rids = [];
 
-					for (const rid of offerMediaObject.rids || [])
-					{
-						if (rid.direction !== 'send')
-						{
+					for (const rid of offerMediaObject.rids ?? []) {
+						if (rid.direction !== 'send') {
 							continue;
 						}
 
-						this._mediaObject.rids.push(
-							{
-								id        : rid.id,
-								direction : 'recv'
-							});
+						this._mediaObject.rids.push({
+							id: rid.id,
+							direction: 'recv',
+						});
 					}
 				}
 
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				if (this._planB && this._mediaObject.type === 'video')
-				{
-					this._mediaObject.xGoogleFlag = 'conference';
-				}
-
 				break;
 			}
 
-			case 'application':
-			{
+			case 'application': {
 				// New spec.
-				if (typeof offerMediaObject.sctpPort === 'number')
-				{
+				if (typeof offerMediaObject.sctpPort === 'number') {
 					this._mediaObject.payloads = 'webrtc-datachannel';
 					this._mediaObject.sctpPort = sctpParameters!.port;
 					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 				}
 				// Old spec.
-				else if (offerMediaObject.sctpmap)
-				{
-					this._mediaObject.payloads = sctpParameters!.port;
-					this._mediaObject.sctpmap =
-					{
-						app            : 'webrtc-datachannel',
-						sctpmapNumber  : sctpParameters!.port,
-						maxMessageSize : sctpParameters!.maxMessageSize
+				else if (offerMediaObject.sctpmap) {
+					this._mediaObject.payloads = String(sctpParameters!.port);
+					this._mediaObject.sctpmap = {
+						app: 'webrtc-datachannel',
+						sctpmapNumber: sctpParameters!.port,
+						maxMessageSize: sctpParameters!.maxMessageSize,
 					};
 				}
 
@@ -469,191 +402,160 @@ export class AnswerMediaSection extends MediaSection
 		}
 	}
 
-	setDtlsRole(role: DtlsRole): void
-	{
-		switch (role)
-		{
-			case 'client':
+	setDtlsRole(role: DtlsRole): void {
+		switch (role) {
+			case 'client': {
 				this._mediaObject.setup = 'active';
+
 				break;
-			case 'server':
+			}
+
+			case 'server': {
 				this._mediaObject.setup = 'passive';
+
 				break;
-			case 'auto':
+			}
+
+			case 'auto': {
 				this._mediaObject.setup = 'actpass';
+
 				break;
+			}
 		}
 	}
 
-	resume(): void
-	{
+	resume(): void {
 		this._mediaObject.direction = 'recvonly';
 	}
 
-	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]): void
-	{
-		if (!this._mediaObject.simulcast || !this._mediaObject.simulcast.list1)
-		{
+	muxSimulcastStreams(encodings: RTCRtpEncodingParameters[]): void {
+		if (!this._mediaObject.simulcast?.list1) {
 			return;
 		}
 
-		const layers: {[rid: string | number]: RTCRtpEncodingParameters} = {};
+		const layers: { [rid: string | number]: RTCRtpEncodingParameters } = {};
 
-		for (const encoding of encodings)
-		{
-			if (encoding.rid)
-			{
+		for (const encoding of encodings) {
+			if (encoding.rid) {
 				layers[encoding.rid] = encoding;
 			}
 		}
 
 		const raw = this._mediaObject.simulcast.list1;
-		// NOTE: Ignore bug in @types/sdp-transform.
-		// Ongoing PR: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/64119
-		// @ts-ignore
-		const simulcastStreams: SimulcastStream[] =
-			sdpTransform.parseSimulcastStreamList(raw);
 
-		for (const simulcastStream of simulcastStreams)
-		{
-			for (const simulcastFormat of simulcastStream)
-			{
+		const simulcastStreams = sdpTransform.parseSimulcastStreamList(raw);
+
+		for (const simulcastStream of simulcastStreams) {
+			for (const simulcastFormat of simulcastStream) {
 				simulcastFormat.paused = !layers[simulcastFormat.scid]?.active;
 			}
 		}
 
-		this._mediaObject.simulcast.list1 = simulcastStreams.map((simulcastFormats) =>
-			simulcastFormats.map((f) =>
-				`${f.paused ? '~' : ''}${f.scid}`
-			).join(',')
-		).join(';');
+		this._mediaObject.simulcast.list1 = simulcastStreams
+			.map(simulcastFormats =>
+				simulcastFormats.map(f => `${f.paused ? '~' : ''}${f.scid}`).join(',')
+			)
+			.join(';');
 	}
 }
 
-export class OfferMediaSection extends MediaSection
-{
-	constructor(
-		{
-			iceParameters,
-			iceCandidates,
-			dtlsParameters,
-			sctpParameters,
-			plainRtpParameters,
-			planB = false,
-			mid,
-			kind,
-			offerRtpParameters,
-			streamId,
-			trackId,
-			oldDataChannelSpec = false
-		}:
-		{
-			iceParameters?: IceParameters;
-			iceCandidates?: IceCandidate[];
-			dtlsParameters?: DtlsParameters;
-			sctpParameters?: SctpParameters;
-			plainRtpParameters?: PlainRtpParameters;
-			planB?: boolean;
-			mid: string;
-			kind: MediaKind | 'application';
-			offerRtpParameters?: RtpParameters;
-			streamId?: string;
-			trackId?: string;
-			oldDataChannelSpec?: boolean;
-		}
-	)
-	{
-		super({ iceParameters, iceCandidates, dtlsParameters, planB });
+export class OfferMediaSection extends MediaSection {
+	constructor({
+		iceParameters,
+		iceCandidates,
+		dtlsParameters,
+		sctpParameters,
+		plainRtpParameters,
+		mid,
+		kind,
+		offerRtpParameters,
+		streamId,
+		trackId,
+	}: {
+		iceParameters?: IceParameters;
+		iceCandidates?: IceCandidate[];
+		dtlsParameters?: DtlsParameters;
+		sctpParameters?: SctpParameters;
+		plainRtpParameters?: PlainRtpParameters;
+		mid: string;
+		kind: MediaKind | 'application';
+		offerRtpParameters?: RtpParameters;
+		streamId?: string;
+		trackId?: string;
+	}) {
+		super({ iceParameters, iceCandidates, dtlsParameters });
 
 		this._mediaObject.mid = String(mid);
 		this._mediaObject.type = kind;
 
-		if (!plainRtpParameters)
-		{
+		if (!plainRtpParameters) {
 			this._mediaObject.connection = { ip: '127.0.0.1', version: 4 };
 
-			if (!sctpParameters)
-			{
+			if (!sctpParameters) {
 				this._mediaObject.protocol = 'UDP/TLS/RTP/SAVPF';
-			}
-			else
-			{
+			} else {
 				this._mediaObject.protocol = 'UDP/DTLS/SCTP';
 			}
 
 			this._mediaObject.port = 7;
-		}
-		else
-		{
-			this._mediaObject.connection =
-			{
-				ip      : plainRtpParameters.ip,
-				version : plainRtpParameters.ipVersion
+		} else {
+			this._mediaObject.connection = {
+				ip: plainRtpParameters.ip,
+				version: plainRtpParameters.ipVersion,
 			};
 			this._mediaObject.protocol = 'RTP/AVP';
 			this._mediaObject.port = plainRtpParameters.port;
 		}
 
-		switch (kind)
-		{
+		// Allow both 1 byte and 2 bytes length header extensions since
+		// mediasoup can send both at any time.
+		this._mediaObject.extmapAllowMixed = 'extmap-allow-mixed';
+
+		switch (kind) {
 			case 'audio':
-			case 'video':
-			{
+			case 'video': {
 				this._mediaObject.direction = 'sendonly';
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
+				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
 
-				if (!this._planB)
-				{
-					this._mediaObject.msid = `${streamId || '-'} ${trackId}`;
-				}
-
-				for (const codec of offerRtpParameters!.codecs)
-				{
-					const rtp: any =
-					{
-						payload : codec.payloadType,
-						codec   : getCodecName(codec),
-						rate    : codec.clockRate
+				for (const codec of offerRtpParameters!.codecs) {
+					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {
+						payload: codec.payloadType,
+						codec: getCodecName(codec),
+						rate: codec.clockRate,
 					};
 
-					if (codec.channels! > 1)
-					{
+					if (codec.channels! > 1) {
 						rtp.encoding = codec.channels;
 					}
 
 					this._mediaObject.rtp.push(rtp);
 
-					const fmtp =
-					{
-						payload : codec.payloadType,
-						config  : ''
+					const fmtp = {
+						payload: codec.payloadType,
+						config: '',
 					};
 
-					for (const key of Object.keys(codec.parameters))
-					{
-						if (fmtp.config)
-						{
+					for (const key of Object.keys(codec.parameters ?? {})) {
+						if (fmtp.config) {
 							fmtp.config += ';';
 						}
 
-						fmtp.config += `${key}=${codec.parameters[key]}`;
+						fmtp.config += `${key}=${codec.parameters![key]}`;
 					}
 
-					if (fmtp.config)
-					{
+					if (fmtp.config) {
 						this._mediaObject.fmtp.push(fmtp);
 					}
 
-					for (const fb of codec.rtcpFeedback!)
-					{
-						this._mediaObject.rtcpFb.push(
-							{
-								payload : codec.payloadType,
-								type    : fb.type,
-								subtype : fb.parameter
-							});
+					for (const fb of codec.rtcpFeedback!) {
+						this._mediaObject.rtcpFb.push({
+							payload: codec.payloadType,
+							type: fb.type,
+							subtype: fb.parameter,
+						});
 					}
 				}
 
@@ -663,100 +565,56 @@ export class OfferMediaSection extends MediaSection
 
 				this._mediaObject.ext = [];
 
-				for (const ext of offerRtpParameters!.headerExtensions!)
-				{
-					this._mediaObject.ext.push(
-						{
-							uri   : ext.uri,
-							value : ext.id
-						});
+				for (const ext of offerRtpParameters!.headerExtensions!) {
+					this._mediaObject.ext.push({
+						uri: ext.uri,
+						value: ext.id,
+					});
 				}
 
 				this._mediaObject.rtcpMux = 'rtcp-mux';
 				this._mediaObject.rtcpRsize = 'rtcp-rsize';
 
-				const encoding = offerRtpParameters!.encodings![0];
+				const encoding = offerRtpParameters!.encodings![0]!;
 				const ssrc = encoding.ssrc;
-				const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
-					? encoding.rtx.ssrc
-					: undefined;
+				const rtxSsrc = encoding.rtx?.ssrc;
 
 				this._mediaObject.ssrcs = [];
 				this._mediaObject.ssrcGroups = [];
 
-				if (offerRtpParameters!.rtcp!.cname)
-				{
-					this._mediaObject.ssrcs.push(
-						{
-							id        : ssrc,
-							attribute : 'cname',
-							value     : offerRtpParameters!.rtcp!.cname
-						});
+				if (ssrc && offerRtpParameters!.rtcp!.cname) {
+					this._mediaObject.ssrcs.push({
+						id: ssrc,
+						attribute: 'cname',
+						value: offerRtpParameters!.rtcp!.cname,
+					});
 				}
 
-				if (this._planB)
-				{
-					this._mediaObject.ssrcs.push(
-						{
-							id        : ssrc,
-							attribute : 'msid',
-							value     : `${streamId || '-'} ${trackId}`
+				if (rtxSsrc) {
+					if (offerRtpParameters!.rtcp!.cname) {
+						this._mediaObject.ssrcs.push({
+							id: rtxSsrc,
+							attribute: 'cname',
+							value: offerRtpParameters!.rtcp!.cname,
 						});
-				}
-
-				if (rtxSsrc)
-				{
-					if (offerRtpParameters!.rtcp!.cname)
-					{
-						this._mediaObject.ssrcs.push(
-							{
-								id        : rtxSsrc,
-								attribute : 'cname',
-								value     : offerRtpParameters!.rtcp!.cname
-							});
-					}
-
-					if (this._planB)
-					{
-						this._mediaObject.ssrcs.push(
-							{
-								id        : rtxSsrc,
-								attribute : 'msid',
-								value     : `${streamId || '-'} ${trackId}`
-							});
 					}
 
 					// Associate original and retransmission SSRCs.
-					this._mediaObject.ssrcGroups.push(
-						{
-							semantics : 'FID',
-							ssrcs     : `${ssrc} ${rtxSsrc}`
+					if (ssrc) {
+						this._mediaObject.ssrcGroups.push({
+							semantics: 'FID',
+							ssrcs: `${ssrc} ${rtxSsrc}`,
 						});
+					}
 				}
 
 				break;
 			}
 
-			case 'application':
-			{
-				// New spec.
-				if (!oldDataChannelSpec)
-				{
-					this._mediaObject.payloads = 'webrtc-datachannel';
-					this._mediaObject.sctpPort = sctpParameters!.port;
-					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
-				}
-				// Old spec.
-				else
-				{
-					this._mediaObject.payloads = sctpParameters!.port;
-					this._mediaObject.sctpmap =
-					{
-						app            : 'webrtc-datachannel',
-						sctpmapNumber  : sctpParameters!.port,
-						maxMessageSize : sctpParameters!.maxMessageSize
-					};
-				}
+			case 'application': {
+				this._mediaObject.payloads = 'webrtc-datachannel';
+				this._mediaObject.sctpPort = sctpParameters!.port;
+				this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
 
 				break;
 			}
@@ -764,174 +622,23 @@ export class OfferMediaSection extends MediaSection
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	setDtlsRole(role: DtlsRole): void
-	{
+	setDtlsRole(role: DtlsRole): void {
 		// Always 'actpass'.
 		this._mediaObject.setup = 'actpass';
 	}
 
-	resume(): void
-	{
+	resume(): void {
 		this._mediaObject.direction = 'sendonly';
-	}
-
-	planBReceive(
-		{
-			offerRtpParameters,
-			streamId,
-			trackId
-		}:
-		{
-			offerRtpParameters: RtpParameters;
-			streamId: string;
-			trackId: string;
-		}
-	): void
-	{
-		const encoding = offerRtpParameters.encodings![0];
-		const ssrc = encoding.ssrc;
-		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
-			? encoding.rtx.ssrc
-			: undefined;
-		const payloads = this._mediaObject.payloads.split(' ');
-
-		for (const codec of offerRtpParameters.codecs)
-		{
-			if (payloads.includes(String(codec.payloadType)))
-			{
-				continue;
-			}
-
-			const rtp: any =
-			{
-				payload : codec.payloadType,
-				codec   : getCodecName(codec),
-				rate    : codec.clockRate
-			};
-
-			if (codec.channels! > 1)
-			{
-				rtp.encoding = codec.channels;
-			}
-
-			this._mediaObject.rtp.push(rtp);
-
-			const fmtp =
-			{
-				payload : codec.payloadType,
-				config  : ''
-			};
-
-			for (const key of Object.keys(codec.parameters))
-			{
-				if (fmtp.config)
-				{
-					fmtp.config += ';';
-				}
-
-				fmtp.config += `${key}=${codec.parameters[key]}`;
-			}
-
-			if (fmtp.config)
-			{
-				this._mediaObject.fmtp.push(fmtp);
-			}
-
-			for (const fb of codec.rtcpFeedback!)
-			{
-				this._mediaObject.rtcpFb.push(
-					{
-						payload : codec.payloadType,
-						type    : fb.type,
-						subtype : fb.parameter
-					});
-			}
-		}
-
-		this._mediaObject.payloads += ` ${offerRtpParameters
-			.codecs
-			.filter((codec: RtpCodecParameters) =>
-				!this._mediaObject.payloads.includes(codec.payloadType))
-			.map((codec: RtpCodecParameters) => codec.payloadType)
-			.join(' ')}`;
-
-		this._mediaObject.payloads = this._mediaObject.payloads.trim();
-
-		if (offerRtpParameters.rtcp!.cname)
-		{
-			this._mediaObject.ssrcs.push(
-				{
-					id        : ssrc,
-					attribute : 'cname',
-					value     : offerRtpParameters.rtcp!.cname
-				});
-		}
-
-		this._mediaObject.ssrcs.push(
-			{
-				id        : ssrc,
-				attribute : 'msid',
-				value     : `${streamId || '-'} ${trackId}`
-			});
-
-		if (rtxSsrc)
-		{
-			if (offerRtpParameters.rtcp!.cname)
-			{
-				this._mediaObject.ssrcs.push(
-					{
-						id        : rtxSsrc,
-						attribute : 'cname',
-						value     : offerRtpParameters.rtcp!.cname
-					});
-			}
-
-			this._mediaObject.ssrcs.push(
-				{
-					id        : rtxSsrc,
-					attribute : 'msid',
-					value     : `${streamId || '-'} ${trackId}`
-				});
-
-			// Associate original and retransmission SSRCs.
-			this._mediaObject.ssrcGroups.push(
-				{
-					semantics : 'FID',
-					ssrcs     : `${ssrc} ${rtxSsrc}`
-				});
-		}
-	}
-
-	planBStopReceiving(
-		{ offerRtpParameters }: { offerRtpParameters: RtpParameters }
-	): void
-	{
-		const encoding = offerRtpParameters.encodings![0];
-		const ssrc = encoding.ssrc;
-		const rtxSsrc = (encoding.rtx && encoding.rtx.ssrc)
-			? encoding.rtx.ssrc
-			: undefined;
-
-		this._mediaObject.ssrcs = this._mediaObject.ssrcs
-			.filter((s: any) => s.id !== ssrc && s.id !== rtxSsrc);
-
-		if (rtxSsrc)
-		{
-			this._mediaObject.ssrcGroups = this._mediaObject.ssrcGroups
-				.filter((group: any) => group.ssrcs !== `${ssrc} ${rtxSsrc}`);
-		}
 	}
 }
 
-function getCodecName(codec: RtpCodecParameters): string
-{
+function getCodecName(codec: RtpCodecParameters): string {
 	const MimeTypeRegex = new RegExp('^(audio|video)/(.+)', 'i');
 	const mimeTypeMatch = MimeTypeRegex.exec(codec.mimeType);
 
-	if (!mimeTypeMatch)
-	{
+	if (!mimeTypeMatch) {
 		throw new TypeError('invalid codec.mimeType');
 	}
 
-	return mimeTypeMatch[2];
+	return mimeTypeMatch[2]!;
 }

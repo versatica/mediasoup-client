@@ -1,20 +1,43 @@
 /**
- * Clones the given data.
+ * Clones the given value.
  */
-export function clone(data: any, defaultValue: any): any
-{
-	if (typeof data === 'undefined')
-	{
-		return defaultValue;
+export function clone<T>(value: T): T {
+	if (value === undefined) {
+		return undefined as unknown as T;
+	} else if (Number.isNaN(value)) {
+		return NaN as unknown as T;
+	} else if (typeof structuredClone === 'function') {
+		// Available in Node >= 18.
+		return structuredClone(value);
+	} else {
+		return JSON.parse(JSON.stringify(value)) as T;
 	}
-
-	return JSON.parse(JSON.stringify(data));
 }
 
 /**
  * Generates a random positive integer.
  */
-export function generateRandomNumber(): number
-{
+export function generateRandomNumber(): number {
 	return Math.round(Math.random() * 10000000);
+}
+
+/**
+ * Make an object or array recursively immutable.
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze.
+ */
+export function deepFreeze<T>(data: T): T {
+	// Retrieve the property names defined on object.
+	const propNames = Reflect.ownKeys(data as Record<string, unknown>);
+
+	// Freeze properties before freezing self.
+	for (const name of propNames) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const value = (data as any)[name];
+
+		if ((value && typeof value === 'object') || typeof value === 'function') {
+			deepFreeze(value);
+		}
+	}
+
+	return Object.freeze(data);
 }

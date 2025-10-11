@@ -2,19 +2,19 @@ import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
 import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
+import { UnsupportedError, InvalidStateError } from '../errors';
 import * as ortc from '../ortc';
-import { InvalidStateError } from '../errors';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import type { IceParameters, DtlsRole } from '../Transport';
 import type {
 	RtpCapabilities,
 	MediaKind,
+	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import * as ortcUtils from './ortc/utils';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -31,12 +31,12 @@ import type {
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
 
-const logger = new Logger('Chrome111');
+const logger = new Logger('Firefox120');
 
-const NAME = 'Chrome111';
-const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+const NAME = 'Firefox120';
+const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
-export class Chrome111
+export class Firefox120
 	extends EnhancedEventEmitter<HandlerEvents>
 	implements HandlerInterface
 {
@@ -50,9 +50,6 @@ export class Chrome111
 	private _getSendExtendedRtpCapabilities: (
 		nativeRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
-	// Initial server side DTLS role. If not 'auto', it will force the opposite
-	// value in client side.
-	private _forcedLocalDtlsRole?: DtlsRole;
 	// RTCPeerConnection instance.
 	private _pc: RTCPeerConnection;
 	// Map of RTCTransceivers indexed by MID.
@@ -73,7 +70,7 @@ export class Chrome111
 	static createFactory(): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
+			factory: (options: HandlerOptions): Firefox120 => new Firefox120(options),
 			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
@@ -84,15 +81,36 @@ export class Chrome111
 					rtcpMuxPolicy: 'require',
 				});
 
+				// NOTE: We need to add a real video track to get the RID extension mapping,
+				// otherwiser Firefox doesn't include it in the SDP.
+				const canvas = document.createElement('canvas');
+
+				// NOTE: Otherwise Firefox fails in next line.
+				canvas.getContext('2d');
+
+				const fakeStream = canvas.captureStream();
+				const fakeVideoTrack = fakeStream.getVideoTracks()[0]!;
+
 				try {
-					pc.addTransceiver('audio');
-					// Create video transceiver with scalability mode in order to retrieve
-					// Dependency Descriptor header extension.
-					pc.addTransceiver('video', {
-						sendEncodings: [{ scalabilityMode: 'L3T3' }],
+					pc.addTransceiver('audio', { direction: 'sendrecv' });
+
+					pc.addTransceiver(fakeVideoTrack, {
+						direction: 'sendrecv',
+						sendEncodings: [
+							{ rid: 'r0', maxBitrate: 100000 },
+							{ rid: 'r1', maxBitrate: 500000 },
+						],
 					});
 
 					const offer = await pc.createOffer();
+
+					try {
+						canvas.remove();
+					} catch (error) {}
+
+					try {
+						fakeVideoTrack.stop();
+					} catch (error) {}
 
 					try {
 						pc.close();
@@ -102,10 +120,18 @@ export class Chrome111
 
 					const sdpObject = sdpTransform.parse(offer.sdp!);
 					const nativeRtpCapabilities =
-						Chrome111.getLocalRtpCapabilities(sdpObject);
+						Firefox120.getLocalRtpCapabilities(sdpObject);
 
 					return nativeRtpCapabilities;
 				} catch (error) {
+					try {
+						canvas.remove();
+					} catch (error2) {}
+
+					try {
+						fakeVideoTrack.stop();
+					} catch (error2) {}
+
 					try {
 						pc?.close();
 					} catch (error2) {}
@@ -135,9 +161,6 @@ export class Chrome111
 		// Need to validate and normalize native RTP capabilities.
 		ortc.validateAndNormalizeRtpCapabilities(nativeRtpCapabilities);
 
-		// libwebrtc supports NACK for OPUS but doesn't announce it.
-		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
-
 		return nativeRtpCapabilities;
 	}
 
@@ -166,11 +189,6 @@ export class Chrome111
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
-
-		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
-			this._forcedLocalDtlsRole =
-				dtlsParameters.role === 'server' ? 'client' : 'server';
-		}
 
 		this._pc = new RTCPeerConnection({
 			iceServers: iceServers ?? [],
@@ -245,16 +263,12 @@ export class Chrome111
 		super.close();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		this.assertNotClosed();
 
-		logger.debug('updateIceServers()');
-
-		const configuration = this._pc.getConfiguration();
-
-		configuration.iceServers = iceServers;
-
-		this._pc.setConfiguration(configuration);
+		// NOTE: Firefox does not implement pc.setConfiguration().
+		throw new UnsupportedError('not supported');
 	}
 
 	async restartIce(iceParameters: IceParameters): Promise<void> {
@@ -333,30 +347,11 @@ export class Chrome111
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (encodings && encodings.length > 1) {
-			// Set rid and verify scalabilityMode in each encoding.
-			// NOTE: Even if WebRTC allows different scalabilityMode (different number
-			// of temporal layers) per simulcast stream, we need that those are the
-			// same in all them, so let's pick up the highest value.
-			// NOTE: If scalabilityMode is not given, Chrome will use L1T3.
-			let maxTemporalLayers = 1;
-
-			for (const encoding of encodings) {
-				const temporalLayers = encoding.scalabilityMode
-					? parseScalabilityMode(encoding.scalabilityMode).temporalLayers
-					: 3;
-
-				if (temporalLayers > maxTemporalLayers) {
-					maxTemporalLayers = temporalLayers;
-				}
-			}
-
-			encodings.forEach((encoding, idx: number) => {
+			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
 				encoding.rid = `r${idx}`;
-				encoding.scalabilityMode = `L1T${maxTemporalLayers}`;
 			});
 		}
 
-		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
 			streams: [this._sendStream],
@@ -375,7 +370,7 @@ export class Chrome111
 		}
 
 		const nativeRtpCapabilities =
-			Chrome111.getLocalRtpCapabilities(localSdpObject);
+			Firefox120.getLocalRtpCapabilities(localSdpObject);
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
 		);
@@ -404,12 +399,15 @@ export class Chrome111
 			codec
 		);
 
+		// In Firefox use DTLS role client even if we are the "offerer" since
+		// Firefox does not respect ICE-Lite.
 		if (!this._transportReady) {
-			await this.setupTransport({
-				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-				localSdpObject,
-			});
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
+
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
@@ -423,7 +421,8 @@ export class Chrome111
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
-		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+		const offerMediaObject =
+			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)];
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -452,9 +451,25 @@ export class Chrome111
 			sendingRtpParameters.encodings = encodings;
 		}
 
+		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
+		// each encoding.
+		if (
+			sendingRtpParameters.encodings.length > 1 &&
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
+		) {
+			for (const encoding of sendingRtpParameters.encodings) {
+				if (encoding.scalabilityMode) {
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
+				} else {
+					encoding.scalabilityMode = 'L1T3';
+				}
+			}
+		}
+
 		this._remoteSdp.send({
 			offerMediaObject,
-			reuseMid: mediaSectionIdx.reuseMid,
+			localSdpMedia : localSdpObject.media,
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
@@ -494,12 +509,10 @@ export class Chrome111
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver) {
-			throw new Error('associated RTCRtpTransceiver not found');
+			throw new Error('associated transceiver not found');
 		}
 
 		void transceiver.sender.replaceTrack(null);
-
-		this._pc.removeTrack(transceiver.sender);
 
 		const mediaSectionClosed = this._remoteSdp.closeMediaSection(
 			transceiver.mid!
@@ -580,13 +593,12 @@ export class Chrome111
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 
-		this._remoteSdp.resumeSendingMediaSection(localId);
-
 		if (!transceiver) {
 			throw new Error('associated RTCRtpTransceiver not found');
 		}
 
 		transceiver.direction = 'sendonly';
+		this._remoteSdp.resumeSendingMediaSection(localId);
 
 		const offer = await this._pc.createOffer();
 
@@ -652,7 +664,7 @@ export class Chrome111
 		const transceiver = this._mapMidTransceiver.get(localId);
 
 		if (!transceiver) {
-			throw new Error('associated RTCRtpTransceiver not found');
+			throw new Error('associated transceiver not found');
 		}
 
 		const parameters = transceiver.sender.getParameters();
@@ -796,10 +808,7 @@ export class Chrome111
 			)!;
 
 			if (!this._transportReady) {
-				await this.setupTransport({
-					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-					localSdpObject,
-				});
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(
@@ -908,18 +917,15 @@ export class Chrome111
 				offerRtpParameters: rtpParameters,
 				answerMediaObject,
 			});
+
+			answer = {
+				type: 'answer' as RTCSdpType,
+				sdp: sdpTransform.write(localSdpObject),
+			};
 		}
 
-		answer = {
-			type: 'answer' as RTCSdpType,
-			sdp: sdpTransform.write(localSdpObject),
-		};
-
 		if (!this._transportReady) {
-			await this.setupTransport({
-				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-				localSdpObject,
-			});
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 		}
 
 		logger.debug(
@@ -938,16 +944,16 @@ export class Chrome111
 
 			if (!transceiver) {
 				throw new Error('new RTCRtpTransceiver not found');
-			} else {
-				// Store in the map.
-				this._mapMidTransceiver.set(localId, transceiver);
-
-				results.push({
-					localId,
-					track: transceiver.receiver.track,
-					rtpReceiver: transceiver.receiver,
-				});
 			}
+
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
+
+			results.push({
+				localId,
+				track: transceiver.receiver.track,
+				rtpReceiver: transceiver.receiver,
+			});
 		}
 
 		return results;
@@ -1077,7 +1083,6 @@ export class Chrome111
 	}
 
 	async getReceiverStats(localId: string): Promise<RTCStatsReport> {
-		this.assertNotClosed();
 		this.assertRecvDirection();
 
 		const transceiver = this._mapMidTransceiver.get(localId);
@@ -1139,10 +1144,7 @@ export class Chrome111
 			if (!this._transportReady) {
 				const localSdpObject = sdpTransform.parse(answer.sdp!);
 
-				await this.setupTransport({
-					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-					localSdpObject,
-				});
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(

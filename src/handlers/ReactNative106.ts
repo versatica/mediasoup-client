@@ -9,12 +9,10 @@ import type { IceParameters, DtlsRole } from '../Transport';
 import type {
 	RtpCapabilities,
 	MediaKind,
+	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
-import * as sdpCommonUtils from './sdp/commonUtils';
-import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import * as ortcUtils from './ortc/utils';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -30,13 +28,16 @@ import type {
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
 import { RemoteSdp } from './sdp/RemoteSdp';
+import * as sdpCommonUtils from './sdp/commonUtils';
+import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import * as ortcUtils from './ortc/utils';
 
-const logger = new Logger('Chrome111');
+const logger = new Logger('ReactNative106');
 
-const NAME = 'Chrome111';
+const NAME = 'ReactNative106';
 const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
 
-export class Chrome111
+export class ReactNative106
 	extends EnhancedEventEmitter<HandlerEvents>
 	implements HandlerInterface
 {
@@ -73,7 +74,8 @@ export class Chrome111
 	static createFactory(): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
+			factory: (options: HandlerOptions): ReactNative106 =>
+				new ReactNative106(options),
 			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
@@ -86,11 +88,7 @@ export class Chrome111
 
 				try {
 					pc.addTransceiver('audio');
-					// Create video transceiver with scalability mode in order to retrieve
-					// Dependency Descriptor header extension.
-					pc.addTransceiver('video', {
-						sendEncodings: [{ scalabilityMode: 'L3T3' }],
-					});
+					pc.addTransceiver('video');
 
 					const offer = await pc.createOffer();
 
@@ -102,7 +100,7 @@ export class Chrome111
 
 					const sdpObject = sdpTransform.parse(offer.sdp!);
 					const nativeRtpCapabilities =
-						Chrome111.getLocalRtpCapabilities(sdpObject);
+						ReactNative106.getLocalRtpCapabilities(sdpObject);
 
 					return nativeRtpCapabilities;
 				} catch (error) {
@@ -216,6 +214,11 @@ export class Chrome111
 		}
 
 		this._closed = true;
+
+		// Free/dispose native MediaStream but DO NOT free/dispose native
+		// MediaStreamTracks (that is parent's business).
+		// @ts-expect-error --- Proprietary API in react-native-webrtc.
+		this._sendStream.release(/* releaseTracks */ false);
 
 		// Close RTCPeerConnection.
 		try {
@@ -333,26 +336,8 @@ export class Chrome111
 		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
 
 		if (encodings && encodings.length > 1) {
-			// Set rid and verify scalabilityMode in each encoding.
-			// NOTE: Even if WebRTC allows different scalabilityMode (different number
-			// of temporal layers) per simulcast stream, we need that those are the
-			// same in all them, so let's pick up the highest value.
-			// NOTE: If scalabilityMode is not given, Chrome will use L1T3.
-			let maxTemporalLayers = 1;
-
-			for (const encoding of encodings) {
-				const temporalLayers = encoding.scalabilityMode
-					? parseScalabilityMode(encoding.scalabilityMode).temporalLayers
-					: 3;
-
-				if (temporalLayers > maxTemporalLayers) {
-					maxTemporalLayers = temporalLayers;
-				}
-			}
-
-			encodings.forEach((encoding, idx: number) => {
+			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
 				encoding.rid = `r${idx}`;
-				encoding.scalabilityMode = `L1T${maxTemporalLayers}`;
 			});
 		}
 
@@ -367,7 +352,7 @@ export class Chrome111
 			onRtpSender(transceiver.sender);
 		}
 
-		const offer = await this._pc.createOffer();
+		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
 		if (localSdpObject.extmapAllowMixed) {
@@ -375,7 +360,7 @@ export class Chrome111
 		}
 
 		const nativeRtpCapabilities =
-			Chrome111.getLocalRtpCapabilities(localSdpObject);
+			ReactNative106.getLocalRtpCapabilities(localSdpObject);
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
 		);
@@ -411,19 +396,63 @@ export class Chrome111
 			});
 		}
 
+		// Special case for VP9 with SVC.
+		let hackVp9Svc = false;
+
+		const layers = parseScalabilityMode(
+			(encodings ?? [{}])[0]!.scalabilityMode
+		);
+
+		let offerMediaObject;
+
+		if (
+			encodings &&
+			encodings.length === 1 &&
+			layers.spatialLayers > 1 &&
+			sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp9'
+		) {
+			logger.debug('send() | enabling legacy simulcast for VP9 SVC');
+
+			hackVp9Svc = true;
+			localSdpObject = sdpTransform.parse(offer.sdp!);
+			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+
+			sdpUnifiedPlanUtils.addLegacySimulcast({
+				offerMediaObject,
+				numStreams: layers.spatialLayers,
+			});
+
+			offer = {
+				type: 'offer' as RTCSdpType,
+				sdp: sdpTransform.write(localSdpObject),
+			};
+		}
+
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
 		await this._pc.setLocalDescription(offer);
 
 		// We can now get the transceiver.mid.
-		const localId = transceiver.mid!;
+		// NOTE: We cannot read generated MID on iOS react-native-webrtc 111.0.0
+		// because transceiver.mid is not available until setRemoteDescription()
+		// is called, so this is best effort.
+		// Issue: https://github.com/react-native-webrtc/react-native-webrtc/issues/1404
+		// NOTE: So let's fill MID in sendingRtpParameters later.
+		// NOTE: This is fixed in react-native-webrtc 111.0.3.
+		let localId = transceiver.mid ?? undefined;
+
+		if (!localId) {
+			logger.warn(
+				'send() | missing transceiver.mid (bug in react-native-webrtc, using a workaround'
+			);
+		}
 
 		// Set MID.
+		// NOTE: As per above, it could be unset yet.
 		sendingRtpParameters.mid = localId;
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
-
-		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+		offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -439,17 +468,38 @@ export class Chrome111
 		// Set RTP encodings by parsing the SDP offer and complete them with given
 		// one if just a single encoding has been given.
 		else if (encodings.length === 1) {
-			const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
+			let newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
 			});
 
 			Object.assign(newEncodings[0]!, encodings[0]);
+
+			// Hack for VP9 SVC.
+			if (hackVp9Svc) {
+				newEncodings = [newEncodings[0]!];
+			}
 
 			sendingRtpParameters.encodings = newEncodings;
 		}
 		// Otherwise if more than 1 encoding are given use them verbatim.
 		else {
 			sendingRtpParameters.encodings = encodings;
+		}
+
+		// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
+		// each encoding.
+		if (
+			sendingRtpParameters.encodings.length > 1 &&
+			(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp8' ||
+				sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/h264')
+		) {
+			for (const encoding of sendingRtpParameters.encodings) {
+				if (encoding.scalabilityMode) {
+					encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
+				} else {
+					encoding.scalabilityMode = 'L1T3';
+				}
+			}
 		}
 
 		this._remoteSdp.send({
@@ -472,6 +522,15 @@ export class Chrome111
 
 		await this._pc.setRemoteDescription(answer);
 
+		// Follow up of iOS react-native-webrtc 111.0.0 issue told above. Now yes,
+		// we can read generated MID (if not done above) and fill sendingRtpParameters.
+		// NOTE: This is fixed in react-native-webrtc 111.0.3 so this block isn't
+		// needed starting from that version.
+		if (!localId) {
+			localId = transceiver.mid!;
+			sendingRtpParameters.mid = localId;
+		}
+
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
 
@@ -485,11 +544,11 @@ export class Chrome111
 	async stopSending(localId: string): Promise<void> {
 		this.assertSendDirection();
 
-		logger.debug('stopSending() [localId:%s]', localId);
-
 		if (this._closed) {
 			return;
 		}
+
+		logger.debug('stopSending() [localId:%s]', localId);
 
 		const transceiver = this._mapMidTransceiver.get(localId);
 

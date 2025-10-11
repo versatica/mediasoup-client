@@ -1,10 +1,8 @@
-export type SctpCapabilities =
-{
-  numStreams: NumSctpStreams;
+export type SctpCapabilities = {
+	numStreams: NumSctpStreams;
 };
 
-export type NumSctpStreams =
-{
+export type NumSctpStreams = {
 	/**
 	 * Initially requested number of outgoing SCTP streams.
 	 */
@@ -15,8 +13,7 @@ export type NumSctpStreams =
 	MIS: number;
 };
 
-export type SctpParameters =
-{
+export type SctpParameters = {
 	/**
 	 * Must always equal 5000.
 	 */
@@ -42,8 +39,7 @@ export type SctpParameters =
  * If ordered if false, only one of maxPacketLifeTime or maxRetransmits
  * can be true.
  */
-export type SctpStreamParameters =
-{
+export type SctpStreamParameters = {
 	/**
 	 * SCTP stream id.
 	 */

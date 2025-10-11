@@ -1,27 +1,27 @@
-import { EnhancedEventEmitter } from '../EnhancedEventEmitter';
-import { ProducerCodecOptions } from '../Producer';
-import {
+import { EnhancedEventEmitter } from '../enhancedEvents';
+import type {
 	IceParameters,
 	IceCandidate,
 	DtlsParameters,
-	ConnectionState
+	IceGatheringState,
+	ConnectionState,
 } from '../Transport';
-import {
+import type { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import type { OnRtpReceiverCallback } from '../Consumer';
+import type {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpParameters,
-	RtpEncodingParameters
+	RtpEncodingParameters,
+	ExtendedRtpCapabilities,
 } from '../RtpParameters';
-import {
+import type {
 	SctpCapabilities,
 	SctpParameters,
-	SctpStreamParameters
+	SctpStreamParameters,
 } from '../SctpParameters';
 
-export type HandlerFactory = () => HandlerInterface;
-
-export type HandlerRunOptions =
-{
+export type HandlerOptions = {
 	direction: 'send' | 'recv';
 	iceParameters: IceParameters;
 	iceCandidates: IceCandidate[];
@@ -29,28 +29,34 @@ export type HandlerRunOptions =
 	sctpParameters?: SctpParameters;
 	iceServers?: RTCIceServer[];
 	iceTransportPolicy?: RTCIceTransportPolicy;
-	additionalSettings?: any;
-	proprietaryConstraints?: any;
-	extendedRtpCapabilities: any;
+	additionalSettings?: Partial<RTCConfiguration>;
+	getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 };
 
-export type HandlerSendOptions =
-{
+export type HandlerFactory = {
+	name: string;
+	factory: (options: HandlerOptions) => HandlerInterface;
+	getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+};
+
+export type HandlerSendOptions = {
 	track: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	codec?: RtpCodecCapability;
+	onRtpSender?: OnRtpSenderCallback;
 };
 
-export type HandlerSendResult =
-{
+export type HandlerSendResult = {
 	localId: string;
 	rtpParameters: RtpParameters;
 	rtpSender?: RTCRtpSender;
 };
 
-export type HandlerReceiveOptions =
-{
+export type HandlerReceiveOptions = {
 	trackId: string;
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
@@ -61,10 +67,10 @@ export type HandlerReceiveOptions =
 	 * can just synchronize up to one audio stream with one video stream.
 	 */
 	streamId?: string;
+	onRtpReceiver?: OnRtpReceiverCallback;
 };
 
-export type HandlerReceiveResult =
-{
+export type HandlerReceiveResult = {
 	localId: string;
 	track: MediaStreamTrack;
 	rtpReceiver?: RTCRtpReceiver;
@@ -72,52 +78,41 @@ export type HandlerReceiveResult =
 
 export type HandlerSendDataChannelOptions = SctpStreamParameters;
 
-export type HandlerSendDataChannelResult =
-{
+export type HandlerSendDataChannelResult = {
 	dataChannel: RTCDataChannel;
 	sctpStreamParameters: SctpStreamParameters;
 };
 
-export type HandlerReceiveDataChannelOptions =
-{
+export type HandlerReceiveDataChannelOptions = {
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
 };
 
-export type HandlerReceiveDataChannelResult =
-{
+export type HandlerReceiveDataChannelResult = {
 	dataChannel: RTCDataChannel;
 };
 
-export type HandlerEvents =
-{
+export type HandlerEvents = {
 	'@close': [];
-	'@connect':
-	[
+	'@connect': [
 		{ dtlsParameters: DtlsParameters },
 		() => void,
-		(error: Error) => void
+		(error: Error) => void,
 	];
+	'@icegatheringstatechange': [IceGatheringState];
+	'@icecandidateerror': [RTCPeerConnectionIceErrorEvent];
 	'@connectionstatechange': [ConnectionState];
 };
 
-export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents>
-{
-	constructor()
-	{
+export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvents> {
+	constructor() {
 		super();
 	}
 
 	abstract get name(): string;
 
-	abstract close(): void;
-
-	abstract getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-
-	abstract getNativeSctpCapabilities(): Promise<SctpCapabilities>;
-
-	abstract run(options: HandlerRunOptions): void;
+	abstract override close(): void;
 
 	abstract updateIceServers(iceServers: RTCIceServer[]): Promise<void>;
 
@@ -134,15 +129,18 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 	abstract resumeSending(localId: string): Promise<void>;
 
 	abstract replaceTrack(
-		localId: string, track: MediaStreamTrack | null
+		localId: string,
+		track: MediaStreamTrack | null
 	): Promise<void>;
 
 	abstract setMaxSpatialLayer(
-		localId: string, spatialLayer: number
+		localId: string,
+		spatialLayer: number
 	): Promise<void>;
 
 	abstract setRtpEncodingParameters(
-		localId: string, params: any
+		localId: string,
+		params: Partial<RTCRtpEncodingParameters>
 	): Promise<void>;
 
 	abstract getSenderStats(localId: string): Promise<RTCStatsReport>;
@@ -153,7 +151,7 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 
 	abstract receive(
 		optionsList: HandlerReceiveOptions[]
-	) : Promise<HandlerReceiveResult[]>;
+	): Promise<HandlerReceiveResult[]>;
 
 	abstract stopReceiving(localIds: string[]): Promise<void>;
 
