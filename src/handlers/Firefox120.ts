@@ -514,6 +514,8 @@ export class Firefox120
 
 		void transceiver.sender.replaceTrack(null);
 
+		this._pc.removeTrack(transceiver.sender);
+
 		const mediaSectionClosed = this._remoteSdp.closeMediaSection(
 			transceiver.mid!
 		);
