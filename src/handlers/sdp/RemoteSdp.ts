@@ -438,15 +438,15 @@ export class RemoteSdp {
 			const i = this._midToIndex.get(String(mediaSection.mid));
 
 			if (i !== undefined) {
-				this._mediaSections.push(mediaSections[i]);
-				this._sdpObject.media.push(media[i]);
+				this._mediaSections.push(mediaSections[i]!);
+				this._sdpObject.media.push(media[i]!);
 			}
 		}
 
 		// Recreate map.
 		this._midToIndex.clear();
 		for (idx = 0; idx < this._mediaSections.length; ++idx) {
-			this._midToIndex.set(this._mediaSections[idx].mid, idx);
+			this._midToIndex.set(this._mediaSections[idx]!.mid, idx);
 		}
 
 		// Regenerate BUNDLE mids.

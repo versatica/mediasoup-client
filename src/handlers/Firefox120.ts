@@ -422,7 +422,7 @@ export class Firefox120
 		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
 		const offerMediaObject =
-			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)];
+			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)]!;
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
