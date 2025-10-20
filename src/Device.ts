@@ -629,6 +629,8 @@ function getChromiumMajorVersion(
 	userAgent?: string,
 	userAgentData?: NavigatorUAData
 ): number | undefined {
+	logger.debug('getChromiumMajorVersion()');
+
 	if (isIOS(userAgent, userAgentData)) {
 		logger.debug('getChromiumMajorVersion() | this is iOS => undefined');
 
@@ -680,6 +682,8 @@ function getChromiumMajorVersion(
 }
 
 function getFirefoxMajorVersion(userAgent?: string): number | undefined {
+	logger.debug('getFirefoxMajorVersion()');
+
 	if (isIOS(userAgent)) {
 		logger.debug('getFirefoxMajorVersion() | this is iOS => undefined');
 
@@ -712,6 +716,8 @@ function getFirefoxMajorVersion(userAgent?: string): number | undefined {
 }
 
 function getMacOSWebKitMajorVersion(userAgent?: string): number | undefined {
+	logger.debug('getMacOSWebKitMajorVersion()');
+
 	if (isIOS(userAgent)) {
 		logger.debug('getMacOSWebKitMajorVersion() | this is iOS => undefined');
 
@@ -761,6 +767,8 @@ function getMacOSWebKitMajorVersion(userAgent?: string): number | undefined {
 }
 
 function getIOSWebKitMajorVersion(userAgent?: string): number | undefined {
+	logger.debug('getIOSWebKitMajorVersion()');
+
 	if (!isIOS(userAgent)) {
 		logger.debug('getIOSWebKitMajorVersion() | this is not iOS => undefined');
 
@@ -793,6 +801,8 @@ function getIOSWebKitMajorVersion(userAgent?: string): number | undefined {
 }
 
 function isIOS(userAgent?: string, userAgentData?: NavigatorUAData): boolean {
+	logger.debug('isIOS()');
+
 	if (userAgentData?.platform === 'iOS') {
 		logger.debug(
 			'isIOS() | this is iOS based on NavigatorUAData.platform => true'
@@ -833,6 +843,8 @@ function isIOS(userAgent?: string, userAgentData?: NavigatorUAData): boolean {
 }
 
 function isReactNative(): boolean {
+	logger.debug('isReactNative()');
+
 	if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
 		logger.debug(
 			'isReactNative() | this is React-Native based on navigator.product'
