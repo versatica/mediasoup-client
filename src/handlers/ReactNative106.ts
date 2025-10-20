@@ -11,6 +11,8 @@ import type {
 	MediaKind,
 	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
+	RtpHeaderExtensionUri,
+	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 import type {
@@ -124,7 +126,12 @@ export class ReactNative106
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription
+		localSdpObject: SdpTransform.SessionDescription,
+		extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = []
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -135,6 +142,13 @@ export class ReactNative106
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+
+		for (const headerExtension of extraHeaderExtensions) {
+			ortcUtils.addHeaderExtensionSupport(
+				nativeRtpCapabilities,
+				headerExtension
+			);
+		}
 
 		return nativeRtpCapabilities;
 	}
@@ -327,6 +341,7 @@ export class ReactNative106
 		track,
 		encodings,
 		codecOptions,
+		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
@@ -359,8 +374,23 @@ export class ReactNative106
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const nativeRtpCapabilities =
-			ReactNative106.getLocalRtpCapabilities(localSdpObject);
+		const extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = [];
+
+		extraHeaderExtensions.push({
+			uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+			kind: track.kind as MediaKind,
+			direction: 'sendonly',
+		});
+
+		const nativeRtpCapabilities = ReactNative106.getLocalRtpCapabilities(
+			localSdpObject,
+			extraHeaderExtensions
+		);
+
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
 		);
@@ -424,6 +454,27 @@ export class ReactNative106
 
 			offer = {
 				type: 'offer' as RTCSdpType,
+				sdp: sdpTransform.write(localSdpObject),
+			};
+		}
+
+		// Optimize. Only generate new offer if needed.
+		if (headerExtensionOptions?.absCaptureTime) {
+			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+
+			sdpCommonUtils.addHeaderExtension({
+				offerMediaObject,
+				headerExtensionUri:
+					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
+					headerExtension =>
+						headerExtension.uri ===
+						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
+				)!.id,
+			});
+
+			offer = {
+				type: 'offer',
 				sdp: sdpTransform.write(localSdpObject),
 			};
 		}
