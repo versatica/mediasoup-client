@@ -373,7 +373,7 @@ export class Producer<
 			}
 
 			throw new InvalidStateError('closed');
-		} else if (track && track.readyState === 'ended') {
+		} else if (track?.readyState === 'ended') {
 			throw new InvalidStateError('track ended');
 		}
 

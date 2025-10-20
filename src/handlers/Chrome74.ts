@@ -424,8 +424,7 @@ export class Chrome74
 		let offerMediaObject;
 
 		if (
-			encodings &&
-			encodings.length === 1 &&
+			encodings?.length === 1 &&
 			layers.spatialLayers > 1 &&
 			sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() === 'video/vp9'
 		) {

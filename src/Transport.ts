@@ -543,7 +543,7 @@ export class Transport<
 
 					if (encodings && !Array.isArray(encodings)) {
 						throw TypeError('encodings must be an array');
-					} else if (encodings && encodings.length === 0) {
+					} else if (encodings?.length === 0) {
 						normalizedEncodings = undefined;
 					} else if (encodings) {
 						normalizedEncodings = encodings.map(encoding => {
