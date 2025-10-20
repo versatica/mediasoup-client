@@ -502,6 +502,7 @@ export class Transport<
 		track,
 		encodings,
 		codecOptions,
+		headerExtensionOptions,
 		codec,
 		stopTracks = true,
 		disableTrackOnPause = true,
@@ -588,6 +589,7 @@ export class Transport<
 							track,
 							encodings: normalizedEncodings,
 							codecOptions,
+							headerExtensionOptions,
 							codec,
 							onRtpSender,
 						});

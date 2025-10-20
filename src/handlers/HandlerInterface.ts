@@ -6,7 +6,11 @@ import type {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import type { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import type {
+	ProducerCodecOptions,
+	ProducerHeaderExtensionOptions,
+	OnRtpSenderCallback,
+} from '../Producer';
 import type { OnRtpReceiverCallback } from '../Consumer';
 import type {
 	RtpCapabilities,
@@ -46,6 +50,7 @@ export type HandlerSendOptions = {
 	track: MediaStreamTrack;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	headerExtensionOptions?: ProducerHeaderExtensionOptions;
 	codec?: RtpCodecCapability;
 	onRtpSender?: OnRtpSenderCallback;
 };

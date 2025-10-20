@@ -10,6 +10,8 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	ExtendedRtpCapabilities,
+	RtpHeaderExtensionUri,
+	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
 import * as sdpCommonUtils from './sdp/commonUtils';
@@ -126,7 +128,12 @@ export class Chrome111
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription
+		localSdpObject: SdpTransform.SessionDescription,
+		extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = []
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -137,6 +144,13 @@ export class Chrome111
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+
+		for (const headerExtension of extraHeaderExtensions) {
+			ortcUtils.addHeaderExtensionSupport(
+				nativeRtpCapabilities,
+				headerExtension
+			);
+		}
 
 		return nativeRtpCapabilities;
 	}
@@ -324,6 +338,7 @@ export class Chrome111
 		track,
 		encodings,
 		codecOptions,
+		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
@@ -367,15 +382,30 @@ export class Chrome111
 			onRtpSender(transceiver.sender);
 		}
 
-		const offer = await this._pc.createOffer();
+		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const nativeRtpCapabilities =
-			Chrome111.getLocalRtpCapabilities(localSdpObject);
+		const extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = [];
+
+		extraHeaderExtensions.push({
+			uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+			kind: track.kind as MediaKind,
+			direction: 'sendonly',
+		});
+
+		const nativeRtpCapabilities = Chrome111.getLocalRtpCapabilities(
+			localSdpObject,
+			extraHeaderExtensions
+		);
+
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
 		);
@@ -409,6 +439,27 @@ export class Chrome111
 				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
 				localSdpObject,
 			});
+		}
+
+		// Optimize. Only generate new offer if needed.
+		if (headerExtensionOptions?.absCaptureTime) {
+			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+
+			sdpCommonUtils.addHeaderExtension({
+				offerMediaObject,
+				headerExtensionUri:
+					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
+					headerExtension =>
+						headerExtension.uri ===
+						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
+				)!.id,
+			});
+
+			offer = {
+				type: 'offer',
+				sdp: sdpTransform.write(localSdpObject),
+			};
 		}
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
