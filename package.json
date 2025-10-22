@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.17.0",
+	"version": "3.17.1",
 	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -84,7 +84,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.38.0",
 		"@types/jest": "^30.0.0",
-		"@types/node": "^24.9.0",
+		"@types/node": "^24.9.1",
 		"@types/sdp-transform": "^2.15.0",
 		"@types/ua-parser-js": "^0.7.39",
 		"eslint": "^9.38.0",
