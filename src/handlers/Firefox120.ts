@@ -441,8 +441,6 @@ export class Firefox120
 			offerMediaObject,
 		});
 
-		console.log('FOOO offerMediaObject.msid:', offerMediaObject.msid);
-
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({

@@ -491,8 +491,6 @@ export class Safari12
 			offerMediaObject,
 		});
 
-		console.log('FOOO offerMediaObject.msid:', offerMediaObject.msid);
-
 		// Set RTP encodings.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 			offerMediaObject,

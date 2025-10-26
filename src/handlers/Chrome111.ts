@@ -487,8 +487,6 @@ export class Chrome111
 			offerMediaObject,
 		});
 
-		console.log('FOOO offerMediaObject.msid:', offerMediaObject.msid);
-
 		// Set msid.
 		sendingRtpParameters.msid = offerMediaObject.msid;
 
@@ -536,8 +534,6 @@ export class Chrome111
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
-
-		console.log('FOOOO sendingRtpParameters:', sendingRtpParameters);
 
 		return {
 			localId,
@@ -923,8 +919,6 @@ export class Chrome111
 			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
 				rtpParameters.msid
 			);
-
-			console.log('FOOOOO receive() msidStreamId:%o', msidStreamId);
 
 			this._remoteSdp.receive({
 				mid: localId,
