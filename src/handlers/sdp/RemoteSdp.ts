@@ -84,8 +84,6 @@ export class RemoteSdp {
 
 		// If DTLS parameters are given, assume WebRTC and BUNDLE.
 		if (dtlsParameters) {
-			this._sdpObject.msidSemantic = { semantic: 'WMS', token: '*' };
-
 			// NOTE: We take the latest fingerprint.
 			const numFingerprints = this._dtlsParameters!.fingerprints.length;
 
@@ -190,15 +188,15 @@ export class RemoteSdp {
 
 		// Unified-Plan with closed media section replacement.
 		if (reuseMid) {
-			this._replaceMediaSection(mediaSection, reuseMid);
+			this.replaceMediaSection(mediaSection, reuseMid);
 		}
 		// Unified-Plan or Plan-B with different media kind.
 		else if (!this._midToIndex.has(mediaSection.mid)) {
-			this._addMediaSection(mediaSection);
+			this.addMediaSection(mediaSection);
 		}
 		// Plan-B with same media kind.
 		else {
-			this._replaceMediaSection(mediaSection);
+			this.replaceMediaSection(mediaSection);
 		}
 	}
 
@@ -236,32 +234,32 @@ export class RemoteSdp {
 		const oldMediaSection = this._mediaSections.find(m => m.closed);
 
 		if (oldMediaSection) {
-			this._replaceMediaSection(mediaSection, oldMediaSection.mid);
+			this.replaceMediaSection(mediaSection, oldMediaSection.mid);
 		} else {
-			this._addMediaSection(mediaSection);
+			this.addMediaSection(mediaSection);
 		}
 	}
 
 	pauseMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.pause();
 	}
 
 	resumeSendingMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.resume();
 	}
 
 	resumeReceivingMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.resume();
 	}
 
 	disableMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.disable();
 	}
@@ -274,7 +272,7 @@ export class RemoteSdp {
 	 * transport, so instead closing it we just disable it.
 	 */
 	closeMediaSection(mid: string): boolean {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		// NOTE: Closing the first m section is a pain since it invalidates the
 		// bundled transport, so let's avoid it.
@@ -292,7 +290,7 @@ export class RemoteSdp {
 		mediaSection.close();
 
 		// Regenerate BUNDLE mids.
-		this._regenerateBundleMids();
+		this.regenerateBundleMids();
 
 		return true;
 	}
@@ -301,11 +299,11 @@ export class RemoteSdp {
 		mid: string,
 		encodings: RTCRtpEncodingParameters[]
 	): void {
-		const mediaSection = this._findMediaSection(mid) as AnswerMediaSection;
+		const mediaSection = this.findMediaSection(mid) as AnswerMediaSection;
 
 		mediaSection.muxSimulcastStreams(encodings);
 
-		this._replaceMediaSection(mediaSection);
+		this.replaceMediaSection(mediaSection);
 	}
 
 	sendSctpAssociation({
@@ -322,7 +320,7 @@ export class RemoteSdp {
 			offerMediaObject,
 		});
 
-		this._addMediaSection(mediaSection);
+		this.addMediaSection(mediaSection);
 	}
 
 	receiveSctpAssociation(): void {
@@ -336,7 +334,7 @@ export class RemoteSdp {
 			kind: 'application',
 		});
 
-		this._addMediaSection(mediaSection);
+		this.addMediaSection(mediaSection);
 	}
 
 	getSdp(): string {
@@ -346,7 +344,7 @@ export class RemoteSdp {
 		return sdpTransform.write(this._sdpObject);
 	}
 
-	_addMediaSection(newMediaSection: MediaSection): void {
+	private addMediaSection(newMediaSection: MediaSection): void {
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;
 		}
@@ -361,10 +359,13 @@ export class RemoteSdp {
 		this._sdpObject.media.push(newMediaSection.getObject());
 
 		// Regenerate BUNDLE mids.
-		this._regenerateBundleMids();
+		this.regenerateBundleMids();
 	}
 
-	_replaceMediaSection(newMediaSection: MediaSection, reuseMid?: string): void {
+	private replaceMediaSection(
+		newMediaSection: MediaSection,
+		reuseMid?: string
+	): void {
 		// Store it in the map.
 		if (typeof reuseMid === 'string') {
 			const idx = this._midToIndex.get(reuseMid);
@@ -386,7 +387,7 @@ export class RemoteSdp {
 			this._sdpObject.media[idx] = newMediaSection.getObject();
 
 			// Regenerate BUNDLE mids.
-			this._regenerateBundleMids();
+			this.regenerateBundleMids();
 		} else {
 			const idx = this._midToIndex.get(newMediaSection.mid);
 
@@ -404,7 +405,7 @@ export class RemoteSdp {
 		}
 	}
 
-	_findMediaSection(mid: string): MediaSection {
+	private findMediaSection(mid: string): MediaSection {
 		const idx = this._midToIndex.get(mid);
 
 		if (idx === undefined) {
@@ -414,7 +415,7 @@ export class RemoteSdp {
 		return this._mediaSections[idx]!;
 	}
 
-	_regenerateBundleMids(): void {
+	private regenerateBundleMids(): void {
 		if (!this._dtlsParameters) {
 			return;
 		}

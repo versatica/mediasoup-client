@@ -500,6 +500,7 @@ export class Transport<
 	 */
 	async produce<ProducerAppData extends AppData = AppData>({
 		track,
+		stream,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -587,6 +588,7 @@ export class Transport<
 					const { localId, rtpParameters, rtpSender } =
 						await this._handler.send({
 							track,
+							stream,
 							encodings: normalizedEncodings,
 							codecOptions,
 							headerExtensionOptions,
@@ -902,8 +904,8 @@ export class Transport<
 						task.consumerOptions;
 
 					optionsList.push({
-						trackId: id!,
-						kind: kind!,
+						trackId: id,
+						kind: kind,
 						rtpParameters,
 						streamId,
 						onRtpReceiver,
@@ -920,9 +922,9 @@ export class Transport<
 							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;
 						const consumer: Consumer<ConsumerAppData> = new Consumer({
-							id: id!,
+							id,
 							localId,
-							producerId: producerId!,
+							producerId,
 							rtpReceiver,
 							track,
 							rtpParameters,

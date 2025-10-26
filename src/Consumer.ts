@@ -7,9 +7,9 @@ import type { AppData } from './types';
 const logger = new Logger('Consumer');
 
 export type ConsumerOptions<ConsumerAppData extends AppData = AppData> = {
-	id?: string;
-	producerId?: string;
-	kind?: 'audio' | 'video';
+	id: string;
+	producerId: string;
+	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	streamId?: string;
 	onRtpReceiver?: OnRtpReceiverCallback;

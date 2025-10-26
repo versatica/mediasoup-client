@@ -60,7 +60,7 @@ export class Safari12
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
-	// Local stream for sending.
+	// Default local stream for sending if no stream is given.
 	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
@@ -343,6 +343,7 @@ export class Safari12
 
 	async send({
 		track,
+		stream,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -352,12 +353,17 @@ export class Safari12
 		this.assertNotClosed();
 		this.assertSendDirection();
 
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+		logger.debug(
+			'send() [kind:%s, track.id:%s, stream.id:%s]',
+			track.kind,
+			track.id,
+			stream?.id
+		);
 
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
-			streams: [this._sendStream],
+			streams: [stream ?? this._sendStream],
 		});
 
 		if (onRtpSender) {
@@ -484,6 +490,8 @@ export class Safari12
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 			offerMediaObject,
 		});
+
+		console.log('FOOO offerMediaObject.msid:', offerMediaObject.msid);
 
 		// Set RTP encodings.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({

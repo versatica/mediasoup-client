@@ -60,7 +60,7 @@ export class Chrome111
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
-	// Local stream for sending.
+	// Default local stream for sending if no stream is given.
 	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
@@ -336,6 +336,7 @@ export class Chrome111
 
 	async send({
 		track,
+		stream,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -345,7 +346,12 @@ export class Chrome111
 		this.assertNotClosed();
 		this.assertSendDirection();
 
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+		logger.debug(
+			'send() [kind:%s, track.id:%s, stream.id:%s]',
+			track.kind,
+			track.id,
+			stream?.id
+		);
 
 		if (encodings && encodings.length > 1) {
 			// Set rid and verify scalabilityMode in each encoding.
@@ -374,7 +380,7 @@ export class Chrome111
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
-			streams: [this._sendStream],
+			streams: [stream ?? this._sendStream],
 			sendEncodings: encodings,
 		});
 
@@ -481,6 +487,11 @@ export class Chrome111
 			offerMediaObject,
 		});
 
+		console.log('FOOO offerMediaObject.msid:', offerMediaObject.msid);
+
+		// Set msid.
+		sendingRtpParameters.msid = offerMediaObject.msid;
+
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
@@ -525,6 +536,8 @@ export class Chrome111
 
 		// Store in the map.
 		this._mapMidTransceiver.set(localId, transceiver);
+
+		console.log('FOOOO sendingRtpParameters:', sendingRtpParameters);
 
 		return {
 			localId,
@@ -905,11 +918,19 @@ export class Chrome111
 
 			mapLocalId.set(trackId, localId);
 
+			// We ignore MSID `trackId` when consuming and always us our computed
+			// `trackId` which matches the `consumer.id`.
+			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
+				rtpParameters.msid
+			);
+
+			console.log('FOOOOO receive() msidStreamId:%o', msidStreamId);
+
 			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId ?? rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? msidStreamId ?? rtpParameters.rtcp?.cname ?? '-',
 				trackId,
 			});
 		}

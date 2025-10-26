@@ -179,7 +179,7 @@ export class FakeHandler
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, stream, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 
@@ -213,6 +213,8 @@ export class FakeHandler
 		);
 
 		sendingRtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
+
+		sendingRtpParameters.msid = `${stream?.id ?? '-'} ${track.id}`;
 
 		if (!encodings) {
 			encodings = [{}];
