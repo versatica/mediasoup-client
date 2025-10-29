@@ -333,7 +333,7 @@ export class Chrome74
 
 	async send({
 		track,
-		stream,
+		streamId,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -343,10 +343,10 @@ export class Chrome74
 		this.assertSendDirection();
 
 		logger.debug(
-			'send() [kind:%s, track.id:%s, stream.id:%s]',
+			'send() [kind:%s, track.id:%s, streamId:%s]',
 			track.kind,
 			track.id,
-			stream?.id
+			streamId
 		);
 
 		if (encodings && encodings.length > 1) {
@@ -358,7 +358,7 @@ export class Chrome74
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
-			streams: [stream ?? this._sendStream],
+			streams: [this._sendStream],
 			sendEncodings: encodings,
 		});
 		let offer = await this._pc.createOffer();
@@ -489,6 +489,9 @@ export class Chrome74
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 			offerMediaObject,
 		});
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
 
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {

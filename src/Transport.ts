@@ -500,7 +500,7 @@ export class Transport<
 	 */
 	async produce<ProducerAppData extends AppData = AppData>({
 		track,
-		stream,
+		streamId,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -588,7 +588,7 @@ export class Transport<
 					const { localId, rtpParameters, rtpSender } =
 						await this._handler.send({
 							track,
-							stream,
+							streamId,
 							encodings: normalizedEncodings,
 							codecOptions,
 							headerExtensionOptions,

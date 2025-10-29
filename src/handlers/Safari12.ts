@@ -343,7 +343,7 @@ export class Safari12
 
 	async send({
 		track,
-		stream,
+		streamId,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -354,16 +354,16 @@ export class Safari12
 		this.assertSendDirection();
 
 		logger.debug(
-			'send() [kind:%s, track.id:%s, stream.id:%s]',
+			'send() [kind:%s, track.id:%s, streamId:%s]',
 			track.kind,
 			track.id,
-			stream?.id
+			streamId
 		);
 
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
-			streams: [stream ?? this._sendStream],
+			streams: [this._sendStream],
 		});
 
 		if (onRtpSender) {
@@ -490,6 +490,9 @@ export class Safari12
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 			offerMediaObject,
 		});
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
 
 		// Set RTP encodings.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({

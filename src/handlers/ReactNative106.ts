@@ -339,7 +339,7 @@ export class ReactNative106
 
 	async send({
 		track,
-		stream,
+		streamId,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -350,10 +350,10 @@ export class ReactNative106
 		this.assertSendDirection();
 
 		logger.debug(
-			'send() [kind:%s, track.id:%s, stream.id:%s]',
+			'send() [kind:%s, track.id:%s, streamId:%s]',
 			track.kind,
 			track.id,
-			stream?.id
+			streamId
 		);
 
 		if (encodings && encodings.length > 1) {
@@ -365,7 +365,7 @@ export class ReactNative106
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
-			streams: [stream ?? this._sendStream],
+			streams: [this._sendStream],
 			sendEncodings: encodings,
 		});
 
@@ -514,6 +514,9 @@ export class ReactNative106
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 			offerMediaObject,
 		});
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
 
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {

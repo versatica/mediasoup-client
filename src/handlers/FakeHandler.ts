@@ -65,6 +65,8 @@ export class FakeHandler
 	) => ExtendedRtpCapabilities;
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
+	// Default sending MediaStream id.
+	private _defaultSendStreamId = `${utils.generateRandomNumber()}`;
 	// Got transport local and remote parameters.
 	private _transportReady = false;
 	// Next localId.
@@ -179,7 +181,7 @@ export class FakeHandler
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, stream, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, streamId, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 
@@ -214,7 +216,7 @@ export class FakeHandler
 
 		sendingRtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
-		sendingRtpParameters.msid = `${stream?.id ?? '-'} ${track.id}`;
+		sendingRtpParameters.msid = `${streamId ?? '-'} ${track.id}`;
 
 		if (!encodings) {
 			encodings = [{}];
@@ -236,6 +238,9 @@ export class FakeHandler
 			reducedSize: true,
 			mux: true,
 		};
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._defaultSendStreamId} ${track.id}`;
 
 		const localId = this._nextLocalId++;
 
