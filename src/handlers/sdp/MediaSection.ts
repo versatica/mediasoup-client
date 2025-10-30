@@ -519,7 +519,9 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
-				this._mediaObject.msid = `${streamId} ${trackId}`;
+				// @ts-expect-error --- @types/sdp-transform 2.15.0 is not ready for
+				// sdp-transform 3.0.0.
+				this._mediaObject.msid = [{ id: streamId, appdata: trackId }];
 
 				for (const codec of offerRtpParameters!.codecs) {
 					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {

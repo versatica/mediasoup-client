@@ -78,7 +78,7 @@
 		"events-alias": "npm:events@^3.3.0",
 		"fake-mediastreamtrack": "^2.2.1",
 		"h264-profile-level-id": "^2.3.1",
-		"sdp-transform": "^2.15.0",
+		"sdp-transform": "^3.0.0",
 		"supports-color": "^10.2.2"
 	},
 	"devDependencies": {
