@@ -15,6 +15,7 @@ import type {
 	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
@@ -32,7 +33,6 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { RemoteSdp } from './sdp/RemoteSdp';
 
 const logger = new Logger('Chrome74');
 
@@ -938,11 +938,17 @@ export class Chrome74
 
 			mapLocalId.set(trackId, localId);
 
+			// We ignore MSID `trackId` when consuming and always use our computed
+			// `trackId` which matches the `consumer.id`.
+			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
+				rtpParameters.msid
+			);
+
 			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId ?? rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? msidStreamId ?? rtpParameters.rtcp?.cname ?? '-',
 				trackId,
 			});
 		}

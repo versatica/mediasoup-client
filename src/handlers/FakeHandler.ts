@@ -19,6 +19,13 @@ import type {
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
+import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
+import {
+	FakeEventListener,
+	FakeAddEventListenerOptions,
+	FakeEventListenerOptions,
+} from './fakeEvents/FakeEventListener';
+import { FakeEvent } from './fakeEvents/FakeEvent';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -33,13 +40,6 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
-import {
-	FakeEventListener,
-	FakeAddEventListenerOptions,
-	FakeEventListenerOptions,
-} from './fakeEvents/FakeEventListener';
-import { FakeEvent } from './fakeEvents/FakeEvent';
 
 const logger = new Logger('FakeHandler');
 
