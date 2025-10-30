@@ -48,6 +48,13 @@ export type HandlerFactory = {
 
 export type HandlerSendOptions = {
 	track: MediaStreamTrack;
+	/**
+	 * Stream id (it affects the `id` field of the `a=msid` attribute in the
+	 * local SDP. If not given, all `Producers` will have the same `streamId`
+	 * in their `rtpParameters.msid`. Such a value tells consuming endpoints
+	 * which tracks to syncronize on reception.
+	 */
+	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	headerExtensionOptions?: ProducerHeaderExtensionOptions;
@@ -66,8 +73,9 @@ export type HandlerReceiveOptions = {
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	/**
-	 * Stream id. WebRTC based devices try to synchronize inbound streams with
-	 * same streamId. If not given, the consuming device will be told to
+	 * Stream id (it affects the `id` field of the `a=msid` attribute in the
+	 * remote SDP. WebRTC based devices try to synchronize inbound streams with
+	 * same `streamId`. If not given, the consuming device will be told to
 	 * synchronize all streams produced by the same endpoint. However libwebrtc
 	 * can just synchronize up to one audio stream with one video stream.
 	 */

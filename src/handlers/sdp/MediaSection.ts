@@ -479,6 +479,7 @@ export class OfferMediaSection extends MediaSection {
 		plainRtpParameters?: PlainRtpParameters;
 		mid: string;
 		kind: MediaKind | 'application';
+		// Those are optionals because they are only given if `kind` is a MediaKind.
 		offerRtpParameters?: RtpParameters;
 		streamId?: string;
 		trackId?: string;
@@ -518,7 +519,7 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
-				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
+				this._mediaObject.msid = `${streamId} ${trackId}`;
 
 				for (const codec of offerRtpParameters!.codecs) {
 					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {

@@ -70,3 +70,24 @@ export function addHeaderExtensionSupport(
 
 	rtpCapabilities.headerExtensions.push(newHeaderExtension);
 }
+
+export function getMsidStreamIdAndTrackId(msid?: string): {
+	msidStreamId?: string;
+	msidTrackId?: string;
+} {
+	if (!msid || typeof msid !== 'string') {
+		return { msidStreamId: undefined, msidTrackId: undefined };
+	}
+
+	/**
+	 * `msidStreamId` must be an id or '-' (no stream).
+	 * `msidTrackId` is an optional id.
+	 */
+	const [msidStreamId, msidTrackId] = msid.trim().split(/\s+/);
+
+	if (!msidStreamId) {
+		return { msidStreamId: undefined, msidTrackId: undefined };
+	}
+
+	return { msidStreamId, msidTrackId };
+}

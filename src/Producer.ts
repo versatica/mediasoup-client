@@ -13,6 +13,7 @@ const logger = new Logger('Producer');
 
 export type ProducerOptions<ProducerAppData extends AppData = AppData> = {
 	track?: MediaStreamTrack;
+	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
 	headerExtensionOptions?: ProducerHeaderExtensionOptions;

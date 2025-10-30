@@ -14,6 +14,10 @@ import type {
 	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import { RemoteSdp } from './sdp/RemoteSdp';
+import * as sdpCommonUtils from './sdp/commonUtils';
+import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import * as ortcUtils from './ortc/utils';
 import type {
 	HandlerFactory,
 	HandlerInterface,
@@ -28,10 +32,6 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { RemoteSdp } from './sdp/RemoteSdp';
-import * as sdpCommonUtils from './sdp/commonUtils';
-import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
-import * as ortcUtils from './ortc/utils';
 
 const logger = new Logger('Safari12');
 
@@ -60,7 +60,7 @@ export class Safari12
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
-	// Local stream for sending.
+	// Default local stream for sending if no `streamId` is given in send().
 	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
@@ -343,6 +343,7 @@ export class Safari12
 
 	async send({
 		track,
+		streamId,
 		encodings,
 		codecOptions,
 		headerExtensionOptions,
@@ -352,7 +353,12 @@ export class Safari12
 		this.assertNotClosed();
 		this.assertSendDirection();
 
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+		logger.debug(
+			'send() [kind:%s, track.id:%s, streamId:%s]',
+			track.kind,
+			track.id,
+			streamId
+		);
 
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
@@ -484,6 +490,9 @@ export class Safari12
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 			offerMediaObject,
 		});
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
 
 		// Set RTP encodings.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
@@ -916,11 +925,17 @@ export class Safari12
 
 			mapLocalId.set(trackId, localId);
 
+			// We ignore MSID `trackId` when consuming and always use our computed
+			// `trackId` which matches the `consumer.id`.
+			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
+				rtpParameters.msid
+			);
+
 			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId ?? rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? msidStreamId ?? rtpParameters.rtcp?.cname ?? '-',
 				trackId,
 			});
 		}
