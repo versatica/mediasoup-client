@@ -105,7 +105,7 @@ export class Producer<
 	private _stopTracks: boolean;
 	// Whether the Producer should set track.enabled = false when paused.
 	private _disableTrackOnPause: boolean;
-	// Whether we should replace the RTCRtpSender.track with null when paused.
+	// Whether we should mark the transceiver as inactive when paused.
 	private _zeroRtpOnPause: boolean;
 	// App custom data.
 	private _appData: ProducerAppData;
@@ -153,7 +153,7 @@ export class Producer<
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
-		// '@replacetrack' event here, so RTCRtpSender.track won't be null.
+		// '@replacetrack' event here.
 
 		this.handleTrack();
 	}
