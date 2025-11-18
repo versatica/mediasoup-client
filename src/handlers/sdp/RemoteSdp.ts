@@ -84,6 +84,10 @@ export class RemoteSdp {
 
 		// If DTLS parameters are given, assume WebRTC and BUNDLE.
 		if (dtlsParameters) {
+			// NOTE: This is not standard anymore (it was removed in RFC 8830),
+			// however some WebRTC clients still rely on it.
+			this._sdpObject.msidSemantic = { semantic: 'WMS', token: '*' };
+
 			// NOTE: We take the latest fingerprint.
 			const numFingerprints = this._dtlsParameters!.fingerprints.length;
 
