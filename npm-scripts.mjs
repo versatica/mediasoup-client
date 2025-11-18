@@ -212,8 +212,8 @@ function installDeps() {
 	// Update package-lock.json.
 	executeCmd('npm install --package-lock-only --ignore-scripts');
 
-	// Check vulnerabilities in deps.
-	executeCmd('npm audit');
+	// Check vulnerabilities in deps (exclude dev deps).
+	executeCmd('npm audit --omit=dev');
 }
 
 function checkRelease() {
