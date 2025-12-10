@@ -107,7 +107,12 @@ export abstract class MediaSection {
 
 	disable(): void {
 		this.pause();
+	}
 
+	close(): void {
+		this.disable();
+
+		this._mediaObject.port = 0;
 		delete this._mediaObject.ext;
 		delete this._mediaObject.ssrcs;
 		delete this._mediaObject.ssrcGroups;
@@ -115,12 +120,6 @@ export abstract class MediaSection {
 		delete this._mediaObject.simulcast_03;
 		delete this._mediaObject.rids;
 		delete this._mediaObject.extmapAllowMixed;
-	}
-
-	close(): void {
-		this.disable();
-
-		this._mediaObject.port = 0;
 	}
 }
 
