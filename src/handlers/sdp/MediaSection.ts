@@ -112,8 +112,19 @@ export abstract class MediaSection {
 	close(): void {
 		this.disable();
 
+		// Set port in m= line to 0, which means that the media sction is closed.
 		this._mediaObject.port = 0;
-		delete this._mediaObject.ext;
+
+		// NOTE: Do not remove header extensions since it's controversial in the spec.
+		delete this._mediaObject.candidates;
+		delete this._mediaObject.endOfCandidates;
+		delete this._mediaObject.iceUfrag;
+		delete this._mediaObject.icePwd;
+		delete this._mediaObject.iceOptions;
+		this._mediaObject.rtp = [];
+		this._mediaObject.fmtp = [];
+		delete this._mediaObject.rtcp;
+		delete this._mediaObject.rtcpFb;
 		delete this._mediaObject.ssrcs;
 		delete this._mediaObject.ssrcGroups;
 		delete this._mediaObject.simulcast;
