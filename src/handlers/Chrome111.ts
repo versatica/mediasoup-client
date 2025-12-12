@@ -447,7 +447,7 @@ export class Chrome111
 			});
 		}
 
-		// Optimize. Only generate new offer if needed.
+		// Optimize. Only generate a new offer if needed.
 		if (headerExtensionOptions?.absCaptureTime) {
 			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
