@@ -35,29 +35,39 @@ export function addHeaderExtensionSupport(
 		direction: RtpHeaderExtensionDirection;
 	}
 ): void {
-	if (
-		rtpCapabilities.headerExtensions?.some(
-			exten =>
-				exten.kind === headerExtension.kind && exten.uri === headerExtension.uri
-		)
-	) {
-		return;
+	let preferredId: number | undefined;
+
+	// Look for an already existing header extension with same `uri`. Don't
+	// try to match `kind` since all media sections in a Bundle SDP must share
+	// same `id` in extensions with same `uri` (as per spec). So if we are
+	// adding an audio extension and there is already a video extension with
+	// same `uri`, then reuse its preferred `id`.
+	const existingHeaderExtension = rtpCapabilities.headerExtensions?.find(
+		exten => exten.uri === headerExtension.uri
+	);
+
+	if (existingHeaderExtension) {
+		if (existingHeaderExtension.kind === headerExtension.kind) {
+			return;
+		} else {
+			preferredId = existingHeaderExtension.preferredId;
+		}
 	}
 
 	if (!rtpCapabilities.headerExtensions) {
 		rtpCapabilities.headerExtensions = [];
 	}
 
-	const setPreferredIds = new Set(
-		rtpCapabilities.headerExtensions
-			.filter(exten => exten.uri !== headerExtension.uri)
-			.map(exten => exten.preferredId)
-	);
+	if (preferredId === undefined) {
+		preferredId = 1;
 
-	let preferredId: number = 1;
+		const setPreferredIds = new Set(
+			rtpCapabilities.headerExtensions.map(exten => exten.preferredId)
+		);
 
-	while (setPreferredIds.has(preferredId)) {
-		++preferredId;
+		while (setPreferredIds.has(preferredId)) {
+			++preferredId;
+		}
 	}
 
 	const newHeaderExtension = {
