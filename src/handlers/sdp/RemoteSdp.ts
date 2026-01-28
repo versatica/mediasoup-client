@@ -16,8 +16,9 @@ import type {
 import type { ProducerCodecOptions } from '../../Producer';
 import type { MediaKind, RtpParameters } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
+import { version as mediasoupClientVersion } from '../../';
 
-const DD_CODECS = ['av1', 'h264'];
+const DependencyDescriptorCodecs = ['av1', 'h264'];
 
 const logger = new Logger('RemoteSdp');
 
@@ -67,7 +68,7 @@ export class RemoteSdp {
 				netType: 'IN',
 				sessionId: '10000',
 				sessionVersion: 0,
-				username: 'mediasoup-client',
+				username: `mediasoup-client-v${mediasoupClientVersion}`,
 			},
 			name: '-',
 			timing: { start: 0, stop: 0 },
@@ -179,7 +180,7 @@ export class RemoteSdp {
 		// Remove Dependency Descriptor extension unless there is support for
 		// the codec in mediasoup.
 		const ddCodec = mediaObject.rtp.find(rtp =>
-			DD_CODECS.includes(rtp.codec.toLowerCase())
+			DependencyDescriptorCodecs.includes(rtp.codec.toLowerCase())
 		);
 
 		if (!ddCodec) {
