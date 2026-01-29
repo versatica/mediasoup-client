@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.18.4",
+	"version": "3.18.5",
 	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -28,7 +28,7 @@
 			"default": "./lib/types.js"
 		},
 		"./ortc": {
-			"ortc": "./lib/ortc.d.ts",
+			"types": "./lib/ortc.d.ts",
 			"default": "./lib/ortc.js"
 		},
 		"./enhancedEvents": {
