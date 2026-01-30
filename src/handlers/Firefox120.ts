@@ -449,6 +449,7 @@ export class Firefox120
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 		}
 		// Set RTP encodings by parsing the SDP offer and complete them with given
@@ -456,6 +457,7 @@ export class Firefox120
 		else if (encodings.length === 1) {
 			const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 
 			Object.assign(newEncodings[0]!, encodings[0]);

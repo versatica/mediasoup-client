@@ -1,10 +1,15 @@
-import type { RtpEncodingParameters } from '../../RtpParameters';
+import type {
+	RtpCodecParameters,
+	RtpEncodingParameters,
+} from '../../RtpParameters';
 import type * as SdpTransform from 'sdp-transform';
 
 export function getRtpEncodings({
 	offerMediaObject,
+	codecs,
 }: {
 	offerMediaObject: SdpTransform.MediaDescription;
+	codecs: RtpCodecParameters[];
 }): RtpEncodingParameters[] {
 	const ssrcs: Set<number> = new Set();
 
@@ -55,7 +60,8 @@ export function getRtpEncodings({
 	for (const [ssrc, rtxSsrc] of ssrcToRtxSsrc) {
 		const encoding: RtpEncodingParameters = { ssrc };
 
-		if (rtxSsrc) {
+		// Only add RTX SSRC if there are more than 1 codec.
+		if (rtxSsrc && codecs.length > 1) {
 			encoding.rtx = { ssrc: rtxSsrc };
 		}
 

@@ -522,6 +522,7 @@ export class ReactNative106
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 		}
 		// Set RTP encodings by parsing the SDP offer and complete them with given
@@ -529,6 +530,7 @@ export class ReactNative106
 		else if (encodings.length === 1) {
 			let newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 
 			Object.assign(newEncodings[0]!, encodings[0]);

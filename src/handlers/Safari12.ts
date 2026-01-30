@@ -497,6 +497,7 @@ export class Safari12
 		// Set RTP encodings.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 			offerMediaObject,
+			codecs: sendingRtpParameters.codecs,
 		});
 
 		// Complete encodings with given values.
