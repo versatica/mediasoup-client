@@ -72,7 +72,9 @@ export class Firefox120
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Firefox120 => new Firefox120(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+			getNativeRtpCapabilities: async (
+				direction: 'sendonly' | 'recvonly'
+			): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
@@ -93,10 +95,10 @@ export class Firefox120
 				const fakeVideoTrack = fakeStream.getVideoTracks()[0]!;
 
 				try {
-					pc.addTransceiver('audio', { direction: 'sendrecv' });
+					pc.addTransceiver('audio', { direction });
 
 					pc.addTransceiver(fakeVideoTrack, {
-						direction: 'sendrecv',
+						direction,
 						sendEncodings: [
 							{ rid: 'r0', maxBitrate: 100000 },
 							{ rid: 'r1', maxBitrate: 500000 },

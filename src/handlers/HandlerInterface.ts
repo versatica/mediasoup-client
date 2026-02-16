@@ -42,7 +42,9 @@ export type HandlerOptions = {
 export type HandlerFactory = {
 	name: string;
 	factory: (options: HandlerOptions) => HandlerInterface;
-	getNativeRtpCapabilities(): Promise<RtpCapabilities>;
+	getNativeRtpCapabilities(
+		direction: 'sendonly' | 'recvonly'
+	): Promise<RtpCapabilities>;
 	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 };
 

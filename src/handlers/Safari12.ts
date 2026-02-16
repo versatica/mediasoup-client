@@ -76,7 +76,9 @@ export class Safari12
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Safari12 => new Safari12(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+			getNativeRtpCapabilities: async (
+				direction: 'sendonly' | 'recvonly'
+			): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
@@ -87,8 +89,8 @@ export class Safari12
 				});
 
 				try {
-					pc.addTransceiver('audio');
-					pc.addTransceiver('video');
+					pc.addTransceiver('audio', { direction });
+					pc.addTransceiver('video', { direction });
 
 					const offer = await pc.createOffer();
 

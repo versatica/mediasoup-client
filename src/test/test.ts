@@ -207,6 +207,14 @@ test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () 
 	expect(() => ctx.device!.rtpCapabilities).toThrow(InvalidStateError);
 });
 
+test('device.rtpReceiveCapabilities getter throws InvalidStateError if not loaded', () => {
+	expect(() => ctx.device!.rtpReceiveCapabilities).toThrow(InvalidStateError);
+});
+
+test('device.rtpSendCapabilities getter throws InvalidStateError if not loaded', () => {
+	expect(() => ctx.device!.rtpSendCapabilities).toThrow(InvalidStateError);
+});
+
 test('device.sctpCapabilities getter throws InvalidStateError if not loaded', () => {
 	expect(() => ctx.device!.sctpCapabilities).toThrow(InvalidStateError);
 });
@@ -278,6 +286,14 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 
 test('device.rtpCapabilities getter succeeds', () => {
 	expect(typeof ctx.loadedDevice!.rtpCapabilities).toBe('object');
+});
+
+test('device.rtpReceiveCapabilities getter succeeds', () => {
+	expect(typeof ctx.loadedDevice!.rtpReceiveCapabilities).toBe('object');
+});
+
+test('device.rtpSendCapabilities getter succeeds', () => {
+	expect(typeof ctx.loadedDevice!.rtpSendCapabilities).toBe('object');
 });
 
 test('device.sctpCapabilities getter succeeds', () => {
@@ -491,7 +507,7 @@ test('transport.produce() succeeds', async () => {
 	// Use disableTrackOnPause: false and zeroRtpOnPause: true
 	const videoProducer = await ctx.connectedSendTransport!.produce({
 		track: videoTrack,
-		codec: ctx.loadedDevice!.rtpCapabilities.codecs!.find(
+		codec: ctx.loadedDevice!.rtpSendCapabilities.codecs!.find(
 			codec => codec.mimeType.toLowerCase() === 'video/vp9'
 		),
 		encodings: videoEncodings,

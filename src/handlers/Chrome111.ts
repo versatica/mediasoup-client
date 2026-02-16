@@ -76,7 +76,9 @@ export class Chrome111
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+			getNativeRtpCapabilities: async (
+				direction: 'sendonly' | 'recvonly'
+			): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
@@ -87,10 +89,13 @@ export class Chrome111
 				});
 
 				try {
-					pc.addTransceiver('audio');
+					pc.addTransceiver('audio', {
+						direction,
+					});
 					// Create video transceiver with scalability mode in order to retrieve
 					// Dependency Descriptor header extension.
 					pc.addTransceiver('video', {
+						direction,
 						sendEncodings: [{ scalabilityMode: 'L3T3' }],
 					});
 

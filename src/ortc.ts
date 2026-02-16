@@ -368,6 +368,27 @@ export function getExtendedRtpCapabilities(
 export function getRecvRtpCapabilities(
 	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): RtpCapabilities {
+	return getRtpCapabilities(extendedRtpCapabilities, 'recv');
+}
+
+/**
+ * Generate RTP capabilities for sending media based on the given extended
+ * RTP capabilities.
+ */
+export function getSendRtpCapabilities(
+	extendedRtpCapabilities: ExtendedRtpCapabilities
+): RtpCapabilities {
+	return getRtpCapabilities(extendedRtpCapabilities, 'send');
+}
+
+/**
+ * Generate RTP capabilities for media based on the given extended
+ * RTP capabilities.
+ */
+function getRtpCapabilities(
+	extendedRtpCapabilities: ExtendedRtpCapabilities,
+	direction: 'send' | 'recv'
+): RtpCapabilities {
 	const rtpCapabilities: RtpCapabilities = {
 		codecs: [],
 		headerExtensions: [],
@@ -408,10 +429,10 @@ export function getRecvRtpCapabilities(
 	}
 
 	for (const extendedExtension of extendedRtpCapabilities.headerExtensions) {
-		// Ignore RTP extensions not valid for receiving.
+		// Ignore RTP extensions not valid for the given direction.
 		if (
 			extendedExtension.direction !== 'sendrecv' &&
-			extendedExtension.direction !== 'recvonly'
+			extendedExtension.direction !== `${direction}only`
 		) {
 			continue;
 		}

@@ -134,6 +134,8 @@ export class Device {
 	) => ExtendedRtpCapabilities;
 	// Local RTP capabilities for receiving media.
 	private _recvRtpCapabilities?: RtpCapabilities;
+	// Local RTP capabilities for sending media.
+	private _sendRtpCapabilities?: RtpCapabilities;
 	// Whether we can produce audio/video based on remote RTP capabilities.
 	private readonly _canProduceByKind: CanProduceByKind = {
 		audio: false,
@@ -260,14 +262,38 @@ export class Device {
 	/**
 	 * RTP capabilities of the Device for receiving media.
 	 *
+	 * @deprecated Use {@link rtpReceiveCapabilities} instead.
+	 *
 	 * @throws {InvalidStateError} if not loaded.
 	 */
 	get rtpCapabilities(): RtpCapabilities {
+		return this.rtpReceiveCapabilities;
+	}
+
+	/**
+	 * RTP capabilities of the Device for receiving media.
+	 *
+	 * @throws {InvalidStateError} if not loaded.
+	 */
+	get rtpReceiveCapabilities(): RtpCapabilities {
 		if (!this._loaded) {
 			throw new InvalidStateError('not loaded');
 		}
 
 		return this._recvRtpCapabilities!;
+	}
+
+	/**
+	 * RTP capabilities of the Device for sending media.
+	 *
+	 * @throws {InvalidStateError} if not loaded.
+	 */
+	get rtpSendCapabilities(): RtpCapabilities {
+		if (!this._loaded) {
+			throw new InvalidStateError('not loaded');
+		}
+
+		return this._sendRtpCapabilities!;
 	}
 
 	/**
@@ -314,16 +340,30 @@ export class Device {
 		const { getNativeRtpCapabilities, getNativeSctpCapabilities } =
 			this._handlerFactory;
 
-		const clonedNativeRtpCapabilities = utils.clone<RtpCapabilities>(
-			await getNativeRtpCapabilities()
+		const clonedNativeRtpReceiveCapabilities = utils.clone<RtpCapabilities>(
+			await getNativeRtpCapabilities('recvonly')
 		);
 
 		// This may throw.
-		ortc.validateAndNormalizeRtpCapabilities(clonedNativeRtpCapabilities);
+		ortc.validateAndNormalizeRtpCapabilities(
+			clonedNativeRtpReceiveCapabilities
+		);
 
 		logger.debug(
-			'load() | got native RTP capabilities:%o',
-			clonedNativeRtpCapabilities
+			'load() | got native RTP capabilities for receiving:%o',
+			clonedNativeRtpReceiveCapabilities
+		);
+
+		const clonedNativeRtpSendCapabilities = utils.clone<RtpCapabilities>(
+			await getNativeRtpCapabilities('sendonly')
+		);
+
+		// This may throw.
+		ortc.validateAndNormalizeRtpCapabilities(clonedNativeRtpSendCapabilities);
+
+		logger.debug(
+			'load() | got native RTP capabilities for sending:%o',
+			clonedNativeRtpSendCapabilities
 		);
 
 		this._getSendExtendedRtpCapabilities = (
@@ -339,14 +379,25 @@ export class Device {
 		};
 
 		const recvExtendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
-			clonedNativeRtpCapabilities,
+			clonedNativeRtpReceiveCapabilities,
 			clonedRouterRtpCapabilities,
 			/* preferLocalCodecsOrder */ false
+		);
+
+		const sendExtendedRtpCapabilities = ortc.getExtendedRtpCapabilities(
+			clonedNativeRtpSendCapabilities,
+			clonedRouterRtpCapabilities,
+			preferLocalCodecsOrder
 		);
 
 		// Generate our receiving RTP capabilities for receiving media.
 		this._recvRtpCapabilities = ortc.getRecvRtpCapabilities(
 			recvExtendedRtpCapabilities
+		);
+
+		// Generate our sending RTP capabilities for sending media.
+		this._sendRtpCapabilities = ortc.getSendRtpCapabilities(
+			sendExtendedRtpCapabilities
 		);
 
 		// This may throw.
@@ -360,11 +411,11 @@ export class Device {
 		// Check whether we can produce audio/video.
 		this._canProduceByKind.audio = ortc.canSend(
 			'audio',
-			this._recvRtpCapabilities
+			this._sendRtpCapabilities
 		);
 		this._canProduceByKind.video = ortc.canSend(
 			'video',
-			this._recvRtpCapabilities
+			this._sendRtpCapabilities
 		);
 
 		// Generate our SCTP capabilities.

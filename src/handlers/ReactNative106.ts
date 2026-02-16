@@ -78,7 +78,9 @@ export class ReactNative106
 			name: NAME,
 			factory: (options: HandlerOptions): ReactNative106 =>
 				new ReactNative106(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+			getNativeRtpCapabilities: async (
+				direction: 'sendonly' | 'recvonly'
+			): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
@@ -89,8 +91,8 @@ export class ReactNative106
 				});
 
 				try {
-					pc.addTransceiver('audio');
-					pc.addTransceiver('video');
+					pc.addTransceiver('audio', { direction });
+					pc.addTransceiver('video', { direction });
 
 					const offer = await pc.createOffer();
 

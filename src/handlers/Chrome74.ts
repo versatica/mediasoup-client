@@ -77,7 +77,9 @@ export class Chrome74
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Chrome74 => new Chrome74(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+			getNativeRtpCapabilities: async (
+				direction: 'sendonly' | 'recvonly'
+			): Promise<RtpCapabilities> => {
 				logger.debug('getNativeRtpCapabilities()');
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
@@ -88,8 +90,12 @@ export class Chrome74
 				});
 
 				try {
-					pc.addTransceiver('audio');
-					pc.addTransceiver('video');
+					pc.addTransceiver('audio', {
+						direction,
+					});
+					pc.addTransceiver('video', {
+						direction,
+					});
 
 					const offer = await pc.createOffer();
 
