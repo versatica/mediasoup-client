@@ -25,6 +25,15 @@ import type {
 	SctpStreamParameters,
 } from '../SctpParameters';
 
+export type HandlerFactory = {
+	name: string;
+	factory: (options: HandlerOptions) => HandlerInterface;
+	getNativeRtpCapabilities(
+		options: HandlerGetNativeRtpCapabilitiesOptions
+	): Promise<RtpCapabilities>;
+	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+};
+
 export type HandlerOptions = {
 	direction: 'send' | 'recv';
 	iceParameters: IceParameters;
@@ -35,15 +44,12 @@ export type HandlerOptions = {
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: Partial<RTCConfiguration>;
 	getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 };
 
-export type HandlerFactory = {
-	name: string;
-	factory: (options: HandlerOptions) => HandlerInterface;
-	getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+export type HandlerGetNativeRtpCapabilitiesOptions = {
+	direction: Extract<RTCRtpTransceiverDirection, 'sendonly' | 'recvonly'>;
 };
 
 export type HandlerSendOptions = {
