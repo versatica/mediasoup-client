@@ -111,6 +111,7 @@ export class Safari12
 						pc?.close();
 					} catch (error2) {}
 
+					// eslint-disable-next-line no-useless-assignment
 					pc = undefined;
 
 					throw error;
