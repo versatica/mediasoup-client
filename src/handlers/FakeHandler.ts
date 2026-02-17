@@ -31,6 +31,7 @@ import type {
 	HandlerInterface,
 	HandlerEvents,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -84,8 +85,10 @@ export class FakeHandler
 			name: NAME,
 			factory: (options: HandlerOptions): FakeHandler =>
 				new FakeHandler(options, fakeParameters),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				return FakeHandler.getLocalRtpCapabilities(fakeParameters);
 			},

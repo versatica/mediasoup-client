@@ -203,8 +203,16 @@ test('create a Device in Node with a valid handlerFactory succeeds', () => {
 	expect(device.loaded).toBe(false);
 });
 
-test('device.rtpCapabilities getter throws InvalidStateError if not loaded', () => {
+test('device.rtpCapabilities (deprecated) getter throws InvalidStateError if not loaded', () => {
 	expect(() => ctx.device!.rtpCapabilities).toThrow(InvalidStateError);
+});
+
+test('device.recvRtpCapabilities getter throws InvalidStateError if not loaded', () => {
+	expect(() => ctx.device!.recvRtpCapabilities).toThrow(InvalidStateError);
+});
+
+test('device.sendRtpCapabilities getter throws InvalidStateError if not loaded', () => {
+	expect(() => ctx.device!.sendRtpCapabilities).toThrow(InvalidStateError);
 });
 
 test('device.sctpCapabilities getter throws InvalidStateError if not loaded', () => {
@@ -278,6 +286,14 @@ test('device.load() rejects with InvalidStateError if already loaded', async () 
 
 test('device.rtpCapabilities getter succeeds', () => {
 	expect(typeof ctx.loadedDevice!.rtpCapabilities).toBe('object');
+});
+
+test('device.recvRtpCapabilities getter succeeds', () => {
+	expect(typeof ctx.loadedDevice!.recvRtpCapabilities).toBe('object');
+});
+
+test('device.sendRtpCapabilities getter succeeds', () => {
+	expect(typeof ctx.loadedDevice!.sendRtpCapabilities).toBe('object');
 });
 
 test('device.sctpCapabilities getter succeeds', () => {
@@ -491,7 +507,7 @@ test('transport.produce() succeeds', async () => {
 	// Use disableTrackOnPause: false and zeroRtpOnPause: true
 	const videoProducer = await ctx.connectedSendTransport!.produce({
 		track: videoTrack,
-		codec: ctx.loadedDevice!.rtpCapabilities.codecs!.find(
+		codec: ctx.loadedDevice!.sendRtpCapabilities.codecs!.find(
 			codec => codec.mimeType.toLowerCase() === 'video/vp9'
 		),
 		encodings: videoEncodings,

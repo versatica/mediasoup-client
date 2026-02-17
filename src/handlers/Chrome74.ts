@@ -24,6 +24,7 @@ import type {
 	HandlerEvents,
 	HandlerInterface,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -51,7 +52,7 @@ export class Chrome74
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
 	private _getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
@@ -77,8 +78,10 @@ export class Chrome74
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Chrome74 => new Chrome74(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
@@ -88,8 +91,8 @@ export class Chrome74
 				});
 
 				try {
-					pc.addTransceiver('audio');
-					pc.addTransceiver('video');
+					pc.addTransceiver('audio', { direction });
+					pc.addTransceiver('video', { direction });
 
 					const offer = await pc.createOffer();
 

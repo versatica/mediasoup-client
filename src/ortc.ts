@@ -368,66 +368,17 @@ export function getExtendedRtpCapabilities(
 export function getRecvRtpCapabilities(
 	extendedRtpCapabilities: ExtendedRtpCapabilities
 ): RtpCapabilities {
-	const rtpCapabilities: RtpCapabilities = {
-		codecs: [],
-		headerExtensions: [],
-	};
+	return getRtpCapabilities({ direction: 'recvonly', extendedRtpCapabilities });
+}
 
-	for (const extendedCodec of extendedRtpCapabilities.codecs) {
-		const codec = {
-			kind: extendedCodec.kind,
-			mimeType: extendedCodec.mimeType,
-			preferredPayloadType: extendedCodec.remotePayloadType,
-			clockRate: extendedCodec.clockRate,
-			channels: extendedCodec.channels,
-			parameters: extendedCodec.localParameters,
-			rtcpFeedback: extendedCodec.rtcpFeedback,
-		};
-
-		rtpCapabilities.codecs!.push(codec);
-
-		// Add RTX codec.
-		if (!extendedCodec.remoteRtxPayloadType) {
-			continue;
-		}
-
-		const rtxCodec: RtpCodecCapability = {
-			kind: extendedCodec.kind,
-			mimeType: `${extendedCodec.kind}/rtx`,
-			preferredPayloadType: extendedCodec.remoteRtxPayloadType,
-			clockRate: extendedCodec.clockRate,
-			parameters: {
-				apt: extendedCodec.remotePayloadType,
-			},
-			rtcpFeedback: [],
-		};
-
-		rtpCapabilities.codecs!.push(rtxCodec);
-
-		// TODO: In the future, we need to add FEC, CN, etc, codecs.
-	}
-
-	for (const extendedExtension of extendedRtpCapabilities.headerExtensions) {
-		// Ignore RTP extensions not valid for receiving.
-		if (
-			extendedExtension.direction !== 'sendrecv' &&
-			extendedExtension.direction !== 'recvonly'
-		) {
-			continue;
-		}
-
-		const ext: RtpHeaderExtension = {
-			kind: extendedExtension.kind,
-			uri: extendedExtension.uri,
-			preferredId: extendedExtension.recvId,
-			preferredEncrypt: extendedExtension.encrypt ?? false,
-			direction: extendedExtension.direction,
-		};
-
-		rtpCapabilities.headerExtensions!.push(ext);
-	}
-
-	return rtpCapabilities;
+/**
+ * Generate RTP capabilities for sending media based on the given extended
+ * RTP capabilities.
+ */
+export function getSendRtpCapabilities(
+	extendedRtpCapabilities: ExtendedRtpCapabilities
+): RtpCapabilities {
+	return getRtpCapabilities({ direction: 'sendonly', extendedRtpCapabilities });
 }
 
 /**
@@ -1070,6 +1021,79 @@ function validateNumSctpStreams(numStreams: NumSctpStreams): void {
 	if (typeof numStreams.MIS !== 'number') {
 		throw new TypeError('missing numStreams.MIS');
 	}
+}
+
+/**
+ * Generate RTP capabilities for sending or receiving media based on the given
+ * extended RTP capabilities.
+ */
+function getRtpCapabilities({
+	direction,
+	extendedRtpCapabilities,
+}: {
+	direction: Extract<RTCRtpTransceiverDirection, 'sendonly' | 'recvonly'>;
+	extendedRtpCapabilities: ExtendedRtpCapabilities;
+}): RtpCapabilities {
+	const rtpCapabilities: RtpCapabilities = {
+		codecs: [],
+		headerExtensions: [],
+	};
+
+	for (const extendedCodec of extendedRtpCapabilities.codecs) {
+		const codec = {
+			kind: extendedCodec.kind,
+			mimeType: extendedCodec.mimeType,
+			preferredPayloadType: extendedCodec.remotePayloadType,
+			clockRate: extendedCodec.clockRate,
+			channels: extendedCodec.channels,
+			parameters: extendedCodec.localParameters,
+			rtcpFeedback: extendedCodec.rtcpFeedback,
+		};
+
+		rtpCapabilities.codecs!.push(codec);
+
+		// Add RTX codec.
+		if (!extendedCodec.remoteRtxPayloadType) {
+			continue;
+		}
+
+		const rtxCodec: RtpCodecCapability = {
+			kind: extendedCodec.kind,
+			mimeType: `${extendedCodec.kind}/rtx`,
+			preferredPayloadType: extendedCodec.remoteRtxPayloadType,
+			clockRate: extendedCodec.clockRate,
+			parameters: {
+				apt: extendedCodec.remotePayloadType,
+			},
+			rtcpFeedback: [],
+		};
+
+		rtpCapabilities.codecs!.push(rtxCodec);
+
+		// TODO: In the future, we need to add FEC, CN, etc, codecs.
+	}
+
+	for (const extendedExtension of extendedRtpCapabilities.headerExtensions) {
+		// Ignore RTP extensions not valid for the given direction.
+		if (
+			extendedExtension.direction !== 'sendrecv' &&
+			extendedExtension.direction !== direction
+		) {
+			continue;
+		}
+
+		const ext: RtpHeaderExtension = {
+			kind: extendedExtension.kind,
+			uri: extendedExtension.uri,
+			preferredId: extendedExtension.recvId,
+			preferredEncrypt: extendedExtension.encrypt ?? false,
+			direction: extendedExtension.direction,
+		};
+
+		rtpCapabilities.headerExtensions!.push(ext);
+	}
+
+	return rtpCapabilities;
 }
 
 function isRtxCodec(codec?: RtpCodecCapability | RtpCodecParameters): boolean {

@@ -23,6 +23,7 @@ import type {
 	HandlerInterface,
 	HandlerEvents,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -50,7 +51,7 @@ export class Chrome111
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
 	private _getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
@@ -76,8 +77,10 @@ export class Chrome111
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
@@ -87,10 +90,11 @@ export class Chrome111
 				});
 
 				try {
-					pc.addTransceiver('audio');
+					pc.addTransceiver('audio', { direction });
 					// Create video transceiver with scalability mode in order to retrieve
 					// Dependency Descriptor header extension.
 					pc.addTransceiver('video', {
+						direction,
 						sendEncodings: [{ scalabilityMode: 'L3T3' }],
 					});
 
