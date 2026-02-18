@@ -55,6 +55,9 @@ jobs:
       - name: npm ci --foreground-scripts
         run: npm ci --foreground-scripts
 
+      - name: npm audit --omit dev
+        run: npm audit --omit dev
+
       - name: npm run lint
         run: npm run lint
 
