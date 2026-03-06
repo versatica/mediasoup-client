@@ -38,7 +38,7 @@ import type {
 const logger = new Logger('ReactNative106');
 
 const NAME = 'ReactNative106';
-const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class ReactNative106
 	extends EnhancedEventEmitter<HandlerEvents>

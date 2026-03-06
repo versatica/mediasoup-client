@@ -37,7 +37,7 @@ import type {
 const logger = new Logger('Safari12');
 
 const NAME = 'Safari12';
-const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class Safari12
 	extends EnhancedEventEmitter<HandlerEvents>
