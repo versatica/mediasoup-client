@@ -17,8 +17,6 @@ jobs:
     strategy:
       matrix:
         ci:
-          - os: ubuntu-22.04
-            node: 20
           - os: ubuntu-24.04
             node: 22
           - os: ubuntu-24.04
