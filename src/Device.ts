@@ -706,7 +706,10 @@ function getChromiumMajorVersion(
 		// Some nasty browser extensions define their own custom
 		// navigator.userAgentData without mandatory `brands` field, so let's be
 		// ready for it.
-		const chromiumBrand = (userAgentData.brands ?? []).find(
+		const brands = Array.isArray(userAgentData.brands)
+			? userAgentData.brands
+			: [];
+		const chromiumBrand = brands.find(
 			b => b.brand === 'Chromium'
 		);
 
