@@ -38,12 +38,13 @@ export declare class RemoteSdp {
         answerRtpParameters: RtpParameters;
         codecOptions?: ProducerCodecOptions;
     }): void;
-    receive({ mid, kind, offerRtpParameters, streamId, trackId, }: {
+    receive({ mid, kind, offerRtpParameters, streamId, trackId, onlyRecycleSectionsOfSameKind, }: {
         mid: string;
         kind: MediaKind;
         offerRtpParameters: RtpParameters;
         streamId: string;
         trackId: string;
+        onlyRecycleSectionsOfSameKind?: boolean;
     }): void;
     pauseMediaSection(mid: string): void;
     resumeSendingMediaSection(mid: string): void;
