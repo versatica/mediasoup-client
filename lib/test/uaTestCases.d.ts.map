@@ -1,0 +1,1 @@
+{"version":3,"file":"uaTestCases.d.ts","sourceRoot":"","sources":["../../src/test/uaTestCases.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,WAAW,CAAC;AAEpD,KAAK,UAAU,GAAG;IACjB,IAAI,EAAE,MAAM,CAAC;IACb,EAAE,EAAE,MAAM,CAAC;IACX,MAAM,CAAC,EAAE,kBAAkB,CAAC;CAC5B,CAAC;AAEF,eAAO,MAAM,WAAW,EAAE,UAAU,EAuFnC,CAAC"}
