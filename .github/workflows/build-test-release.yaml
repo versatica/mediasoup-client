@@ -7,6 +7,9 @@ jobs:
     build-test-release:
         name: Build, test, release
         runs-on: ubuntu-latest
+        env:
+            GITHUB_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
+            NPM_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
         steps:
             - name: Checkout Repo
               uses: actions/checkout@v4
@@ -27,7 +30,4 @@ jobs:
               run: npm test
 
             - name: Publish package
-              env:
-                  GITHUB_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
               run: npm publish
