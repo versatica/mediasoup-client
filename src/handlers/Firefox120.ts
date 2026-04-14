@@ -879,6 +879,7 @@ export class Firefox120
 				offerRtpParameters: rtpParameters,
 				streamId: streamId ?? rtpParameters.rtcp!.cname!,
 				trackId,
+				onlyRecycleSectionsOfSameKind: true,
 			});
 		}
 

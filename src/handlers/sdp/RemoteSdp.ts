@@ -205,12 +205,14 @@ export class RemoteSdp {
 		offerRtpParameters,
 		streamId,
 		trackId,
+		onlyRecycleSectionsOfSameKind,
 	}: {
 		mid: string;
 		kind: MediaKind;
 		offerRtpParameters: RtpParameters;
 		streamId: string;
 		trackId: string;
+		onlyRecycleSectionsOfSameKind?: boolean;
 	}): void {
 		// Allow both 1 byte and 2 bytes length header extensions since
 		// mediasoup can send both at any time.
@@ -230,7 +232,13 @@ export class RemoteSdp {
 
 		// Let's try to recycle a closed media section (if any).
 		// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
-		const oldMediaSection = this._mediaSections.find(m => m.closed);
+		let oldMediaSection;
+		if (onlyRecycleSectionsOfSameKind) {
+			oldMediaSection = this._mediaSections.find(m => m.closed && m.getObject().type === kind);
+		} else {
+			oldMediaSection = this._mediaSections.find(m => m.closed);
+		}
+		
 
 		if (oldMediaSection) {
 			this._replaceMediaSection(mediaSection, oldMediaSection.mid);
