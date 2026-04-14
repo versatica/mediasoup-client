@@ -1,0 +1,33 @@
+name: Build, test, release
+
+on:
+  workflow_dispatch:
+
+jobs:
+    build-test-release:
+        name: Build, test, release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repo
+              uses: actions/checkout@v4
+
+            - name: Setup npmrc
+              run: echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+
+            - name: Install Dependencies
+              run: npm ci --ignore-scripts
+            
+            - name: Build
+              run: npm run typescript:build
+
+            - name: Run Tests
+              run: npm test
+
+            - name: Publish package
+              env:
+                  GITHUB_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.WHEREBY_GITHUB_TOKEN }}
+              run: npm publish

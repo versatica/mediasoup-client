@@ -233,12 +233,14 @@ export class RemoteSdp {
 		// Let's try to recycle a closed media section (if any).
 		// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
 		let oldMediaSection;
+
 		if (onlyRecycleSectionsOfSameKind) {
-			oldMediaSection = this._mediaSections.find(m => m.closed && m.getObject().type === kind);
+			oldMediaSection = this._mediaSections.find(
+				m => m.closed && m.getObject().type === kind
+			);
 		} else {
 			oldMediaSection = this._mediaSections.find(m => m.closed);
 		}
-		
 
 		if (oldMediaSection) {
 			this._replaceMediaSection(mediaSection, oldMediaSection.mid);
