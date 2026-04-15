@@ -235,8 +235,8 @@ export class RemoteSdp {
 		});
 
 		// Let's try to recycle a closed media section (if any).
-		// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
-		const oldMediaSection = this._mediaSections.find(m => m.closed);
+		// NOTE: We cannot recycle a closed m=audio section as m=video (or vice versa). Firefox rejects the SDP when the media type of a recycled m-line changes.
+		const oldMediaSection = this._mediaSections.find(m => m.closed && m.getObject().type === kind);
 
 		if (oldMediaSection) {
 			this.replaceMediaSection(mediaSection, oldMediaSection.mid);
