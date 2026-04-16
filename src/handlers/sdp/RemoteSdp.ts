@@ -18,8 +18,6 @@ import type { MediaKind, RtpParameters } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
 import { version as mediasoupClientVersion } from '../../';
 
-const DependencyDescriptorCodecs = ['av1', 'h264'];
-
 const logger = new Logger('RemoteSdp');
 
 export class RemoteSdp {
@@ -174,22 +172,6 @@ export class RemoteSdp {
 			answerRtpParameters,
 			codecOptions,
 		});
-
-		const mediaObject = mediaSection.getObject();
-
-		// Remove Dependency Descriptor extension unless there is support for
-		// the codec in mediasoup.
-		const ddCodec = mediaObject.rtp.find(rtp =>
-			DependencyDescriptorCodecs.includes(rtp.codec.toLowerCase())
-		);
-
-		if (!ddCodec) {
-			mediaObject.ext = mediaObject.ext?.filter(
-				extmap =>
-					extmap.uri !==
-					'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension'
-			);
-		}
 
 		// Unified-Plan with closed media section replacement.
 		if (reuseMid) {

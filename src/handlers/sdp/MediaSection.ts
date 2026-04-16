@@ -338,6 +338,31 @@ export class AnswerMediaSection extends MediaSection {
 					});
 				}
 
+				// Starting with Chrome 148, libwebrtc records every extmap ID seen in
+				// a local offer into a per-PeerConnection history
+				// (historical_rtp_header_extensions_ in BaseChannel, introduced in
+				// https://webrtc.googlesource.com/src/+/5788235). Any subsequent
+				// setLocalDescription that tries to bind the same ID to a different
+				// URI is rejected with "RTP extension ID reassignment not supported".
+				//
+				// Previously, extensions unsupported by the server were simply omitted
+				// from the synthetic answer. Chrome then considered their IDs "free"
+				// and could reuse them when negotiating new m-sections (e.g. adding
+				// audio after video simulcast), triggering the reassignment error.
+				// Including them back in the answer — even without server support —
+				// causes Chrome to permanently associate those IDs with their original
+				// URIs, preventing any future reuse.
+				const confirmedExtUris = new Set(this._mediaObject.ext.map(e => e.uri));
+
+				for (const offerExt of offerMediaObject.ext ?? []) {
+					if (!confirmedExtUris.has(offerExt.uri)) {
+						this._mediaObject.ext.push({
+							uri: offerExt.uri,
+							value: offerExt.value,
+						});
+					}
+				}
+
 				// Allow both 1 byte and 2 bytes length header extensions since
 				// mediasoup can receive both at any time.
 				if (offerMediaObject.extmapAllowMixed === 'extmap-allow-mixed') {
