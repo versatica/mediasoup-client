@@ -765,11 +765,13 @@ export class Transport<
 		return this._awaitQueue.push(async () => {
 			const { dataChannel, sctpStreamParameters } =
 				await this._handler.sendDataChannel({
-					ordered,
-					maxPacketLifeTime,
-					maxRetransmits,
-					label,
-					protocol,
+					sctpStreamParameters: {
+						ordered,
+						maxPacketLifeTime,
+						maxRetransmits,
+						label,
+						protocol,
+					},
 				});
 
 			// This will fill sctpStreamParameters's missing fields with default values.
@@ -849,6 +851,7 @@ export class Transport<
 		// Enqueue command.
 		return this._awaitQueue.push(async () => {
 			const { dataChannel } = await this._handler.receiveDataChannel({
+				maxMessageSize: this._maxSctpMessageSize!,
 				sctpStreamParameters: clonedSctpStreamParameters,
 				label,
 				protocol,

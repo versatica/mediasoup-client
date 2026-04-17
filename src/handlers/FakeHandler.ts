@@ -334,11 +334,7 @@ export class FakeHandler
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertNotClosed();
 
@@ -350,21 +346,21 @@ export class FakeHandler
 
 		const dataChannel = new FakeRTCDataChannel({
 			id: this._nextSctpStreamId++,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			label,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			label: sctpStreamParameters.label,
+			protocol: sctpStreamParameters.protocol,
 		});
 
-		const sctpStreamParameters = {
+		const newSctpStreamParameters = {
 			streamId: this._nextSctpStreamId,
-			ordered: ordered,
-			maxPacketLifeTime: maxPacketLifeTime,
-			maxRetransmits: maxRetransmits,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -432,6 +428,7 @@ export class FakeHandler
 	}
 
 	async receiveDataChannel({
+		// maxMessageSize,
 		sctpStreamParameters,
 		label,
 		protocol,

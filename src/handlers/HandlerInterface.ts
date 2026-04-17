@@ -95,7 +95,9 @@ export type HandlerReceiveResult = {
 	rtpReceiver?: RTCRtpReceiver;
 };
 
-export type HandlerSendDataChannelOptions = SctpStreamParameters;
+export type HandlerSendDataChannelOptions = {
+	sctpStreamParameters: SctpStreamParameters;
+};
 
 export type HandlerSendDataChannelResult = {
 	dataChannel: RTCDataChannel;
@@ -103,6 +105,7 @@ export type HandlerSendDataChannelResult = {
 };
 
 export type HandlerReceiveDataChannelOptions = {
+	maxMessageSize: number;
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;
