@@ -220,8 +220,8 @@ export class Transport<
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
-	// SCTP max message size if enabled, null otherwise.
-	private readonly _maxSctpMessageSize?: number | null;
+	// SCTP max message size if enabled.
+	private readonly _maxSctpMessageSize?: number;
 	// RTC handler isntance.
 	private readonly _handler: HandlerInterface;
 	// Transport ICE gathering state.
@@ -295,9 +295,7 @@ export class Transport<
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 		this._recvRtpCapabilities = recvRtpCapabilities;
 		this._canProduceByKind = canProduceByKind;
-		this._maxSctpMessageSize = sctpParameters
-			? sctpParameters.maxMessageSize
-			: null;
+		this._maxSctpMessageSize = sctpParameters?.maxMessageSize;
 
 		// Clone and sanitize additionalSettings.
 		const clonedAdditionalSettings = utils.clone(additionalSettings) ?? {};
