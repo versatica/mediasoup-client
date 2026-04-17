@@ -836,11 +836,7 @@ export class Safari12
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -848,15 +844,18 @@ export class Safari12
 		const options = {
 			negotiated: true,
 			id: this._nextSendSctpStreamId,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			protocol: sctpStreamParameters.protocol,
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const dataChannel = this._pc.createDataChannel(label!, options);
+		const dataChannel = this._pc.createDataChannel(
+			sctpStreamParameters.label!,
+			options
+		);
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
@@ -902,14 +901,14 @@ export class Safari12
 			this._hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters: SctpStreamParameters = {
+		const newSctpStreamParameters: SctpStreamParameters = {
 			streamId: options.id,
 			ordered: options.ordered,
 			maxPacketLifeTime: options.maxPacketLifeTime,
 			maxRetransmits: options.maxRetransmits,
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -1172,6 +1171,7 @@ export class Safari12
 	}
 
 	async receiveDataChannel({
+		maxMessageSize,
 		sctpStreamParameters,
 		label,
 		protocol,
@@ -1216,19 +1216,28 @@ export class Safari12
 
 			await this._pc.setRemoteDescription(offer);
 
-			const answer = await this._pc.createAnswer();
+			let answer = await this._pc.createAnswer();
+			const localSdpObject = sdpTransform.parse(answer.sdp!);
+			const answerMediaObject = localSdpObject.media.find(
+				m => m.type === 'application'
+			)!;
+
+			answerMediaObject.maxMessageSize = maxMessageSize;
 
 			if (!this._transportReady) {
-				const localSdpObject = sdpTransform.parse(answer.sdp!);
-
 				await this.setupTransport({
 					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject,
 				});
 			}
 
+			answer = {
+				type: 'answer',
+				sdp: sdpTransform.write(localSdpObject),
+			};
+
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				'receiveDataChannel() | calling pc.setLocalDescription() [answer:%o]',
 				answer
 			);
 
