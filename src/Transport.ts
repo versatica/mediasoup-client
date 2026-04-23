@@ -220,8 +220,8 @@ export class Transport<
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
-	// SCTP max message size if enabled, null otherwise.
-	private readonly _maxSctpMessageSize?: number | null;
+	// SCTP max message size if enabled.
+	private readonly _maxSctpMessageSize?: number;
 	// RTC handler isntance.
 	private readonly _handler: HandlerInterface;
 	// Transport ICE gathering state.
@@ -295,9 +295,7 @@ export class Transport<
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 		this._recvRtpCapabilities = recvRtpCapabilities;
 		this._canProduceByKind = canProduceByKind;
-		this._maxSctpMessageSize = sctpParameters
-			? sctpParameters.maxMessageSize
-			: null;
+		this._maxSctpMessageSize = sctpParameters?.maxMessageSize;
 
 		// Clone and sanitize additionalSettings.
 		const clonedAdditionalSettings = utils.clone(additionalSettings) ?? {};
@@ -500,8 +498,10 @@ export class Transport<
 	 */
 	async produce<ProducerAppData extends AppData = AppData>({
 		track,
+		streamId,
 		encodings,
 		codecOptions,
+		headerExtensionOptions,
 		codec,
 		stopTracks = true,
 		disableTrackOnPause = true,
@@ -542,7 +542,7 @@ export class Transport<
 
 					if (encodings && !Array.isArray(encodings)) {
 						throw TypeError('encodings must be an array');
-					} else if (encodings && encodings.length === 0) {
+					} else if (encodings?.length === 0) {
 						normalizedEncodings = undefined;
 					} else if (encodings) {
 						normalizedEncodings = encodings.map(encoding => {
@@ -586,8 +586,10 @@ export class Transport<
 					const { localId, rtpParameters, rtpSender } =
 						await this._handler.send({
 							track,
+							streamId,
 							encodings: normalizedEncodings,
 							codecOptions,
+							headerExtensionOptions,
 							codec,
 							onRtpSender,
 						});
@@ -763,11 +765,13 @@ export class Transport<
 		return this._awaitQueue.push(async () => {
 			const { dataChannel, sctpStreamParameters } =
 				await this._handler.sendDataChannel({
-					ordered,
-					maxPacketLifeTime,
-					maxRetransmits,
-					label,
-					protocol,
+					sctpStreamParameters: {
+						ordered,
+						maxPacketLifeTime,
+						maxRetransmits,
+						label,
+						protocol,
+					},
 				});
 
 			// This will fill sctpStreamParameters's missing fields with default values.
@@ -847,6 +851,7 @@ export class Transport<
 		// Enqueue command.
 		return this._awaitQueue.push(async () => {
 			const { dataChannel } = await this._handler.receiveDataChannel({
+				maxMessageSize: this._maxSctpMessageSize!,
 				sctpStreamParameters: clonedSctpStreamParameters,
 				label,
 				protocol,
@@ -900,8 +905,8 @@ export class Transport<
 						task.consumerOptions;
 
 					optionsList.push({
-						trackId: id!,
-						kind: kind!,
+						trackId: id,
+						kind: kind,
 						rtpParameters,
 						streamId,
 						onRtpReceiver,
@@ -918,9 +923,9 @@ export class Transport<
 							task.consumerOptions;
 						const { localId, rtpReceiver, track } = result;
 						const consumer: Consumer<ConsumerAppData> = new Consumer({
-							id: id!,
+							id,
 							localId,
-							producerId: producerId!,
+							producerId,
 							rtpReceiver,
 							track,
 							rtpParameters,

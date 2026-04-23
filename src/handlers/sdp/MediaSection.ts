@@ -107,20 +107,30 @@ export abstract class MediaSection {
 
 	disable(): void {
 		this.pause();
+	}
 
-		delete this._mediaObject.ext;
+	close(): void {
+		this.disable();
+
+		// Set port in m= line to 0, which means that the media sction is closed.
+		this._mediaObject.port = 0;
+
+		// NOTE: Do not remove header extensions since it's controversial in the spec.
+		delete this._mediaObject.candidates;
+		delete this._mediaObject.endOfCandidates;
+		delete this._mediaObject.iceUfrag;
+		delete this._mediaObject.icePwd;
+		delete this._mediaObject.iceOptions;
+		this._mediaObject.rtp = [];
+		this._mediaObject.fmtp = [];
+		delete this._mediaObject.rtcp;
+		delete this._mediaObject.rtcpFb;
 		delete this._mediaObject.ssrcs;
 		delete this._mediaObject.ssrcGroups;
 		delete this._mediaObject.simulcast;
 		delete this._mediaObject.simulcast_03;
 		delete this._mediaObject.rids;
 		delete this._mediaObject.extmapAllowMixed;
-	}
-
-	close(): void {
-		this.disable();
-
-		this._mediaObject.port = 0;
 	}
 }
 
@@ -479,6 +489,7 @@ export class OfferMediaSection extends MediaSection {
 		plainRtpParameters?: PlainRtpParameters;
 		mid: string;
 		kind: MediaKind | 'application';
+		// Those are optionals because they are only given if `kind` is a MediaKind.
 		offerRtpParameters?: RtpParameters;
 		streamId?: string;
 		trackId?: string;
@@ -518,7 +529,9 @@ export class OfferMediaSection extends MediaSection {
 				this._mediaObject.rtp = [];
 				this._mediaObject.rtcpFb = [];
 				this._mediaObject.fmtp = [];
-				this._mediaObject.msid = `${streamId ?? '-'} ${trackId}`;
+				// @ts-expect-error --- @types/sdp-transform 2.15.0 is not ready for
+				// sdp-transform 3.0.0.
+				this._mediaObject.msid = [{ id: streamId, appdata: trackId }];
 
 				for (const codec of offerRtpParameters!.codecs) {
 					const rtp: SdpTransform.MediaAttributes['rtp'][number] = {

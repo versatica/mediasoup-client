@@ -19,11 +19,19 @@ import type {
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities } from '../SctpParameters';
+import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
+import {
+	FakeEventListener,
+	FakeAddEventListenerOptions,
+	FakeEventListenerOptions,
+} from './fakeEvents/FakeEventListener';
+import { FakeEvent } from './fakeEvents/FakeEvent';
 import type {
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -33,13 +41,6 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
-import {
-	FakeEventListener,
-	FakeAddEventListenerOptions,
-	FakeEventListenerOptions,
-} from './fakeEvents/FakeEventListener';
-import { FakeEvent } from './fakeEvents/FakeEvent';
 
 const logger = new Logger('FakeHandler');
 
@@ -65,6 +66,8 @@ export class FakeHandler
 	) => ExtendedRtpCapabilities;
 	// Local RTCP CNAME.
 	private _cname = `CNAME-${utils.generateRandomNumber()}`;
+	// Default sending MediaStream id.
+	private _defaultSendStreamId = `${utils.generateRandomNumber()}`;
 	// Got transport local and remote parameters.
 	private _transportReady = false;
 	// Next localId.
@@ -82,8 +85,10 @@ export class FakeHandler
 			name: NAME,
 			factory: (options: HandlerOptions): FakeHandler =>
 				new FakeHandler(options, fakeParameters),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				return FakeHandler.getLocalRtpCapabilities(fakeParameters);
 			},
@@ -179,7 +184,7 @@ export class FakeHandler
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions
+		{ track, streamId, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 
@@ -214,6 +219,8 @@ export class FakeHandler
 
 		sendingRtpParameters.mid = `mid-${utils.generateRandomNumber()}`;
 
+		sendingRtpParameters.msid = `${streamId ?? '-'} ${track.id}`;
+
 		if (!encodings) {
 			encodings = [{}];
 		}
@@ -234,6 +241,9 @@ export class FakeHandler
 			reducedSize: true,
 			mux: true,
 		};
+
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._defaultSendStreamId} ${track.id}`;
 
 		const localId = this._nextLocalId++;
 
@@ -324,11 +334,7 @@ export class FakeHandler
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertNotClosed();
 
@@ -340,21 +346,21 @@ export class FakeHandler
 
 		const dataChannel = new FakeRTCDataChannel({
 			id: this._nextSctpStreamId++,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			label,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			label: sctpStreamParameters.label,
+			protocol: sctpStreamParameters.protocol,
 		});
 
-		const sctpStreamParameters = {
+		const newSctpStreamParameters = {
 			streamId: this._nextSctpStreamId,
-			ordered: ordered,
-			maxPacketLifeTime: maxPacketLifeTime,
-			maxRetransmits: maxRetransmits,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -422,6 +428,7 @@ export class FakeHandler
 	}
 
 	async receiveDataChannel({
+		// maxMessageSize,
 		sctpStreamParameters,
 		label,
 		protocol,

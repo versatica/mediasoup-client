@@ -13,13 +13,16 @@ import type {
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
+import * as ortcUtils from './ortc/utils';
 import type {
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -29,7 +32,6 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { RemoteSdp } from './sdp/RemoteSdp';
 
 const logger = new Logger('Firefox120');
 
@@ -48,14 +50,14 @@ export class Firefox120
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
 	private _getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 	// RTCPeerConnection instance.
 	private _pc: RTCPeerConnection;
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
-	// Local stream for sending.
+	// Default local stream for sending if no `streamId` is given in send().
 	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
@@ -71,8 +73,10 @@ export class Firefox120
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Firefox120 => new Firefox120(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
@@ -92,10 +96,10 @@ export class Firefox120
 				const fakeVideoTrack = fakeStream.getVideoTracks()[0]!;
 
 				try {
-					pc.addTransceiver('audio', { direction: 'sendrecv' });
+					pc.addTransceiver('audio', { direction });
 
 					pc.addTransceiver(fakeVideoTrack, {
-						direction: 'sendrecv',
+						direction,
 						sendEncodings: [
 							{ rid: 'r0', maxBitrate: 100000 },
 							{ rid: 'r1', maxBitrate: 500000 },
@@ -136,6 +140,7 @@ export class Firefox120
 						pc?.close();
 					} catch (error2) {}
 
+					// eslint-disable-next-line no-useless-assignment
 					pc = undefined;
 
 					throw error;
@@ -336,6 +341,7 @@ export class Firefox120
 
 	async send({
 		track,
+		streamId,
 		encodings,
 		codecOptions,
 		codec,
@@ -344,7 +350,12 @@ export class Firefox120
 		this.assertNotClosed();
 		this.assertSendDirection();
 
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+		logger.debug(
+			'send() [kind:%s, track.id:%s, streamId:%s]',
+			track.kind,
+			track.id,
+			streamId
+		);
 
 		if (encodings && encodings.length > 1) {
 			encodings.forEach((encoding: RtpEncodingParameters, idx: number) => {
@@ -429,10 +440,14 @@ export class Firefox120
 			offerMediaObject,
 		});
 
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
+
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 		}
 		// Set RTP encodings by parsing the SDP offer and complete them with given
@@ -440,6 +455,7 @@ export class Firefox120
 		else if (encodings.length === 1) {
 			const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 
 			Object.assign(newEncodings[0]!, encodings[0]);
@@ -774,11 +790,7 @@ export class Firefox120
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -786,15 +798,18 @@ export class Firefox120
 		const options = {
 			negotiated: true,
 			id: this._nextSendSctpStreamId,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			protocol: sctpStreamParameters.protocol,
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const dataChannel = this._pc.createDataChannel(label!, options);
+		const dataChannel = this._pc.createDataChannel(
+			sctpStreamParameters.label!,
+			options
+		);
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
@@ -837,14 +852,14 @@ export class Firefox120
 			this._hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters: SctpStreamParameters = {
+		const newSctpStreamParameters: SctpStreamParameters = {
 			streamId: options.id,
 			ordered: options.ordered,
 			maxPacketLifeTime: options.maxPacketLifeTime,
 			maxRetransmits: options.maxRetransmits,
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -865,11 +880,17 @@ export class Firefox120
 
 			mapLocalId.set(trackId, localId);
 
+			// We ignore MSID `trackId` when consuming and always use our computed
+			// `trackId` which matches the `consumer.id`.
+			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
+				rtpParameters.msid
+			);
+
 			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId ?? rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? msidStreamId ?? rtpParameters.rtcp?.cname ?? '-',
 				trackId,
 			});
 		}
@@ -1097,6 +1118,7 @@ export class Firefox120
 	}
 
 	async receiveDataChannel({
+		maxMessageSize,
 		sctpStreamParameters,
 		label,
 		protocol,
@@ -1141,16 +1163,25 @@ export class Firefox120
 
 			await this._pc.setRemoteDescription(offer);
 
-			const answer = await this._pc.createAnswer();
+			let answer = await this._pc.createAnswer();
+			const localSdpObject = sdpTransform.parse(answer.sdp!);
+			const answerMediaObject = localSdpObject.media.find(
+				m => m.type === 'application'
+			)!;
+
+			answerMediaObject.maxMessageSize = maxMessageSize;
 
 			if (!this._transportReady) {
-				const localSdpObject = sdpTransform.parse(answer.sdp!);
-
 				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
+			answer = {
+				type: 'answer',
+				sdp: sdpTransform.write(localSdpObject),
+			};
+
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				'receiveDataChannel() | calling pc.setLocalDescription() [answer:%o]',
 				answer
 			);
 

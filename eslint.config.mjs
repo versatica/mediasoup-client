@@ -125,7 +125,6 @@ const config = tsEslint.config(
 		files: ['src/**/*.ts'],
 		languageOptions: {
 			parserOptions: {
-				projectService: true,
 				project: 'tsconfig.json',
 			},
 		},
@@ -164,6 +163,7 @@ const config = tsEslint.config(
 			'@typescript-eslint/require-await': 0,
 			'@typescript-eslint/restrict-template-expressions': 0,
 			'@typescript-eslint/unbound-method': 0,
+			'@typescript-eslint/no-redundant-type-constituents': 0,
 		},
 	},
 	{

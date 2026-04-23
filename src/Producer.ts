@@ -13,8 +13,10 @@ const logger = new Logger('Producer');
 
 export type ProducerOptions<ProducerAppData extends AppData = AppData> = {
 	track?: MediaStreamTrack;
+	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	headerExtensionOptions?: ProducerHeaderExtensionOptions;
 	codec?: RtpCodecCapability;
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
@@ -41,6 +43,11 @@ export type ProducerCodecOptions = {
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;
 	videoGoogleMinBitrate?: number;
+};
+
+// https://mediasoup.org/documentation/v3/mediasoup-client/api/#HeaderExtensionOptions
+export type ProducerHeaderExtensionOptions = {
+	absCaptureTime?: boolean;
 };
 
 export type ProducerEvents = {
@@ -98,7 +105,7 @@ export class Producer<
 	private _stopTracks: boolean;
 	// Whether the Producer should set track.enabled = false when paused.
 	private _disableTrackOnPause: boolean;
-	// Whether we should replace the RTCRtpSender.track with null when paused.
+	// Whether we should mark the transceiver as inactive when paused.
 	private _zeroRtpOnPause: boolean;
 	// App custom data.
 	private _appData: ProducerAppData;
@@ -146,7 +153,7 @@ export class Producer<
 		this.onTrackEnded = this.onTrackEnded.bind(this);
 
 		// NOTE: Minor issue. If zeroRtpOnPause is true, we cannot emit the
-		// '@replacetrack' event here, so RTCRtpSender.track won't be null.
+		// '@replacetrack' event here.
 
 		this.handleTrack();
 	}
@@ -367,7 +374,7 @@ export class Producer<
 			}
 
 			throw new InvalidStateError('closed');
-		} else if (track && track.readyState === 'ended') {
+		} else if (track?.readyState === 'ended') {
 			throw new InvalidStateError('track ended');
 		}
 

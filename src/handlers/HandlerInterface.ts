@@ -6,7 +6,11 @@ import type {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import type { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
+import type {
+	ProducerCodecOptions,
+	ProducerHeaderExtensionOptions,
+	OnRtpSenderCallback,
+} from '../Producer';
 import type { OnRtpReceiverCallback } from '../Consumer';
 import type {
 	RtpCapabilities,
@@ -21,6 +25,15 @@ import type {
 	SctpStreamParameters,
 } from '../SctpParameters';
 
+export type HandlerFactory = {
+	name: string;
+	factory: (options: HandlerOptions) => HandlerInterface;
+	getNativeRtpCapabilities(
+		options: HandlerGetNativeRtpCapabilitiesOptions
+	): Promise<RtpCapabilities>;
+	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+};
+
 export type HandlerOptions = {
 	direction: 'send' | 'recv';
 	iceParameters: IceParameters;
@@ -31,21 +44,26 @@ export type HandlerOptions = {
 	iceTransportPolicy?: RTCIceTransportPolicy;
 	additionalSettings?: Partial<RTCConfiguration>;
 	getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 };
 
-export type HandlerFactory = {
-	name: string;
-	factory: (options: HandlerOptions) => HandlerInterface;
-	getNativeRtpCapabilities(): Promise<RtpCapabilities>;
-	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
+export type HandlerGetNativeRtpCapabilitiesOptions = {
+	direction: Extract<RTCRtpTransceiverDirection, 'sendonly' | 'recvonly'>;
 };
 
 export type HandlerSendOptions = {
 	track: MediaStreamTrack;
+	/**
+	 * Stream id (it affects the `id` field of the `a=msid` attribute in the
+	 * local SDP. If not given, all `Producers` will have the same `streamId`
+	 * in their `rtpParameters.msid`. Such a value tells consuming endpoints
+	 * which tracks to syncronize on reception.
+	 */
+	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
+	headerExtensionOptions?: ProducerHeaderExtensionOptions;
 	codec?: RtpCodecCapability;
 	onRtpSender?: OnRtpSenderCallback;
 };
@@ -61,8 +79,9 @@ export type HandlerReceiveOptions = {
 	kind: 'audio' | 'video';
 	rtpParameters: RtpParameters;
 	/**
-	 * Stream id. WebRTC based devices try to synchronize inbound streams with
-	 * same streamId. If not given, the consuming device will be told to
+	 * Stream id (it affects the `id` field of the `a=msid` attribute in the
+	 * remote SDP. WebRTC based devices try to synchronize inbound streams with
+	 * same `streamId`. If not given, the consuming device will be told to
 	 * synchronize all streams produced by the same endpoint. However libwebrtc
 	 * can just synchronize up to one audio stream with one video stream.
 	 */
@@ -76,7 +95,9 @@ export type HandlerReceiveResult = {
 	rtpReceiver?: RTCRtpReceiver;
 };
 
-export type HandlerSendDataChannelOptions = SctpStreamParameters;
+export type HandlerSendDataChannelOptions = {
+	sctpStreamParameters: SctpStreamParameters;
+};
 
 export type HandlerSendDataChannelResult = {
 	dataChannel: RTCDataChannel;
@@ -84,6 +105,7 @@ export type HandlerSendDataChannelResult = {
 };
 
 export type HandlerReceiveDataChannelOptions = {
+	maxMessageSize: number;
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;

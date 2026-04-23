@@ -10,8 +10,11 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	ExtendedRtpCapabilities,
+	RtpHeaderExtensionUri,
+	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
@@ -20,6 +23,7 @@ import type {
 	HandlerInterface,
 	HandlerEvents,
 	HandlerOptions,
+	HandlerGetNativeRtpCapabilitiesOptions,
 	HandlerSendOptions,
 	HandlerSendResult,
 	HandlerReceiveOptions,
@@ -29,12 +33,11 @@ import type {
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
 } from './HandlerInterface';
-import { RemoteSdp } from './sdp/RemoteSdp';
 
 const logger = new Logger('Chrome111');
 
 const NAME = 'Chrome111';
-const SCTP_NUM_STREAMS = { OS: 1024, MIS: 1024 };
+const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class Chrome111
 	extends EnhancedEventEmitter<HandlerEvents>
@@ -48,7 +51,7 @@ export class Chrome111
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
 	private _getSendExtendedRtpCapabilities: (
-		nativeRtpCapabilities: RtpCapabilities
+		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
@@ -58,7 +61,7 @@ export class Chrome111
 	// Map of RTCTransceivers indexed by MID.
 	private readonly _mapMidTransceiver: Map<string, RTCRtpTransceiver> =
 		new Map();
-	// Local stream for sending.
+	// Default local stream for sending if no `streamId` is given in send().
 	private readonly _sendStream = new MediaStream();
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
@@ -74,8 +77,10 @@ export class Chrome111
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
-			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
-				logger.debug('getNativeRtpCapabilities()');
+			getNativeRtpCapabilities: async ({
+				direction,
+			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				let pc: RTCPeerConnection | undefined = new RTCPeerConnection({
 					iceServers: [],
@@ -85,10 +90,11 @@ export class Chrome111
 				});
 
 				try {
-					pc.addTransceiver('audio');
+					pc.addTransceiver('audio', { direction });
 					// Create video transceiver with scalability mode in order to retrieve
 					// Dependency Descriptor header extension.
 					pc.addTransceiver('video', {
+						direction,
 						sendEncodings: [{ scalabilityMode: 'L3T3' }],
 					});
 
@@ -110,6 +116,7 @@ export class Chrome111
 						pc?.close();
 					} catch (error2) {}
 
+					// eslint-disable-next-line no-useless-assignment
 					pc = undefined;
 
 					throw error;
@@ -126,7 +133,12 @@ export class Chrome111
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription
+		localSdpObject: SdpTransform.SessionDescription,
+		extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = []
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -137,6 +149,13 @@ export class Chrome111
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
+
+		for (const headerExtension of extraHeaderExtensions) {
+			ortcUtils.addHeaderExtensionSupport(
+				nativeRtpCapabilities,
+				headerExtension
+			);
+		}
 
 		return nativeRtpCapabilities;
 	}
@@ -322,15 +341,22 @@ export class Chrome111
 
 	async send({
 		track,
+		streamId,
 		encodings,
 		codecOptions,
+		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
 
-		logger.debug('send() [kind:%s, track.id:%s]', track.kind, track.id);
+		logger.debug(
+			'send() [kind:%s, track.id:%s, streamId:%s]',
+			track.kind,
+			track.id,
+			streamId
+		);
 
 		if (encodings && encodings.length > 1) {
 			// Set rid and verify scalabilityMode in each encoding.
@@ -367,15 +393,30 @@ export class Chrome111
 			onRtpSender(transceiver.sender);
 		}
 
-		const offer = await this._pc.createOffer();
+		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const nativeRtpCapabilities =
-			Chrome111.getLocalRtpCapabilities(localSdpObject);
+		const extraHeaderExtensions: {
+			uri: RtpHeaderExtensionUri;
+			kind: MediaKind;
+			direction: RtpHeaderExtensionDirection;
+		}[] = [];
+
+		extraHeaderExtensions.push({
+			uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+			kind: track.kind as MediaKind,
+			direction: 'sendonly',
+		});
+
+		const nativeRtpCapabilities = Chrome111.getLocalRtpCapabilities(
+			localSdpObject,
+			extraHeaderExtensions
+		);
+
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
 		);
@@ -411,6 +452,27 @@ export class Chrome111
 			});
 		}
 
+		// Optimize. Only generate a new offer if needed.
+		if (headerExtensionOptions?.absCaptureTime) {
+			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+
+			sdpCommonUtils.addHeaderExtension({
+				offerMediaObject,
+				headerExtensionUri:
+					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
+					headerExtension =>
+						headerExtension.uri ===
+						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
+				)!.id,
+			});
+
+			offer = {
+				type: 'offer',
+				sdp: sdpTransform.write(localSdpObject),
+			};
+		}
+
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
 
 		await this._pc.setLocalDescription(offer);
@@ -430,10 +492,14 @@ export class Chrome111
 			offerMediaObject,
 		});
 
+		// Set msid.
+		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
+
 		// Set RTP encodings by parsing the SDP offer if no encodings are given.
 		if (!encodings) {
 			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 		}
 		// Set RTP encodings by parsing the SDP offer and complete them with given
@@ -441,6 +507,7 @@ export class Chrome111
 		else if (encodings.length === 1) {
 			const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
 				offerMediaObject,
+				codecs: sendingRtpParameters.codecs,
 			});
 
 			Object.assign(newEncodings[0]!, encodings[0]);
@@ -760,11 +827,7 @@ export class Chrome111
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -772,15 +835,18 @@ export class Chrome111
 		const options = {
 			negotiated: true,
 			id: this._nextSendSctpStreamId,
-			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime,
+			maxRetransmits: sctpStreamParameters.maxRetransmits,
+			protocol: sctpStreamParameters.protocol,
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const dataChannel = this._pc.createDataChannel(label!, options);
+		const dataChannel = this._pc.createDataChannel(
+			sctpStreamParameters.label!,
+			options
+		);
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
@@ -826,14 +892,14 @@ export class Chrome111
 			this._hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters: SctpStreamParameters = {
+		const newSctpStreamParameters: SctpStreamParameters = {
 			streamId: options.id,
 			ordered: options.ordered,
 			maxPacketLifeTime: options.maxPacketLifeTime,
 			maxRetransmits: options.maxRetransmits,
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -854,11 +920,17 @@ export class Chrome111
 
 			mapLocalId.set(trackId, localId);
 
+			// We ignore MSID `trackId` when consuming and always use our computed
+			// `trackId` which matches the `consumer.id`.
+			const { msidStreamId } = ortcUtils.getMsidStreamIdAndTrackId(
+				rtpParameters.msid
+			);
+
 			this._remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
-				streamId: streamId ?? rtpParameters.rtcp!.cname!,
+				streamId: streamId ?? msidStreamId ?? rtpParameters.rtcp?.cname ?? '-',
 				trackId,
 			});
 		}
@@ -1090,6 +1162,7 @@ export class Chrome111
 	}
 
 	async receiveDataChannel({
+		maxMessageSize,
 		sctpStreamParameters,
 		label,
 		protocol,
@@ -1134,19 +1207,28 @@ export class Chrome111
 
 			await this._pc.setRemoteDescription(offer);
 
-			const answer = await this._pc.createAnswer();
+			let answer = await this._pc.createAnswer();
+			const localSdpObject = sdpTransform.parse(answer.sdp!);
+			const answerMediaObject = localSdpObject.media.find(
+				m => m.type === 'application'
+			)!;
+
+			answerMediaObject.maxMessageSize = maxMessageSize;
 
 			if (!this._transportReady) {
-				const localSdpObject = sdpTransform.parse(answer.sdp!);
-
 				await this.setupTransport({
 					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject,
 				});
 			}
 
+			answer = {
+				type: 'answer',
+				sdp: sdpTransform.write(localSdpObject),
+			};
+
 			logger.debug(
-				'receiveDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				'receiveDataChannel() | calling pc.setLocalDescription() [answer:%o]',
 				answer
 			);
 

@@ -213,7 +213,7 @@ function installDeps() {
 	executeCmd('npm install --package-lock-only --ignore-scripts');
 
 	// Check vulnerabilities in deps.
-	executeCmd('npm audit');
+	executeCmd('npm audit --omit dev');
 }
 
 function checkRelease() {

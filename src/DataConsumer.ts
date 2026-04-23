@@ -7,8 +7,8 @@ const logger = new Logger('DataConsumer');
 
 export type DataConsumerOptions<DataConsumerAppData extends AppData = AppData> =
 	{
-		id?: string;
-		dataProducerId?: string;
+		id: string;
+		dataProducerId: string;
 		sctpStreamParameters: SctpStreamParameters;
 		label?: string;
 		protocol?: string;

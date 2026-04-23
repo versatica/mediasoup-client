@@ -16,8 +16,9 @@ import type {
 import type { ProducerCodecOptions } from '../../Producer';
 import type { MediaKind, RtpParameters } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
+import { version as mediasoupClientVersion } from '../../';
 
-const DD_CODECS = ['av1', 'h264'];
+const DependencyDescriptorCodecs = ['av1', 'h264'];
 
 const logger = new Logger('RemoteSdp');
 
@@ -67,7 +68,7 @@ export class RemoteSdp {
 				netType: 'IN',
 				sessionId: '10000',
 				sessionVersion: 0,
-				username: 'mediasoup-client',
+				username: `mediasoup-client-v${mediasoupClientVersion}`,
 			},
 			name: '-',
 			timing: { start: 0, stop: 0 },
@@ -84,6 +85,8 @@ export class RemoteSdp {
 
 		// If DTLS parameters are given, assume WebRTC and BUNDLE.
 		if (dtlsParameters) {
+			// NOTE: This is not standard anymore (it was removed in RFC 8830),
+			// however some WebRTC clients still rely on it.
 			this._sdpObject.msidSemantic = { semantic: 'WMS', token: '*' };
 
 			// NOTE: We take the latest fingerprint.
@@ -179,7 +182,7 @@ export class RemoteSdp {
 		// Remove Dependency Descriptor extension unless there is support for
 		// the codec in mediasoup.
 		const ddCodec = mediaObject.rtp.find(rtp =>
-			DD_CODECS.includes(rtp.codec.toLowerCase())
+			DependencyDescriptorCodecs.includes(rtp.codec.toLowerCase())
 		);
 
 		if (!ddCodec) {
@@ -192,20 +195,20 @@ export class RemoteSdp {
 
 		// Unified-Plan with closed media section replacement.
 		if (reuseMid) {
-			this._replaceMediaSection(mediaSection, reuseMid);
+			this.replaceMediaSection(mediaSection, reuseMid);
 		}
 		// Unified-Plan or Plan-B with different media kind.
 		else if (!this._midToIndex.has(mediaSection.mid)) {
 			if (localSdpMedia) {
-				this._syncMediaWithLocalSdp(localSdpMedia, mediaSection);
+				this.syncMediaWithLocalSdp(localSdpMedia, mediaSection);
 			}
 			else {
-				this._addMediaSection(mediaSection);
+				this.addMediaSection(mediaSection);
 			}
 		}
 		// Plan-B with same media kind.
 		else {
-			this._replaceMediaSection(mediaSection);
+			this.replaceMediaSection(mediaSection);
 		}
 	}
 
@@ -239,36 +242,40 @@ export class RemoteSdp {
 		});
 
 		// Let's try to recycle a closed media section (if any).
-		// NOTE: Yes, we can recycle a closed m=audio section with a new m=video.
-		const oldMediaSection = this._mediaSections.find(m => m.closed);
+		// NOTE: We cannot recycle a closed m=audio section as m=video (or vice
+		// versa). Firefox rejects the SDP when the media type of a recycled m-line
+		// changes.
+		const oldMediaSection = this._mediaSections.find(
+			m => m.closed && m.getObject().type === kind
+		);
 
 		if (oldMediaSection) {
-			this._replaceMediaSection(mediaSection, oldMediaSection.mid);
+			this.replaceMediaSection(mediaSection, oldMediaSection.mid);
 		} else {
-			this._addMediaSection(mediaSection);
+			this.addMediaSection(mediaSection);
 		}
 	}
 
 	pauseMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.pause();
 	}
 
 	resumeSendingMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.resume();
 	}
 
 	resumeReceivingMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.resume();
 	}
 
 	disableMediaSection(mid: string): void {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		mediaSection.disable();
 	}
@@ -281,7 +288,7 @@ export class RemoteSdp {
 	 * transport, so instead closing it we just disable it.
 	 */
 	closeMediaSection(mid: string): boolean {
-		const mediaSection = this._findMediaSection(mid);
+		const mediaSection = this.findMediaSection(mid);
 
 		// NOTE: Closing the first m section is a pain since it invalidates the
 		// bundled transport, so let's avoid it.
@@ -299,7 +306,7 @@ export class RemoteSdp {
 		mediaSection.close();
 
 		// Regenerate BUNDLE mids.
-		this._regenerateBundleMids();
+		this.regenerateBundleMids();
 
 		return true;
 	}
@@ -308,11 +315,11 @@ export class RemoteSdp {
 		mid: string,
 		encodings: RTCRtpEncodingParameters[]
 	): void {
-		const mediaSection = this._findMediaSection(mid) as AnswerMediaSection;
+		const mediaSection = this.findMediaSection(mid) as AnswerMediaSection;
 
 		mediaSection.muxSimulcastStreams(encodings);
 
-		this._replaceMediaSection(mediaSection);
+		this.replaceMediaSection(mediaSection);
 	}
 
 	sendSctpAssociation({
@@ -329,7 +336,7 @@ export class RemoteSdp {
 			offerMediaObject,
 		});
 
-		this._addMediaSection(mediaSection);
+		this.addMediaSection(mediaSection);
 	}
 
 	receiveSctpAssociation(): void {
@@ -343,7 +350,7 @@ export class RemoteSdp {
 			kind: 'application',
 		});
 
-		this._addMediaSection(mediaSection);
+		this.addMediaSection(mediaSection);
 	}
 
 	getSdp(): string {
@@ -353,7 +360,7 @@ export class RemoteSdp {
 		return sdpTransform.write(this._sdpObject);
 	}
 
-	_addMediaSection(newMediaSection: MediaSection): void {
+	private addMediaSection(newMediaSection: MediaSection): void {
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;
 		}
@@ -368,10 +375,13 @@ export class RemoteSdp {
 		this._sdpObject.media.push(newMediaSection.getObject());
 
 		// Regenerate BUNDLE mids.
-		this._regenerateBundleMids();
+		this.regenerateBundleMids();
 	}
 
-	_replaceMediaSection(newMediaSection: MediaSection, reuseMid?: string): void {
+	private replaceMediaSection(
+		newMediaSection: MediaSection,
+		reuseMid?: string
+	): void {
 		// Store it in the map.
 		if (typeof reuseMid === 'string') {
 			const idx = this._midToIndex.get(reuseMid);
@@ -393,7 +403,7 @@ export class RemoteSdp {
 			this._sdpObject.media[idx] = newMediaSection.getObject();
 
 			// Regenerate BUNDLE mids.
-			this._regenerateBundleMids();
+			this.regenerateBundleMids();
 		} else {
 			const idx = this._midToIndex.get(newMediaSection.mid);
 
@@ -411,7 +421,10 @@ export class RemoteSdp {
 		}
 	}
 
-	_syncMediaWithLocalSdp(localSdpMedia: SdpTransform.MediaDescription[], newMediaSection: MediaSection): void	{
+	private syncMediaWithLocalSdp(
+		localSdpMedia: SdpTransform.MediaDescription[],
+		newMediaSection: MediaSection
+	): void	{
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;
 		}
@@ -450,10 +463,10 @@ export class RemoteSdp {
 		}
 
 		// Regenerate BUNDLE mids.
-		this._regenerateBundleMids();
+		this.regenerateBundleMids();
 	}
 
-	_findMediaSection(mid: string): MediaSection {
+	private findMediaSection(mid: string): MediaSection {
 		const idx = this._midToIndex.get(mid);
 
 		if (idx === undefined) {
@@ -463,7 +476,7 @@ export class RemoteSdp {
 		return this._mediaSections[idx]!;
 	}
 
-	_regenerateBundleMids(): void {
+	private regenerateBundleMids(): void {
 		if (!this._dtlsParameters) {
 			return;
 		}
