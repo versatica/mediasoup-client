@@ -154,14 +154,12 @@ export class RemoteSdp {
 	send({
 		offerMediaObject,
 		reuseMid,
-		localSdpMedia,
 		offerRtpParameters,
 		answerRtpParameters,
 		codecOptions,
 	}: {
 		offerMediaObject: SdpTransform.MediaDescription;
 		reuseMid?: string;
-		localSdpMedia?: SdpTransform.MediaDescription[];
 		offerRtpParameters: RtpParameters;
 		answerRtpParameters: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
