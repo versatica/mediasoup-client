@@ -199,12 +199,7 @@ export class RemoteSdp {
 		}
 		// Unified-Plan or Plan-B with different media kind.
 		else if (!this._midToIndex.has(mediaSection.mid)) {
-			if (localSdpMedia) {
-				this.syncMediaWithLocalSdp(localSdpMedia, mediaSection);
-			}
-			else {
-				this.addMediaSection(mediaSection);
-			}
+			this.addMediaSection(mediaSection);
 		}
 		// Plan-B with same media kind.
 		else {
@@ -360,6 +355,10 @@ export class RemoteSdp {
 		return sdpTransform.write(this._sdpObject);
 	}
 
+	getMediaSection(idx: number): MediaSection | undefined {
+		return idx < this._mediaSections.length ? this._mediaSections[idx] : undefined;
+        }
+
 	private addMediaSection(newMediaSection: MediaSection): void {
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;
@@ -419,51 +418,6 @@ export class RemoteSdp {
 			// Update the SDP object.
 			this._sdpObject.media[idx] = newMediaSection.getObject();
 		}
-	}
-
-	private syncMediaWithLocalSdp(
-		localSdpMedia: SdpTransform.MediaDescription[],
-		newMediaSection: MediaSection
-	): void	{
-		if (!this._firstMid) {
-			this._firstMid = newMediaSection.mid;
-		}
-
-		// Append new section to the existing vector and the SDP object.
-		let idx = this._mediaSections.length;
-
-		this._mediaSections.push(newMediaSection);
-		this._sdpObject.media.push(newMediaSection.getObject());
-
-		// Add it to the map.
-		this._midToIndex.set(newMediaSection.mid, idx);
-
-		// Copy data to the temporary collections.
-		const mediaSections = this._mediaSections.slice();
-		const media = this._sdpObject.media.slice();
-
-		// Clean up existing collections.
-		this._mediaSections.length = this._sdpObject.media.length = 0;
-
-		// Refill media sections vector and SDP object media
-		// using the order of sections in the local SDP offer.
-		for (const mediaSection of localSdpMedia) {
-			const i = this._midToIndex.get(String(mediaSection.mid));
-
-			if (i !== undefined) {
-				this._mediaSections.push(mediaSections[i]!);
-				this._sdpObject.media.push(media[i]!);
-			}
-		}
-
-		// Recreate map.
-		this._midToIndex.clear();
-		for (idx = 0; idx < this._mediaSections.length; ++idx) {
-			this._midToIndex.set(this._mediaSections[idx]!.mid, idx);
-		}
-
-		// Regenerate BUNDLE mids.
-		this.regenerateBundleMids();
 	}
 
 	private findMediaSection(mid: string): MediaSection {

@@ -432,8 +432,10 @@ export class Firefox120
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
-		const offerMediaObject =
-			localSdpObject.media[localSdpObject.media.findIndex((s) => s.mid == localId)]!;
+		const idx = localSdpObject.media.findIndex((s) => s.mid == localId);
+		const oldMediaSection = this._remoteSdp.getMediaSection(idx);
+
+		const offerMediaObject = localSdpObject.media[idx]!;
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -485,7 +487,7 @@ export class Firefox120
 
 		this._remoteSdp.send({
 			offerMediaObject,
-			localSdpMedia : localSdpObject.media,
+			reuseMid: oldMediaSection && oldMediaSection.closed ? oldMediaSection.mid : undefined,
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
