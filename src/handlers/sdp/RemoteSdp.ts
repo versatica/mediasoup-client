@@ -320,6 +320,10 @@ export class RemoteSdp {
 	}: {
 		offerMediaObject: SdpTransform.MediaDescription;
 	}): void {
+		if (offerMediaObject.mid && this._midToIndex.has(offerMediaObject.mid)) {
+			return;
+		}
+
 		const mediaSection = new AnswerMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
@@ -333,6 +337,10 @@ export class RemoteSdp {
 	}
 
 	receiveSctpAssociation(): void {
+		if (this._midToIndex.has('datachannel')) {
+			return;
+		}
+
 		const mediaSection = new OfferMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
