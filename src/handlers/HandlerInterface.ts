@@ -186,4 +186,6 @@ export abstract class HandlerInterface extends EnhancedEventEmitter<HandlerEvent
 	abstract receiveDataChannel(
 		options: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>;
+
+	abstract getDataChannelMaxMessageSize(): number | undefined;
 }

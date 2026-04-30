@@ -453,6 +453,10 @@ export class FakeHandler
 		return { dataChannel };
 	}
 
+	getDataChannelMaxMessageSize(): number | undefined {
+		return 500000;
+	}
+
 	private async setupTransport({
 		localDtlsRole,
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars

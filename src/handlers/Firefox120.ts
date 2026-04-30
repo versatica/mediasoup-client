@@ -1201,6 +1201,10 @@ export class Firefox120
 		return { dataChannel };
 	}
 
+	getDataChannelMaxMessageSize(): number | undefined {
+		return this._pc.sctp?.maxMessageSize;
+	}
+
 	private async setupTransport({
 		localDtlsRole,
 		localSdpObject,
