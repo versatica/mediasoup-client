@@ -875,6 +875,10 @@ export class Transport<
 		}, 'transport.consumeData()');
 	}
 
+	getDataChannelMaxMessageSize(): number | undefined {
+		return this._handler.getDataChannelMaxMessageSize();
+	}
+
 	// This method is guaranteed to never throw.
 	private createPendingConsumers<ConsumerAppData extends AppData>(): void {
 		this._consumerCreationInProgress = true;
