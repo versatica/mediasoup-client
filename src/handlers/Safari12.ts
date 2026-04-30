@@ -451,7 +451,7 @@ export class Safari12
 			});
 
 			offer = {
-				type: 'offer' as RTCSdpType,
+				type: 'offer',
 				sdp: sdpTransform.write(localSdpObject),
 			};
 		}
@@ -992,7 +992,7 @@ export class Safari12
 		}
 
 		answer = {
-			type: 'answer' as RTCSdpType,
+			type: 'answer',
 			sdp: sdpTransform.write(localSdpObject),
 		};
 

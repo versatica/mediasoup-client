@@ -983,7 +983,7 @@ export class Chrome111
 		}
 
 		answer = {
-			type: 'answer' as RTCSdpType,
+			type: 'answer',
 			sdp: sdpTransform.write(localSdpObject),
 		};
 

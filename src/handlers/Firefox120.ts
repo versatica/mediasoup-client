@@ -950,7 +950,7 @@ export class Firefox120
 			});
 
 			answer = {
-				type: 'answer' as RTCSdpType,
+				type: 'answer',
 				sdp: sdpTransform.write(localSdpObject),
 			};
 		}

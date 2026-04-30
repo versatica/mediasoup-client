@@ -462,7 +462,7 @@ export class ReactNative106
 			});
 
 			offer = {
-				type: 'offer' as RTCSdpType,
+				type: 'offer',
 				sdp: sdpTransform.write(localSdpObject),
 			};
 		}
@@ -1040,7 +1040,7 @@ export class ReactNative106
 		}
 
 		answer = {
-			type: 'answer' as RTCSdpType,
+			type: 'answer',
 			sdp: sdpTransform.write(localSdpObject),
 		};
 

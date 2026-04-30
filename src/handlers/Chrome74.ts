@@ -450,7 +450,7 @@ export class Chrome74
 			});
 
 			offer = {
-				type: 'offer' as RTCSdpType,
+				type: 'offer',
 				sdp: sdpTransform.write(localSdpObject),
 			};
 		}
@@ -989,7 +989,7 @@ export class Chrome74
 		}
 
 		answer = {
-			type: 'answer' as RTCSdpType,
+			type: 'answer',
 			sdp: sdpTransform.write(localSdpObject),
 		};
 
