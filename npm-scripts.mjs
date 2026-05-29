@@ -6,20 +6,18 @@ import pkg from './package.json' with { type: 'json' };
 
 const MAYOR_VERSION = pkg.version.split('.')[0];
 
-// Paths for ESLint to check. Converted to string for convenience.
+// Paths for ESLint to check.
 const ESLINT_PATHS = [
 	'eslint.config.mjs',
 	'jest.config.mjs',
 	'npm-scripts.mjs',
 	'src',
-].join(' ');
+];
 
-// Paths for ESLint to ignore. Converted to string argument for convenience.
-const ESLINT_IGNORE_PATTERN_ARGS = []
-	.map(entry => `--ignore-pattern ${entry}`)
-	.join(' ');
+// Paths for ESLint to ignore.
+const ESLINT_IGNORE_PATHS = [];
 
-// Paths for Prettier to check/write. Converted to string for convenience.
+// Paths for Prettier to check/write.
 const PRETTIER_PATHS = [
 	'README.md',
 	'eslint.config.mjs',
@@ -28,7 +26,7 @@ const PRETTIER_PATHS = [
 	'package.json',
 	'tsconfig.json',
 	'src',
-].join(' ');
+];
 
 const task = process.argv[2];
 const taskArgs = process.argv.slice(3).join(' ');
@@ -177,17 +175,28 @@ function lint() {
 	// rules.
 	executeCmd('eslint-config-prettier eslint.config.mjs');
 
+	const eslintIgnorePatternArgs = ESLINT_IGNORE_PATHS.map(
+		entry => `--ignore-pattern ${entry}`
+	).join(' ');
+	const eslintFiles = ESLINT_PATHS.join(' ');
+
 	executeCmd(
-		`eslint -c eslint.config.mjs --max-warnings 0 ${ESLINT_IGNORE_PATTERN_ARGS} ${ESLINT_PATHS}`
+		`eslint -c eslint.config.mjs --max-warnings 0 ${eslintIgnorePatternArgs} ${eslintFiles}`
 	);
 
-	executeCmd(`prettier --check ${PRETTIER_PATHS}`);
+	const prettierFiles = PRETTIER_PATHS.join(' ');
+
+	executeCmd(`prettier --check ${prettierFiles}`);
+
+	executeCmd('knip --config knip.config.mjs --treat-config-hints-as-errors');
 }
 
 function format() {
 	logInfo('format()');
 
-	executeCmd(`prettier --write ${PRETTIER_PATHS}`);
+	const prettierFiles = PRETTIER_PATHS.join(' ');
+
+	executeCmd(`prettier --write ${prettierFiles}`);
 }
 
 function test() {

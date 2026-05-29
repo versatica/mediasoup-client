@@ -85,17 +85,17 @@
 		"@eslint/js": "^10.0.1",
 		"@types/jest": "^30.0.0",
 		"@types/sdp-transform": "^2.15.0",
-		"@types/ua-parser-js": "^0.7.39",
-		"eslint": "^10.2.1",
+		"eslint": "^10.4.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-jest": "^29.15.2",
-		"eslint-plugin-prettier": "^5.5.5",
-		"globals": "^17.5.0",
-		"jest": "^30.3.0",
+		"eslint-plugin-prettier": "^5.5.6",
+		"globals": "^17.6.0",
+		"jest": "^30.4.2",
+		"knip": "^6.14.2",
 		"open-cli": "^9.0.0",
 		"prettier": "^3.8.3",
-		"ts-jest": "^29.4.9",
-		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.59.1"
+		"ts-jest": "^29.4.11",
+		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.60.0"
 	}
 }
