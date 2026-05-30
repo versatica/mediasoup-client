@@ -353,6 +353,10 @@ export class RemoteSdp {
 		return sdpTransform.write(this._sdpObject);
 	}
 
+	getMediaSection(idx: number): MediaSection | undefined {
+		return idx < this._mediaSections.length ? this._mediaSections[idx] : undefined;
+        }
+
 	private addMediaSection(newMediaSection: MediaSection): void {
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;

@@ -363,12 +363,6 @@ export class Firefox120
 			});
 		}
 
-		// NOTE: Firefox fails sometimes to properly anticipate the closed media
-		// section that it should use, so don't reuse closed media sections.
-		//   https://github.com/versatica/mediasoup-client/issues/104
-		//
-		// const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
-
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
 			streams: [this._sendStream],
@@ -438,8 +432,10 @@ export class Firefox120
 
 		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
-		const offerMediaObject =
-			localSdpObject.media[localSdpObject.media.length - 1]!;
+		const idx = localSdpObject.media.findIndex((s) => s.mid == localId);
+		const oldMediaSection = this._remoteSdp.getMediaSection(idx);
+
+		const offerMediaObject = localSdpObject.media[idx]!;
 
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -491,6 +487,7 @@ export class Firefox120
 
 		this._remoteSdp.send({
 			offerMediaObject,
+			reuseMid: oldMediaSection && oldMediaSection.closed ? oldMediaSection.mid : undefined,
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
@@ -535,20 +532,17 @@ export class Firefox120
 
 		void transceiver.sender.replaceTrack(null);
 
-		// NOTE: Cannot use stop() the transceiver due to the the note above in
-		// send() method.
-		// try
-		// {
-		// 	transceiver.stop();
-		// }
-		// catch (error)
-		// {}
-
 		this._pc.removeTrack(transceiver.sender);
-		// NOTE: Cannot use closeMediaSection() due to the the note above in send()
-		// method.
-		// this._remoteSdp.closeMediaSection(transceiver.mid);
-		this._remoteSdp.disableMediaSection(transceiver.mid!);
+
+		const mediaSectionClosed = this._remoteSdp.closeMediaSection(
+			transceiver.mid!
+		);
+
+		if (mediaSectionClosed) {
+			try {
+				transceiver.stop();
+			} catch (error) {}
+		}
 
 		const offer = await this._pc.createOffer();
 
