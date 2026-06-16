@@ -220,8 +220,8 @@ export class Transport<
 	// Whether we can produce audio/video based on computed extended RTP
 	// capabilities.
 	private readonly _canProduceByKind: CanProduceByKind;
-	// SCTP max message size if enabled.
-	private readonly _maxSctpMessageSize?: number;
+	// SCTP parameters of the mediasoup transport.
+	private readonly _sctpParameters?: SctpParameters;
 	// RTC handler isntance.
 	private readonly _handler: HandlerInterface;
 	// Transport ICE gathering state.
@@ -295,7 +295,19 @@ export class Transport<
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 		this._recvRtpCapabilities = recvRtpCapabilities;
 		this._canProduceByKind = canProduceByKind;
-		this._maxSctpMessageSize = sctpParameters?.maxMessageSize;
+		// NOTE: Let's clone received SctpParameters and adapt them to be backwards
+		// compatible with old mediasoup server versions.
+		this._sctpParameters = utils.clone(sctpParameters);
+
+		if (this._sctpParameters) {
+			this._sctpParameters.maxSendMessageSize =
+				this._sctpParameters.maxSendMessageSize ??
+				this._sctpParameters.maxMessageSize;
+
+			this._sctpParameters.maxReceiveMessageSize =
+				this._sctpParameters.maxReceiveMessageSize ??
+				this._sctpParameters.maxMessageSize;
+		}
 
 		// Clone and sanitize additionalSettings.
 		const clonedAdditionalSettings = utils.clone(additionalSettings) ?? {};
@@ -310,7 +322,7 @@ export class Transport<
 			iceParameters,
 			iceCandidates,
 			dtlsParameters,
-			sctpParameters,
+			sctpParameters: this._sctpParameters,
 			iceServers,
 			iceTransportPolicy,
 			additionalSettings: clonedAdditionalSettings,
@@ -518,7 +530,7 @@ export class Transport<
 		} else if (!track) {
 			throw new TypeError('missing track');
 		} else if (this._direction !== 'send') {
-			throw new UnsupportedError('not a sending Transport');
+			throw new UnsupportedError('not a sending transport');
 		} else if (!this._canProduceByKind[track.kind]) {
 			throw new UnsupportedError(`cannot produce ${track.kind}`);
 		} else if (track.readyState === 'ended') {
@@ -669,7 +681,7 @@ export class Transport<
 		if (this._closed) {
 			throw new InvalidStateError('closed');
 		} else if (this._direction !== 'recv') {
-			throw new UnsupportedError('not a receiving Transport');
+			throw new UnsupportedError('not a receiving transport');
 		} else if (typeof id !== 'string') {
 			throw new TypeError('missing id');
 		} else if (typeof producerId !== 'string') {
@@ -743,9 +755,9 @@ export class Transport<
 		if (this._closed) {
 			throw new InvalidStateError('closed');
 		} else if (this._direction !== 'send') {
-			throw new UnsupportedError('not a sending Transport');
-		} else if (!this._maxSctpMessageSize) {
-			throw new UnsupportedError('SCTP not enabled by remote Transport');
+			throw new UnsupportedError('not a sending transport');
+		} else if (!this._sctpParameters) {
+			throw new UnsupportedError('SCTP not enabled by remote transport');
 		} else if (
 			this.listenerCount('connect') === 0 &&
 			this._connectionState === 'new'
@@ -826,9 +838,9 @@ export class Transport<
 		if (this._closed) {
 			throw new InvalidStateError('closed');
 		} else if (this._direction !== 'recv') {
-			throw new UnsupportedError('not a receiving Transport');
-		} else if (!this._maxSctpMessageSize) {
-			throw new UnsupportedError('SCTP not enabled by remote Transport');
+			throw new UnsupportedError('not a receiving transport');
+		} else if (!this._sctpParameters) {
+			throw new UnsupportedError('SCTP not enabled by remote transport');
 		} else if (typeof id !== 'string') {
 			throw new TypeError('missing id');
 		} else if (typeof dataProducerId !== 'string') {
@@ -851,7 +863,8 @@ export class Transport<
 		// Enqueue command.
 		return this._awaitQueue.push(async () => {
 			const { dataChannel } = await this._handler.receiveDataChannel({
-				maxMessageSize: this._maxSctpMessageSize!,
+				// NOTE: Mirror it.
+				maxMessageSize: this._sctpParameters?.maxSendMessageSize,
 				sctpStreamParameters: clonedSctpStreamParameters,
 				label,
 				protocol,

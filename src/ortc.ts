@@ -14,11 +14,7 @@ import type {
 	ExtendedRtpCodecCapability,
 	ExtendedRtpHeaderExtension,
 } from './RtpParameters';
-import type {
-	SctpCapabilities,
-	NumSctpStreams,
-	SctpStreamParameters,
-} from './SctpParameters';
+import type { SctpStreamParameters } from './SctpParameters';
 import * as utils from './utils';
 
 const RTP_PROBATOR_MID = 'probator';
@@ -185,23 +181,6 @@ export function validateAndNormalizeSctpStreamParameters(
 	if (params.protocol && typeof params.protocol !== 'string') {
 		throw new TypeError('invalid params.protocol');
 	}
-}
-
-/**
- * Validates SctpCapabilities.
- * It throws if invalid.
- */
-export function validateSctpCapabilities(caps: SctpCapabilities): void {
-	if (typeof caps !== 'object') {
-		throw new TypeError('caps is not an object');
-	}
-
-	// numStreams is mandatory.
-	if (!caps.numStreams || typeof caps.numStreams !== 'object') {
-		throw new TypeError('missing caps.numStreams');
-	}
-
-	validateNumSctpStreams(caps.numStreams);
 }
 
 /**
@@ -1000,26 +979,6 @@ function validateAndNormalizeRtcpParameters(rtcp: RtcpParameters): void {
 	// reducedSize is optional. If unset set it to true.
 	if (!rtcp.reducedSize || typeof rtcp.reducedSize !== 'boolean') {
 		rtcp.reducedSize = true;
-	}
-}
-
-/**
- * Validates NumSctpStreams.
- * It throws if invalid.
- */
-function validateNumSctpStreams(numStreams: NumSctpStreams): void {
-	if (typeof numStreams !== 'object') {
-		throw new TypeError('numStreams is not an object');
-	}
-
-	// OS is mandatory.
-	if (typeof numStreams.OS !== 'number') {
-		throw new TypeError('missing numStreams.OS');
-	}
-
-	// MIS is mandatory.
-	if (typeof numStreams.MIS !== 'number') {
-		throw new TypeError('missing numStreams.MIS');
 	}
 }
 

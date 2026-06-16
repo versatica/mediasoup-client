@@ -19,11 +19,7 @@ import type {
 	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
-import type {
-	SctpCapabilities,
-	SctpParameters,
-	SctpStreamParameters,
-} from '../SctpParameters';
+import type { SctpParameters, SctpStreamParameters } from '../SctpParameters';
 
 export type HandlerFactory = {
 	name: string;
@@ -31,7 +27,6 @@ export type HandlerFactory = {
 	getNativeRtpCapabilities(
 		options: HandlerGetNativeRtpCapabilitiesOptions
 	): Promise<RtpCapabilities>;
-	getNativeSctpCapabilities(): Promise<SctpCapabilities>;
 };
 
 export type HandlerOptions = {
@@ -105,7 +100,7 @@ export type HandlerSendDataChannelResult = {
 };
 
 export type HandlerReceiveDataChannelOptions = {
-	maxMessageSize: number;
+	maxMessageSize?: number;
 	sctpStreamParameters: SctpStreamParameters;
 	label?: string;
 	protocol?: string;

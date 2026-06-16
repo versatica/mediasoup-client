@@ -18,7 +18,6 @@ import type {
 	RtpParameters,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
-import type { SctpCapabilities } from '../SctpParameters';
 import { FakeEventTarget } from './fakeEvents/FakeEventTarget';
 import {
 	FakeEventListener,
@@ -48,7 +47,6 @@ const NAME = 'FakeHandler';
 
 export type FakeParameters = {
 	generateNativeRtpCapabilities: () => RtpCapabilities;
-	generateNativeSctpCapabilities: () => SctpCapabilities;
 	generateLocalDtlsParameters: () => DtlsParameters;
 };
 
@@ -91,11 +89,6 @@ export class FakeHandler
 				logger.debug('getNativeRtpCapabilities() [direction:%o]', direction);
 
 				return FakeHandler.getLocalRtpCapabilities(fakeParameters);
-			},
-			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
-				logger.debug('getNativeSctpCapabilities()');
-
-				return fakeParameters.generateNativeSctpCapabilities();
 			},
 		};
 	}

@@ -12,7 +12,7 @@ import type {
 	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
-import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
@@ -36,7 +36,6 @@ import type {
 const logger = new Logger('Firefox120');
 
 const NAME = 'Firefox120';
-const SCTP_NUM_STREAMS = { OS: 16, MIS: 2048 };
 
 export class Firefox120
 	extends EnhancedEventEmitter<HandlerEvents>
@@ -46,6 +45,8 @@ export class Firefox120
 	private _closed = false;
 	// Handler direction.
 	private _direction: 'send' | 'recv';
+	// DataChannel max receive message size.
+	private _sctpMaxReceiveMessageSize?: number;
 	// Remote SDP handler.
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
@@ -146,13 +147,6 @@ export class Firefox120
 					throw error;
 				}
 			},
-			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
-				logger.debug('getNativeSctpCapabilities()');
-
-				return {
-					numStreams: SCTP_NUM_STREAMS,
-				};
-			},
 		};
 	}
 
@@ -185,6 +179,9 @@ export class Firefox120
 		logger.debug('constructor()');
 
 		this._direction = direction;
+
+		// NOTE: Mirror it.
+		this._sctpMaxReceiveMessageSize = sctpParameters?.maxSendMessageSize;
 
 		this._remoteSdp = new RemoteSdp({
 			iceParameters,
@@ -821,7 +818,7 @@ export class Firefox120
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
-			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
+			++this._nextSendSctpStreamId % (this._pc.sctp?.maxChannels ?? 65536);
 
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
@@ -1177,7 +1174,9 @@ export class Firefox120
 				m => m.type === 'application'
 			)!;
 
-			answerMediaObject.maxMessageSize = maxMessageSize;
+			if (typeof maxMessageSize === 'number') {
+				answerMediaObject.maxMessageSize = maxMessageSize;
+			}
 
 			if (!this._transportReady) {
 				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
@@ -1202,7 +1201,9 @@ export class Firefox120
 	}
 
 	getDataChannelMaxMessageSize(): number | undefined {
-		return this._pc.sctp?.maxMessageSize;
+		return this._direction === 'send'
+			? this._pc.sctp?.maxMessageSize
+			: this._sctpMaxReceiveMessageSize;
 	}
 
 	private async setupTransport({

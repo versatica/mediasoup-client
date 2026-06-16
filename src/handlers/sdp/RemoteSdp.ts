@@ -2,10 +2,10 @@ import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
 import { Logger } from '../../Logger';
 import {
-	MediaSection,
-	AnswerMediaSection,
-	OfferMediaSection,
-} from './MediaSection';
+	RemoteMediaSection,
+	RemoteAnswerMediaSection,
+	RemoteOfferMediaSection,
+} from './RemoteMediaSection';
 import type {
 	IceParameters,
 	IceCandidate,
@@ -33,9 +33,9 @@ export class RemoteSdp {
 	private readonly _sctpParameters?: SctpParameters;
 	// Parameters for plain RTP (no SRTP nor DTLS no BUNDLE).
 	private readonly _plainRtpParameters?: PlainRtpParameters;
-	// MediaSection instances with same order as in the SDP.
-	private readonly _mediaSections: MediaSection[] = [];
-	// MediaSection indices indexed by MID.
+	// RemoteMediaSection instances with same order as in the SDP.
+	private readonly _mediaSections: RemoteMediaSection[] = [];
+	// RemoteMediaSection indices indexed by MID.
 	private readonly _midToIndex: Map<string, number> = new Map();
 	// First MID.
 	private _firstMid?: string;
@@ -164,7 +164,7 @@ export class RemoteSdp {
 		answerRtpParameters: RtpParameters;
 		codecOptions?: ProducerCodecOptions;
 	}): void {
-		const mediaSection = new AnswerMediaSection({
+		const mediaSection = new RemoteAnswerMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
 			dtlsParameters: this._dtlsParameters,
@@ -222,7 +222,7 @@ export class RemoteSdp {
 		// mediasoup can send both at any time.
 		this.setSessionExtmapAllowMixed();
 
-		const mediaSection = new OfferMediaSection({
+		const mediaSection = new RemoteOfferMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
 			dtlsParameters: this._dtlsParameters,
@@ -308,7 +308,7 @@ export class RemoteSdp {
 		mid: string,
 		encodings: RTCRtpEncodingParameters[]
 	): void {
-		const mediaSection = this.findMediaSection(mid) as AnswerMediaSection;
+		const mediaSection = this.findMediaSection(mid) as RemoteAnswerMediaSection;
 
 		mediaSection.muxSimulcastStreams(encodings);
 
@@ -320,7 +320,7 @@ export class RemoteSdp {
 	}: {
 		offerMediaObject: SdpTransform.MediaDescription;
 	}): void {
-		const mediaSection = new AnswerMediaSection({
+		const mediaSection = new RemoteAnswerMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
 			dtlsParameters: this._dtlsParameters,
@@ -333,7 +333,7 @@ export class RemoteSdp {
 	}
 
 	receiveSctpAssociation(): void {
-		const mediaSection = new OfferMediaSection({
+		const mediaSection = new RemoteOfferMediaSection({
 			iceParameters: this._iceParameters,
 			iceCandidates: this._iceCandidates,
 			dtlsParameters: this._dtlsParameters,
@@ -353,7 +353,7 @@ export class RemoteSdp {
 		return sdpTransform.write(this._sdpObject);
 	}
 
-	private addMediaSection(newMediaSection: MediaSection): void {
+	private addMediaSection(newMediaSection: RemoteMediaSection): void {
 		if (!this._firstMid) {
 			this._firstMid = newMediaSection.mid;
 		}
@@ -372,7 +372,7 @@ export class RemoteSdp {
 	}
 
 	private replaceMediaSection(
-		newMediaSection: MediaSection,
+		newMediaSection: RemoteMediaSection,
 		reuseMid?: string
 	): void {
 		// Store it in the map.
@@ -414,7 +414,7 @@ export class RemoteSdp {
 		}
 	}
 
-	private findMediaSection(mid: string): MediaSection {
+	private findMediaSection(mid: string): RemoteMediaSection {
 		const idx = this._midToIndex.get(mid);
 
 		if (idx === undefined) {
@@ -430,8 +430,8 @@ export class RemoteSdp {
 		}
 
 		this._sdpObject.groups![0]!.mids = this._mediaSections
-			.filter((mediaSection: MediaSection) => !mediaSection.closed)
-			.map((mediaSection: MediaSection) => mediaSection.mid)
+			.filter((mediaSection: RemoteMediaSection) => !mediaSection.closed)
+			.map((mediaSection: RemoteMediaSection) => mediaSection.mid)
 			.join(' ');
 	}
 }
