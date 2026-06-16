@@ -283,6 +283,10 @@ export class Producer<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**

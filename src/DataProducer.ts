@@ -196,6 +196,10 @@ export class DataProducer<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	/**
@@ -251,15 +255,21 @@ export class DataProducer<
 				return;
 			}
 
-			logger.warn('DataChannel "close" event');
+			logger.debug('DataChannel "close" event');
 
 			this._closed = true;
+
+			this._dataChannel.close();
 
 			this.emit('@close');
 			this.safeEmit('close');
 
 			// Emit observer event.
 			this._observer.safeEmit('close');
+
+			// Invoke close() in EnhancedEventEmitter classes.
+			super.close();
+			this._observer.close();
 		});
 
 		this._dataChannel.addEventListener('message', () => {

@@ -478,10 +478,9 @@ export class Transport<
 		}
 
 		// Enqueue command.
-		return this._awaitQueue.push(
-			async () => await this._handler.restartIce(iceParameters),
-			'transport.restartIce()'
-		);
+		await this._awaitQueue.push(async () => {
+			await this._handler.restartIce(iceParameters);
+		}, 'transport.restartIce()');
 	}
 
 	/**
@@ -499,10 +498,9 @@ export class Transport<
 		}
 
 		// Enqueue command.
-		return this._awaitQueue.push(
-			async () => this._handler.updateIceServers(iceServers),
-			'transport.updateIceServers()'
-		);
+		await this._awaitQueue.push(async () => {
+			await this._handler.updateIceServers(iceServers);
+		}, 'transport.updateIceServers()');
 	}
 
 	/**
@@ -1186,7 +1184,7 @@ export class Transport<
 		handler.on(
 			'@icecandidateerror',
 			(event: RTCPeerConnectionIceErrorEvent) => {
-				logger.warn(
+				logger.debug(
 					`ICE candidate error [url:${event.url}, localAddress:${event.address}, localPort:${event.port}]: ${event.errorCode} "${event.errorText}"`
 				);
 
@@ -1218,69 +1216,61 @@ export class Transport<
 			}
 
 			this._awaitQueue
-				.push(
-					async () => await this._handler.stopSending(producer.localId),
-					'producer @close event'
-				)
+				.push(async () => {
+					await this._handler.stopSending(producer.localId);
+				}, 'producer @close event')
 				.catch((error: Error) =>
-					logger.warn('producer.close() failed:%o', error)
+					logger.warn('producer closure failed:%o', error)
 				);
 		});
 
 		producer.on('@pause', (callback, errback) => {
 			this._awaitQueue
-				.push(
-					async () => await this._handler.pauseSending(producer.localId),
-					'producer @pause event'
-				)
+				.push(async () => {
+					await this._handler.pauseSending(producer.localId);
+				}, 'producer @pause event')
 				.then(callback)
 				.catch(errback);
 		});
 
 		producer.on('@resume', (callback, errback) => {
 			this._awaitQueue
-				.push(
-					async () => await this._handler.resumeSending(producer.localId),
-					'producer @resume event'
-				)
+				.push(async () => {
+					await this._handler.resumeSending(producer.localId);
+				}, 'producer @resume event')
 				.then(callback)
 				.catch(errback);
 		});
 
 		producer.on('@replacetrack', (track, callback, errback) => {
 			this._awaitQueue
-				.push(
-					async () => await this._handler.replaceTrack(producer.localId, track),
-					'producer @replacetrack event'
-				)
+				.push(async () => {
+					await this._handler.replaceTrack(producer.localId, track);
+				}, 'producer @replacetrack event')
 				.then(callback)
 				.catch(errback);
 		});
 
 		producer.on('@setmaxspatiallayer', (spatialLayer, callback, errback) => {
 			this._awaitQueue
-				.push(
-					async () =>
-						await this._handler.setMaxSpatialLayer(
-							producer.localId,
-							spatialLayer
-						),
-					'producer @setmaxspatiallayer event'
-				)
+				.push(async () => {
+					await this._handler.setMaxSpatialLayer(
+						producer.localId,
+						spatialLayer
+					);
+				}, 'producer @setmaxspatiallayer event')
 				.then(callback)
 				.catch(errback);
 		});
 
 		producer.on('@setrtpencodingparameters', (params, callback, errback) => {
 			this._awaitQueue
-				.push(
-					async () =>
-						await this._handler.setRtpEncodingParameters(
-							producer.localId,
-							params
-						),
-					'producer @setrtpencodingparameters event'
-				)
+				.push(async () => {
+					await this._handler.setRtpEncodingParameters(
+						producer.localId,
+						params
+					);
+				}, 'producer @setrtpencodingparameters event')
 				.then(callback)
 				.catch(errback);
 		});
