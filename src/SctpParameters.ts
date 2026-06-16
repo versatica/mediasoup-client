@@ -1,35 +1,24 @@
-export type SctpCapabilities = {
-	numStreams: NumSctpStreams;
-};
-
-export type NumSctpStreams = {
-	/**
-	 * Initially requested number of outgoing SCTP streams.
-	 */
-	OS: number;
-	/**
-	 * Maximum number of incoming SCTP streams.
-	 */
-	MIS: number;
-};
-
 export type SctpParameters = {
 	/**
-	 * Must always equal 5000.
+	 * SCTP source port of the mediasoup transport.
 	 */
 	port: number;
+
 	/**
-	 * Initially requested number of outgoing SCTP streams.
+	 * Maximum size for SCTP messages sent by mediasoup DataConsumers (in bytes).
 	 */
-	OS: number;
+	maxSendMessageSize: number;
+
 	/**
-	 * Maximum number of incoming SCTP streams.
+	 * Maximum size for SCTP messages received by mediasoup DataProducers (in
+	 * bytes).
 	 */
-	MIS: number;
-	/**
-	 * Maximum allowed size for SCTP messages.
-	 */
-	maxMessageSize: number;
+	maxReceiveMessageSize: number;
+
+	// TODO: SCTP: For backwards compatibility. Remove them in the future.
+	OS?: number;
+	MIS?: number;
+	maxMessageSize?: number;
 };
 
 /**
@@ -44,25 +33,31 @@ export type SctpStreamParameters = {
 	 * SCTP stream id.
 	 */
 	streamId?: number;
+
 	/**
 	 * Whether data messages must be received in order. if true the messages will
 	 * be sent reliably. Default true.
 	 */
 	ordered?: boolean;
+
 	/**
 	 * When ordered is false indicates the time (in milliseconds) after which a
 	 * SCTP packet will stop being retransmitted.
 	 */
+
 	maxPacketLifeTime?: number;
 	/**
 	 * When ordered is false indicates the maximum number of times a packet will
 	 * be retransmitted.
 	 */
+
 	maxRetransmits?: number;
+
 	/**
 	 * A label which can be used to distinguish this DataChannel from others.
 	 */
 	label?: string;
+
 	/**
 	 * Name of the sub-protocol used by this DataChannel.
 	 */

@@ -13,7 +13,7 @@ import type {
 	RtpHeaderExtensionUri,
 	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
-import type { SctpCapabilities, SctpStreamParameters } from '../SctpParameters';
+import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
 import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
@@ -37,7 +37,6 @@ import type {
 const logger = new Logger('Chrome111');
 
 const NAME = 'Chrome111';
-const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class Chrome111
 	extends EnhancedEventEmitter<HandlerEvents>
@@ -47,6 +46,8 @@ export class Chrome111
 	private _closed = false;
 	// Handler direction.
 	private _direction: 'send' | 'recv';
+	// DataChannel max receive message size.
+	private _sctpMaxReceiveMessageSize?: number;
 	// Remote SDP handler.
 	private _remoteSdp: RemoteSdp;
 	// Callback to request sending extended RTP capabilities on demand.
@@ -122,13 +123,6 @@ export class Chrome111
 					throw error;
 				}
 			},
-			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
-				logger.debug('getNativeSctpCapabilities()');
-
-				return {
-					numStreams: SCTP_NUM_STREAMS,
-				};
-			},
 		};
 	}
 
@@ -176,6 +170,9 @@ export class Chrome111
 		logger.debug('constructor()');
 
 		this._direction = direction;
+
+		// NOTE: Mirror it.
+		this._sctpMaxReceiveMessageSize = sctpParameters?.maxSendMessageSize;
 
 		this._remoteSdp = new RemoteSdp({
 			iceParameters,
@@ -850,7 +847,7 @@ export class Chrome111
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
-			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
+			++this._nextSendSctpStreamId % (this._pc.sctp?.maxChannels ?? 65536);
 
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
@@ -1213,7 +1210,9 @@ export class Chrome111
 				m => m.type === 'application'
 			)!;
 
-			answerMediaObject.maxMessageSize = maxMessageSize;
+			if (typeof maxMessageSize === 'number') {
+				answerMediaObject.maxMessageSize = maxMessageSize;
+			}
 
 			if (!this._transportReady) {
 				await this.setupTransport({
@@ -1241,7 +1240,9 @@ export class Chrome111
 	}
 
 	getDataChannelMaxMessageSize(): number | undefined {
-		return this._pc.sctp?.maxMessageSize;
+		return this._direction === 'send'
+			? this._pc.sctp?.maxMessageSize
+			: this._sctpMaxReceiveMessageSize;
 	}
 
 	private async setupTransport({

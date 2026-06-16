@@ -367,12 +367,6 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 	};
 }
 
-export function generateNativeSctpCapabilities(): mediasoupClient.types.SctpCapabilities {
-	return utils.deepFreeze<mediasoupClient.types.SctpCapabilities>({
-		numStreams: { OS: 2048, MIS: 2048 },
-	});
-}
-
 export function generateLocalDtlsParameters(): mediasoupClient.types.DtlsParameters {
 	return utils.deepFreeze<mediasoupClient.types.DtlsParameters>({
 		fingerprints: [
@@ -438,9 +432,8 @@ export function generateTransportRemoteParameters(): mediasoupClient.types.Trans
 		}),
 		sctpParameters: utils.deepFreeze<mediasoupClient.types.SctpParameters>({
 			port: 5000,
-			OS: 2048,
-			MIS: 2048,
-			maxMessageSize: 2000000,
+			maxSendMessageSize: 50000,
+			maxReceiveMessageSize: 50000,
 		}),
 	};
 }

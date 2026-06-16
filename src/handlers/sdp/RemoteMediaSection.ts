@@ -17,7 +17,7 @@ import type {
 } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
 
-export abstract class MediaSection {
+export abstract class RemoteMediaSection {
 	// SDP media object.
 	protected readonly _mediaObject: SdpTransform.MediaDescription;
 
@@ -134,7 +134,7 @@ export abstract class MediaSection {
 	}
 }
 
-export class AnswerMediaSection extends MediaSection {
+export class RemoteAnswerMediaSection extends RemoteMediaSection {
 	constructor({
 		iceParameters,
 		iceCandidates,
@@ -395,7 +395,8 @@ export class AnswerMediaSection extends MediaSection {
 				if (typeof offerMediaObject.sctpPort === 'number') {
 					this._mediaObject.payloads = 'webrtc-datachannel';
 					this._mediaObject.sctpPort = sctpParameters!.port;
-					this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
+					this._mediaObject.maxMessageSize =
+						sctpParameters!.maxReceiveMessageSize;
 				}
 				// Old spec.
 				else if (offerMediaObject.sctpmap) {
@@ -403,7 +404,7 @@ export class AnswerMediaSection extends MediaSection {
 					this._mediaObject.sctpmap = {
 						app: 'webrtc-datachannel',
 						sctpmapNumber: sctpParameters!.port,
-						maxMessageSize: sctpParameters!.maxMessageSize,
+						maxMessageSize: sctpParameters!.maxReceiveMessageSize,
 					};
 				}
 
@@ -469,7 +470,7 @@ export class AnswerMediaSection extends MediaSection {
 	}
 }
 
-export class OfferMediaSection extends MediaSection {
+export class RemoteOfferMediaSection extends RemoteMediaSection {
 	constructor({
 		iceParameters,
 		iceCandidates,
@@ -627,7 +628,8 @@ export class OfferMediaSection extends MediaSection {
 			case 'application': {
 				this._mediaObject.payloads = 'webrtc-datachannel';
 				this._mediaObject.sctpPort = sctpParameters!.port;
-				this._mediaObject.maxMessageSize = sctpParameters!.maxMessageSize;
+				this._mediaObject.maxMessageSize =
+					sctpParameters!.maxReceiveMessageSize;
 
 				break;
 			}

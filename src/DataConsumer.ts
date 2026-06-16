@@ -201,6 +201,10 @@ export class DataConsumer<
 
 		// Emit observer event.
 		this._observer.safeEmit('close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
+		this._observer.close();
 	}
 
 	private handleDataChannel(): void {
@@ -240,15 +244,21 @@ export class DataConsumer<
 				return;
 			}
 
-			logger.warn('DataChannel "close" event');
+			logger.debug('DataChannel "close" event');
 
 			this._closed = true;
+
+			this._dataChannel.close();
 
 			this.emit('@close');
 			this.safeEmit('close');
 
 			// Emit observer event.
 			this._observer.safeEmit('close');
+
+			// Invoke close() in EnhancedEventEmitter classes.
+			super.close();
+			this._observer.close();
 		});
 
 		this._dataChannel.addEventListener('message', event => {
