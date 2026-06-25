@@ -61,12 +61,14 @@
 	],
 	"scripts": {
 		"prepare": "node npm-scripts.mjs prepare",
+		"prepublishOnly": "node npm-scripts.mjs prepublishOnly",
 		"typescript:build": "node npm-scripts.mjs typescript:build",
 		"typescript:watch": "node npm-scripts.mjs typescript:watch",
 		"lint": "node npm-scripts.mjs lint",
 		"format": "node npm-scripts.mjs format",
 		"test": "node npm-scripts.mjs test",
 		"coverage": "node npm-scripts.mjs coverage",
+		"publish:dry-run": "node npm-scripts.mjs publish:dry-run",
 		"release:check": "node npm-scripts.mjs release:check",
 		"release": "node npm-scripts.mjs release"
 	},
