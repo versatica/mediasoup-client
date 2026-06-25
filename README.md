@@ -2,6 +2,9 @@
 
 [![][npm-shield-mediasoup-client]][npm-mediasoup-client]
 [![][github-actions-shield-mediasoup-client]][github-actions-mediasoup-client]
+[![][github-actions-shield-mediasoup-client-npm-publish]][github-actions-mediasoup-client-npm-publish]
+[![][github-actions-shield-mediasoup-website-update]][github-actions-mediasoup-website-update]
+[![][github-actions-shield-mediasoup-demo-update]][github-actions-mediasoup-demo-update]
 [![][opencollective-shield-mediasoup]][opencollective-mediasoup]
 
 TypeScript client side library for building [mediasoup][mediasoup-website] based applications.
@@ -154,6 +157,12 @@ You can support mediasoup by [sponsoring][sponsor] it. Thanks!
 [npm-mediasoup-client]: https://npmjs.org/package/mediasoup-client
 [github-actions-shield-mediasoup-client]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client.yaml/badge.svg?branch=v3
 [github-actions-mediasoup-client]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client.yaml?query=branch%3Av3
+[github-actions-shield-mediasoup-client-npm-publish]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client-npm-publish.yaml/badge.svg
+[github-actions-mediasoup-client-npm-publish]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-client-npm-publish.yaml
+[github-actions-shield-mediasoup-website-update]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-website-update.yaml/badge.svg
+[github-actions-mediasoup-website-update]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-website-update.yaml
+[github-actions-shield-mediasoup-demo-update]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-demo-update.yaml/badge.svg
+[github-actions-mediasoup-demo-update]: https://github.com/versatica/mediasoup-client/actions/workflows/mediasoup-demo-update.yaml
 [opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
 [opencollective-mediasoup]: https://opencollective.com/mediasoup/
 [sponsor]: https://mediasoup.org/sponsor/
