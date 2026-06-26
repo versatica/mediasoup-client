@@ -54,7 +54,6 @@ async function run() {
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare': {
 			buildTypescript({ force: false });
-			replaceVersion();
 
 			break;
 		}
@@ -67,7 +66,6 @@ async function run() {
 
 		case 'typescript:build': {
 			buildTypescript({ force: true, args: taskArgs });
-			replaceVersion();
 
 			break;
 		}
@@ -91,14 +89,12 @@ async function run() {
 		}
 
 		case 'test': {
-			replaceVersion();
 			test();
 
 			break;
 		}
 
 		case 'coverage': {
-			replaceVersion();
 			coverage({ args: taskArgs });
 
 			break;
@@ -283,7 +279,6 @@ function checkRelease() {
 
 	installDeps();
 	buildTypescript({ force: true });
-	replaceVersion();
 	lint();
 	test();
 	// Validate packaging (the `files` list in package.json) before the
@@ -325,6 +320,9 @@ async function release({ args = '' } = {}) {
 
 	// Bump the version in package.json + package-lock.json.
 	executeCmd(`npm version ${version} --no-git-tag-version`);
+
+	// Also replace the version in the transpiled JS.
+	replaceVersion();
 
 	// Commit the bump, tag it, and push both. The pushed tag triggers
 	// `mediasoup-client-npm-publish.yaml`, which checks, creates the GitHub
