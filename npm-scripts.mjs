@@ -241,7 +241,7 @@ function installDeps() {
  * `prepublishOnly` is run by NPM only on `npm publish` (not on `npm pack`,
  * `npm install` or `npm ci`). We use it to forbid publishing mediasoup-client
  * from a local machine. The package must only be published by the
- * `mediasoup-client-npm-publish.yaml` workflow, which runs inside GitHub Actions
+ * `mediasoup-client-npm-publish` workflow, which runs inside GitHub Actions
  * (where GITHUB_ACTIONS environment variable is set to 'true') and uses OIDC
  * trusted publishing.
  */
@@ -250,7 +250,7 @@ function prepublishOnly() {
 
 	if (process.env.GITHUB_ACTIONS !== 'true') {
 		logError(
-			"prepublishOnly() | refusing to 'npm publish' outside of GitHub Actions: mediasoup-client is published only by the mediasoup-client-npm-publish.yaml workflow (triggered by pushing a release tag via 'npm run release')"
+			"prepublishOnly() | refusing to 'npm publish' outside of GitHub Actions: mediasoup-client is published only by the mediasoup-client-npm-publish workflow (triggered by pushing a release tag via 'npm run release')"
 		);
 
 		exitWithError();
@@ -325,15 +325,15 @@ async function release({ args = '' } = {}) {
 	replaceVersion();
 
 	// Commit the bump, tag it, and push both. The pushed tag triggers
-	// `mediasoup-client-npm-publish.yaml`, which checks, creates the GitHub
+	// `mediasoup-client-npm-publish` workflow, which checks, creates the GitHub
 	// release and publishes to NPM.
 	//
 	// The commit message carries a "[no-ci]" marker so the regular branch CI
 	// workflow skips this commit.
 	//
 	// NOTE: "[no-ci]" (with a hyphen) is a custom marker, NOT GitHub's native
-	// "[skip ci]"/"[no ci]" (which would also skip mediasoup-npm-publish, since
-	// the tag push shares this same commit).
+	// "[skip ci]"/"[no ci]" (which would also skip `mediasoup-client-npm-publish`
+	// workflow, since the tag push shares this same commit).
 	executeCmd(`git commit -am 'release ${version} [no-ci]'`);
 	executeCmd(`git tag -a ${version} -m '${version}'`);
 	executeCmd(`git push origin ${MAIN_BRANCH}`);
