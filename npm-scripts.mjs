@@ -270,11 +270,11 @@ function publishDryRun() {
 	// package.json is already published (which is the usual state between
 	// releases), making it useless in CI.
 	//
-	// `npm pack --dry-run` still runs the `prepare` script (flatbuffers
-	// generation and TypeScript build) and assembles the tarball exactly as a
-	// real publish would, reporting its contents without writing any file or
-	// contacting the registry. Useful to validate the `files` list in
-	// package.json and that the package builds before tagging a release.
+	// `npm pack --dry-run` still runs the `prepare` script (TypeScript build)
+	// and assembles the tarball exactly as a real publish would, reporting its
+	// contents without writing any file or contacting the registry. Useful to
+	// validate the `files` list in package.json and that the package builds
+	// before tagging a release.
 	executeCmd('npm pack --dry-run --loglevel warn');
 }
 
