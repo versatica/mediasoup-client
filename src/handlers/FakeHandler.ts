@@ -522,8 +522,7 @@ class FakeRTCDataChannel extends FakeEventTarget implements RTCDataChannel {
 	private _onmessage: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
 	private _onbufferedamountlow:
-		| ((this: RTCDataChannel, ev: FakeEvent) => void)
-		| null = null;
+		((this: RTCDataChannel, ev: FakeEvent) => void) | null = null;
 	private _onerror: ((this: RTCDataChannel, ev: FakeEvent) => void) | null =
 		null;
 
@@ -670,8 +669,7 @@ class FakeRTCDataChannel extends FakeEventTarget implements RTCDataChannel {
 	}
 
 	get onbufferedamountlow():
-		| ((this: RTCDataChannel, ev: FakeEvent) => void)
-		| null {
+		((this: RTCDataChannel, ev: FakeEvent) => void) | null {
 		return this._onbufferedamountlow;
 	}
 

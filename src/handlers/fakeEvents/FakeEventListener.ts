@@ -1,8 +1,7 @@
 import { FakeEvent } from './FakeEvent';
 
 export type FakeEventListenerOrEventListenerObject =
-	| FakeEventListener
-	| FakeEventListenerObject;
+	FakeEventListener | FakeEventListenerObject;
 
 export interface FakeEventListener {
 	(evt: FakeEvent): void;

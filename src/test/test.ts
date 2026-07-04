@@ -1545,12 +1545,11 @@ test('transport.updateIceServers() rejects with InvalidStateError if closed', as
 test('connection state change does not fire "connectionstatechange" in closed Transport', () => {
 	let connectionStateChangeEventNumTimesCalled = 0;
 
-	ctx.connectedSendTransport!.on(
-		'connectionstatechange',
-		(/* connectionState */) => {
-			connectionStateChangeEventNumTimesCalled++;
-		}
-	);
+	ctx.connectedSendTransport!.on('connectionstatechange', (
+		/* connectionState */
+	) => {
+		connectionStateChangeEventNumTimesCalled++;
+	});
 
 	// @ts-expect-error --- On purpose.
 	ctx.connectedSendTransport!.handler.setConnectionState('disconnected');

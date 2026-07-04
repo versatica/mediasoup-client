@@ -24,11 +24,7 @@ import type { AppData } from './types';
 const logger = new Logger('Device');
 
 export type BuiltinHandlerName =
-	| 'Chrome111'
-	| 'Chrome74'
-	| 'Firefox120'
-	| 'Safari12'
-	| 'ReactNative106';
+	'Chrome111' | 'Chrome74' | 'Firefox120' | 'Safari12' | 'ReactNative106';
 
 export type DeviceOptions = {
 	/**

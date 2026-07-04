@@ -111,11 +111,7 @@ export type DtlsParameters = {
  * registry initially specified in RFC 4572 Section 8).
  */
 export type FingerprintAlgorithm =
-	| 'sha-1'
-	| 'sha-224'
-	| 'sha-256'
-	| 'sha-384'
-	| 'sha-512';
+	'sha-1' | 'sha-224' | 'sha-256' | 'sha-384' | 'sha-512';
 
 /**
  * The hash function algorithm (as defined in the "Hash function Textual Names"
@@ -133,12 +129,7 @@ export type DtlsRole = 'auto' | 'client' | 'server';
 export type IceGatheringState = 'new' | 'gathering' | 'complete';
 
 export type ConnectionState =
-	| 'new'
-	| 'connecting'
-	| 'connected'
-	| 'failed'
-	| 'disconnected'
-	| 'closed';
+	'new' | 'connecting' | 'connected' | 'failed' | 'disconnected' | 'closed';
 
 export type PlainRtpParameters = {
 	ip: string;

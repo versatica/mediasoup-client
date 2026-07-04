@@ -87,10 +87,9 @@ export function addLegacySimulcast({
 
 	// Get the SSRC.
 	const ssrcMsidLine:
-		| NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number]
-		| undefined = (offerMediaObject.ssrcs ?? []).find(
-		line => line.attribute === 'msid'
-	);
+		NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number] | undefined = (
+		offerMediaObject.ssrcs ?? []
+	).find(line => line.attribute === 'msid');
 
 	if (!ssrcMsidLine) {
 		throw new Error('a=ssrc line with msid information not found');
@@ -118,10 +117,9 @@ export function addLegacySimulcast({
 	});
 
 	const ssrcCnameLine:
-		| NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number]
-		| undefined = (offerMediaObject.ssrcs ?? []).find(
-		line => line.attribute === 'cname'
-	);
+		NonNullable<SdpTransform.MediaAttributes['ssrcs']>[number] | undefined = (
+		offerMediaObject.ssrcs ?? []
+	).find(line => line.attribute === 'cname');
 
 	if (!ssrcCnameLine) {
 		throw new Error('a=ssrc line with cname information not found');

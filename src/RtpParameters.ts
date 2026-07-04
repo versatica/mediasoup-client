@@ -70,10 +70,7 @@ export type RtpCodecCapability = {
  * Direction of RTP header extension.
  */
 export type RtpHeaderExtensionDirection =
-	| 'sendrecv'
-	| 'sendonly'
-	| 'recvonly'
-	| 'inactive';
+	'sendrecv' | 'sendonly' | 'recvonly' | 'inactive';
 
 /**
  * Provides information relating to supported header extensions. The list of
