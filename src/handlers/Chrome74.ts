@@ -375,11 +375,13 @@ export class Chrome74
 			direction: RtpHeaderExtensionDirection;
 		}[] = [];
 
-		extraHeaderExtensions.push({
-			uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-			kind: track.kind as MediaKind,
-			direction: 'sendonly',
-		});
+		if (headerExtensionOptions?.absCaptureTime) {
+			extraHeaderExtensions.push({
+				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
+				kind: track.kind as MediaKind,
+				direction: 'sendonly',
+			});
+		}
 
 		const nativeRtpCapabilities = Chrome74.getLocalRtpCapabilities(
 			localSdpObject,
