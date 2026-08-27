@@ -6,20 +6,25 @@ import type {
 	IceGatheringState,
 	ConnectionState,
 } from '../Transport';
-import type {
-	ProducerCodecOptions,
-	ProducerHeaderExtensionOptions,
-	OnRtpSenderCallback,
-} from '../Producer';
+import type { ProducerCodecOptions, OnRtpSenderCallback } from '../Producer';
 import type { OnRtpReceiverCallback } from '../Consumer';
 import type {
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpParameters,
 	RtpEncodingParameters,
+	RtpHeaderExtensionUri,
 	ExtendedRtpCapabilities,
 } from '../RtpParameters';
 import type { SctpParameters, SctpStreamParameters } from '../SctpParameters';
+
+export type HandlerFactoryOptions = {
+	forcedRtpExtensions?: HandlerForcedRtpExtensions;
+};
+
+export type HandlerForcedRtpExtensions = {
+	[K in RtpHeaderExtensionUri]?: boolean;
+};
 
 export type HandlerFactory = {
 	name: string;
@@ -41,6 +46,7 @@ export type HandlerOptions = {
 	getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	forcedRtpExtensions?: HandlerForcedRtpExtensions;
 };
 
 export type HandlerGetNativeRtpCapabilitiesOptions = {
@@ -58,7 +64,6 @@ export type HandlerSendOptions = {
 	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
-	headerExtensionOptions?: ProducerHeaderExtensionOptions;
 	codec?: RtpCodecCapability;
 	onRtpSender?: OnRtpSenderCallback;
 };

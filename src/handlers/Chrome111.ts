@@ -10,8 +10,6 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	ExtendedRtpCapabilities,
-	RtpHeaderExtensionUri,
-	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
@@ -19,6 +17,8 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import type {
+	HandlerFactoryOptions,
+	HandlerForcedRtpExtensions,
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
@@ -54,6 +54,7 @@ export class Chrome111
 	private _getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	private _forcedRtpExtensions?: HandlerForcedRtpExtensions;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -74,10 +75,13 @@ export class Chrome111
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory {
+	static createFactory({
+		forcedRtpExtensions,
+	}: HandlerFactoryOptions): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Chrome111 => new Chrome111(options),
+			factory: (options: HandlerOptions): Chrome111 =>
+				new Chrome111({ ...options, forcedRtpExtensions }),
 			getNativeRtpCapabilities: async ({
 				direction,
 			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
@@ -91,13 +95,28 @@ export class Chrome111
 				});
 
 				try {
-					pc.addTransceiver('audio', { direction });
+					const audioTransceiver = pc.addTransceiver('audio', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							audioTransceiver,
+							forcedRtpExtensions
+						);
+					}
+
 					// Create video transceiver with scalability mode in order to retrieve
 					// Dependency Descriptor header extension.
-					pc.addTransceiver('video', {
+					const videoTransceiver = pc.addTransceiver('video', {
 						direction,
 						sendEncodings: [{ scalabilityMode: 'L3T3' }],
 					});
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							videoTransceiver,
+							forcedRtpExtensions
+						);
+					}
 
 					const offer = await pc.createOffer();
 
@@ -127,12 +146,7 @@ export class Chrome111
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription,
-		extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = []
+		localSdpObject: SdpTransform.SessionDescription
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -143,13 +157,6 @@ export class Chrome111
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
-
-		for (const headerExtension of extraHeaderExtensions) {
-			ortcUtils.addHeaderExtensionSupport(
-				nativeRtpCapabilities,
-				headerExtension
-			);
-		}
 
 		return nativeRtpCapabilities;
 	}
@@ -164,6 +171,7 @@ export class Chrome111
 		iceTransportPolicy,
 		additionalSettings,
 		getSendExtendedRtpCapabilities,
+		forcedRtpExtensions,
 	}: HandlerOptions) {
 		super();
 
@@ -182,6 +190,8 @@ export class Chrome111
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+
+		this._forcedRtpExtensions = forcedRtpExtensions;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -341,7 +351,6 @@ export class Chrome111
 		streamId,
 		encodings,
 		codecOptions,
-		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
@@ -386,35 +395,27 @@ export class Chrome111
 			sendEncodings: encodings,
 		});
 
+		if (this._forcedRtpExtensions) {
+			ortcUtils.applyForcedRtpExtensions(
+				transceiver,
+				this._forcedRtpExtensions
+			);
+		}
+
 		if (onRtpSender) {
 			onRtpSender(transceiver.sender);
 		}
 
-		let offer = await this._pc.createOffer();
+		const offer = await this._pc.createOffer();
+
 		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
 		if (localSdpObject.extmapAllowMixed) {
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = [];
-
-		if (headerExtensionOptions?.absCaptureTime) {
-			extraHeaderExtensions.push({
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				kind: track.kind as MediaKind,
-				direction: 'sendonly',
-			});
-		}
-
-		const nativeRtpCapabilities = Chrome111.getLocalRtpCapabilities(
-			localSdpObject,
-			extraHeaderExtensions
-		);
+		const nativeRtpCapabilities =
+			Chrome111.getLocalRtpCapabilities(localSdpObject);
 
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
@@ -449,27 +450,6 @@ export class Chrome111
 				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
 				localSdpObject,
 			});
-		}
-
-		// Optimize. Only generate a new offer if needed.
-		if (headerExtensionOptions?.absCaptureTime) {
-			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-			sdpCommonUtils.addHeaderExtension({
-				offerMediaObject,
-				headerExtensionUri:
-					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
-					headerExtension =>
-						headerExtension.uri ===
-						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
-				)!.id,
-			});
-
-			offer = {
-				type: 'offer',
-				sdp: sdpTransform.write(localSdpObject),
-			};
 		}
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
@@ -957,6 +937,13 @@ export class Chrome111
 
 				if (!transceiver) {
 					throw new Error('transceiver not found');
+				}
+
+				if (this._forcedRtpExtensions) {
+					ortcUtils.applyForcedRtpExtensions(
+						transceiver,
+						this._forcedRtpExtensions
+					);
 				}
 
 				onRtpReceiver(transceiver.receiver);

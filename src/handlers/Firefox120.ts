@@ -18,6 +18,8 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import type {
+	HandlerFactoryOptions,
+	HandlerForcedRtpExtensions,
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
@@ -53,6 +55,7 @@ export class Firefox120
 	private _getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	private _forcedRtpExtensions?: HandlerForcedRtpExtensions;
 	// RTCPeerConnection instance.
 	private _pc: RTCPeerConnection;
 	// Map of RTCTransceivers indexed by MID.
@@ -70,10 +73,13 @@ export class Firefox120
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory {
+	static createFactory({
+		forcedRtpExtensions,
+	}: HandlerFactoryOptions): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Firefox120 => new Firefox120(options),
+			factory: (options: HandlerOptions): Firefox120 =>
+				new Firefox120({ ...options, forcedRtpExtensions }),
 			getNativeRtpCapabilities: async ({
 				direction,
 			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
@@ -97,15 +103,29 @@ export class Firefox120
 				const fakeVideoTrack = fakeStream.getVideoTracks()[0]!;
 
 				try {
-					pc.addTransceiver('audio', { direction });
+					const audioTransceiver = pc.addTransceiver('audio', { direction });
 
-					pc.addTransceiver(fakeVideoTrack, {
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							audioTransceiver,
+							forcedRtpExtensions
+						);
+					}
+
+					const videoTransceiver = pc.addTransceiver(fakeVideoTrack, {
 						direction,
 						sendEncodings: [
 							{ rid: 'r0', maxBitrate: 100000 },
 							{ rid: 'r1', maxBitrate: 500000 },
 						],
 					});
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							videoTransceiver,
+							forcedRtpExtensions
+						);
+					}
 
 					const offer = await pc.createOffer();
 
@@ -173,6 +193,7 @@ export class Firefox120
 		iceTransportPolicy,
 		additionalSettings,
 		getSendExtendedRtpCapabilities,
+		forcedRtpExtensions,
 	}: HandlerOptions) {
 		super();
 
@@ -191,6 +212,8 @@ export class Firefox120
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+
+		this._forcedRtpExtensions = forcedRtpExtensions;
 
 		this._pc = new RTCPeerConnection({
 			iceServers: iceServers ?? [],
@@ -371,6 +394,13 @@ export class Firefox120
 			streams: [this._sendStream],
 			sendEncodings: encodings,
 		});
+
+		if (this._forcedRtpExtensions) {
+			ortcUtils.applyForcedRtpExtensions(
+				transceiver,
+				this._forcedRtpExtensions
+			);
+		}
 
 		if (onRtpSender) {
 			onRtpSender(transceiver.sender);
@@ -923,6 +953,13 @@ export class Firefox120
 
 				if (!transceiver) {
 					throw new Error('transceiver not found');
+				}
+
+				if (this._forcedRtpExtensions) {
+					ortcUtils.applyForcedRtpExtensions(
+						transceiver,
+						this._forcedRtpExtensions
+					);
 				}
 
 				onRtpReceiver(transceiver.receiver);

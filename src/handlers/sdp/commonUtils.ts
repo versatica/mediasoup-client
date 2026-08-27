@@ -275,25 +275,3 @@ export function applyCodecParameters({
 		}
 	}
 }
-
-/**
- * Add header extension in the given SDP m= section offer.
- */
-export function addHeaderExtension({
-	offerMediaObject,
-	headerExtensionUri,
-	headerExtensionId,
-}: {
-	offerMediaObject: SdpTransform.MediaDescription;
-	headerExtensionUri: RtpHeaderExtensionUri;
-	headerExtensionId: number;
-}): void {
-	if (!offerMediaObject.ext) {
-		offerMediaObject.ext = [];
-	}
-
-	offerMediaObject.ext.push({
-		uri: headerExtensionUri,
-		value: headerExtensionId,
-	});
-}

@@ -993,6 +993,8 @@ function getRtpCapabilities({
 	direction: Extract<RTCRtpTransceiverDirection, 'sendonly' | 'recvonly'>;
 	extendedRtpCapabilities: ExtendedRtpCapabilities;
 }): RtpCapabilities {
+	const isSending = direction === 'sendonly';
+
 	const rtpCapabilities: RtpCapabilities = {
 		codecs: [],
 		headerExtensions: [],
@@ -1002,7 +1004,9 @@ function getRtpCapabilities({
 		const codec = {
 			kind: extendedCodec.kind,
 			mimeType: extendedCodec.mimeType,
-			preferredPayloadType: extendedCodec.remotePayloadType,
+			preferredPayloadType: isSending
+				? extendedCodec.localPayloadType
+				: extendedCodec.remotePayloadType,
 			clockRate: extendedCodec.clockRate,
 			channels: extendedCodec.channels,
 			parameters: extendedCodec.localParameters,
@@ -1012,17 +1016,24 @@ function getRtpCapabilities({
 		rtpCapabilities.codecs!.push(codec);
 
 		// Add RTX codec.
-		if (!extendedCodec.remoteRtxPayloadType) {
+		if (
+			!extendedCodec.localRtxPayloadType ||
+			!extendedCodec.remoteRtxPayloadType
+		) {
 			continue;
 		}
 
 		const rtxCodec: RtpCodecCapability = {
 			kind: extendedCodec.kind,
 			mimeType: `${extendedCodec.kind}/rtx`,
-			preferredPayloadType: extendedCodec.remoteRtxPayloadType,
+			preferredPayloadType: isSending
+				? extendedCodec.localRtxPayloadType
+				: extendedCodec.remoteRtxPayloadType,
 			clockRate: extendedCodec.clockRate,
 			parameters: {
-				apt: extendedCodec.remotePayloadType,
+				apt: isSending
+					? extendedCodec.localPayloadType
+					: extendedCodec.remotePayloadType,
 			},
 			rtcpFeedback: [],
 		};
@@ -1044,7 +1055,9 @@ function getRtpCapabilities({
 		const ext: RtpHeaderExtension = {
 			kind: extendedExtension.kind,
 			uri: extendedExtension.uri,
-			preferredId: extendedExtension.recvId,
+			preferredId: isSending
+				? extendedExtension.sendId
+				: extendedExtension.recvId,
 			preferredEncrypt: extendedExtension.encrypt ?? false,
 			direction: extendedExtension.direction,
 		};

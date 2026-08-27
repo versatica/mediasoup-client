@@ -502,7 +502,6 @@ export class Transport<
 		streamId,
 		encodings,
 		codecOptions,
-		headerExtensionOptions,
 		codec,
 		stopTracks = true,
 		disableTrackOnPause = true,
@@ -590,7 +589,6 @@ export class Transport<
 							streamId,
 							encodings: normalizedEncodings,
 							codecOptions,
-							headerExtensionOptions,
 							codec,
 							onRtpSender,
 						});

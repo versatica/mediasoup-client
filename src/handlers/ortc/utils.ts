@@ -1,8 +1,7 @@
+import type { HandlerForcedRtpExtensions } from '../../handlers/HandlerInterface';
 import type {
 	RtpCapabilities,
-	MediaKind,
 	RtpHeaderExtensionUri,
-	RtpHeaderExtensionDirection,
 } from '../../RtpParameters';
 
 /**
@@ -24,63 +23,6 @@ export function addNackSupportForOpus(rtpCapabilities: RtpCapabilities): void {
 	}
 }
 
-/**
- * This function adds the given RTP header extension to given capabilities.
- */
-export function addHeaderExtensionSupport(
-	rtpCapabilities: RtpCapabilities,
-	headerExtension: {
-		uri: RtpHeaderExtensionUri;
-		kind: MediaKind;
-		direction: RtpHeaderExtensionDirection;
-	}
-): void {
-	let preferredId: number | undefined;
-
-	// Look for an already existing header extension with same `uri`. Don't
-	// try to match `kind` since all media sections in a Bundle SDP must share
-	// same `id` in extensions with same `uri` (as per spec). So if we are
-	// adding an audio extension and there is already a video extension with
-	// same `uri`, then reuse its preferred `id`.
-	const existingHeaderExtension = rtpCapabilities.headerExtensions?.find(
-		exten => exten.uri === headerExtension.uri
-	);
-
-	if (existingHeaderExtension) {
-		if (existingHeaderExtension.kind === headerExtension.kind) {
-			return;
-		} else {
-			preferredId = existingHeaderExtension.preferredId;
-		}
-	}
-
-	if (!rtpCapabilities.headerExtensions) {
-		rtpCapabilities.headerExtensions = [];
-	}
-
-	if (preferredId === undefined) {
-		preferredId = 1;
-
-		const setPreferredIds = new Set(
-			rtpCapabilities.headerExtensions.map(exten => exten.preferredId)
-		);
-
-		while (setPreferredIds.has(preferredId)) {
-			++preferredId;
-		}
-	}
-
-	const newHeaderExtension = {
-		kind: headerExtension.kind,
-		uri: headerExtension.uri,
-		preferredId,
-		preferredEncrypt: false,
-		direction: headerExtension.direction,
-	};
-
-	rtpCapabilities.headerExtensions.push(newHeaderExtension);
-}
-
 export function getMsidStreamIdAndTrackId(msid?: string): {
 	msidStreamId?: string;
 	msidTrackId?: string;
@@ -100,4 +42,47 @@ export function getMsidStreamIdAndTrackId(msid?: string): {
 	}
 
 	return { msidStreamId, msidTrackId };
+}
+
+/**
+ * Apply given desired RTP extension to the given RTCRtpTransceiver.
+ *
+ * @see https://w3c.github.io/webrtc-extensions/#rtp-header-extension-control
+ */
+export function applyForcedRtpExtensions(
+	transceiver: RTCRtpTransceiver,
+	forcedRtpExtensions: HandlerForcedRtpExtensions
+): boolean {
+	// If the RTP header extension control API is not available then abort.
+	if (
+		!transceiver.getHeaderExtensionsToNegotiate ||
+		!transceiver.setHeaderExtensionsToNegotiate
+	) {
+		return false;
+	}
+
+	if (Object.keys(forcedRtpExtensions).length === 0) {
+		return false;
+	}
+
+	let extensionsToNegotiate = transceiver.getHeaderExtensionsToNegotiate();
+
+	extensionsToNegotiate = extensionsToNegotiate.map(
+		(extenCap: RTCRtpHeaderExtensionCapability) => {
+			const uri = extenCap.uri as RtpHeaderExtensionUri;
+			const enabled: boolean | undefined = forcedRtpExtensions[uri];
+
+			if (enabled === true) {
+				extenCap.direction = 'sendrecv';
+			} else if (enabled === false) {
+				extenCap.direction = 'stopped';
+			}
+
+			return extenCap;
+		}
+	);
+
+	transceiver.setHeaderExtensionsToNegotiate(extensionsToNegotiate);
+
+	return true;
 }

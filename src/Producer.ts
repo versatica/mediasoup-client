@@ -16,7 +16,6 @@ export type ProducerOptions<ProducerAppData extends AppData = AppData> = {
 	streamId?: string;
 	encodings?: RtpEncodingParameters[];
 	codecOptions?: ProducerCodecOptions;
-	headerExtensionOptions?: ProducerHeaderExtensionOptions;
 	codec?: RtpCodecCapability;
 	stopTracks?: boolean;
 	disableTrackOnPause?: boolean;
@@ -43,11 +42,6 @@ export type ProducerCodecOptions = {
 	videoGoogleStartBitrate?: number;
 	videoGoogleMaxBitrate?: number;
 	videoGoogleMinBitrate?: number;
-};
-
-// https://mediasoup.org/documentation/v3/mediasoup-client/api/#HeaderExtensionOptions
-export type ProducerHeaderExtensionOptions = {
-	absCaptureTime?: boolean;
 };
 
 export type ProducerEvents = {
