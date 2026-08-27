@@ -11,8 +11,6 @@ import type {
 	MediaKind,
 	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
-	RtpHeaderExtensionUri,
-	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
@@ -20,6 +18,8 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import type {
+	HandlerFactoryOptions,
+	HandlerForcedRtpExtensions,
 	HandlerFactory,
 	HandlerEvents,
 	HandlerInterface,
@@ -55,6 +55,7 @@ export class Chrome74
 	private _getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	private _forcedRtpExtensions?: HandlerForcedRtpExtensions;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -75,10 +76,13 @@ export class Chrome74
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory {
+	static createFactory({
+		forcedRtpExtensions,
+	}: HandlerFactoryOptions): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Chrome74 => new Chrome74(options),
+			factory: (options: HandlerOptions): Chrome74 =>
+				new Chrome74({ ...options, forcedRtpExtensions }),
 			getNativeRtpCapabilities: async ({
 				direction,
 			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
@@ -92,8 +96,23 @@ export class Chrome74
 				});
 
 				try {
-					pc.addTransceiver('audio', { direction });
-					pc.addTransceiver('video', { direction });
+					const audioTransceiver = pc.addTransceiver('audio', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							audioTransceiver,
+							forcedRtpExtensions
+						);
+					}
+
+					const videoTransceiver = pc.addTransceiver('video', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							videoTransceiver,
+							forcedRtpExtensions
+						);
+					}
 
 					const offer = await pc.createOffer();
 
@@ -123,12 +142,7 @@ export class Chrome74
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription,
-		extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = []
+		localSdpObject: SdpTransform.SessionDescription
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -139,13 +153,6 @@ export class Chrome74
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
-
-		for (const headerExtension of extraHeaderExtensions) {
-			ortcUtils.addHeaderExtensionSupport(
-				nativeRtpCapabilities,
-				headerExtension
-			);
-		}
 
 		return nativeRtpCapabilities;
 	}
@@ -160,6 +167,7 @@ export class Chrome74
 		iceTransportPolicy,
 		additionalSettings,
 		getSendExtendedRtpCapabilities,
+		forcedRtpExtensions,
 	}: HandlerOptions) {
 		super();
 
@@ -178,6 +186,8 @@ export class Chrome74
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+
+		this._forcedRtpExtensions = forcedRtpExtensions;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -337,8 +347,8 @@ export class Chrome74
 		streamId,
 		encodings,
 		codecOptions,
-		headerExtensionOptions,
 		codec,
+		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
 		this.assertNotClosed();
 		this.assertSendDirection();
@@ -362,6 +372,18 @@ export class Chrome74
 			streams: [this._sendStream],
 			sendEncodings: encodings,
 		});
+
+		if (this._forcedRtpExtensions) {
+			ortcUtils.applyForcedRtpExtensions(
+				transceiver,
+				this._forcedRtpExtensions
+			);
+		}
+
+		if (onRtpSender) {
+			onRtpSender(transceiver.sender);
+		}
+
 		let offer = await this._pc.createOffer();
 		let localSdpObject = sdpTransform.parse(offer.sdp!);
 
@@ -369,24 +391,8 @@ export class Chrome74
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = [];
-
-		if (headerExtensionOptions?.absCaptureTime) {
-			extraHeaderExtensions.push({
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				kind: track.kind as MediaKind,
-				direction: 'sendonly',
-			});
-		}
-
-		const nativeRtpCapabilities = Chrome74.getLocalRtpCapabilities(
-			localSdpObject,
-			extraHeaderExtensions
-		);
+		const nativeRtpCapabilities =
+			Chrome74.getLocalRtpCapabilities(localSdpObject);
 
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
@@ -455,27 +461,6 @@ export class Chrome74
 		}
 
 		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
-
-		// Optimize. Only generate new offer if needed.
-		if (headerExtensionOptions?.absCaptureTime) {
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-			sdpCommonUtils.addHeaderExtension({
-				offerMediaObject,
-				headerExtensionUri:
-					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
-					headerExtension =>
-						headerExtension.uri ===
-						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
-				)!.id,
-			});
-
-			offer = {
-				type: 'offer',
-				sdp: sdpTransform.write(localSdpObject),
-			};
-		}
 
 		await this._pc.setLocalDescription(offer);
 
@@ -968,6 +953,30 @@ export class Chrome74
 		);
 
 		await this._pc.setRemoteDescription(offer);
+
+		for (const options of optionsList) {
+			const { trackId, onRtpReceiver } = options;
+
+			if (onRtpReceiver) {
+				const localId = mapLocalId.get(trackId);
+				const transceiver = this._pc
+					.getTransceivers()
+					.find((t: RTCRtpTransceiver) => t.mid === localId);
+
+				if (!transceiver) {
+					throw new Error('transceiver not found');
+				}
+
+				if (this._forcedRtpExtensions) {
+					ortcUtils.applyForcedRtpExtensions(
+						transceiver,
+						this._forcedRtpExtensions
+					);
+				}
+
+				onRtpReceiver(transceiver.receiver);
+			}
+		}
 
 		let answer = await this._pc.createAnswer();
 		const localSdpObject = sdpTransform.parse(answer.sdp!);

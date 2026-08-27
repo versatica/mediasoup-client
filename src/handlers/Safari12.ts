@@ -10,8 +10,6 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	ExtendedRtpCapabilities,
-	RtpHeaderExtensionUri,
-	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
@@ -19,6 +17,8 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import type {
+	HandlerFactoryOptions,
+	HandlerForcedRtpExtensions,
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
@@ -54,6 +54,7 @@ export class Safari12
 	private _getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	private _forcedRtpExtensions?: HandlerForcedRtpExtensions;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -74,10 +75,13 @@ export class Safari12
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory {
+	static createFactory({
+		forcedRtpExtensions,
+	}: HandlerFactoryOptions): HandlerFactory {
 		return {
 			name: NAME,
-			factory: (options: HandlerOptions): Safari12 => new Safari12(options),
+			factory: (options: HandlerOptions): Safari12 =>
+				new Safari12({ ...options, forcedRtpExtensions }),
 			getNativeRtpCapabilities: async ({
 				direction,
 			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
@@ -91,8 +95,23 @@ export class Safari12
 				});
 
 				try {
-					pc.addTransceiver('audio', { direction });
-					pc.addTransceiver('video', { direction });
+					const audioTransceiver = pc.addTransceiver('audio', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							audioTransceiver,
+							forcedRtpExtensions
+						);
+					}
+
+					const videoTransceiver = pc.addTransceiver('video', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							videoTransceiver,
+							forcedRtpExtensions
+						);
+					}
 
 					const offer = await pc.createOffer();
 
@@ -122,12 +141,7 @@ export class Safari12
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription,
-		extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = []
+		localSdpObject: SdpTransform.SessionDescription
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -138,13 +152,6 @@ export class Safari12
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
-
-		for (const headerExtension of extraHeaderExtensions) {
-			ortcUtils.addHeaderExtensionSupport(
-				nativeRtpCapabilities,
-				headerExtension
-			);
-		}
 
 		return nativeRtpCapabilities;
 	}
@@ -159,6 +166,7 @@ export class Safari12
 		iceTransportPolicy,
 		additionalSettings,
 		getSendExtendedRtpCapabilities,
+		forcedRtpExtensions,
 	}: HandlerOptions) {
 		super();
 
@@ -177,6 +185,8 @@ export class Safari12
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+
+		this._forcedRtpExtensions = forcedRtpExtensions;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -347,7 +357,6 @@ export class Safari12
 		streamId,
 		encodings,
 		codecOptions,
-		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
@@ -367,6 +376,13 @@ export class Safari12
 			streams: [this._sendStream],
 		});
 
+		if (this._forcedRtpExtensions) {
+			ortcUtils.applyForcedRtpExtensions(
+				transceiver,
+				this._forcedRtpExtensions
+			);
+		}
+
 		if (onRtpSender) {
 			onRtpSender(transceiver.sender);
 		}
@@ -378,24 +394,8 @@ export class Safari12
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = [];
-
-		if (headerExtensionOptions?.absCaptureTime) {
-			extraHeaderExtensions.push({
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				kind: track.kind as MediaKind,
-				direction: 'sendonly',
-			});
-		}
-
-		const nativeRtpCapabilities = Safari12.getLocalRtpCapabilities(
-			localSdpObject,
-			extraHeaderExtensions
-		);
+		const nativeRtpCapabilities =
+			Safari12.getLocalRtpCapabilities(localSdpObject);
 
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
@@ -447,27 +447,6 @@ export class Safari12
 			sdpUnifiedPlanUtils.addLegacySimulcast({
 				offerMediaObject,
 				numStreams: encodings.length,
-			});
-
-			offer = {
-				type: 'offer',
-				sdp: sdpTransform.write(localSdpObject),
-			};
-		}
-
-		// Optimize. Only generate new offer if needed.
-		if (headerExtensionOptions?.absCaptureTime) {
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-			sdpCommonUtils.addHeaderExtension({
-				offerMediaObject,
-				headerExtensionUri:
-					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
-					headerExtension =>
-						headerExtension.uri ===
-						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
-				)!.id,
 			});
 
 			offer = {
@@ -966,6 +945,13 @@ export class Safari12
 
 				if (!transceiver) {
 					throw new Error('transceiver not found');
+				}
+
+				if (this._forcedRtpExtensions) {
+					ortcUtils.applyForcedRtpExtensions(
+						transceiver,
+						this._forcedRtpExtensions
+					);
 				}
 
 				onRtpReceiver(transceiver.receiver);

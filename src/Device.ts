@@ -8,7 +8,10 @@ import {
 	type TransportOptions,
 	type CanProduceByKind,
 } from './Transport';
-import { type HandlerFactory } from './handlers/HandlerInterface';
+import type {
+	HandlerFactory,
+	HandlerForcedRtpExtensions,
+} from './handlers/HandlerInterface';
 import { Chrome111 } from './handlers/Chrome111';
 import { Chrome74 } from './handlers/Chrome74';
 import { Firefox120 } from './handlers/Firefox120';
@@ -35,6 +38,10 @@ export type DeviceOptions = {
 	 * Custom handler factory.
 	 */
 	handlerFactory?: HandlerFactory;
+	/**
+	 * Enable or disable RTP extensions.
+	 */
+	forcedRtpExtensions?: HandlerForcedRtpExtensions;
 };
 
 /**
@@ -149,6 +156,7 @@ export class Device {
 	static async factory({
 		handlerName,
 		handlerFactory,
+		forcedRtpExtensions,
 	}: DeviceOptions = {}): Promise<Device> {
 		logger.debug('factory()');
 
@@ -166,7 +174,11 @@ export class Device {
 			}
 		}
 
-		return new Device({ handlerName, handlerFactory });
+		return new Device({
+			handlerName,
+			handlerFactory,
+			forcedRtpExtensions,
+		});
 	}
 
 	/**
@@ -174,7 +186,11 @@ export class Device {
 	 *
 	 * @throws {UnsupportedError} if device is not supported.
 	 */
-	constructor({ handlerName, handlerFactory }: DeviceOptions = {}) {
+	constructor({
+		handlerName,
+		handlerFactory,
+		forcedRtpExtensions,
+	}: DeviceOptions = {}) {
 		logger.debug('constructor()');
 
 		if (handlerName && handlerFactory) {
@@ -200,31 +216,41 @@ export class Device {
 
 			switch (handlerName) {
 				case 'Chrome111': {
-					this._handlerFactory = Chrome111.createFactory();
+					this._handlerFactory = Chrome111.createFactory({
+						forcedRtpExtensions,
+					});
 
 					break;
 				}
 
 				case 'Chrome74': {
-					this._handlerFactory = Chrome74.createFactory();
+					this._handlerFactory = Chrome74.createFactory({
+						forcedRtpExtensions,
+					});
 
 					break;
 				}
 
 				case 'Firefox120': {
-					this._handlerFactory = Firefox120.createFactory();
+					this._handlerFactory = Firefox120.createFactory({
+						forcedRtpExtensions,
+					});
 
 					break;
 				}
 
 				case 'Safari12': {
-					this._handlerFactory = Safari12.createFactory();
+					this._handlerFactory = Safari12.createFactory({
+						forcedRtpExtensions,
+					});
 
 					break;
 				}
 
 				case 'ReactNative106': {
-					this._handlerFactory = ReactNative106.createFactory();
+					this._handlerFactory = ReactNative106.createFactory({
+						forcedRtpExtensions,
+					});
 
 					break;
 				}

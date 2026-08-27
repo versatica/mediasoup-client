@@ -11,8 +11,6 @@ import type {
 	MediaKind,
 	RtpEncodingParameters,
 	ExtendedRtpCapabilities,
-	RtpHeaderExtensionUri,
-	RtpHeaderExtensionDirection,
 } from '../RtpParameters';
 import type { SctpStreamParameters } from '../SctpParameters';
 import { RemoteSdp } from './sdp/RemoteSdp';
@@ -20,6 +18,8 @@ import * as sdpCommonUtils from './sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from './sdp/unifiedPlanUtils';
 import * as ortcUtils from './ortc/utils';
 import type {
+	HandlerFactoryOptions,
+	HandlerForcedRtpExtensions,
 	HandlerFactory,
 	HandlerInterface,
 	HandlerEvents,
@@ -55,6 +55,7 @@ export class ReactNative106
 	private _getSendExtendedRtpCapabilities: (
 		nativeSendRtpCapabilities: RtpCapabilities
 	) => ExtendedRtpCapabilities;
+	private _forcedRtpExtensions?: HandlerForcedRtpExtensions;
 	// Initial server side DTLS role. If not 'auto', it will force the opposite
 	// value in client side.
 	private _forcedLocalDtlsRole?: DtlsRole;
@@ -75,11 +76,13 @@ export class ReactNative106
 	/**
 	 * Creates a factory function.
 	 */
-	static createFactory(): HandlerFactory {
+	static createFactory({
+		forcedRtpExtensions,
+	}: HandlerFactoryOptions): HandlerFactory {
 		return {
 			name: NAME,
 			factory: (options: HandlerOptions): ReactNative106 =>
-				new ReactNative106(options),
+				new ReactNative106({ ...options, forcedRtpExtensions }),
 			getNativeRtpCapabilities: async ({
 				direction,
 			}: HandlerGetNativeRtpCapabilitiesOptions): Promise<RtpCapabilities> => {
@@ -93,8 +96,23 @@ export class ReactNative106
 				});
 
 				try {
-					pc.addTransceiver('audio', { direction });
-					pc.addTransceiver('video', { direction });
+					const audioTransceiver = pc.addTransceiver('audio', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							audioTransceiver,
+							forcedRtpExtensions
+						);
+					}
+
+					const videoTransceiver = pc.addTransceiver('video', { direction });
+
+					if (forcedRtpExtensions) {
+						ortcUtils.applyForcedRtpExtensions(
+							videoTransceiver,
+							forcedRtpExtensions
+						);
+					}
 
 					const offer = await pc.createOffer();
 
@@ -124,12 +142,7 @@ export class ReactNative106
 	}
 
 	private static getLocalRtpCapabilities(
-		localSdpObject: SdpTransform.SessionDescription,
-		extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = []
+		localSdpObject: SdpTransform.SessionDescription
 	): RtpCapabilities {
 		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
 			sdpObject: localSdpObject,
@@ -140,13 +153,6 @@ export class ReactNative106
 
 		// libwebrtc supports NACK for OPUS but doesn't announce it.
 		ortcUtils.addNackSupportForOpus(nativeRtpCapabilities);
-
-		for (const headerExtension of extraHeaderExtensions) {
-			ortcUtils.addHeaderExtensionSupport(
-				nativeRtpCapabilities,
-				headerExtension
-			);
-		}
 
 		return nativeRtpCapabilities;
 	}
@@ -161,6 +167,7 @@ export class ReactNative106
 		iceTransportPolicy,
 		additionalSettings,
 		getSendExtendedRtpCapabilities,
+		forcedRtpExtensions,
 	}: HandlerOptions) {
 		super();
 
@@ -179,6 +186,8 @@ export class ReactNative106
 		});
 
 		this._getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
+
+		this._forcedRtpExtensions = forcedRtpExtensions;
 
 		if (dtlsParameters.role && dtlsParameters.role !== 'auto') {
 			this._forcedLocalDtlsRole =
@@ -343,7 +352,6 @@ export class ReactNative106
 		streamId,
 		encodings,
 		codecOptions,
-		headerExtensionOptions,
 		codec,
 		onRtpSender,
 	}: HandlerSendOptions): Promise<HandlerSendResult> {
@@ -370,6 +378,13 @@ export class ReactNative106
 			sendEncodings: encodings,
 		});
 
+		if (this._forcedRtpExtensions) {
+			ortcUtils.applyForcedRtpExtensions(
+				transceiver,
+				this._forcedRtpExtensions
+			);
+		}
+
 		if (onRtpSender) {
 			onRtpSender(transceiver.sender);
 		}
@@ -381,24 +396,8 @@ export class ReactNative106
 			this._remoteSdp.setSessionExtmapAllowMixed();
 		}
 
-		const extraHeaderExtensions: {
-			uri: RtpHeaderExtensionUri;
-			kind: MediaKind;
-			direction: RtpHeaderExtensionDirection;
-		}[] = [];
-
-		if (headerExtensionOptions?.absCaptureTime) {
-			extraHeaderExtensions.push({
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				kind: track.kind as MediaKind,
-				direction: 'sendonly',
-			});
-		}
-
-		const nativeRtpCapabilities = ReactNative106.getLocalRtpCapabilities(
-			localSdpObject,
-			extraHeaderExtensions
-		);
+		const nativeRtpCapabilities =
+			ReactNative106.getLocalRtpCapabilities(localSdpObject);
 
 		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
 			nativeRtpCapabilities
@@ -458,27 +457,6 @@ export class ReactNative106
 			sdpUnifiedPlanUtils.addLegacySimulcast({
 				offerMediaObject,
 				numStreams: layers.spatialLayers,
-			});
-
-			offer = {
-				type: 'offer',
-				sdp: sdpTransform.write(localSdpObject),
-			};
-		}
-
-		// Optimize. Only generate new offer if needed.
-		if (headerExtensionOptions?.absCaptureTime) {
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-			sdpCommonUtils.addHeaderExtension({
-				offerMediaObject,
-				headerExtensionUri:
-					'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time',
-				headerExtensionId: sendingRemoteRtpParameters.headerExtensions!.find(
-					headerExtension =>
-						headerExtension.uri ===
-						'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time'
-				)!.id,
 			});
 
 			offer = {
@@ -1014,6 +992,13 @@ export class ReactNative106
 
 				if (!transceiver) {
 					throw new Error('transceiver not found');
+				}
+
+				if (this._forcedRtpExtensions) {
+					ortcUtils.applyForcedRtpExtensions(
+						transceiver,
+						this._forcedRtpExtensions
+					);
 				}
 
 				onRtpReceiver(transceiver.receiver);
