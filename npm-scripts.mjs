@@ -77,6 +77,7 @@ async function run() {
 		}
 
 		case 'lint': {
+			replaceVersion();
 			lint();
 
 			break;
@@ -170,6 +171,14 @@ function buildTypescript({ force, args = '' }) {
 
 	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
 	executeCmd(`tsc ${args}`);
+
+	// NOTE: This must happen here (and not just in the `release` task) because
+	// the published tarball is built in GitHub Actions: `npm publish` runs the
+	// `prepare` script, which transpiles a fresh lib/ (lib/ is gitignored, so
+	// whatever `release` patched locally never reaches CI). `prepare` is the
+	// last hook NPM runs before assembling the tarball, so replacing the
+	// version right after `tsc` is the only reliable place.
+	replaceVersion();
 }
 
 function watchTypescript({ args = '' } = {}) {
@@ -321,8 +330,9 @@ async function release({ args = '' } = {}) {
 	// Bump the version in package.json + package-lock.json.
 	executeCmd(`npm version ${version} --no-git-tag-version`);
 
-	// Also replace the version in the transpiled JS.
-	replaceVersion();
+	// NOTE: No need to replace the version in the transpiled JS here: lib/ is
+	// gitignored and the published tarball is built from scratch in GitHub
+	// Actions, where `buildTypescript()` does the replacement.
 
 	// Commit the bump, tag it, and push both. The pushed tag triggers
 	// `mediasoup-client-npm-publish` workflow, which checks, creates the GitHub
