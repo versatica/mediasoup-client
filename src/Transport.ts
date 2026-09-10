@@ -397,6 +397,11 @@ export class Transport<
 
 		this._closed = true;
 
+		for (const task of this._pendingConsumerTasks) {
+			task.reject!(new InvalidStateError('closed'));
+		}
+		this._pendingConsumerTasks = [];
+
 		// Stop the AwaitQueue.
 		this._awaitQueue.stop();
 

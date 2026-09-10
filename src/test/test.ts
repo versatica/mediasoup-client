@@ -1500,6 +1500,24 @@ test('transport.consume() rejects with InvalidStateError if closed', async () =>
 	);
 }, 500);
 
+test('transport.consume() does not hang if transport.close() is called before the pending Consumer creation task is dispatched', async () => {
+	const consumerRemoteParameters =
+		fakeParameters.generateConsumerRemoteParameters({
+			codecMimeType: 'audio/opus',
+		});
+
+	const consumePromise = ctx.connectedRecvTransport!.consume({
+		id: consumerRemoteParameters.id,
+		producerId: consumerRemoteParameters.producerId,
+		kind: consumerRemoteParameters.kind,
+		rtpParameters: consumerRemoteParameters.rtpParameters,
+	});
+
+	ctx.connectedRecvTransport!.close();
+
+	await expect(consumePromise).rejects.toThrow(InvalidStateError);
+}, 500);
+
 test('transport.produceData() rejects with InvalidStateError if closed', async () => {
 	ctx.connectedSendTransport!.close();
 
