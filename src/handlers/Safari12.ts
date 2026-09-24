@@ -374,6 +374,7 @@ export class Safari12
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
 			streams: [this._sendStream],
+			sendEncodings: encodings,
 		});
 
 		if (this._forcedRtpExtensions) {
