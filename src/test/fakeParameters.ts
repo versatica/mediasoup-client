@@ -173,13 +173,6 @@ export function generateRouterRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				preferredEncrypt: false,
 				direction: 'sendrecv',
 			},
-			{
-				kind: 'video',
-				uri: 'urn:ietf:params:rtp-hdrext:toffset',
-				preferredId: 12,
-				preferredEncrypt: false,
-				direction: 'sendrecv',
-			},
 		],
 	});
 }
@@ -320,11 +313,6 @@ export function generateNativeRtpCapabilities(): mediasoupClient.types.RtpCapabi
 				kind: 'video',
 				uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
 				preferredId: 1,
-			},
-			{
-				kind: 'video',
-				uri: 'urn:ietf:params:rtp-hdrext:toffset',
-				preferredId: 2,
 			},
 			{
 				kind: 'video',
@@ -596,10 +584,6 @@ export function generateConsumerRemoteParameters({
 							uri: 'urn:3gpp:video-orientation',
 							id: 11,
 						},
-						{
-							uri: 'urn:ietf:params:rtp-hdrext:toffset',
-							id: 12,
-						},
 					],
 					rtcp: {
 						cname: 'wB4Ql4lrsxYLjzuN',
@@ -668,10 +652,6 @@ export function generateConsumerRemoteParameters({
 						{
 							uri: 'urn:3gpp:video-orientation',
 							id: 11,
-						},
-						{
-							uri: 'urn:ietf:params:rtp-hdrext:toffset',
-							id: 12,
 						},
 					],
 					rtcp: {

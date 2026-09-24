@@ -573,12 +573,6 @@ test('transport.produce() succeeds', async () => {
 			encrypt: false,
 			parameters: {},
 		},
-		{
-			uri: 'urn:ietf:params:rtp-hdrext:toffset',
-			id: 2,
-			encrypt: false,
-			parameters: {},
-		},
 	]);
 
 	encodings = videoProducer.rtpParameters.encodings;
@@ -808,12 +802,6 @@ test('transport.consume() succeeds', async () => {
 		{
 			uri: 'urn:3gpp:video-orientation',
 			id: 11,
-			encrypt: false,
-			parameters: {},
-		},
-		{
-			uri: 'urn:ietf:params:rtp-hdrext:toffset',
-			id: 12,
 			encrypt: false,
 			parameters: {},
 		},
