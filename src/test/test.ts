@@ -1301,6 +1301,23 @@ test('producer.setMaxSpatialLayer() succeeds', async () => {
 	expect(ctx.videoProducer!.maxSpatialLayer).toBe(0);
 }, 500);
 
+test('producer.setMaxSpatialLayer() rejects and keeps the previous value if the handler fails', async () => {
+	const previousMaxSpatialLayer = ctx.videoProducer!.maxSpatialLayer;
+	const error = new Error('setParameters failed');
+	const handlerSpy = jest.spyOn(
+		ctx.connectedSendTransport!.handler,
+		'setMaxSpatialLayer'
+	);
+
+	handlerSpy.mockRejectedValueOnce(error);
+
+	await expect(ctx.videoProducer!.setMaxSpatialLayer(1)).rejects.toThrow(error);
+
+	expect(ctx.videoProducer!.maxSpatialLayer).toBe(previousMaxSpatialLayer);
+
+	handlerSpy.mockRestore();
+}, 500);
+
 test('producer.setMaxSpatialLayer() in an audio Producer rejects with UnsupportedError', async () => {
 	await expect(ctx.audioProducer!.setMaxSpatialLayer(1)).rejects.toThrow(
 		UnsupportedError
