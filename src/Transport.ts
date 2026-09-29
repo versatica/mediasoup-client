@@ -761,7 +761,7 @@ export class Transport<
 			throw new TypeError('if given, appData must be an object');
 		}
 
-		if (maxPacketLifeTime || maxRetransmits) {
+		if (maxPacketLifeTime !== undefined || maxRetransmits !== undefined) {
 			ordered = false;
 		}
 

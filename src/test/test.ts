@@ -988,6 +988,22 @@ test('transport.produceData() succeeds', async () => {
 	expect(dataProducer.protocol).toBe('BAR');
 }, 500);
 
+test('transport.produceData() with maxRetransmits 0 or maxPacketLifeTime 0 creates an unordered DataProducer', async () => {
+	const dataProducer1 = await ctx.connectedSendTransport!.produceData({
+		maxRetransmits: 0,
+	});
+
+	expect(dataProducer1.sctpStreamParameters.ordered).toBe(false);
+	expect(dataProducer1.sctpStreamParameters.maxRetransmits).toBe(0);
+
+	const dataProducer2 = await ctx.connectedSendTransport!.produceData({
+		maxPacketLifeTime: 0,
+	});
+
+	expect(dataProducer2.sctpStreamParameters.ordered).toBe(false);
+	expect(dataProducer2.sctpStreamParameters.maxPacketLifeTime).toBe(0);
+}, 500);
+
 test('transport.produceData() closes the DataChannel if the "producedata" listener rejects', async () => {
 	const handlerSpy = jest.spyOn(
 		ctx.connectedSendTransport!.handler,
