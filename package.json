@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client",
-	"version": "3.24.1",
+	"version": "3.24.2",
 	"description": "mediasoup client side TypeScript library",
 	"contributors": [
 		"Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)",
@@ -96,8 +96,8 @@
 		"knip": "^6.38.0",
 		"open-cli": "^9.0.0",
 		"prettier": "^3.9.9",
-		"ts-jest": "^29.4.13",
+		"ts-jest": "^29.4.14",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.70.1"
+		"typescript-eslint": "^8.71.0"
 	}
 }
