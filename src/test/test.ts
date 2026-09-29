@@ -1245,6 +1245,35 @@ test('producer.replaceTrack() with null succeeds', async () => {
 	ctx.audioProducer!.resume();
 }, 500);
 
+test('producer.replaceTrack() rejects with InvalidStateError and stops the new track if the Producer is closed while replacing', async () => {
+	const previousTrack = ctx.videoProducer!.track;
+	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
+
+	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
+
+	ctx.videoProducer!.close();
+
+	await expect(replacePromise).rejects.toThrow(InvalidStateError);
+
+	expect(previousTrack?.readyState).toBe('ended');
+	// The new track must be 'ended' due to stopTracks: true.
+	expect(newTrack.readyState).toBe('ended');
+	expect(ctx.videoProducer!.track).toBe(previousTrack);
+}, 500);
+
+test('producer.replaceTrack() stops the new track if the Transport is closed while replacing', async () => {
+	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
+
+	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
+
+	ctx.connectedSendTransport!.close();
+
+	await expect(replacePromise).rejects.toThrow();
+
+	// The new track must be 'ended' due to stopTracks: true.
+	expect(newTrack.readyState).toBe('ended');
+}, 500);
+
 test('producer.replaceTrack() with an ended track rejects with InvalidStateError', async () => {
 	const track = new FakeMediaStreamTrack({ kind: 'audio' });
 

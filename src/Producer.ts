@@ -383,9 +383,23 @@ export class Producer<
 			return;
 		}
 
-		await new Promise<void>((resolve, reject) => {
-			this.safeEmit('@replacetrack', track, resolve, reject);
-		});
+		try {
+			await new Promise<void>((resolve, reject) => {
+				this.safeEmit('@replacetrack', track, resolve, reject);
+			});
+		} catch (error) {
+			// The Producer or its Transport was closed while replacing the track, so
+			// nobody will ever stop the given track. Do it here as done above.
+			this.stopTrackIfClosed(track);
+
+			throw error;
+		}
+
+		if (this._closed) {
+			this.stopTrackIfClosed(track);
+
+			throw new InvalidStateError('closed');
+		}
 
 		// Destroy the previous track.
 		this.destroyTrack();
@@ -442,6 +456,14 @@ export class Producer<
 		await new Promise<void>((resolve, reject) => {
 			this.safeEmit('@setrtpencodingparameters', params, resolve, reject);
 		});
+	}
+
+	private stopTrackIfClosed(track: MediaStreamTrack | null): void {
+		if (this._closed && track && this._stopTracks) {
+			try {
+				track.stop();
+			} catch (error) {}
+		}
 	}
 
 	private onTrackEnded(): void {
