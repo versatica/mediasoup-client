@@ -1248,7 +1248,6 @@ test('producer.replaceTrack() with null succeeds', async () => {
 test('producer.replaceTrack() rejects with InvalidStateError and stops the new track if the Producer is closed while replacing', async () => {
 	const previousTrack = ctx.videoProducer!.track;
 	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
-
 	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
 
 	ctx.videoProducer!.close();
@@ -1263,7 +1262,6 @@ test('producer.replaceTrack() rejects with InvalidStateError and stops the new t
 
 test('producer.replaceTrack() stops the new track if the Transport is closed while replacing', async () => {
 	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
-
 	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
 
 	ctx.connectedSendTransport!.close();
