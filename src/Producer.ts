@@ -425,7 +425,7 @@ export class Producer<
 
 		await new Promise<void>((resolve, reject) => {
 			this.safeEmit('@setmaxspatiallayer', spatialLayer, resolve, reject);
-		}).catch(() => {});
+		});
 
 		this._maxSpatialLayer = spatialLayer;
 	}
