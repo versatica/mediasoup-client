@@ -988,6 +988,33 @@ test('transport.produceData() succeeds', async () => {
 	expect(dataProducer.protocol).toBe('BAR');
 }, 500);
 
+test('transport.produceData() closes the DataChannel if the "producedata" listener rejects', async () => {
+	const handlerSpy = jest.spyOn(
+		ctx.connectedSendTransport!.handler,
+		'sendDataChannel'
+	);
+	const listener = (
+		_parameters: unknown,
+		_callback: unknown,
+		errback: (error: Error) => void
+	): void => {
+		errback(new Error('producedata failed'));
+	};
+
+	ctx.connectedSendTransport!.prependListener('producedata', listener);
+
+	await expect(ctx.connectedSendTransport!.produceData()).rejects.toThrow(
+		'producedata failed'
+	);
+
+	const { dataChannel } = await handlerSpy.mock.results[0]!.value;
+
+	expect(dataChannel.readyState).toBe('closed');
+
+	ctx.connectedSendTransport!.off('producedata', listener);
+	handlerSpy.mockRestore();
+}, 500);
+
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () => {
 	await expect(ctx.recvTransport!.produceData({})).rejects.toThrow(
 		UnsupportedError
