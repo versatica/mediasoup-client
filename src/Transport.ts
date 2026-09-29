@@ -519,6 +519,14 @@ export class Transport<
 		logger.debug('produce() [track:%o]', track);
 
 		if (this._closed) {
+			// This must be done here. Otherwise there is no chance to stop the given
+			// track.
+			if (track && stopTracks) {
+				try {
+					track.stop();
+				} catch (error) {}
+			}
+
 			throw new InvalidStateError('closed');
 		} else if (!track) {
 			throw new TypeError('missing track');

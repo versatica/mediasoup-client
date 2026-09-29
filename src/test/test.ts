@@ -1540,6 +1540,18 @@ test('transport.produce() rejects with InvalidStateError if closed', async () =>
 	expect(track.readyState).toBe('live');
 }, 500);
 
+test('transport.produce() stops the track if the Transport is closed', async () => {
+	const track = new FakeMediaStreamTrack({ kind: 'audio' });
+
+	ctx.connectedSendTransport!.close();
+
+	await expect(ctx.connectedSendTransport!.produce({ track })).rejects.toThrow(
+		InvalidStateError
+	);
+
+	expect(track.readyState).toBe('ended');
+}, 500);
+
 test('transport.consume() rejects with InvalidStateError if closed', async () => {
 	ctx.connectedRecvTransport!.close();
 
