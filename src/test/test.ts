@@ -993,18 +993,19 @@ test('transport.produceData() closes the DataChannel if the "producedata" listen
 		ctx.connectedSendTransport!.handler,
 		'sendDataChannel'
 	);
+	const error = new Error('produceData() failed');
 	const listener = (
 		parameters: unknown,
 		callback: unknown,
 		errback: (error: Error) => void
 	): void => {
-		errback(new Error('producedata failed'));
+		errback(error);
 	};
 
 	ctx.connectedSendTransport!.prependListener('producedata', listener);
 
 	await expect(ctx.connectedSendTransport!.produceData()).rejects.toThrow(
-		'producedata failed'
+		error
 	);
 
 	const { dataChannel } = await handlerSpy.mock.results[0]!.value;
@@ -1303,7 +1304,7 @@ test('producer.setMaxSpatialLayer() succeeds', async () => {
 
 test('producer.setMaxSpatialLayer() rejects and keeps the previous value if the handler fails', async () => {
 	const previousMaxSpatialLayer = ctx.videoProducer!.maxSpatialLayer;
-	const error = new Error('setParameters failed');
+	const error = new Error('setParameters() failed');
 	const handlerSpy = jest.spyOn(
 		ctx.connectedSendTransport!.handler,
 		'setMaxSpatialLayer'
