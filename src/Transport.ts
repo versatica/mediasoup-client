@@ -778,22 +778,33 @@ export class Transport<
 					},
 				});
 
-			// This will fill sctpStreamParameters's missing fields with default values.
-			ortc.validateAndNormalizeSctpStreamParameters(sctpStreamParameters);
+			let id: string;
 
-			const { id } = await new Promise<{ id: string }>((resolve, reject) => {
-				this.safeEmit(
-					'producedata',
-					{
-						sctpStreamParameters,
-						label,
-						protocol,
-						appData,
-					},
-					resolve,
-					reject
-				);
-			});
+			try {
+				// This will fill sctpStreamParameters's missing fields with default values.
+				ortc.validateAndNormalizeSctpStreamParameters(sctpStreamParameters);
+
+				({ id } = await new Promise<{ id: string }>((resolve, reject) => {
+					this.safeEmit(
+						'producedata',
+						{
+							sctpStreamParameters,
+							label,
+							protocol,
+							appData,
+						},
+						resolve,
+						reject
+					);
+				}));
+			} catch (error) {
+				// Do not leave the DataChannel open if the DataProducer is not created.
+				try {
+					dataChannel.close();
+				} catch (error2) {}
+
+				throw error;
+			}
 
 			const dataProducer: DataProducer<DataProducerAppData> = new DataProducer({
 				id,
