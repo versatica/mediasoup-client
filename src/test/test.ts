@@ -1004,6 +1004,34 @@ test('transport.produceData() with maxRetransmits 0 or maxPacketLifeTime 0 creat
 	expect(dataProducer2.sctpStreamParameters.maxPacketLifeTime).toBe(0);
 }, 500);
 
+test('transport.produceData() closes the DataChannel if the "producedata" listener rejects', async () => {
+	const handlerSpy = jest.spyOn(
+		ctx.connectedSendTransport!.handler,
+		'sendDataChannel'
+	);
+	const error = new Error('produceData() failed');
+	const listener = (
+		parameters: unknown,
+		callback: unknown,
+		errback: (error: Error) => void
+	): void => {
+		errback(error);
+	};
+
+	ctx.connectedSendTransport!.prependListener('producedata', listener);
+
+	await expect(ctx.connectedSendTransport!.produceData()).rejects.toThrow(
+		error
+	);
+
+	const { dataChannel } = await handlerSpy.mock.results[0]!.value;
+
+	expect(dataChannel.readyState).toBe('closed');
+
+	ctx.connectedSendTransport!.off('producedata', listener);
+	handlerSpy.mockRestore();
+}, 500);
+
 test('transport.produceData() in a receiving Transport rejects with UnsupportedError', async () => {
 	await expect(ctx.recvTransport!.produceData({})).rejects.toThrow(
 		UnsupportedError
@@ -1292,7 +1320,7 @@ test('producer.setMaxSpatialLayer() succeeds', async () => {
 
 test('producer.setMaxSpatialLayer() rejects and keeps the previous value if the handler fails', async () => {
 	const previousMaxSpatialLayer = ctx.videoProducer!.maxSpatialLayer;
-	const error = new Error('setParameters failed');
+	const error = new Error('setParameters() failed');
 	const handlerSpy = jest.spyOn(
 		ctx.connectedSendTransport!.handler,
 		'setMaxSpatialLayer'
