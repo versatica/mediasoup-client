@@ -994,8 +994,8 @@ test('transport.produceData() closes the DataChannel if the "producedata" listen
 		'sendDataChannel'
 	);
 	const listener = (
-		_parameters: unknown,
-		_callback: unknown,
+		parameters: unknown,
+		callback: unknown,
 		errback: (error: Error) => void
 	): void => {
 		errback(new Error('producedata failed'));
