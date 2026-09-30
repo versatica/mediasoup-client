@@ -383,9 +383,23 @@ export class Producer<
 			return;
 		}
 
-		await new Promise<void>((resolve, reject) => {
-			this.safeEmit('@replacetrack', track, resolve, reject);
-		});
+		try {
+			await new Promise<void>((resolve, reject) => {
+				this.safeEmit('@replacetrack', track, resolve, reject);
+			});
+
+			if (this._closed) {
+				throw new InvalidStateError('closed');
+			}
+		} catch (error) {
+			if (track && this._stopTracks) {
+				try {
+					track.stop();
+				} catch (error2) {}
+			}
+
+			throw error;
+		}
 
 		// Destroy the previous track.
 		this.destroyTrack();

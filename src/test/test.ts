@@ -1244,7 +1244,7 @@ test('producer.replaceTrack() with a new track succeeds', async () => {
 		ctx.videoProducer!.replaceTrack({ track: newVideoTrack })
 	).resolves.toBe(undefined);
 
-	// Previous track must be 'ended' due to stopTracks: true.
+	// Previous track must be 'ended' due to stopTracks: true (default value).
 	expect(videoProducerPreviousTrack?.readyState).toBe('ended');
 	expect(ctx.videoProducer!.track).not.toBe(videoProducerPreviousTrack);
 	expect(ctx.videoProducer!.track).toBe(newVideoTrack);
@@ -1316,6 +1316,33 @@ test('producer.setMaxSpatialLayer() succeeds', async () => {
 	);
 
 	expect(ctx.videoProducer!.maxSpatialLayer).toBe(0);
+}, 500);
+
+test('producer.replaceTrack() rejects with InvalidStateError and stops the new track if the Producer is closed while replacing', async () => {
+	const previousTrack = ctx.videoProducer!.track;
+	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
+	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
+
+	ctx.videoProducer!.close();
+
+	await expect(replacePromise).rejects.toThrow(InvalidStateError);
+
+	expect(previousTrack?.readyState).toBe('ended');
+	// The new track must be 'ended' due to stopTracks: true (default value).
+	expect(newTrack.readyState).toBe('ended');
+	expect(ctx.videoProducer!.track).toBe(previousTrack);
+}, 500);
+
+test('producer.replaceTrack() stops the new track if the Transport is closed while replacing', async () => {
+	const newTrack = new FakeMediaStreamTrack({ kind: 'video' });
+	const replacePromise = ctx.videoProducer!.replaceTrack({ track: newTrack });
+
+	ctx.connectedSendTransport!.close();
+
+	await expect(replacePromise).rejects.toThrow();
+
+	// The new track must be 'ended' due to stopTracks: true (default value).
+	expect(newTrack.readyState).toBe('ended');
 }, 500);
 
 test('producer.setMaxSpatialLayer() rejects and keeps the previous value if the handler fails', async () => {
