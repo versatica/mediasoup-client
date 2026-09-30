@@ -395,137 +395,156 @@ export class Chrome111
 			sendEncodings: encodings,
 		});
 
-		if (this._forcedRtpExtensions) {
-			ortcUtils.applyForcedRtpExtensions(
-				transceiver,
-				this._forcedRtpExtensions
+		try {
+			if (this._forcedRtpExtensions) {
+				ortcUtils.applyForcedRtpExtensions(
+					transceiver,
+					this._forcedRtpExtensions
+				);
+			}
+
+			if (onRtpSender) {
+				onRtpSender(transceiver.sender);
+			}
+
+			const offer = await this._pc.createOffer();
+
+			let localSdpObject = sdpTransform.parse(offer.sdp!);
+
+			if (localSdpObject.extmapAllowMixed) {
+				this._remoteSdp.setSessionExtmapAllowMixed();
+			}
+
+			const nativeRtpCapabilities =
+				Chrome111.getLocalRtpCapabilities(localSdpObject);
+
+			const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
+				nativeRtpCapabilities
 			);
-		}
 
-		if (onRtpSender) {
-			onRtpSender(transceiver.sender);
-		}
+			// Generic sending RTP parameters.
+			const sendingRtpParameters = ortc.getSendingRtpParameters(
+				track.kind as MediaKind,
+				sendExtendedRtpCapabilities
+			);
 
-		const offer = await this._pc.createOffer();
+			// This may throw.
+			sendingRtpParameters.codecs = ortc.reduceCodecs(
+				sendingRtpParameters.codecs,
+				codec
+			);
 
-		let localSdpObject = sdpTransform.parse(offer.sdp!);
+			// Generic sending RTP parameters suitable for the SDP remote answer.
+			const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
+				track.kind as MediaKind,
+				sendExtendedRtpCapabilities
+			);
 
-		if (localSdpObject.extmapAllowMixed) {
-			this._remoteSdp.setSessionExtmapAllowMixed();
-		}
+			// This may throw.
+			sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
+				sendingRemoteRtpParameters.codecs,
+				codec
+			);
 
-		const nativeRtpCapabilities =
-			Chrome111.getLocalRtpCapabilities(localSdpObject);
+			if (!this._transportReady) {
+				await this.setupTransport({
+					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
+					localSdpObject,
+				});
+			}
 
-		const sendExtendedRtpCapabilities = this._getSendExtendedRtpCapabilities(
-			nativeRtpCapabilities
-		);
+			logger.debug(
+				'send() | calling pc.setLocalDescription() [offer:%o]',
+				offer
+			);
 
-		// Generic sending RTP parameters.
-		const sendingRtpParameters = ortc.getSendingRtpParameters(
-			track.kind as MediaKind,
-			sendExtendedRtpCapabilities
-		);
+			await this._pc.setLocalDescription(offer);
 
-		// This may throw.
-		sendingRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRtpParameters.codecs,
-			codec
-		);
+			// We can now get the transceiver.mid.
+			const localId = transceiver.mid!;
 
-		// Generic sending RTP parameters suitable for the SDP remote answer.
-		const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
-			track.kind as MediaKind,
-			sendExtendedRtpCapabilities
-		);
+			// Set MID.
+			sendingRtpParameters.mid = localId;
 
-		// This may throw.
-		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
-			sendingRemoteRtpParameters.codecs,
-			codec
-		);
+			localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
 
-		if (!this._transportReady) {
-			await this.setupTransport({
-				localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-				localSdpObject,
-			});
-		}
+			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
-		logger.debug('send() | calling pc.setLocalDescription() [offer:%o]', offer);
-
-		await this._pc.setLocalDescription(offer);
-
-		// We can now get the transceiver.mid.
-		const localId = transceiver.mid!;
-
-		// Set MID.
-		sendingRtpParameters.mid = localId;
-
-		localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
-
-		const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
-			offerMediaObject,
-		});
-
-		// Set msid.
-		sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
-
-		// Set RTP encodings by parsing the SDP offer if no encodings are given.
-		if (!encodings) {
-			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
+			// Set RTCP CNAME.
+			sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
 				offerMediaObject,
-				codecs: sendingRtpParameters.codecs,
 			});
-		}
-		// Set RTP encodings by parsing the SDP offer and complete them with given
-		// one if just a single encoding has been given.
-		else if (encodings.length === 1) {
-			const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
+
+			// Set msid.
+			sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
+
+			// Set RTP encodings by parsing the SDP offer if no encodings are given.
+			if (!encodings) {
+				sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
+					offerMediaObject,
+					codecs: sendingRtpParameters.codecs,
+				});
+			}
+			// Set RTP encodings by parsing the SDP offer and complete them with given
+			// one if just a single encoding has been given.
+			else if (encodings.length === 1) {
+				const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
+					offerMediaObject,
+					codecs: sendingRtpParameters.codecs,
+				});
+
+				Object.assign(newEncodings[0]!, encodings[0]);
+
+				sendingRtpParameters.encodings = newEncodings;
+			}
+			// Otherwise if more than 1 encoding are given use them verbatim.
+			else {
+				sendingRtpParameters.encodings = encodings;
+			}
+
+			this._remoteSdp.send({
 				offerMediaObject,
-				codecs: sendingRtpParameters.codecs,
+				reuseMid: mediaSectionIdx.reuseMid,
+				offerRtpParameters: sendingRtpParameters,
+				answerRtpParameters: sendingRemoteRtpParameters,
+				codecOptions,
 			});
 
-			Object.assign(newEncodings[0]!, encodings[0]);
+			const answer = {
+				type: 'answer' as RTCSdpType,
+				sdp: this._remoteSdp.getSdp(),
+			};
 
-			sendingRtpParameters.encodings = newEncodings;
+			logger.debug(
+				'send() | calling pc.setRemoteDescription() [answer:%o]',
+				answer
+			);
+
+			await this._pc.setRemoteDescription(answer);
+
+			// Store in the map.
+			this._mapMidTransceiver.set(localId, transceiver);
+
+			return {
+				localId,
+				rtpParameters: sendingRtpParameters,
+				rtpSender: transceiver.sender,
+			};
+		} catch (error) {
+			// Undo the changes done in the PeerConnection, otherwise it gets out of
+			// sync with the remote SDP and later calls to send() fail.
+			try {
+				if (this._pc.signalingState === 'have-local-offer') {
+					try {
+						await this._pc.setLocalDescription({ type: 'rollback' });
+					} catch (error2) {}
+				}
+
+				transceiver.stop();
+			} catch (error3) {}
+
+			throw error;
 		}
-		// Otherwise if more than 1 encoding are given use them verbatim.
-		else {
-			sendingRtpParameters.encodings = encodings;
-		}
-
-		this._remoteSdp.send({
-			offerMediaObject,
-			reuseMid: mediaSectionIdx.reuseMid,
-			offerRtpParameters: sendingRtpParameters,
-			answerRtpParameters: sendingRemoteRtpParameters,
-			codecOptions,
-		});
-
-		const answer = {
-			type: 'answer' as RTCSdpType,
-			sdp: this._remoteSdp.getSdp(),
-		};
-
-		logger.debug(
-			'send() | calling pc.setRemoteDescription() [answer:%o]',
-			answer
-		);
-
-		await this._pc.setRemoteDescription(answer);
-
-		// Store in the map.
-		this._mapMidTransceiver.set(localId, transceiver);
-
-		return {
-			localId,
-			rtpParameters: sendingRtpParameters,
-			rtpSender: transceiver.sender,
-		};
 	}
 
 	async stopSending(localId: string): Promise<void> {
@@ -834,41 +853,58 @@ export class Chrome111
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
 		if (!this._hasDataChannelMediaSection) {
-			const offer = await this._pc.createOffer();
-			const localSdpObject = sdpTransform.parse(offer.sdp!);
-			const offerMediaObject = localSdpObject.media.find(
-				m => m.type === 'application'
-			)!;
+			try {
+				const offer = await this._pc.createOffer();
+				const localSdpObject = sdpTransform.parse(offer.sdp!);
+				const offerMediaObject = localSdpObject.media.find(
+					m => m.type === 'application'
+				)!;
 
-			if (!this._transportReady) {
-				await this.setupTransport({
-					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
-					localSdpObject,
-				});
+				if (!this._transportReady) {
+					await this.setupTransport({
+						localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
+						localSdpObject,
+					});
+				}
+
+				logger.debug(
+					'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
+					offer
+				);
+
+				await this._pc.setLocalDescription(offer);
+
+				this._remoteSdp.sendSctpAssociation({ offerMediaObject });
+
+				const answer = {
+					type: 'answer' as RTCSdpType,
+					sdp: this._remoteSdp.getSdp(),
+				};
+
+				logger.debug(
+					'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+					answer
+				);
+
+				await this._pc.setRemoteDescription(answer);
+
+				this._hasDataChannelMediaSection = true;
+			} catch (error) {
+				// Undo the changes done in the PeerConnection, otherwise it gets out of
+				// sync with the remote SDP and later calls to send() and
+				// sendDataChannel() fail.
+				try {
+					if (this._pc.signalingState === 'have-local-offer') {
+						try {
+							await this._pc.setLocalDescription({ type: 'rollback' });
+						} catch (error2) {}
+					}
+
+					dataChannel.close();
+				} catch (error3) {}
+
+				throw error;
 			}
-
-			logger.debug(
-				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
-				offer
-			);
-
-			await this._pc.setLocalDescription(offer);
-
-			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
-
-			const answer = {
-				type: 'answer' as RTCSdpType,
-				sdp: this._remoteSdp.getSdp(),
-			};
-
-			logger.debug(
-				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
-				answer
-			);
-
-			await this._pc.setRemoteDescription(answer);
-
-			this._hasDataChannelMediaSection = true;
 		}
 
 		const newSctpStreamParameters: SctpStreamParameters = {
