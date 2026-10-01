@@ -370,6 +370,30 @@ export class Safari12
 			streamId
 		);
 
+		if (encodings && encodings.length > 1) {
+			// Set rid and verify scalabilityMode in each encoding.
+			// NOTE: Even if WebRTC allows different scalabilityMode (different number
+			// of temporal layers) per simulcast stream, we need that those are the
+			// same in all them, so let's pick up the highest value.
+			// NOTE: If scalabilityMode is not given, Safari will use L1T3.
+			let maxTemporalLayers = 1;
+
+			for (const encoding of encodings) {
+				const temporalLayers = encoding.scalabilityMode
+					? parseScalabilityMode(encoding.scalabilityMode).temporalLayers
+					: 3;
+
+				if (temporalLayers > maxTemporalLayers) {
+					maxTemporalLayers = temporalLayers;
+				}
+			}
+
+			encodings.forEach((encoding, idx: number) => {
+				encoding.rid = `r${idx}`;
+				encoding.scalabilityMode = `L1T${maxTemporalLayers}`;
+			});
+		}
+
 		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
 		const transceiver = this._pc.addTransceiver(track, {
 			direction: 'sendonly',
@@ -389,7 +413,8 @@ export class Safari12
 				onRtpSender(transceiver.sender);
 			}
 
-			let offer = await this._pc.createOffer();
+			const offer = await this._pc.createOffer();
+
 			let localSdpObject = sdpTransform.parse(offer.sdp!);
 
 			if (localSdpObject.extmapAllowMixed) {
@@ -427,34 +452,11 @@ export class Safari12
 				codec
 			);
 
-			let offerMediaObject;
-
 			if (!this._transportReady) {
 				await this.setupTransport({
 					localDtlsRole: this._forcedLocalDtlsRole ?? 'client',
 					localSdpObject,
 				});
-			}
-
-			const layers = parseScalabilityMode(
-				(encodings ?? [{}])[0]!.scalabilityMode
-			);
-
-			if (encodings && encodings.length > 1) {
-				logger.debug('send() | enabling legacy simulcast');
-
-				localSdpObject = sdpTransform.parse(offer.sdp!);
-				offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
-
-				sdpUnifiedPlanUtils.addLegacySimulcast({
-					offerMediaObject,
-					numStreams: encodings.length,
-				});
-
-				offer = {
-					type: 'offer',
-					sdp: sdpTransform.write(localSdpObject),
-				};
 			}
 
 			logger.debug(
@@ -471,7 +473,8 @@ export class Safari12
 			sendingRtpParameters.mid = localId;
 
 			localSdpObject = sdpTransform.parse(this._pc.localDescription!.sdp);
-			offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
+
+			const offerMediaObject = localSdpObject.media[mediaSectionIdx.idx]!;
 
 			// Set RTCP CNAME.
 			sendingRtpParameters.rtcp!.cname = sdpCommonUtils.getCname({
@@ -481,37 +484,28 @@ export class Safari12
 			// Set msid.
 			sendingRtpParameters.msid = `${streamId ?? this._sendStream.id} ${track.id}`;
 
-			// Set RTP encodings.
-			sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
-				offerMediaObject,
-				codecs: sendingRtpParameters.codecs,
-			});
-
-			// Complete encodings with given values.
-			if (encodings) {
-				for (let idx = 0; idx < sendingRtpParameters.encodings.length; ++idx) {
-					if (encodings[idx]) {
-						Object.assign(sendingRtpParameters.encodings[idx]!, encodings[idx]);
-					}
-				}
+			// Set RTP encodings by parsing the SDP offer if no encodings are given.
+			if (!encodings) {
+				sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
+					offerMediaObject,
+					codecs: sendingRtpParameters.codecs,
+				});
 			}
+			// Set RTP encodings by parsing the SDP offer and complete them with given
+			// one if just a single encoding has been given.
+			else if (encodings.length === 1) {
+				const newEncodings = sdpUnifiedPlanUtils.getRtpEncodings({
+					offerMediaObject,
+					codecs: sendingRtpParameters.codecs,
+				});
 
-			// If VP8 or H264 and there is effective simulcast, add scalabilityMode to
-			// each encoding.
-			if (
-				sendingRtpParameters.encodings.length > 1 &&
-				(sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() ===
-					'video/vp8' ||
-					sendingRtpParameters.codecs[0]!.mimeType.toLowerCase() ===
-						'video/h264')
-			) {
-				for (const encoding of sendingRtpParameters.encodings) {
-					if (encoding.scalabilityMode) {
-						encoding.scalabilityMode = `L1T${layers.temporalLayers}`;
-					} else {
-						encoding.scalabilityMode = 'L1T3';
-					}
-				}
+				Object.assign(newEncodings[0]!, encodings[0]);
+
+				sendingRtpParameters.encodings = newEncodings;
+			}
+			// Otherwise if more than 1 encoding are given use them verbatim.
+			else {
+				sendingRtpParameters.encodings = encodings;
 			}
 
 			this._remoteSdp.send({
