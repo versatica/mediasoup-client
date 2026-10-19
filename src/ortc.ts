@@ -955,11 +955,6 @@ function validateAndNormalizeRtpEncodingParameters(
 		}
 	}
 
-	// dtx is optional. If unset set it to false.
-	if (!encoding.dtx || typeof encoding.dtx !== 'boolean') {
-		encoding.dtx = false;
-	}
-
 	// scalabilityMode is optional.
 	if (
 		encoding.scalabilityMode &&

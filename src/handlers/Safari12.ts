@@ -394,14 +394,17 @@ export class Safari12
 			});
 		}
 
-		const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
-		const transceiver = this._pc.addTransceiver(track, {
-			direction: 'sendonly',
-			streams: [this._sendStream],
-			sendEncodings: encodings,
-		});
+		let transceiver: RTCRtpTransceiver | undefined;
 
 		try {
+			transceiver = this._pc.addTransceiver(track, {
+				direction: 'sendonly',
+				streams: [this._sendStream],
+				sendEncodings: encodings,
+			});
+
+			const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
+
 			if (this._forcedRtpExtensions) {
 				ortcUtils.applyForcedRtpExtensions(
 					transceiver,
@@ -546,7 +549,7 @@ export class Safari12
 					} catch (error2) {}
 				}
 
-				transceiver.stop();
+				transceiver?.stop();
 			} catch (error3) {}
 
 			throw error;

@@ -383,19 +383,20 @@ export class Firefox120
 			});
 		}
 
-		// NOTE: Firefox fails sometimes to properly anticipate the closed media
-		// section that it should use, so don't reuse closed media sections.
-		//   https://github.com/versatica/mediasoup-client/issues/104
-		//
-		// const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
-
-		const transceiver = this._pc.addTransceiver(track, {
-			direction: 'sendonly',
-			streams: [this._sendStream],
-			sendEncodings: encodings,
-		});
+		let transceiver: RTCRtpTransceiver | undefined;
 
 		try {
+			transceiver = this._pc.addTransceiver(track, {
+				direction: 'sendonly',
+				streams: [this._sendStream],
+				sendEncodings: encodings,
+			});
+
+			// NOTE: Firefox fails sometimes to properly anticipate the closed media
+			// section that it should use, so don't reuse closed media sections.
+			//   https://github.com/versatica/mediasoup-client/issues/104
+			// const mediaSectionIdx = this._remoteSdp.getNextMediaSectionIdx();
+
 			if (this._forcedRtpExtensions) {
 				ortcUtils.applyForcedRtpExtensions(
 					transceiver,
@@ -559,7 +560,7 @@ export class Firefox120
 					} catch (error2) {}
 				}
 
-				transceiver.stop();
+				transceiver?.stop();
 			} catch (error3) {}
 
 			throw error;

@@ -566,9 +566,6 @@ export class Transport<
 							if (encoding.active === false) {
 								normalizedEncoding.active = false;
 							}
-							if (typeof encoding.dtx === 'boolean') {
-								normalizedEncoding.dtx = encoding.dtx;
-							}
 							if (typeof encoding.scalabilityMode === 'string') {
 								normalizedEncoding.scalabilityMode = encoding.scalabilityMode;
 							}

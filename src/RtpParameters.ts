@@ -249,13 +249,6 @@ export type RtpEncodingParameters = {
 	 */
 	rtx?: { ssrc: number };
 	/**
-	 * It indicates whether discontinuous RTP transmission will be used. Useful
-	 * for audio (if the codec supports it) and for video screen sharing (when
-	 * static content is being transmitted, this option disables the RTP
-	 * inactivity checks in mediasoup). Default false.
-	 */
-	dtx?: boolean;
-	/**
 	 * Number of spatial and temporal layers in the RTP stream (e.g. 'L1T3').
 	 * See webrtc-svc.
 	 */
