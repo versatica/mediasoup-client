@@ -1,8 +1,11 @@
+import { Logger } from '../../Logger';
 import type { HandlerForcedRtpExtensions } from '../../handlers/HandlerInterface';
 import type {
 	RtpCapabilities,
 	RtpHeaderExtensionUri,
 } from '../../RtpParameters';
+
+const logger = new Logger('ortc/utils');
 
 /**
  * This function adds RTCP NACK support for OPUS codec in given capabilities.
@@ -82,7 +85,21 @@ export function applyForcedRtpExtensions(
 		}
 	);
 
-	transceiver.setHeaderExtensionsToNegotiate(extensionsToNegotiate);
+	try {
+		transceiver.setHeaderExtensionsToNegotiate(extensionsToNegotiate);
+	} catch (error) {
+		logger.error(
+			'applyForcedRtpExtensions() | transceiver.setHeaderExtensionsToNegotiate() failed',
+			{
+				transceiver,
+				forcedRtpExtensions,
+				extensionsToNegotiate,
+				error,
+			}
+		);
+
+		return false;
+	}
 
 	return true;
 }
