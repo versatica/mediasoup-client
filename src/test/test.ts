@@ -7,6 +7,7 @@ import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as mediasoupClient from '../index';
 import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
+import { applyForcedRtpExtensions } from '../handlers/ortc/utils';
 import type { RtpCapabilities } from '../RtpParameters';
 import { FakeHandler } from '../handlers/FakeHandler';
 import * as fakeParameters from './fakeParameters';
@@ -1761,4 +1762,41 @@ describe('detectDevice() and detectDeviceAsync() assign proper handler based on 
 			100
 		);
 	}
+});
+
+describe('applyForcedRtpExtensions()', () => {
+	test('keeps the mandatory MID extension enabled when forcing another extension', () => {
+		const midUri = 'urn:ietf:params:rtp-hdrext:sdes:mid';
+		const absCaptureTimeUri =
+			'http://www.webrtc.org/experiments/rtp-hdrext/abs-capture-time';
+		const capabilities: RTCRtpHeaderExtensionCapability[] = [
+			{ uri: midUri, direction: 'stopped' },
+			{ uri: absCaptureTimeUri, direction: 'recvonly' },
+		];
+		let submittedCapabilities: RTCRtpHeaderExtensionCapability[] | undefined;
+		const transceiver = {
+			getHeaderExtensionsToNegotiate: () => capabilities,
+			setHeaderExtensionsToNegotiate: (
+				nextCapabilities: RTCRtpHeaderExtensionCapability[]
+			) => {
+				const midExtension = nextCapabilities.find(({ uri }) => uri === midUri);
+
+				if (midExtension?.direction !== 'sendrecv') {
+					throw new Error('Attempted to stop a mandatory extension.');
+				}
+
+				submittedCapabilities = nextCapabilities;
+			},
+		} as unknown as RTCRtpTransceiver;
+
+		expect(
+			applyForcedRtpExtensions(transceiver, {
+				[absCaptureTimeUri]: true,
+			})
+		).toBe(true);
+		expect(submittedCapabilities).toEqual([
+			{ uri: midUri, direction: 'sendrecv' },
+			{ uri: absCaptureTimeUri, direction: 'sendrecv' },
+		]);
+	});
 });

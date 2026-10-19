@@ -75,7 +75,12 @@ export function applyForcedRtpExtensions(
 			const uri = extenCap.uri as RtpHeaderExtensionUri;
 			const enabled: boolean | undefined = forcedRtpExtensions[uri];
 
-			if (enabled === true) {
+			// MID is mandatory when BUNDLE is used and cannot be disabled by this API.
+			// Some browsers may report it as stopped after negotiation, but reject the
+			// entire list if that direction is submitted again.
+			if (uri === 'urn:ietf:params:rtp-hdrext:sdes:mid') {
+				extenCap.direction = 'sendrecv';
+			} else if (enabled === true) {
 				extenCap.direction = 'sendrecv';
 			} else if (enabled === false) {
 				extenCap.direction = 'stopped';
