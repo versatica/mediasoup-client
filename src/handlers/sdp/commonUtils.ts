@@ -27,8 +27,15 @@ export function extractRtpCapabilities({
 }): RtpCapabilities {
 	// Map of RtpCodecParameters indexed by payload type.
 	const codecsMap: Map<number, RtpCodecCapability> = new Map();
-	// Map of RtpHeaderExtensions indexed by preferred id.
-	const headerExtensionMap: Map<number, RtpHeaderExtension> = new Map();
+	// Map of RtpHeaderExtensions indexed by kind and preferred id.
+	//
+	// NOTE: It must be indexed by kind and id rather than just by id. Since all
+	// m= sections are bundled, the browser gives the same id to a given extension
+	// in every m= section that supports it, so indexing just by id would collapse
+	// the audio and the video entry of such an extension into a single one with
+	// the kind of the last processed m= section, making the extension vanish for
+	// the other kind.
+	const headerExtensionMap: Map<string, RtpHeaderExtension> = new Map();
 
 	for (const m of sdpObject.media) {
 		const kind = m.type;
@@ -122,7 +129,10 @@ export function extractRtpCapabilities({
 				preferredId: ext.value,
 			};
 
-			headerExtensionMap.set(headerExtension.preferredId, headerExtension);
+			headerExtensionMap.set(
+				`${kind}:${headerExtension.preferredId}`,
+				headerExtension
+			);
 		}
 	}
 

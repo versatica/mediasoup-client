@@ -4,7 +4,9 @@
  */
 
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
+import * as sdpTransform from 'sdp-transform';
 import * as mediasoupClient from '../index';
+import * as sdpCommonUtils from '../handlers/sdp/commonUtils';
 import { UnsupportedError, InvalidStateError } from '../errors';
 import * as utils from '../utils';
 import type { RtpCapabilities } from '../RtpParameters';
@@ -1761,4 +1763,63 @@ describe('detectDevice() and detectDeviceAsync() assign proper handler based on 
 			100
 		);
 	}
+});
+
+test('sdpCommonUtils.extractRtpCapabilities() does not mix up audio and video extensions sharing the same id', () => {
+	// NOTE: Since all m= sections are bundled, the browser gives the same id to
+	// a given RTP header extension in every m= section that supports it (here
+	// sdes:mid has id 4 in both the audio and the video m= section).
+	const sdp = [
+		'v=0',
+		'o=- 0 0 IN IP4 127.0.0.1',
+		's=-',
+		't=0 0',
+		'a=group:BUNDLE 0 1',
+		'm=audio 9 UDP/TLS/RTP/SAVPF 111',
+		'c=IN IP4 0.0.0.0',
+		'a=mid:0',
+		'a=sendonly',
+		'a=rtpmap:111 opus/48000/2',
+		'a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+		'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid',
+		'm=video 9 UDP/TLS/RTP/SAVPF 96',
+		'c=IN IP4 0.0.0.0',
+		'a=mid:1',
+		'a=sendonly',
+		'a=rtpmap:96 VP8/90000',
+		'a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid',
+		'a=extmap:13 urn:3gpp:video-orientation',
+		'',
+	].join('\r\n');
+
+	const rtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+		sdpObject: sdpTransform.parse(sdp),
+	});
+
+	expect(rtpCapabilities.headerExtensions).toEqual(
+		expect.arrayContaining([
+			{
+				kind: 'audio',
+				uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+				preferredId: 1,
+			},
+			{
+				kind: 'audio',
+				uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				preferredId: 4,
+			},
+			{
+				kind: 'video',
+				uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
+				preferredId: 4,
+			},
+			{
+				kind: 'video',
+				uri: 'urn:3gpp:video-orientation',
+				preferredId: 13,
+			},
+		])
+	);
+
+	expect(rtpCapabilities.headerExtensions!.length).toBe(4);
 });
