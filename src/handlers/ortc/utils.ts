@@ -8,17 +8,6 @@ import type {
 const logger = new Logger('ortc/utils');
 
 /**
- * RTP header extensions that are mandatory to negotiate (since BUNDLE is always
- * offered) and hence cannot be disabled via the RTP header extension control
- * API.
- *
- * @see https://www.rfc-editor.org/rfc/rfc8834#name-header-extensions
- */
-const MandatoryRtpExtensionUris: Set<RtpHeaderExtensionUri> = new Set([
-	'urn:ietf:params:rtp-hdrext:sdes:mid',
-]);
-
-/**
  * This function adds RTCP NACK support for OPUS codec in given capabilities.
  */
 export function addNackSupportForOpus(rtpCapabilities: RtpCapabilities): void {
@@ -86,12 +75,7 @@ export function applyForcedRtpExtensions(
 			const uri = extenCap.uri as RtpHeaderExtensionUri;
 			const enabled: boolean | undefined = forcedRtpExtensions[uri];
 
-			// NOTE: This is a workaround to avoid a potential bug in libwebrtc:
-			// - https://github.com/versatica/mediasoup-client/issues/394
-			// - https://issues.webrtc.org/issues/576082210
-			if (MandatoryRtpExtensionUris.has(uri)) {
-				extenCap.direction = 'sendrecv';
-			} else if (enabled === true) {
+			if (enabled === true) {
 				extenCap.direction = 'sendrecv';
 			} else if (enabled === false) {
 				extenCap.direction = 'stopped';
