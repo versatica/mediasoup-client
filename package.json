@@ -93,11 +93,11 @@
 		"eslint-plugin-prettier": "^5.5.7",
 		"globals": "^17.13.0",
 		"jest": "^30.5.2",
-		"knip": "^6.42.0",
+		"knip": "^6.42.1",
 		"open-cli": "^9.0.0",
 		"prettier": "^3.9.10",
 		"ts-jest": "^29.4.15",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.71.2"
+		"typescript-eslint": "^8.72.0"
 	}
 }
