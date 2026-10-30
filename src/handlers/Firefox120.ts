@@ -292,8 +292,13 @@ export class Firefox120
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		this.assertNotClosed();
 
-		// NOTE: Firefox does not implement pc.setConfiguration().
-		throw new UnsupportedError('not supported');
+		logger.debug('updateIceServers()');
+
+		const configuration = this._pc.getConfiguration();
+
+		configuration.iceServers = iceServers;
+
+		this._pc.setConfiguration(configuration);
 	}
 
 	async restartIce(iceParameters: IceParameters): Promise<void> {
