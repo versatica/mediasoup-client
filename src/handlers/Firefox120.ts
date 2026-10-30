@@ -2,7 +2,7 @@ import * as sdpTransform from 'sdp-transform';
 import type * as SdpTransform from 'sdp-transform';
 import { EnhancedEventEmitter } from '../enhancedEvents';
 import { Logger } from '../Logger';
-import { UnsupportedError, InvalidStateError } from '../errors';
+import { InvalidStateError } from '../errors';
 import * as ortc from '../ortc';
 import { parse as parseScalabilityMode } from '../scalabilityModes';
 import type { IceParameters, DtlsRole } from '../Transport';
@@ -288,7 +288,6 @@ export class Firefox120
 		super.close();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async updateIceServers(iceServers: RTCIceServer[]): Promise<void> {
 		this.assertNotClosed();
 
