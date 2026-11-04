@@ -12,6 +12,7 @@ const MAIN_BRANCH = `v${pkg.version.split('.')[0]}`;
 const ESLINT_PATHS = [
 	'eslint.config.mjs',
 	'jest.config.mjs',
+	'knip.config.mjs',
 	'npm-scripts.mjs',
 	'src',
 ];
@@ -25,6 +26,7 @@ const PRETTIER_PATHS = [
 	'README.md',
 	'eslint.config.mjs',
 	'jest.config.mjs',
+	'knip.config.mjs',
 	'npm-scripts.mjs',
 	'package.json',
 	'tsconfig.json',
