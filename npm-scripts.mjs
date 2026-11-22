@@ -92,7 +92,7 @@ async function run() {
 		}
 
 		case 'test': {
-			test();
+			test({ args: taskArgs });
 
 			break;
 		}
