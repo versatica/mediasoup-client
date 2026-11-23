@@ -77,7 +77,7 @@
 		"@types/events-alias": "npm:@types/events@^3.0.3",
 		"awaitqueue": "^3.3.1",
 		"debug": "^4.4.3",
-		"events-alias": "npm:events@^3.3.0",
+		"events": "^3.3.0",
 		"fake-mediastreamtrack": "^2.2.1",
 		"h264-profile-level-id": "^2.3.3",
 		"sdp-transform": "^3.0.0",
@@ -86,6 +86,7 @@
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@types/jest": "^30.0.0",
+		"@types/node": "^26.6.6",
 		"@types/sdp-transform": "^3.0.0",
 		"eslint": "^10.14.0",
 		"eslint-config-prettier": "^10.1.8",

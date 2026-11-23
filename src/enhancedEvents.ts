@@ -1,7 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { EventEmitter, type Listener } from 'events-alias';
+// NOTE: In Node.js `events` is always the native module, even if the npm
+// `events` package (in `dependencies`) is installed. Bundlers for the browser
+// resolve it to that npm package instead.
+import { EventEmitter as RuntimeEventEmitter } from 'events';
+// NOTE: Types are taken from the npm `events` package (via the
+// `@types/events-alias` alias in `dependencies`) so the generated TypeScript
+// declarations don't depend on Node.js types.
+import type { EventEmitter as EventEmitterType, Listener } from 'events-alias';
 import { Logger } from './Logger';
+
+const EventEmitter = RuntimeEventEmitter as unknown as typeof EventEmitterType;
 
 const enhancedEventEmitterLogger = new Logger('EnhancedEventEmitter');
 
