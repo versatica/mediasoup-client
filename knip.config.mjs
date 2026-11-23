@@ -1,5 +1,6 @@
+/** @type {import('knip').KnipConfig} */
 const config = {
-	$schema: 'https://unpkg.com/knip@5/schema.json',
+	$schema: 'https://unpkg.com/knip@6/schema.json',
 	project: ['src/**/*.ts'],
 	ignoreDependencies: ['open-cli', 'supports-color'],
 	typescript: {
