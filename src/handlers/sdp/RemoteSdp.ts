@@ -18,7 +18,7 @@ import type { MediaKind, RtpParameters } from '../../RtpParameters';
 import type { SctpParameters } from '../../SctpParameters';
 import { version as mediasoupClientVersion } from '../../';
 
-const DependencyDescriptorCodecs = ['av1', 'h264', 'vp9'];
+const DependencyDescriptorCodecs = ['av1', 'h264', 'vp9', 'vp8'];
 
 const logger = new Logger('RemoteSdp');
 
